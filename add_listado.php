@@ -13,7 +13,7 @@ function add_listado($IdTabla){
                 </div>
             </div>
             <div class='col-4'>
-            <button type="button" class="btn btn-primary" onclick='$("#listado_<?php echo $IdTabla;?>").hide();$("#add_form_<?php echo $IdTabla;?>").show();'>
+            <button type="button" class="btn btn-primary" onclick='AgregarRegistro("<?php echo $IdTabla;?>")'>
                 <i class="fas fa-plus"></i> <small><?php echo Trd(2)?></small>
             </button>                
             </div>

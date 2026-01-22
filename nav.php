@@ -20,6 +20,7 @@
                 <li><a class="dropdown-item" href="crud.php?Id=customers">Customers</a></li>                
                 <li><a class="dropdown-item" href="crud.php?Id=customer_type">Customer Type</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=distance_charges">Distance Charges</a></li>
+                <li><a class="dropdown-item" href="documentcenter.php">Document Center</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=gifcard">Gifcard</a></li>                
                 <li><a class="dropdown-item" href="crud.php?Id=item_prices">Item Prices</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=organizations">Organizations</a></li>

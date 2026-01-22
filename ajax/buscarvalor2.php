@@ -35,7 +35,7 @@
 
             $sql2 = "SELECT $CampoValor AS Id, $CampoDescripcion AS Descripcion 
                     FROM $TablaDts 
-                    WHERE $Filtro $CampoFiltro = :valor AND Idioma ='$Idioma'
+                    WHERE $Filtro $CampoFiltro = :valor AND (Idioma ='$Idioma' OR Idioma ='')
                     ORDER BY $CampoDescripcion";
             //echo $sql2;
             $stmt2 = $conexion->prepare($sql2);

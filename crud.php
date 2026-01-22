@@ -7,10 +7,12 @@
     $database = new Database();
     $db = $database->getConnection();
     $IdTabla = $_GET['Id'];
-    
+    $Id2 = '';
+    if (isset($_GET['Id2']))
+        $Id2 = $_GET['Id2'];
+
+    $Idioma = $_SESSION['Idioma'];
     $Idioma = 'es';
-    $_SESSION['Idioma'] = $Idioma;
-    
     $query = "select Traduccion FROM  programas_traduccion where Programa = 'crud' AND Idioma = ? ORDER BY Id";            
     $stmt = $db->prepare($query);
     $stmt->bindValue(1, $Idioma);
@@ -176,7 +178,8 @@
             'venues',
             'organizations',
             'surfaces',
-            'item_prices'
+            'item_prices',
+            'document_center'
         ];
         if (!in_array($IdTabla, $allowed_tables)) {
             die("<h3>".Trd(3)."</h3></div></body></html>");
@@ -197,9 +200,69 @@
         include_once 'delete_form.php'; 
         if ($IdTabla == 'products'){
             add_listado($IdTabla);
+?>
+        <div class="container" id = "add_form_<?php echo $IdTabla?>_clone" style="display: none">
+        <br>
+        <h4 class="mb-4">Clonar producto:</h4>
+            <form name="add_<?php echo $IdTabla?>_clone" id="add_<?php echo $IdTabla?>_clone" class="needs-validation" novalidate>
+                <div class="row">
+                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
+                <?php
+                            echo "<label for='CodigoOrigen_clone' class='form-label'>Producto a Clonar</label>";
+                                echo '<select name="CodigoOrigen_clone" id="CodigoOrigen_clone" class="selectpicker form-control border-1  rounded " style="" >';
+                                $Valores_Productos ='';
+                            $query ="SELECT Id,Name FROM products ";
+                            $stmt_dts = $db->prepare($query);
+                            $stmt_dts->execute();
+                            $tabla_dts = $stmt_dts->fetchAll(PDO::FETCH_ASSOC);
+                            if ($tabla_dts) {
+                                $Valores_Productos .='<option value = "" selected> ... </option>';
+                                foreach ($tabla_dts as $tabla_dt) {
+                                    $Valor         = $tabla_dt['Id'];
+                                    $Descripcion   = $tabla_dt['Name'];
+                                    $Valores_Productos.='<option value="'.$Valor.'">'. ($Descripcion).'</option>';
+                                }
+                            }
+                            echo $Valores_Productos;
+                            echo '</select>';
+                ?>
+                    </div>
+                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
+                        <label for='Name_clone' class='form-label'>Nombre Producto</label>
+                            <input name="Name_clone" id="Name_clone" class=" form-control  form-control-sm" type="text" style="text-align: left;" required=""  minlength="5" maxlength="255" placeholder="ingresa el nombre para el nuevo producto"  >
+                    </div>                        
+                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
+                        <br>
+                        <button class="btn btn-primary" type="button" onclick="Clonar('add','<?php echo $IdTabla?>')">Clonar</button>                
+                    </div>                        
+                </div>
+                
+            </form>
+        </div>
+<?php
             add_form($IdTabla,$Idioma,'M');
-                //add_listado($Tabla);
-                //add_form($Tabla,$Idioma,'F');
+
+?>
+        <div class="container" id = "add_form_<?php echo $IdTabla?>_clone_edit" style="display: none">
+        <br>
+        <h4 class="mb-4">Clonar producto a :</h4>
+            <form name="add_<?php echo $IdTabla?>_clone_edit" id="add_<?php echo $IdTabla?>_clone_edit" class="needs-validation" novalidate>
+                <div class="row">
+                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
+                        <input name="product_clone_edit" id="product_clone_edit"  type="hidden"  >
+                        <label for='Name_clone_edit' class='form-label'>Nombre Producto</label>
+                            <input name="Name_clone_edit" id="Name_clone_edit" class=" form-control  form-control-sm" type="text" style="text-align: left;" required=""  minlength="5" maxlength="255" placeholder="ingresa el nombre para el nuevo producto"  >
+                    </div>                        
+                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
+                        <br>
+                        <button class="btn btn-primary" type="button" onclick="Clonar('edit','<?php echo $IdTabla?>')">Clonar</button>                
+                    </div>                        
+                </div>
+                
+            </form>
+        </div>
+<?php            
+
             edit_form($IdTabla,$Idioma,'I');
 
             echo '<br><h4 class="mb-4">'.Trd(29).'</h4>';
@@ -310,21 +373,105 @@
                 edit_form($Tabla2,$Idioma,'D');
             $Tabla3 = 'packing_list';
             echo '<br><h4 class="mb-4">'.Trd(32).'</h4>';
+?>
+        <div class="container" id = "add_form_<?php echo $Tabla3?>_clone" style="">
+            <form name="add_<?php echo $Tabla3?>_clone" id="add_<?php echo $Tabla3?>_clone" class="needs-validation" novalidate>
+                <div class="row">
+                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
+                <?php
+                            echo "<label for='CodigoOrigen_clone_$Tabla3' class='form-label'>Copiar información de: </label>";
+                                echo '<select name="CodigoOrigen_clone_'.$Tabla3.'" id="CodigoOrigen_clone_'.$Tabla3.'" class="selectpicker form-control border-1  rounded " style="" >';
+                                echo $Valores_Productos;
+                            echo '</select>';
+                ?>
+                    </div>
+                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
+                        <br>
+                        <button class="btn btn-primary" type="button" onclick="Copiar(3)">Copiar</button>
+                    </div>                        
+                </div>
+                
+            </form>
+        </div>
+<?php
                 add_listado($Tabla3);
                 add_form($Tabla3,$Idioma,'D');
                 edit_form($Tabla3,$Idioma,'D');
             $Tabla4 = 'related_products';
             echo '<br><h4 class="mb-4">'.Trd(33).'</h4>';
+?>
+        <div class="container" id = "add_form_<?php echo $Tabla4?>_clone" style="">
+            <form name="add_<?php echo $Tabla4?>_clone" id="add_<?php echo $Tabla4?>_clone" class="needs-validation" novalidate>
+                <div class="row">
+                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
+                <?php
+                            echo "<label for='CodigoOrigen_clone_$Tabla4' class='form-label'>Copiar información de: </label>";
+                                echo '<select name="CodigoOrigen_clone_'.$Tabla4.'" id="CodigoOrigen_clone_'.$Tabla4.'" class="selectpicker form-control border-1  rounded " style="" >';
+                                echo $Valores_Productos;
+                            echo '</select>';
+                ?>
+                    </div>
+                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
+                        <br>
+                        <button class="btn btn-primary" type="button" onclick="Copiar(4)">Copiar</button>
+                    </div>                        
+                </div>
+                
+            </form>
+        </div>
+<?php            
                 add_listado($Tabla4);
                 add_form($Tabla4,$Idioma,'D');
                 edit_form($Tabla4,$Idioma,'D');                                
             $Tabla5 = 'upselling_products';
             echo '<br><h4 class="mb-4">'.Trd(34).'</h4>';
+?>
+        <div class="container" id = "add_form_<?php echo $Tabla5?>_clone" style="">
+            <form name="add_<?php echo $Tabla5?>_clone" id="add_<?php echo $Tabla5?>_clone" class="needs-validation" novalidate>
+                <div class="row">
+                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
+                <?php
+                            echo "<label for='CodigoOrigen_clone_$Tabla5' class='form-label'>Copiar información de: </label>";
+                                echo '<select name="CodigoOrigen_clone_'.$Tabla5.'" id="CodigoOrigen_clone_'.$Tabla5.'" class="selectpicker form-control border-1  rounded " style="" >';
+                                echo $Valores_Productos;
+                            echo '</select>';
+                ?>
+                    </div>
+                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
+                        <br>
+                        <button class="btn btn-primary" type="button" onclick="Copiar(5)">Copiar</button>
+                    </div>                        
+                </div>
+                
+            </form>
+        </div>
+<?php            
                 add_listado($Tabla5);
                 add_form($Tabla5,$Idioma,'D');
                 edit_form($Tabla5,$Idioma,'D');
             $Tabla6 = 'relationship_products';
             echo '<br><h4 class="mb-4">'.Trd(35).'</h4>';
+?>
+        <div class="container" id = "add_form_<?php echo $Tabla6?>_clone" style="">
+            <form name="add_<?php echo $Tabla6?>_clone" id="add_<?php echo $Tabla6?>_clone" class="needs-validation" novalidate>
+                <div class="row">
+                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
+                <?php
+                            echo "<label for='CodigoOrigen_clone_$Tabla6' class='form-label'>Copiar información de: </label>";
+                                echo '<select name="CodigoOrigen_clone_'.$Tabla6.'" id="CodigoOrigen_clone_'.$Tabla6.'" class="selectpicker form-control border-1  rounded " style="" >';
+                                echo $Valores_Productos;
+                            echo '</select>';
+                ?>
+                    </div>
+                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
+                        <br>
+                        <button class="btn btn-primary" type="button" onclick="Copiar(6)">Copiar</button>
+                    </div>                        
+                </div>
+                
+            </form>
+        </div>
+<?php            
                 add_listado($Tabla6);
                 add_form($Tabla6,$Idioma,'D');
                 edit_form($Tabla6,$Idioma,'D');                
@@ -444,8 +591,226 @@
     const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
     const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
     const TOKEN = localStorage.getItem('apiToken'); 
-    let IdSelected = '';
+    let IdSelected = '<?php echo $Id2;?>';
     let IdDelete = '';
+
+
+    function Cancel_add(Id){
+        $("#listado_"+Id).show();
+        $("#add_form_"+Id).hide();
+        if (Id=='products'){
+            $("#add_form_products_clone").hide();
+        }
+    }
+    function Cancel_edit(Id){
+        $("#listado_"+Id).show();
+        $("#edit_form_"+Id).hide();
+        if (Id=='products'){
+            $("#add_form_products_clone_edit").hide();
+        }
+    }    
+
+    function AgregarRegistro(Id){
+        $("#listado_"+Id).hide();
+        $("#add_form_"+Id).show();
+        if (Id=='products'){
+            $("#add_form_products_clone").show();
+        }
+    }
+
+    function Clonar(Id,IdTabla){
+
+        if (Id == 'add'){
+            if (!$('#CodigoOrigen_clone').val()){
+                alert('Necesita seleccionar producto a copiar')
+                return;
+            }
+            if (!$('#Name_clone').val()){
+                alert('Necesita ingresar el nombre para el nuevo producto')
+                return;
+            }            
+            var misHeaders = {
+                'Authorization': 'Bearer ' + TOKEN
+            };
+
+            misHeaders['ID2'] = 'products';
+            misHeaders['ID3'] = 'Id';
+            misHeaders['ID4'] = $('#Name_clone').val();
+
+            $.ajax({
+                url: API_BASE_URL + "clone_record/"+$('#CodigoOrigen_clone').val(),
+                type: 'POST',
+                contentType: 'application/json', // Mantenemos el Content-Type como JSON
+                headers: misHeaders,
+
+                success: function(response) {
+                    let IdInsert = 0;
+                    Object.entries(response).forEach(([clave, valor]) => {
+                        if (clave == "Id")
+                            IdInsert = valor;
+                    });
+                    setTimeout(() => {
+                        showToast('✅ <?php echo Trd(12)?> ' + IdInsert);
+                    }, 500);
+
+                    $("#add_form_products_clone").hide();
+                    //$("#listado_"+IdTabla).show();
+                    $("#add_form_"+IdTabla).hide();
+                    getRecordData(IdInsert,IdTabla)
+                    //$("#add_form_products_clone_edit").hide();
+
+                },
+                error: function(xhr) {
+                    const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'Error al comunicarse con la API.';
+
+                    setTimeout(() => {
+                        showToast('❌ <?php echo Trd(13)?> ' + errorMessage);
+                    }, 500);
+                }
+            });        
+
+        }
+        else{
+            if (!$('#Name_clone_edit').val()){
+                alert('Necesita ingresar el nombre para el nuevo producto')
+                return;
+            }         
+            //IdSelected
+
+            var misHeaders = {
+                'Authorization': 'Bearer ' + TOKEN
+            };
+
+            misHeaders['ID2'] = 'products';
+            misHeaders['ID3'] = 'Id';
+            misHeaders['ID4'] = $('#Name_clone_edit').val();
+
+            $.ajax({
+                url: API_BASE_URL + "clone_record/"+IdSelected,
+                type: 'POST',
+                contentType: 'application/json', // Mantenemos el Content-Type como JSON
+                headers: misHeaders,
+
+                success: function(response) {
+                    let IdInsert = 0;
+                    Object.entries(response).forEach(([clave, valor]) => {
+                        if (clave == "Id")
+                            IdInsert = valor;
+                    });
+                    setTimeout(() => {
+                        showToast('✅ <?php echo Trd(12)?> ' + IdInsert);
+                    }, 500);
+
+                    $("#add_form_products_clone_edit").hide();
+                    //$("#listado_"+IdTabla).show();
+                    $("#edit_form_"+IdTabla).hide();
+                    getRecordData(IdInsert,IdTabla)
+                    //$("#add_form_products_clone_edit").hide();
+
+                },
+                error: function(xhr) {
+                    const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'Error al comunicarse con la API.';
+
+                    setTimeout(() => {
+                        showToast('❌ <?php echo Trd(13)?> ' + errorMessage);
+                    }, 500);
+                }
+            });              
+
+        }
+    }    
+
+    function Copiar(Id){
+    
+            var misHeaders = {
+                'Authorization': 'Bearer ' + TOKEN
+            };
+
+            //misHeaders['ID2'] = 'products';
+            //misHeaders['ID3'] = 'Id';
+            //misHeaders['ID4'] = $('#Name_clone_edit').val();    
+
+        switch (Id) {
+        case 3:
+            //alert($('#CodigoOrigen_clone_packing_list').val())
+            misHeaders['ID2'] = 'packing_list';
+            misHeaders['ID3'] = 'Producto_pl';
+            misHeaders['ID4'] = $('#CodigoOrigen_clone_packing_list').val();                
+            break;
+        case 4:
+            //alert($('#CodigoOrigen_clone_related_products').val())
+            misHeaders['ID2'] = 'related_products';
+            misHeaders['ID3'] = 'Producto_rp';
+            misHeaders['ID4'] = $('#CodigoOrigen_clone_related_products').val();               
+            break;
+        case 5:
+            //alert($('#CodigoOrigen_clone_upselling_products').val())
+            misHeaders['ID2'] = 'upselling_products';
+            misHeaders['ID3'] = 'Producto_up';
+            misHeaders['ID4'] = $('#CodigoOrigen_clone_upselling_products').val();             
+            break;
+        case 6:
+            //alert($('#CodigoOrigen_clone_relationship_products').val())
+            misHeaders['ID2'] = 'relationship_products';
+            misHeaders['ID3'] = 'Producto_sp';
+            misHeaders['ID4'] = $('#CodigoOrigen_clone_relationship_products').val();               
+            break;
+        default:
+            break;
+        }    
+
+
+
+            $.ajax({
+                url: API_BASE_URL + "copy_records/"+IdSelected,
+                type: 'POST',
+                contentType: 'application/json', // Mantenemos el Content-Type como JSON
+                headers: misHeaders,
+
+                success: function(response) {
+                    let IdInsert = 0;
+                    Object.entries(response).forEach(([clave, valor]) => {
+                        if (clave == "Id")
+                            IdInsert = valor;
+                    });
+
+        switch (Id) {
+        case 3:
+listado('packing_list');               
+            break;
+        case 4:
+listado('related_products');;               
+            break;
+        case 5:
+listado('upselling_products');             
+            break;
+        case 6:
+listado('relationship_products');               
+            break;
+        default:
+            break;
+        }                       
+
+                    
+                    
+                    
+                    
+
+                    setTimeout(() => {
+                        showToast('✅ <?php echo Trd(12)?> ' + IdInsert);
+                    }, 500);
+
+                },
+                error: function(xhr) {
+                    const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'Error al comunicarse con la API.';
+
+                    setTimeout(() => {
+                        showToast('❌ <?php echo Trd(13)?> ' + errorMessage);
+                    }, 500);
+                }
+            });            
+
+    }
 
     function createNewRecord(form,IdTabla) {
         if (!TOKEN) {
@@ -740,7 +1105,7 @@ function getRecordData(Id,IdTabla) {
                         // Para inputs normales (text, hidden, etc.)
                         //alert(input.type)
                         //alert(valor)
-                        if ((IdTabla == 'categories' || IdTabla == 'related_products')  && input.type == 'file'){
+                        if ((IdTabla == 'products_images' || IdTabla == 'related_products')  && input.type == 'file'){
                             var $select = $("#file_edit_" + clave+"_1")
                             $select.val(valor);
                             //alert(clave)
@@ -768,6 +1133,7 @@ function getRecordData(Id,IdTabla) {
                 }
             });
             if (IdTabla == 'products'){
+                $("#add_form_products_clone_edit").show();
                 listado('products_categories');
                 listado('products_images');
                 listado('packing_list');
@@ -881,8 +1247,9 @@ function deleteRecord(Id,IdTabla) {
             tipos.forEach(row => {
                 let tipo = row['TipoCampo'];
                 Tipos.push(tipo);
-            });            
-
+            });
+            if (IdTabla == 'products_images')
+                html += `<th >Orden</th>`;
 
             html += `<th ></th>`;
             html += '</tr>';
@@ -913,6 +1280,26 @@ function deleteRecord(Id,IdTabla) {
                         Id = row[col];
                     idx=idx+1;
                 });
+
+            if (IdTabla == 'products_images'){
+                html += `<td style="text-align: center">
+                            
+                    <button class="btn-nav" title="Inicio" onclick="orden('I',${IdSelected},${Id})">
+                        <i class="fa-solid fa-angles-left"></i>
+                    </button>
+                    <button class="btn-nav" title="Anterior" onclick="orden('A',${IdSelected},${Id})">
+                        <i class="fa-solid fa-angle-left"></i>
+                    </button>
+                    <button class="btn-nav" title="Siguiente" onclick="orden('S',${IdSelected},${Id})">
+                        <i class="fa-solid fa-angle-right"></i>
+                    </button>
+                    <button class="btn-nav" title="Último" onclick="orden('U',${IdSelected},${Id})">
+                        <i class="fa-solid fa-angles-right"></i>
+                    </button>
+
+                        </td>`;                
+            }
+                
 
                 html += `<td style="text-align: center">
                             <button type="button" class="btn btn-primary btn-sm" onclick="getRecordData('${Id}','${IdTabla}')">
@@ -1042,7 +1429,7 @@ function deleteRecord(Id,IdTabla) {
             const loadingAlert = '<div class="alert alert-info text-center"><?php echo Trd(43)?> ' + pageNumber + '...</div>';
             $('#table-container').html(loadingAlert);
             $.ajax({
-                url: API_BASE_URL + IdTabla +'/?page='+pageNumber+'&limit=10&like='+$('#Search').val()+'&lang=<?php echo $Idioma?>',
+                url: API_BASE_URL + IdTabla +'/?page='+pageNumber+'&limit=10&like='+$('#Search_'+IdTabla).val()+'&lang=<?php echo $Idioma?>',
                 type: 'GET',
                 dataType: 'json', // Indica que esperamos JSON
                 headers: {
@@ -1209,6 +1596,9 @@ function deleteRecord(Id,IdTabla) {
 
 
         function uploadFile(file,field,type){
+            //alert(file)
+            //alert(field)
+            //alert(type)
             var url = 'ajax/upload.php';
             var xhr = new XMLHttpRequest();
             var fd = new FormData();
@@ -1303,8 +1693,42 @@ function deleteRecord(Id,IdTabla) {
             }
         });
 
+        function orden(orden,Idp,Id){
+        $.ajax({
+            url: API_BASE_URL + 'orden',
+            type: 'PUT',
+            contentType: 'application/json', // Mantenemos el Content-Type como JSON
+            headers: {
+                'Authorization': 'Bearer ' + TOKEN 
+            },
+            // Enviamos el objeto convertido a JSON String
+            data:JSON.stringify({
+                orden: orden,
+                Idp: Idp,
+                Id:Id
+            }),
+            success: function(response) {
+                listado('products_images');
+            },
+            error: function(xhr) {
+                const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'Error al comunicarse con la API.';
+                setTimeout(() => {
+                    showToast('❌ <?php echo Trd(15)?> ' + errorMessage);
+                }, 500);
+            }
+        });            
 
+        }
 <?php
+
+
+
+
+
+//ESTE BLOQUE ES PARA PINTAR EL PROCESO DE PRECIOS !!
+
+
+
 if ($IdTabla == 'item_prices' OR $IdTabla == 'products'){
 ?>
 
@@ -1798,6 +2222,43 @@ function cargar() {
 <?php
 }
 ?>
+
+
+    $('#edit_Copiar').on('click', function() {
+        //var idBoton = $(this).attr('id'); // Obtiene el ID del botón
+        getTemplate( $('#edit_IdTemplate').val(),'edit_Template' );
+    });
+
+    $('#Copiar').on('click', function() {
+        //var idBoton = $(this).attr('id'); // Obtiene el ID del botón
+        getTemplate( $('#IdTemplate').val(),'Template' );
+    });    
+
+    function getTemplate(Id,IdCampo) {
+
+        $.ajax({
+            url: API_BASE_URL + 'template/' + Id,
+            type: 'GET',
+            dataType: 'json', // Indica que esperamos JSON
+            headers: {
+                // *** Aquí se adjunta el token en el encabezado Authorization ***
+                'Authorization': 'Bearer ' + TOKEN 
+            },
+            success: function(response) {
+                Object.entries(response).forEach(([clave, valor]) => {
+                    $('#'+IdCampo).summernote('code',valor);
+                });
+            },
+            error: function(xhr, status, error) {
+                if (xhr.status === 401) {
+                    console.error('Acceso denegado. Token expirado o inválido.');
+                    // Aquí puedes redirigir al login o limpiar el token
+                } else {
+                    console.error('Error al obtener registro:', error);
+                }
+            }
+        });
+    }
 
 </script>
 

@@ -217,6 +217,9 @@ function armar_formulario_edit($tabla,$etiqueta,$idioma){
                                     echo '</label>';
                             echo '</div>';
                             break;
+                        case 'button':
+                                echo "<br><button type='button' class='btn btn-primary' name='$Campo' id='$Campo'>$Titulo</button>";
+                            break;                            
                 case 'img':
                     echo '<label class="form-label" for="'.$Campo.'">'.$Titulo.'</label>';
                     echo '<input name="'.$Campo.'" id="'.$Campo.'" class="border  form-control " type="file"  accept="'.$Filtro.'">';

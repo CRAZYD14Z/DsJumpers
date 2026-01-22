@@ -77,7 +77,10 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
         'cost_products',
         'item_prices',
         'products_item_price',
-        'customer_addresses'
+        'customer_addresses',
+        'document_center',
+        'clone_record',
+        'copy_records'
     ];
     if (!in_array($table_name, $allowed_tables)) {
         http_response_code(400);
@@ -141,6 +144,8 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                                 WHERE products_item_price.Producto = ?
                     ";
                 }
+                if ($table_name == 'related_products')
+                    $query = "SELECT $Campos FROM  v_related_products  WHERE $Where = ? LIMIT 0,1";
                     
                 $stmt = $db->prepare($query);
                 $stmt->bindParam(1, $id);
@@ -234,6 +239,8 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                     $v_table_name = 'v_distance_charges';
                 elseif ($table_name == 'packing_list')
                     $v_table_name = 'v_packing_list';
+                elseif ($table_name == 'related_products')
+                    $v_table_name = 'v_related_products';
                 elseif ($table_name == 'upselling_products')
                     $v_table_name = 'v_upselling_products';                
                 elseif ($table_name == 'distance_charges_distance'){
@@ -263,6 +270,8 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                 
                 $count_query = "SELECT COUNT(*) as total FROM $v_table_name $Where";
                 //echo $count_query;
+                //if ($page == 2)
+                //    echo $count_query ." -- "; 
                 $count_stmt = $db->prepare($count_query);
                 $p=0;
                 if ($like!=""){
@@ -432,6 +441,8 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                     $v_table_name = 'v_packing_list';
                 elseif ($table_name == 'upselling_products')
                     $v_table_name = 'v_upselling_products';
+                elseif ($table_name == 'related_products')
+                    $v_table_name = 'v_related_products';                
                 elseif ($table_name == 'distance_charges_distance'){
                     $v_table_name = 'v_distance_charges_distance';
                     $Where.= ' AND Idioma = :lang ';
@@ -447,7 +458,7 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                 else
                     $v_table_name = $table_name;
                 // 3. Consulta para obtener los DATOS PAGINADOS
-                $data_query = "SELECT $Campos FROM $v_table_name $Where ORDER BY $Order DESC LIMIT :limit OFFSET :offset";                
+                $data_query = "SELECT $Campos FROM $v_table_name $Where ORDER BY $Order ASC LIMIT :limit OFFSET :offset";                
                 //echo $data_query;
                 $data_stmt = $db->prepare($data_query);
                 $param_index=1;
@@ -481,6 +492,8 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
 
                 $data_stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
                 $data_stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+                //if ($page == 2)
+                //echo $data_query ." $limit $offset " ;                
                 $data_stmt->execute();
 
                 $registros = array();
@@ -570,7 +583,7 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
         case 'POST': 
         // ------------------------------------------------------------------
         // INSERTA UN NUEVO REGISTRO
-            $query = "SELECT Campo, Requerido,TipoCampo FROM modal_add WHERE Tabla = ? AND TipoCampo <> 'auto' AND TipoCampo <> 'insert' AND TipoCampo <> 'Lst' AND TipoCampo <> 'Lst' AND TipoCampo <> 'option' AND TipoCampo <> 'titulo' ORDER BY Id";
+            $query = "SELECT Campo, Requerido,TipoCampo FROM modal_add WHERE Tabla = ? AND TipoCampo <> 'auto' AND TipoCampo <> 'insert' AND TipoCampo <> 'Lst' AND TipoCampo <> 'button' AND TipoCampo <> 'option' AND TipoCampo <> 'titulo' ORDER BY Id";
             $stmt = $db->prepare($query);
             $stmt->bindParam(1, $table_name);
             $stmt->execute();
@@ -667,7 +680,7 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                         http_response_code(404);
                         echo json_encode(array("message" => $registro['Campo']." Requerido."));
                     }
-                    if ($registro['TipoCampo']!= 'auto' AND $registro['TipoCampo']!= 'hidden' AND $registro['TipoCampo']!= 'option' AND $registro['TipoCampo']!= 'titulo')
+                    if ($registro['TipoCampo']!= 'auto' AND $registro['TipoCampo']!= 'hidden' AND $registro['TipoCampo']!= 'option' AND $registro['TipoCampo']!= 'titulo' AND $registro['TipoCampo']!= 'button')
                         $Campos[]=$registro['Campo']." = :". strtolower($registro['Campo']);
                 }
             } else {
@@ -711,7 +724,7 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
             $stmt = $db->prepare($query);            
             // Sanitizar y enlazar parámetros
             foreach ($resultados as $registro) {
-                if ($registro['TipoCampo']!= 'auto' AND $registro['TipoCampo']!= 'hidden' AND $registro['TipoCampo']!= 'option' AND $registro['TipoCampo']!= 'titulo')
+                if ($registro['TipoCampo']!= 'auto' AND $registro['TipoCampo']!= 'hidden' AND $registro['TipoCampo']!= 'option' AND $registro['TipoCampo']!= 'titulo' AND $registro['TipoCampo']!= 'button')
                 {
                     $campo = strtolower($registro['Campo']);
                     $valor = isset($data->{$registro['Campo']}) 
@@ -927,10 +940,285 @@ function get_price($table_name,$db, $method, $id, $data) {
             http_response_code(405);
             echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
         break;
-    }
 
+        }
+}
+    function get_template($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+            $query = "
+            SELECT
+                Template
+            FROM
+                templates
+            WHERE 
+            Id = ?
+
+            ";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(1, $id);
+            $stmt->execute();
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($row) {
+                http_response_code(200);
+                echo json_encode($row);
+            } else {
+                http_response_code(404);
+                echo json_encode(array("message" => "Registro no encontrado."));
+            }
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
 }   
 
+function clone_record($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+
+            if($IDS[0]== 'products'){
+                $nuevoId = clonarRegistro($db, $IDS[0], $id, $IDS[1]);
+                //clonarRegistrosRelacionados($db, 'products_item_price', 'Product', $id, $nuevoId);
+                clonarRegistrosRelacionados($db, 'products_categories', 'Product', $id, $nuevoId);
+                clonarRegistrosRelacionados($db, 'products_images', 'Product', $id, $nuevoId);
+                clonarRegistrosRelacionados($db, 'packing_list', 'Producto_pl', $id, $nuevoId);
+                clonarRegistrosRelacionados($db, 'related_products', 'Producto_rp', $id, $nuevoId);
+                clonarRegistrosRelacionados($db, 'upselling_products', 'Producto_up', $id, $nuevoId);
+                clonarRegistrosRelacionados($db, 'relationship_products', 'Producto_sp', $id, $nuevoId);
+                clonarRegistrosRelacionados($db, 'cost_products', 'Product', $id, $nuevoId);
+                clonarRegistrosRelacionados($db, 'products_files', 'Product', $id, $nuevoId);
+
+
+                $sql = "UPDATE products SET Name = :name_
+                        WHERE Id = :id";
+
+                $stmt = $db->prepare($sql);
+                $stmt->execute(['name_' => $IDS[2],'id' => $nuevoId]);
+
+                if ( is_numeric($nuevoId)){
+                    http_response_code(200);
+                    echo json_encode(array("Id" => $nuevoId));
+                }
+                else{
+                    http_response_code(404);
+                    echo json_encode(array("message" => $nuevoId));
+                }
+            }
+            else{
+                http_response_code(405);
+                echo json_encode(array("message" => "Tabla no permitida"));
+            }
+
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }    
+}
+
+function copy_records($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+        $nuevoId = $IDS[2];
+        switch ($IDS[0]) {
+            case 'packing_list':
+                clonarRegistrosRelacionados($db, 'packing_list', 'Producto_pl', $nuevoId, $id);
+                http_response_code(200);
+                echo json_encode(array("Id" => $nuevoId));
+            break;
+            case 'related_products':
+                clonarRegistrosRelacionados($db, 'related_products', 'Producto_rp', $nuevoId, $id);
+                http_response_code(200);
+                echo json_encode(array("Id" => $nuevoId));                
+            break;
+            case 'upselling_products':
+                clonarRegistrosRelacionados($db, 'upselling_products', 'Producto_up', $nuevoId, $id);
+                http_response_code(200);
+                echo json_encode(array("Id" => $nuevoId));                
+            break;
+            case 'relationship_products':
+                clonarRegistrosRelacionados($db, 'relationship_products', 'Producto_sp', $nuevoId, $id);            
+                http_response_code(200);
+                echo json_encode(array("Id" => $nuevoId));                
+            break;                                    
+            default:
+                http_response_code(405);
+                echo json_encode(array("message" => "Tabla *".$IDS[0]."* no permitida"));
+            break;
+        }
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }   
+}
+
+
+function clonarRegistro($pdo, $tabla, $id_registro, $columna_id = 'id') {
+    try {
+        $query_columnas = $pdo->prepare("DESCRIBE $tabla");
+        $query_columnas->execute();
+        $columnas = $query_columnas->fetchAll(PDO::FETCH_COLUMN);
+
+        $columnas_filtradas = array_diff($columnas, [$columna_id]);
+        
+        $columnas_select = [];
+        foreach ($columnas_filtradas as $col) {
+            // Si la columna es de fecha, usamos la función NOW() de MySQL
+            if (in_array(strtolower($col), ['fechacreacion', 'fechacambio'])) {
+                $columnas_select[] = "NOW()";
+            } else {
+                $columnas_select[] = $col;
+            }
+        }
+
+        $lista_columnas_insert = implode(', ', $columnas_filtradas);
+        $lista_columnas_select = implode(', ', $columnas_select);
+
+        $sql = "INSERT INTO $tabla ($lista_columnas_insert) 
+                SELECT $lista_columnas_select 
+                FROM $tabla 
+                WHERE $columna_id = :id";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(['id' => $id_registro]);
+
+        return $pdo->lastInsertId();
+
+    } catch (PDOException $e) {
+        return "Error: " . $e->getMessage();
+    }
+}
+
+function clonarRegistrosRelacionados($pdo, $tabla, $columna_relacional, $id_antiguo, $id_nuevo) {
+    try {
+        // 1. Obtener información detallada de las columnas
+        $stmt = $pdo->prepare("DESCRIBE $tabla");
+        $stmt->execute();
+        $detalles_columnas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $columnas_finales = [];
+        $columnas_select = [];
+
+        foreach ($detalles_columnas as $col) {
+            $nombre_col = $col['Field'];
+            $es_auto_increment = (strpos($col['Extra'], 'auto_increment') !== false);
+            $es_primary = ($col['Key'] === 'PRI');
+
+            // EXCLUIR si es autoincrementable o llave primaria (para que MySQL genere el nuevo ID)
+            if ($es_auto_increment || $es_primary) {
+                continue; 
+            }
+
+            $columnas_finales[] = $nombre_col;
+
+            // 2. Lógica de valores para el SELECT
+            if ($nombre_col === $columna_relacional) {
+                // Reemplazamos el ID padre viejo por el nuevo
+                $columnas_select[] = ":id_nuevo";
+            } elseif (in_array(strtolower($nombre_col), ['fechacreacion', 'fechacambio'])) {
+                // Seteamos timestamp actual
+                $columnas_select[] = "NOW()";
+            } else {
+                // El resto de columnas se copian tal cual
+                $columnas_select[] = $nombre_col;
+            }
+        }
+
+        $lista_insert = implode(', ', $columnas_finales);
+        $lista_select = implode(', ', $columnas_select);
+
+        // 3. Ejecutar la inserción masiva
+        $sql = "INSERT IGNORE INTO $tabla ($lista_insert) 
+                SELECT $lista_select 
+                FROM $tabla 
+                WHERE $columna_relacional = :id_antiguo";
+        //die($sql . "  $id_nuevo  $id_antiguo");
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            'id_nuevo'   => $id_nuevo,
+            'id_antiguo' => $id_antiguo
+        ]);
+
+        return $stmt->rowCount();
+
+    } catch (PDOException $e) {
+        return "Error en clonarRegistrosRelacionados: " . $e->getMessage();
+    }
+}
+
+function orden($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'PUT': 
+        $nuevoId = 'Orden Actualizado';
+        //echo $data->{'Idp'};
+        //echo $data->{'Id'};  
+                $productId = $data->{'Idp'};
+                $imageId = $data->{'Id'};
+
+        switch ($data->{'orden'}) {
+            case 'I':
+
+                $stmt = $db->prepare("CALL sp_image_move_to_start(:product_id, :image_id)");
+                $stmt->bindParam(':product_id', $productId, PDO::PARAM_INT);
+                $stmt->bindParam(':image_id', $imageId, PDO::PARAM_INT);
+                $stmt->execute();
+
+                http_response_code(200);
+                echo json_encode(array("Id" => $nuevoId));
+            break;
+            case 'A':
+                
+                $stmt = $db->prepare("CALL sp_image_move_up(:product_id, :image_id)");
+                $stmt->bindParam(':product_id', $productId, PDO::PARAM_INT);
+                $stmt->bindParam(':image_id', $imageId, PDO::PARAM_INT);
+                $stmt->execute();                
+
+                http_response_code(200);
+                echo json_encode(array("Id" => $nuevoId));                
+            break;
+            case 'S':
+                $stmt = $db->prepare("CALL sp_image_move_down(:product_id, :image_id)");
+                $stmt->bindParam(':product_id', $productId, PDO::PARAM_INT);
+                $stmt->bindParam(':image_id', $imageId, PDO::PARAM_INT);
+                $stmt->execute();                   
+                http_response_code(200);
+                echo json_encode(array("Id" => $nuevoId));                
+            break;
+            case 'U':
+                $stmt = $db->prepare("CALL sp_image_move_to_end(:product_id, :image_id)");
+                $stmt->bindParam(':product_id', $productId, PDO::PARAM_INT);
+                $stmt->bindParam(':image_id', $imageId, PDO::PARAM_INT);
+                $stmt->execute();                   
+                http_response_code(200);
+                echo json_encode(array("Id" => $nuevoId));
+            break;                                    
+            default:
+                http_response_code(405);
+                echo json_encode(array("message" => "Acción no permitida"));
+            break;
+        }
+        break;
+
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }   
+}
 
 
 ?>

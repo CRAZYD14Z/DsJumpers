@@ -104,7 +104,7 @@ function edit_form($IdTabla,$Idioma,$Tp,$visible = "display: none"){
         ?>
         <br>
         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-            <button class="btn btn-secondary" type="button" onclick='$("#listado_<?php echo $IdTabla;?>").show();$("#edit_form_<?php echo $IdTabla;?>").hide();'><?php echo Trd(6)?></button>
+            <button class="btn btn-secondary" type="button" onclick='Cancel_edit("<?php echo $IdTabla;?>");'><?php echo Trd(6)?></button>
             <button class="btn btn-primary" type="submit"><?php echo Trd(7)?></button>
         </div>
 
@@ -144,7 +144,7 @@ function edit_form($IdTabla,$Idioma,$Tp,$visible = "display: none"){
             if ($resultados) {
                 foreach ($resultados as $registro) {
                     $Campo = $registro['Campo'];
-                    echo "$('#edit_$Campo').summernote({height: 120});";
+                    echo "$('#edit_$Campo').summernote({height: 480});";
                 }
             }    
         ?>

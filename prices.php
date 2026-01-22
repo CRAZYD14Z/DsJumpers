@@ -6,9 +6,8 @@
     $database = new Database();
     $db = $database->getConnection();
     
+    $Idioma = $_SESSION['Idioma'];
     $Idioma = 'es';
-    $_SESSION['Idioma'] = $Idioma;
-
     $query = "select Traduccion FROM programas_traduccion where Programa = 'prices' AND Idioma = ? ORDER BY Id";            
     $stmt = $db->prepare($query);
     $stmt->bindValue(1, $Idioma);

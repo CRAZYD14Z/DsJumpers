@@ -220,6 +220,10 @@ function armar_formulario_add($tabla,$etiqueta,$idioma){
                                     echo '</label>';
                             echo '</div>';
                             break;
+                        case 'button':
+                                echo "<br><button type='button' class='btn btn-primary' name='$Campo' id='$Campo'>$Titulo</button>";
+                            break;                            
+
                         case 'img':
                             echo '<label class="form-label" for="'.$Campo.'">'.$Titulo.'</label>';
                             echo '<input name="file_'.$Campo.'" id="file_'.$Campo.'" class="'.$form_control.'" type="file"  accept="'.$Filtro.'">';

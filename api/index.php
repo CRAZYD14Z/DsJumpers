@@ -216,17 +216,32 @@ switch ($resource) {
     case 'customer_addresses':
         handle_generic_crud($resource,$db, $method, $id, $data);
         break;
+    case 'document_center':
+        handle_generic_crud($resource,$db, $method, $id, $data);
+        break;        
     case 'get_price':
         get_price($resource,$db, $method, $id, $data);
         break;
     case 'get_json_price':
         get_json_price($resource,$db, $method, $id, $data);
+        break;
+    case 'clone_record':
+        clone_record($resource,$db, $method, $id, $data);
+        break;
+    case 'copy_records':
+        copy_records($resource,$db, $method, $id, $data);
+        break;  
+    case 'orden':
+        orden($resource,$db, $method, $id, $data);
         break;                
     default:
         // Manejar rutas no definidas
         http_response_code(404);
         echo json_encode(["message" => "Recurso '" . $resource . "' no encontrado."]);
         break;
+    case 'template':
+        get_template($resource,$db, $method, $id, $data);
+        break;        
 }
 
 ?>
