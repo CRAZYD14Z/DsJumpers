@@ -1,14 +1,14 @@
 <?php
 class Database {
-    private $host = "localhost";
-    private $db_name = "juls";
-    private $username = "root";
-    private $password = "";
+    //private $host = "localhost";
+    //private $db_name = "juls";
+    //private $username = "root";
+    //private $password = "";
 
-    //private $host = "162.215.249.40";
-    //private $db_name = "bbbm8m0_dsjumpers";
-    //private $username = "bbbm8m0_root";
-    //private $password = "8Ej4eh7!5~az+6c";    
+    private $host = "162.215.249.40";
+    private $db_name = "bbbm8m0_dsjumpers";
+    private $username = "bbbm8m0_root";
+    private $password = "8Ej4eh7!5~az+6c";    
 
     public $conn;
 
