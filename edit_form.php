@@ -45,6 +45,7 @@ function edit_form($IdTabla,$Idioma,$Tp,$visible = "display: none"){
                     WHERE 
                     modal_edit.Tabla = ? AND 
                     etiquetas_tablas.Idioma = ?
+                ORDER BY modal_edit.Id
             ";
             $stmt = $db->prepare($query);
             $stmt->bindValue(1, $IdTabla);

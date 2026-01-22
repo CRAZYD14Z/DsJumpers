@@ -45,6 +45,7 @@ function add_form($IdTabla,$Idioma,$Tp){
                     WHERE 
                     modal_add.Tabla = ? AND 
                     etiquetas_tablas.Idioma = ?
+                ORDER BY modal_add.Id
             ";
             $stmt = $db->prepare($query);
             $stmt->bindValue(1, $IdTabla);
