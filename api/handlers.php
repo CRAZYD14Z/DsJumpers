@@ -80,7 +80,9 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
         'customer_addresses',
         'document_center',
         'clone_record',
-        'copy_records'
+        'copy_records',
+        'price_lists',
+        'detail_price_lists',
     ];
     if (!in_array($table_name, $allowed_tables)) {
         http_response_code(400);
@@ -264,7 +266,8 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                     //else
                     $Where.= ' AND Idioma = ? ';
                 }                  
-
+                elseif ($table_name == 'detail_price_lists')
+                    $v_table_name = 'v_detail_price_lists';
                 else
                     $v_table_name = $table_name;
                 
@@ -454,7 +457,9 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                 elseif ($table_name == 'relationship_products'){
                     $v_table_name = 'v_relationship_products';
                     $Where.= ' AND Idioma = :lang ';
-                }                                
+                }
+                elseif ($table_name == 'detail_price_lists')
+                    $v_table_name = 'v_detail_price_lists';                                                
                 else
                     $v_table_name = $table_name;
                 // 3. Consulta para obtener los DATOS PAGINADOS

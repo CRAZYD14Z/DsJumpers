@@ -24,6 +24,7 @@
                 <li><a class="dropdown-item" href="crud.php?Id=gifcard">Gifcard</a></li>                
                 <li><a class="dropdown-item" href="crud.php?Id=item_prices">Item Prices</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=organizations">Organizations</a></li>
+                <li><a class="dropdown-item" href="crud.php?Id=price_lists">Price Lists</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=products">Products</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=surfaces">Surfaces</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=venues">Venues</a></li>

@@ -219,6 +219,15 @@ switch ($resource) {
     case 'document_center':
         handle_generic_crud($resource,$db, $method, $id, $data);
         break;        
+
+    case 'price_lists':
+        handle_generic_crud($resource,$db, $method, $id, $data);
+        break;
+
+    case 'detail_price_lists':
+        handle_generic_crud($resource,$db, $method, $id, $data);
+        break;
+
     case 'get_price':
         get_price($resource,$db, $method, $id, $data);
         break;

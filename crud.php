@@ -179,7 +179,8 @@
             'organizations',
             'surfaces',
             'item_prices',
-            'document_center'
+            'document_center',
+            'price_lists'
         ];
         if (!in_array($IdTabla, $allowed_tables)) {
             die("<h3>".Trd(3)."</h3></div></body></html>");
@@ -579,6 +580,22 @@
             delete_form($Tabla);                
 
         }
+        elseif ($IdTabla == 'price_lists'){
+            add_listado($IdTabla);
+            add_form($IdTabla,$Idioma,'M');
+            edit_form($IdTabla,$Idioma,'I');
+
+            $Tabla = 'detail_price_lists';
+            echo '<h4 class="mb-4">Detalle lista precios</h4>';
+                add_listado($Tabla);                
+                add_form($Tabla,$Idioma,'D');
+                edit_form($Tabla,$Idioma,'D');
+
+            echo '</div>';
+            delete_form($IdTabla);
+            delete_form($Tabla);                
+
+        }        
         else{
             add_listado($IdTabla);
             add_form($IdTabla,$Idioma,'M');
@@ -1035,6 +1052,9 @@ function getRecordData(Id,IdTabla) {
     if (IdTabla == 'customers')
         IdSelected = Id;    
 
+    if (IdTabla == 'price_lists')
+        IdSelected = Id;
+
     $("#listado_"+IdTabla).hide();
     $("#edit_form_"+IdTabla).show();
     //alert(IdTabla)
@@ -1152,6 +1172,9 @@ function getRecordData(Id,IdTabla) {
             }
             else if (IdTabla == 'customers'){
                 listado('customer_addresses');
+            }
+            else if (IdTabla == 'price_lists'){
+                listado('detail_price_lists');
             }else if (IdTabla == 'item_prices' || IdTabla == 'products_item_price'){
                 cargar();
                 if (IdTabla == 'products_item_price'){
