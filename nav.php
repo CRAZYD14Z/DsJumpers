@@ -30,6 +30,7 @@
                 <li><a class="dropdown-item" href="crud.php?Id=venues">Venues</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=wharehouses">Wharehouses</a></li>
                 <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="lead.php">Leads</a></li>
                 <li><a class="dropdown-item" href="#">Sing Out</a></li>
             </ul>
             </li>

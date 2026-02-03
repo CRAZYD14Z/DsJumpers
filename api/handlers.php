@@ -1225,5 +1225,469 @@ function orden($table_name,$db, $method, $id, $data){
     }   
 }
 
+function ajustar_precio($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'PUT': 
+            $lista = $data->{'lista'};
+            $tipo_opcion = $data->{'tipo_opcion'};
+            $lista_categoria = $data->{'lista_categoria'};
+            $tipo_m_p  = $data->{'tipo_m_p'};
+            $montoA  = $data->{'montoA'};
+            $montoE  = $data->{'montoE'};
+            $montoA = str_replace("$", "", $montoA);
+            $montoA = str_replace(",", "", $montoA);
+            $montoE = str_replace("$", "", $montoE);
+            $montoE = str_replace(",", "", $montoE);            
+            if ($tipo_opcion=='C'){
+
+                $query = "INSERT INTO price_lists( Nombre, FechaHoraInicio,FechaHoraFin,Estatus,FechaCreacion,FechaCambio) 
+                        SELECT :Nombre, FechaHoraInicio,FechaHoraFin,Estatus,now(),now()
+                        FROM price_lists
+                        WHERE 
+                        Id = :Id";
+
+                $stmt = $db->prepare($query);
+                $stmt->bindValue(":Nombre", $lista_categoria);
+                $stmt->bindValue(":Id", $lista);
+                if ($stmt->execute()) {
+                    $lastInsertId = $db->lastInsertId();
+                    if ($montoA * 1 == 0 AND $montoE * 1 ==0){
+                        $query = "INSERT INTO detail_price_lists( IdLista,IdItem,JsonPrice,Estatus_price,FechaCreacion,FechaCambio) 
+                                SELECT :IdLista,IdItem,JsonPrice,Estatus_price,now(),now()
+                                FROM detail_price_lists
+                                WHERE 
+                                IdLista = :Id";
+                        $stmt = $db->prepare($query);
+                        $stmt->bindValue(":IdLista", $lastInsertId);
+                        $stmt->bindValue(":Id", $lista);                    
+                        $stmt->execute();
+                    }
+                    else{
+                    
+                        $query = "SELECT IdItem, JsonPrice,Estatus_price FROM detail_price_lists WHERE IdLista = ? ";
+                        $stmt = $db->prepare($query);
+                        $stmt->bindParam(1, $lista);
+                        $stmt->execute();
+                        $Precios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                        if ($Precios) {
+                            foreach ($Precios as $Precio) {
+                                $IdItem = $Precio['IdItem'] ;
+                                $JsonPrice = $Precio['JsonPrice'];
+                                $Estatus_price = $Precio['Estatus_price'];
+
+                                $json_limpio = html_entity_decode($JsonPrice);
+                                $datos = json_decode($json_limpio, true);
+                                $id_item =0;
+                                foreach ($datos as &$item) {
+                                    if ($tipo_m_p == '$'){
+                                        if ($id_item == 0)
+                                            $item['precio'] = (string)($item['precio'] + $montoA);
+                                        else
+                                            $item['precio'] = (string)($item['precio'] + $montoE);
+                                    }
+                                    else{
+                                        if ($id_item == 0)
+                                            $item['precio'] = (string)($item['precio'] * ( 1 + ( $montoA /100 )));
+                                        else
+                                            $item['precio'] = (string)($item['precio'] * ( 1 + ( $montoE /100 )));
+                                    }
+                                    $id_item+1;
+                                }
+                                unset($item); 
+                                $nuevo_json = json_encode($datos);
+                                $variable_json = htmlentities($nuevo_json);
+                                // INSERT DE PRECIOS CON AJUSTE!!
+                                $queryI = "INSERT INTO detail_price_lists( IdLista,IdItem,JsonPrice,Estatus_price,FechaCreacion,FechaCambio)
+                                                        values(:idLista,:idItem,:jsonPrice,:estatus_price,now(),now()) ";
+                                $stmtI = $db->prepare($queryI);
+                                $stmtI->bindValue(":idLista", $lastInsertId);
+                                $stmtI->bindValue(":idItem", $IdItem);
+                                $stmtI->bindValue(":jsonPrice", $variable_json);
+                                $stmtI->bindValue(":estatus_price", $Estatus_price);
+                                $stmtI->execute();
+                                // INSERT DE PRECIOS CON AJUSTE!!
+                            }
+                        }                     
+
+                    }
+                    http_response_code(201); // Created
+                    echo json_encode(array("message" => "Nueva lista registrada."));
+                } else {
+                    http_response_code(503); // Service Unavailable
+                    echo json_encode(array("message" => "No se encotraron registros."));
+                }
+            }
+            else{
+                //Ajustar precio
+                //$tipo_m_p -> $ %
+                if ($lista_categoria  == 0){
+                
+                    $query = "SELECT IId, JsonPrice FROM detail_price_lists WHERE IdLista = ? ";
+                    $stmt = $db->prepare($query);
+                    $stmt->bindParam(1, $lista);
+                }
+                else{
+                    $query = "
+                        SELECT
+                            detail_price_lists.IId, 
+                            detail_price_lists.JsonPrice
+                        FROM
+                            detail_price_lists
+                            INNER JOIN
+                            products_item_price
+                            ON 
+                                detail_price_lists.IdItem = products_item_price.ItemPrice
+                            INNER JOIN
+                            products_categories
+                            ON 
+                                products_item_price.Producto = products_categories.Product
+                            WHERE 
+                            detail_price_lists.IdLista = ? AND
+                            products_categories.Category =?                    
+                    ";
+                    $stmt = $db->prepare($query);
+                    $stmt->bindParam(1, $lista);
+                    $stmt->bindParam(2, $lista_categoria);
+                }                    
+                    $stmt->execute();
+                    $Precios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    if ($Precios) {
+                        foreach ($Precios as $Precio) {
+                            $IId = $Precio['IId'] ;
+                            $JsonPrice = $Precio['JsonPrice'];
+
+                            $json_limpio = html_entity_decode($JsonPrice);
+                            $datos = json_decode($json_limpio, true);
+                            $id_item =0;
+                            foreach ($datos as &$item) {
+                                if ($tipo_m_p == '$'){
+                                    if ($id_item == 0)
+                                        $item['precio'] = (string)($item['precio'] + $montoA);
+                                    else
+                                        $item['precio'] = (string)($item['precio'] + $montoE);
+                                }
+                                else{
+                                    if ($id_item == 0)
+                                        $item['precio'] = (string)($item['precio'] * ( 1 + ( $montoA /100 )));
+                                    else
+                                        $item['precio'] = (string)($item['precio'] * ( 1 + ( $montoE /100 )));
+                                }
+                                $id_item+1;
+                            }
+                            unset($item); 
+                            $nuevo_json = json_encode($datos);
+                            $variable_json = htmlentities($nuevo_json);
+                            // UPDATE DE PRECIOS CON AJUSTE!!
+                            $queryI = "UPDATE detail_price_lists SET JsonPrice = :jsonPrice, FechaCambio = now()
+                                        WHERE IId = :iId";
+                            $stmtI = $db->prepare($queryI);
+                            $stmtI->bindValue(":iId", $IId);
+                            $stmtI->bindValue(":jsonPrice", $variable_json);
+                            $stmtI->execute();
+                            // UPDATE DE PRECIOS CON AJUSTE!!
+                        }
+                        http_response_code(201); // Created
+                        echo json_encode(array("message" => "Registros actualizados."));
+                    }
+                    else {
+                        http_response_code(503); // Service Unavailable
+                        echo json_encode(array("message" => "No se encotraron registros."));
+                    }
+            }
+        break;
+
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }   
+}
+function get_products_categories($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+            $IdCat = isset($_GET['IdCat']) ? (int)$_GET['IdCat'] : 0;
+            $Date = isset($_GET['Date']) ? (int)$_GET['Date'] : date('Ymd');
+            $Date = DateTime::createFromFormat('Ymd', $Date);
+            $Date = $Date->format('Y-m-d');
+                $query = "
+                    SELECT * FROM v_items_prices_lists
+                    WHERE Category = :idCat  AND 
+                                Estatus_price_list = 1 AND
+                                Estatus_price = 1 AND 
+                    :date BETWEEN  FechaHoraInicio AND FechaHoraFin                                      
+                ";                            
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(':idCat', $IdCat, PDO::PARAM_INT);
+                $stmt->bindParam(':date', $Date, PDO::PARAM_STR);
+                //$stmt->bindValue(1, $IdCat);
+                //$stmt->bindValue(2, $Date);
+                $stmt->execute();
+                $resultados_p = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                http_response_code(200);
+                echo json_encode(array(
+                    "products" => $resultados_p
+                ));
+        break;
+
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }   
+}
+
+function get_related_products($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+            $IdP = isset($_GET['IdP']) ? (int)$_GET['IdP'] : 0;
+            $Date = isset($_GET['Date']) ? (int)$_GET['Date'] : date('Ymd');
+            $Date = DateTime::createFromFormat('Ymd', $Date);
+            $Date = $Date->format('Y-m-d');
+                $query = "
+                    SELECT * FROM v_related_products_prices_lists
+                    WHERE Producto_rp = :idp  AND 
+                                Estatus_price_list = 1 AND
+                                Estatus_price = 1 AND 
+                    :date BETWEEN  FechaHoraInicio AND FechaHoraFin                                      
+                ";                            
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(':idp', $IdP, PDO::PARAM_INT);
+                $stmt->bindParam(':date', $Date, PDO::PARAM_STR);
+                //$stmt->bindValue(1, $IdCat);
+                //$stmt->bindValue(2, $Date);
+                $stmt->execute();
+                $resultados_p = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                http_response_code(200);
+                echo json_encode(array(
+                    "products" => $resultados_p
+                ));
+        break;
+
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }   
+}
+
+function get_organizatios($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+            $Q = isset($_GET['q']) ? $_GET['q'] : '';
+            if ($Q!=""){
+            $query = "
+                SELECT Id, Nombre, Direccion FROM organizations
+                WHERE Nombre LIKE :q AND Estatus = 'A'
+            ";                            
+            $stmt = $db->prepare($query);
+
+            // Adiciona os curingas para busca parcial
+            $searchTerm = "%" . $Q . "%";
+            $stmt->bindParam(':q', $searchTerm, PDO::PARAM_STR);
+
+            $stmt->execute();
+            $resultados_p = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            http_response_code(200);
+            echo json_encode(array(
+                "items" => $resultados_p
+            ));
+            }
+            else{
+                echo json_encode(array(
+                    "items" => []
+                ));
+            }
+        break;
+
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }  
+}
+
+function get_customers($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+            $Q = isset($_GET['q']) ? $_GET['q'] : '';
+            if ($Q!=""){
+            $query = "
+                SELECT Id, CONCAT(Nombres,' ', Apellidos) as Nombre, Direccion FROM customers
+                WHERE ( Nombres LIKE :q  OR Apellidos LIKE :q2)  AND Estatus = 'A'
+            ";                            
+            $stmt = $db->prepare($query);
+
+            // Adiciona os curingas para busca parcial
+            $searchTerm = "%" . $Q . "%";
+            $stmt->bindParam(':q', $searchTerm, PDO::PARAM_STR);
+            $stmt->bindParam(':q2', $searchTerm, PDO::PARAM_STR);
+
+            $stmt->execute();
+            $resultados_p = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            http_response_code(200);
+            echo json_encode(array(
+                "items" => $resultados_p
+            ));
+            }
+            else{
+                echo json_encode(array(
+                    "items" => []
+                ));
+            }
+        break;
+
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }      
+    
+}
+
+function get_venues($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+            $Q = isset($_GET['q']) ? $_GET['q'] : '';
+            if ($Q!=""){
+            $query = "
+                SELECT Id, Nombre, Direccion FROM venues
+                WHERE Nombre LIKE :q 
+            ";                            
+            $stmt = $db->prepare($query);
+
+            // Adiciona os curingas para busca parcial
+            $searchTerm = "%" . $Q . "%";
+            $stmt->bindParam(':q', $searchTerm, PDO::PARAM_STR);
+
+            $stmt->execute();
+            $resultados_p = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            http_response_code(200);
+            echo json_encode(array(
+                "items" => $resultados_p
+            ));
+            }
+            else{
+                echo json_encode(array(
+                    "items" => []
+                ));
+            }
+        break;
+
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }      
+    
+}
+
+function distance_charge($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+            $ZIP = $id;
+            if ($ZIP!=""){
+                    //RECUPERAMOS EL COSTO EXTRA POR MILLA
+                    $query = "SELECT Rate, Zip,Distance,State,Total,Restriction FROM distance_charges  LIMIT 1";
+                    
+                    $stmt = $db->prepare($query);
+                    $stmt->execute();
+                    //$costo_extra = $stmt->fetchColumn();
+                    $data = $stmt->fetch(PDO::FETCH_ASSOC);
+                    
+                    if ($data) {
+                        // Ahora accedes a cada valor por su nombre
+                        $costo_extra =  $data['Rate'];
+                        $Zip =  $data['Zip'];
+                        $Distance =  $data['Distance'];
+                        
+                    }           
+                    //echo " ** $Distance **";
+                    if ($Distance==1){
+                    $total_millas = 35; //AQUI VA LA FUNCION DE GOOGLE MAPS PARA SABER LAS MILLAS
+
+                    // 1. Consultamos los rangos ordenados
+                        $query = "SELECT MinM, MaxM, ChargeD, ChargeType 
+                                FROM distance_charges_distance 
+                                ORDER BY MinM ASC";
+                    //echo $query;    
+                        $stmt = $db->prepare($query);
+                        $stmt->execute();
+                        $rangos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                        $costo_total = 0;
+                        $max_milla_cubierta = 0;
+
+                        // 2. Procesamos cada tramo
+                        foreach ($rangos as $rango) {
+                            $min = (float)$rango['MinM'];
+                            $max = (float)$rango['MaxM'];
+                            $cargo = (float)$rango['ChargeD'];
+                            $tipo = strtoupper($rango['ChargeType']);
+
+                            // Si el viaje no llega ni al inicio de este rango, lo ignoramos
+                            if ($total_millas < $min) {
+                                continue;
+                            }
+
+                            // Determinamos el final del tramo actual
+                            $milla_final_en_tramo = min($total_millas, $max);
+                            
+                            if ($tipo === 'F') {
+                                // Cargo FIJO: Se suma el monto completo si el envío toca este rango
+                                $costo_total += $cargo;
+                            } elseif ($tipo === 'M') {
+                                // Cargo POR MILLA: Calculamos cuántas millas del total caen en este rango
+                                $millas_a_cobrar = $milla_final_en_tramo - ($min - 1); 
+                                $costo_total += ($millas_a_cobrar * $cargo);
+                            }
+
+                            // Guardamos hasta dónde llega la cobertura de la tabla
+                            $max_milla_cubierta = max($max_milla_cubierta, $max);
+                        }
+
+                        // 3. Si hay millas excedentes fuera de la tabla, aplicamos el costo extra
+                        if ($total_millas > $max_milla_cubierta) {
+                            $millas_excedentes = $total_millas - $max_milla_cubierta;
+                            $costo_total += ($millas_excedentes * $costo_extra);
+                        }
+                        //$costo_total;
+                        
+                            $respuesta = [
+                                "status" => "success",
+                                "total_millas" => $total_millas,
+                                "costo_total" => round($costo_total, 2),
+                            ];
+
+                            echo json_encode(array(
+                                "cost" => $respuesta
+                            ));                    
+                    }
+                }
+        break;
+
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }      
+    
+}
 
 ?>

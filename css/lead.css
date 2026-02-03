@@ -1,0 +1,290 @@
+        /* Ajuste opcional para centrar verticalmente la 'X' en algunos navegadores */
+        .select2-container--bootstrap-5 .select2-selection--single .select2-selection__clear {
+            margin-right: 0.5rem;
+        }
+
+    .scroll-container {
+        /* Altura fija */
+        height: 500px; 
+        
+        /* Activa el scroll solo si el contenido excede la altura */
+        overflow-y: auto; 
+        
+        /* Opcional: Estética para bordes */
+        border: 1px solid #dee2e6;
+        background-color: #fff;
+    }
+
+    /* Opcional: Personalizar la barra de desplazamiento (Chrome/Safari/Edge) */
+    .scroll-container::-webkit-scrollbar {
+        width: 8px;
+    }
+    .scroll-container::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 4px;
+    }
+    .scroll-container::-webkit-scrollbar-thumb:hover {
+        background: #999;
+    }
+
+    .table-custom-cat tbody tr:hover {
+            background-color: #f0f7ff !important; /* Un azul muy tenue */
+            cursor: pointer;
+    }    
+
+    .table-custom-cat tr:hover .icon-change::before {
+            content: "\f26b"; /* Icono al hacer hover: Flecha (bi-arrow-right-circle) */
+            color: #0d6efd; /* Color primario de Bootstrap */
+            transform: scale(1.2);
+    }
+    
+    .table-custom-prd tbody tr:hover {
+            background-color: #f0f7ff !important; /* Un azul muy tenue */
+            cursor: pointer;
+    }    
+
+    .table-custom-prd tr:hover .icon-change::before {
+            content: "\f26b"; /* Icono al hacer hover: Flecha (bi-arrow-right-circle) */
+            color: #0d6efd; /* Color primario de Bootstrap */
+            transform: scale(1.2);
+    }
+    
+    .table-custom-sprd tbody tr:hover {
+            background-color: #f0f7ff !important; /* Un azul muy tenue */
+            cursor: pointer;
+    }    
+
+    .table-custom-sprd tr:hover .icon-change::before {
+            content: "\f26b"; /* Icono al hacer hover: Flecha (bi-arrow-right-circle) */
+            color: #0d6efd; /* Color primario de Bootstrap */
+            transform: scale(1.2);
+    }    
+
+
+/* Contenedor principal sin bordes bruscos */
+    .input-group-minimal {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px; /* Bordes más redondeados */
+        overflow: hidden;
+        transition: border-color 0.3s ease;
+        background-color: #fff;
+    }
+
+    /* Resaltar el contenedor completo cuando el input tiene foco */
+    .input-group-minimal:focus-within {
+        border-color: #000; /* Negro minimalista */
+        box-shadow: 0 0 0 1px #000;
+    }
+
+    /* Estilo de los botones laterales */
+    .btn-minimal {
+        border: none !important; /* Quitamos el borde individual */
+        background: transparent;
+        color: #999;
+        font-weight: 300;
+        padding: 0.5rem 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .btn-minimal:hover {
+        background-color: #f8f9fa;
+        color: #000;
+    }
+
+    .btn-minimal:active {
+        background-color: #f0f0f0;
+    }
+
+    /* El input sin bordes propios para que parezca una sola pieza */
+    .input-minimal {
+        border: none !important;
+        box-shadow: none !important;
+        padding-left: 0.5rem;
+        color: #444;
+    }
+
+    /* Separador visual sutil entre botones e input */
+    .divider {
+        width: 1px;
+        background-color: #eee;
+        margin: 8px 0;
+    }
+
+    
+
+/* Estilo para que los inputs no ensanchen la fila */
+    .table-slim td {
+        vertical-align: middle;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+
+    /* Elimina el margen inferior y ajusta el alto del input-group */
+    .table-slim .input-group, 
+    .table-slim .form-control,
+    .table-slim .form-check-input {
+        margin-bottom: 0 !important;
+    }
+
+    /* Ajuste para el checkbox para que no flote arriba */
+    .form-check-input {
+        margin-top: 0;
+        cursor: pointer;
+    }    
+
+
+/* Estilo minimalista para el área de texto */
+        .tab-content {
+            border: 1px solid #dee2e6;
+            border-top: none; /* Une el contenido con la pestaña */
+            padding: 20px;
+            background-color: #fff;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+        .form-control-minimal {
+            border: 1px solid #eee;
+            resize: none;
+            transition: border-color 0.3s;
+        }
+        .form-control-minimal:focus {
+            border-color: #0d6efd;
+            box-shadow: none;
+        }    
+
+
+    /* Contenedor de "fila" con estilo de tabla */
+    .custom-row {
+        border-bottom: 1px solid #eee;
+        padding: 10px 0;
+        transition: background-color 0.2s;
+        display: flex;
+        align-items: center; /* Alineación vertical perfecta */
+    }
+    .custom-row:hover {
+        background-color: #fcfcfc;
+    }
+    /* Estilo para los títulos en móvil */
+    .mobile-label {
+        display: none;
+        font-size: 0.75rem;
+        color: #999;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+    }
+    /* Ajustes para transformar en "cards" en pantallas pequeñas (xs) */
+    @media (max-width: 767.98px) {
+        .custom-row {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .mobile-label {
+            display: block;
+        }
+        .custom-row > div {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        /* Contenedor para ícono, cantidad y referencia en la misma fila */
+        
+        /* Contenedor para precio, tax y total en la misma fila */
+        .mobile-price-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .mobile-price-row > div {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        /* Tax ocupa menos espacio */
+        .mobile-price-row .tax-col {
+            flex: 0 0 auto;
+            min-width: 60px;
+        }
+        .mobile-price-row .icon-col {
+            flex: 0 0 auto;
+            min-width: 60px;
+        }        
+    }
+
+    /* Ajustar el padding de las opciones de Select2 para que no se vean apretadas */
+    .select2-results__option {
+        padding: 8px 12px !important;
+    }
+
+    /* Evitar que la dirección sea demasiado larga y rompa el diseño */
+    .small {
+        font-size: 0.75rem;
+        line-height: 1.2;
+    }   
+
+        .icon-inputs {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .icon-input-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        background: #f8f9fa;
+        border-radius: 6px;
+        transition: background 0.2s;
+    }
+    
+    .icon-input-group:hover {
+        background: #e9ecef;
+    }
+    
+    .icon-input-group i {
+        color: #6c757d;
+        font-size: 16px;
+        width: 20px;
+        text-align: center;
+    }
+    
+    .icon-input-group input {
+        border: none;
+        background: transparent;
+        width: 40px;
+        text-align: center;
+        font-weight: 500;
+        color: #495057;
+        outline: none;
+        padding: 0;
+    }
+    
+    .icon-input-group input::placeholder {
+        color: #adb5bd;
+    }
+    
+    /* Responsive */
+    @media (max-width: 576px) {
+        .icon-inputs {
+            gap: 10px;
+        }
+        
+        .icon-input-group {
+            padding: 6px 10px;
+        }
+    }
+
+    /* Estilo para los botones */
+.input-group .btn {
+    font-weight: bold;
+    font-size: 1.1rem;
+    padding: 0 8px;
+}
+
+.input-group .btn:hover {
+    color: #000;
+    background-color: #e2e6ea !important;
+}

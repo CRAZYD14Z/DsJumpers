@@ -1,6 +1,6 @@
 <?php
-    ob_start();
-    session_start(); 
+ob_start();
+session_start(); 
     // Incluye la clase de conexión a la BD
     include_once 'config/config.php';     
     include_once 'config/database.php'; 
@@ -585,9 +585,221 @@
             add_form($IdTabla,$Idioma,'M');
             edit_form($IdTabla,$Idioma,'I');
 
+                ?>
+                
+                <br>
+                <h4 class="mb-4">Opciones</h4>
+                
+                    <div class="row">
+                        <div class='col-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 col-xxl-4'>
+                                <label for='' class='form-label'>Tipo</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class='col-6 col-sm-6 col-md-4 col-lg-4 col-xl-4 col-xxl-4'>
+                                <input class="form-check-input" type="radio" name="tipo" id="Copia" value = "Copia"  onclick="cambiarDivs('copiar_lista')" checked>
+                                <label class="form-check-label" for="Ajuste">
+                                    Copiar Lista
+                                </label>
+                        </div>
+                        <div class='col-6 col-sm-6 col-md-4 col-lg-4 col-xl-4 col-xxl-4'>
+                                <input class="form-check-input" type="radio" name="tipo" id="Ajuste" value = "Ajuste" onclick="cambiarDivs('ajustar_lista')">
+                                <label class="form-check-label" for="Ajuste">
+                                    Ajuste precio
+                                </label>
+                        </div>                        
+                    </div>
+                    <hr>
+                    <form name="ajustar_precios" id="ajustar_precios" class="needs-validation" novalidate>
+                    <div id="copiar_lista" style="display:block;">
+                        <div class="row" >
+                            <div class='col-12 col-sm-12 col-md-8 col-lg-6 col-xl-6 col-xxl-6'>
+                                <label for='nueva_lista' class='form-label'>Nombre</label>
+                                <input name="nueva_lista" id="nueva_lista" class="form-control  form-control-sm" type="text" style="text-align: left;" required  minlength="5" maxlength="50" placeholder="Ingresa nombre para  la lista">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class='col-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 col-xxl-4'>
+                                    <label for='' class='form-label'>Ajustar precios en </label>
+                            </div>
+                        </div>                        
+                        <div class="row">
+                            <div class='col-6 col-sm-6 col-md-4 col-lg-4 col-xl-4 col-xxl-4'>
+                                    <input class="form-check-input" type="radio" name="tipo_ajuste" id="Monto" value = "$" checked>
+                                    <label class="form-check-label" for="Ajuste">
+                                        $ - Monto
+                                    </label>
+                            </div>
+                            <div class='col-6 col-sm-6 col-md-4 col-lg-4 col-xl-4 col-xxl-4'>
+                                    <input class="form-check-input" type="radio" name="tipo_ajuste" id="Porcentaje" value = "%">
+                                    <label class="form-check-label" for="Ajuste">
+                                        % - Porcentaje
+                                    </label>
+                            </div>
+                        </div>                        
+                        <div class="row">                            
+                            <div class='col-4 col-sm-4 col-md-3 col-lg-3 col-xl-3 col-xxl-3'>
+                                <label for='copia_monto' class='form-label'>Monto Cargo Inicial</label>
+                                <input name="copia_monto" id="copia_monto" class="form-control  form-control-sm decimals currency" type="text" style="text-align: right;" maxlength="10"  value="0.00" >
+                            </div>
+                        <div class="row">                            
+                            <div class='col-4 col-sm-4 col-md-3 col-lg-3 col-xl-3 col-xxl-3'>
+                                <label for='copia_monto_e' class='form-label'>Monto Cargo Extra</label>
+                                <input name="copia_monto_e" id="copia_monto_e" class="form-control  form-control-sm decimals currency" type="text" style="text-align: right;" maxlength="10"  value="0.00" >
+                            </div>
+                        </div>                            
+                        </div>
+                    </div>
+                    
+                    <div id="ajustar_lista" style="display: none">
+                        <div class="row" >
+                            <div class='col-12 col-sm-12 col-md-8 col-lg-6 col-xl-6 col-xxl-6'>
+                                <label for='$ajuste_categoria' class='form-label'>Ajustar precio a categoria</label>
+                                <select name="ajuste_categoria" id="ajuste_categoria" class="form-control  form-control-sm"  >
+                                    <option value = "0" selected> Todas </option>
+<?php
+                            $query = "SELECT Id,Nombre FROM categories ORDER BY Id";
+                            $stmt_dts = $db->prepare($query);
+                            $stmt_dts->execute();
+                            $tabla_dts = $stmt_dts->fetchAll(PDO::FETCH_ASSOC);
+                            if ($tabla_dts) {
+                                foreach ($tabla_dts as $tabla_dt) {
+                                    $Valor         = $tabla_dt["Id"];
+                                    $Descripcion   = $tabla_dt["Nombre"];
+                                    echo '<option value="'.$Valor.'">'. ($Descripcion).'</option>';
+                                }
+                            }
+                            echo '</select>';
+
+?>                                    
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class='col-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 col-xxl-4'>
+                                    <label for='' class='form-label'>Ajustar precios en </label>
+                            </div>
+                        </div>                        
+                        <div class="row">
+                            <div class='col-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 col-xxl-4'>
+                                    <input class="form-check-input" type="radio" name="tipo_ajuste_c" id="Monto_c" value = "$" checked>
+                                    <label class="form-check-label" for="Ajuste">
+                                        $ - Monto
+                                    </label>
+                            </div>
+                            <div class='col-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 col-xxl-4'>
+                                    <input class="form-check-input" type="radio" name="tipo_ajuste_c" id="Porcentaje_c" value = "%">
+                                    <label class="form-check-label" for="Ajuste">
+                                        % - Porcentaje
+                                    </label>
+                            </div>
+                        </div>                        
+                        <div class="row">                            
+                            <div class='col-4 col-sm-4 col-md-3 col-lg-3 col-xl-3 col-xxl-3'>
+                                <label for='ajuste_monto' class='form-label'>Monto Cargo Inicial</label>
+                                <input name="ajuste_monto" id="ajuste_monto" class="form-control  form-control-sm decimals " type="text" style="text-align: right;" maxlength="10"  value="0.00" >
+                            </div>
+                        </div>
+                        <div class="row">                            
+                            <div class='col-4 col-sm-4 col-md-3 col-lg-3 col-xl-3 col-xxl-3'>
+                                <label for='ajuste_monto_e' class='form-label'>Monto Cargo Extra</label>
+                                <input name="ajuste_monto_e" id="ajuste_monto_e" class="form-control  form-control-sm decimals " type="text" style="text-align: right;" maxlength="10"  value="0.00" >
+                            </div>
+                        </div>                        
+                    </div>                    
+
+                <br>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button class="btn btn-primary" type="submit">Procesar</button>
+                </div>                
+
+                </form>
+                    <script>
+                    function cambiarDivs(idVisible) {
+                        // Ocultamos ambos primero
+                        document.getElementById('copiar_lista').style.display = 'none';
+                        document.getElementById('ajustar_lista').style.display = 'none';
+                        
+                        // Mostramos el que nos interesa
+                        document.getElementById(idVisible).style.display = 'block';
+                    }
+                    $('#ajustar_precios').on('submit', function(e) {
+
+
+                        if (!this.checkValidity() && $('#Copia').is(':checked')) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            $(this).addClass('was-validated');
+                            return false;
+                        }                      
+
+
+                        if ($('#Copia').is(':checked')) {
+                            //alert('Copia')
+                            TipoOpcion = 'C';
+                            ListaCategoria = $('#nueva_lista').val();
+                            if ($('#Monto').is(':checked')) {
+                                TipoMP = '$';
+                            }
+                            else{
+                                TipoMP = '%';
+                            }
+                            MontoA = $('#copia_monto').val();
+                            MontoE = $('#copia_monto_e').val();
+                        } else {
+                            //alert('Ajuste')
+                            TipoOpcion = 'A';
+                            ListaCategoria = $('#ajuste_categoria').val();
+                            if ($('#Monto_c').is(':checked')) {
+                                TipoMP = '$';
+                            }
+                            else{
+                                TipoMP = '%';
+                            }
+                            MontoA = $('#ajuste_monto').val();
+                            MontoE = $('#ajuste_monto_e').val();
+                        }
+
+                        $.ajax({
+                            url: API_BASE_URL + 'ajustar_precio',
+                            type: 'PUT',
+                            contentType: 'application/json', // Mantenemos el Content-Type como JSON
+                            headers: {
+                                'Authorization': 'Bearer ' + TOKEN 
+                            },
+                            // Enviamos el objeto convertido a JSON String
+                            data:JSON.stringify({
+                                lista: IdSelected,
+                                tipo_opcion: TipoOpcion,
+                                lista_categoria: ListaCategoria,
+                                tipo_m_p: TipoMP,
+                                montoA: MontoA,
+                                montoE: MontoE
+                            }),
+                            success: function(response) {
+                                setTimeout(() => {
+                                    showToast('✅ <?php echo Trd(12)?> ' + response.message);
+                                }, 500);                                
+                            },
+                            error: function(xhr) {
+                                const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'Error al comunicarse con la API.';
+                                setTimeout(() => {
+                                    showToast('❌ <?php echo Trd(15)?> ' + errorMessage);
+                                }, 500);
+                            }
+                        });                          
+
+
+                        e.preventDefault(); 
+                        
+                    });                     
+                    </script>                  
+                <?php            
+
             $Tabla = 'detail_price_lists';
             echo '<h4 class="mb-4">Detalle lista precios</h4>';
-                add_listado($Tabla);                
+                add_listado($Tabla);
+
                 add_form($Tabla,$Idioma,'D');
                 edit_form($Tabla,$Idioma,'D');
 

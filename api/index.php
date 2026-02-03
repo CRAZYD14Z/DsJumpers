@@ -51,8 +51,8 @@ $base_path = '/api';
 $path = trim(str_replace($base_path, '', $request_uri), '/'); 
 $segments = explode('/', $path);
 
-$resource = $segments[0]; // Ej: 'login', 'clientes', 'productos'
-$id = $segments[1] ?? null; // Ej: ID si existe
+$resource = $segments[1]; // Ej: 'login', 'clientes', 'productos'
+$id = $segments[2] ?? null; // Ej: ID si existe
 // ----------------------------------------------------
 // 4. ENRUTAMIENTO Y AUTENTICACIÓN
 // ----------------------------------------------------
@@ -242,6 +242,27 @@ switch ($resource) {
         break;  
     case 'orden':
         orden($resource,$db, $method, $id, $data);
+        break;
+    case 'ajustar_precio':
+        ajustar_precio($resource,$db, $method, $id, $data);
+        break;                        
+    case 'get_products_categories':
+        get_products_categories($resource,$db, $method, $id, $data);
+        break; 
+    case 'get_related_products':
+        get_related_products($resource,$db, $method, $id, $data);
+        break;
+    case 'get_organizatios':
+        get_organizatios($resource,$db, $method, $id, $data);
+        break;
+    case 'get_customers':
+        get_customers($resource,$db, $method, $id, $data);
+        break;
+    case 'get_venues':
+        get_venues($resource,$db, $method, $id, $data);
+        break;
+    case 'distance_charge':
+        distance_charge($resource,$db, $method, $id, $data);
         break;                
     default:
         // Manejar rutas no definidas
