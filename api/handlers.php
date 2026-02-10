@@ -1409,9 +1409,43 @@ function get_products_categories($table_name,$db, $method, $id, $data){
     switch ($method) {
         case 'GET': 
             $IdCat = isset($_GET['IdCat']) ? (int)$_GET['IdCat'] : 0;
-            $Date = isset($_GET['Date']) ? (int)$_GET['Date'] : date('Ymd');
-            $Date = DateTime::createFromFormat('Ymd', $Date);
-            $Date = $Date->format('Y-m-d');
+
+                $DateS_raw = isset($_GET['DateS']) ? $_GET['DateS'] : date('Y-m-d\TH:i');
+                $DateE_raw = isset($_GET['DateE']) ? $_GET['DateE'] : date('Y-m-d\TH:i');
+
+                $objDateS = new DateTime($DateS_raw);
+                $objDateE = new DateTime($DateE_raw);
+
+                $fechaS = $objDateS->format('Ymd'); // 2026-02-04
+                $horaS  = $objDateS->format('H:i');   // 18:00
+
+                $fechaE = $objDateE->format('Ymd'); // 2026-02-05
+                $horaE  = $objDateE->format('H:i');   // 02:00
+
+
+                //RECUPERAR TODO EL DETALLE DE EVENTOS ACTIVOS DE ESTA FECHA PARA RESTAR LAS CANTIDADES DE LOS PRODUCTOS
+
+                $fechaS_db = $objDateS->format('Y-m-d H:i:s');
+                $fechaE_db = $objDateE->format('Y-m-d H:i:s');
+
+                $query = "
+                    SELECT IdProduct, SUM(Quantity) as Quantity 
+                    FROM v_leads_detail 
+                    WHERE Status = 'A' 
+                    AND (StartDateTime < :DateE AND EndDateTime > :DateS)
+                    AND Unlimited = 0
+                    GROUP BY IdProduct
+                ";
+
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(':DateS', $fechaS_db);
+                $stmt->bindParam(':DateE', $fechaE_db);
+                $stmt->execute();                
+
+                $ocupados = $stmt->fetchAll(PDO::FETCH_ASSOC);                
+
+                $cantidadesOcupadas = array_column($ocupados, 'Quantity', 'IdProduct');                
+
                 $query = "
                     SELECT * FROM v_items_prices_lists
                     WHERE Category = :idCat  AND 
@@ -1421,11 +1455,32 @@ function get_products_categories($table_name,$db, $method, $id, $data){
                 ";                            
                 $stmt = $db->prepare($query);
                 $stmt->bindParam(':idCat', $IdCat, PDO::PARAM_INT);
-                $stmt->bindParam(':date', $Date, PDO::PARAM_STR);
+                $stmt->bindParam(':date', $fechaS, PDO::PARAM_STR);
                 //$stmt->bindValue(1, $IdCat);
                 //$stmt->bindValue(2, $Date);
                 $stmt->execute();
                 $resultados_p = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                if ($resultados_p) {
+                    foreach ($resultados_p as $index => $Precio) {
+                            $JsonPrice = $Precio['JsonPrice'];
+                            $JsonPrice = html_entity_decode($JsonPrice);
+                            $ingreso =  $objDateS->format('Y-m-d H:i:00');
+                            $salida  = $objDateE->format('Y-m-d H:i:00');
+                            // Modificamos directamente el arreglo usando el índice
+                            $resultados_p[$index]['Price'] = calcularCostoEstanciaPHP($JsonPrice, $ingreso, $salida);
+
+                                if (isset($cantidadesOcupadas[$resultados_p[$index]['Producto']])) {
+                                    $cantidadOcupada = $cantidadesOcupadas[$resultados_p[$index]['Producto']];
+                                } else {
+                                    $cantidadOcupada = 0; // Si no está en el arreglo, nadie lo ha rentado
+                                }                            
+
+                            $resultados_p[$index]['Quantity'] = $resultados_p[$index]['Quantity'] - $cantidadOcupada;
+                            //if ($resultados_p[$index]['Quantity'] <= 0)
+                            //    unset($resultados_p[$index]);
+                        }
+                }
+
                 http_response_code(200);
                 echo json_encode(array(
                     "products" => $resultados_p
@@ -1445,9 +1500,45 @@ function get_related_products($table_name,$db, $method, $id, $data){
     switch ($method) {
         case 'GET': 
             $IdP = isset($_GET['IdP']) ? (int)$_GET['IdP'] : 0;
-            $Date = isset($_GET['Date']) ? (int)$_GET['Date'] : date('Ymd');
-            $Date = DateTime::createFromFormat('Ymd', $Date);
-            $Date = $Date->format('Y-m-d');
+
+
+                $DateS_raw = isset($_GET['DateS']) ? $_GET['DateS'] : date('Y-m-d\TH:i');
+                $DateE_raw = isset($_GET['DateE']) ? $_GET['DateE'] : date('Y-m-d\TH:i');
+
+                $objDateS = new DateTime($DateS_raw);
+                $objDateE = new DateTime($DateE_raw);
+
+                $fechaS = $objDateS->format('Ymd'); // 2026-02-04
+                $horaS  = $objDateS->format('H:i');   // 18:00
+
+                $fechaE = $objDateE->format('Ymd'); // 2026-02-05
+                $horaE  = $objDateE->format('H:i');   // 02:00
+
+
+                //RECUPERAR TODO EL DETALLE DE EVENTOS ACTIVOS DE ESTA FECHA PARA RESTAR LAS CANTIDADES DE LOS PRODUCTOS
+
+                $fechaS_db = $objDateS->format('Y-m-d H:i:s');
+                $fechaE_db = $objDateE->format('Y-m-d H:i:s');
+
+                $query = "
+                    SELECT IdProduct, SUM(Quantity) as Quantity 
+                    FROM v_leads_detail 
+                    WHERE Status = 'A' 
+                    AND (StartDateTime < :DateE AND EndDateTime > :DateS)
+                    AND Unlimited = 0
+                    GROUP BY IdProduct
+                ";
+
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(':DateS', $fechaS_db);
+                $stmt->bindParam(':DateE', $fechaE_db);
+                $stmt->execute();                
+
+                $ocupados = $stmt->fetchAll(PDO::FETCH_ASSOC);                
+
+                $cantidadesOcupadas = array_column($ocupados, 'Quantity', 'IdProduct');             
+
+
                 $query = "
                     SELECT * FROM v_related_products_prices_lists
                     WHERE Producto_rp = :idp  AND 
@@ -1457,11 +1548,34 @@ function get_related_products($table_name,$db, $method, $id, $data){
                 ";                            
                 $stmt = $db->prepare($query);
                 $stmt->bindParam(':idp', $IdP, PDO::PARAM_INT);
-                $stmt->bindParam(':date', $Date, PDO::PARAM_STR);
+                $stmt->bindParam(':date', $fechaS, PDO::PARAM_STR);
                 //$stmt->bindValue(1, $IdCat);
                 //$stmt->bindValue(2, $Date);
                 $stmt->execute();
                 $resultados_p = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                if ($resultados_p) {
+                    foreach ($resultados_p as $index => $Precio) {
+                            $JsonPrice = $Precio['JsonPrice'];
+                            $JsonPrice = html_entity_decode($JsonPrice);
+                            $ingreso =  $objDateS->format('Y-m-d H:i:00');
+                            $salida  = $objDateE->format('Y-m-d H:i:00');
+                            // Modificamos directamente el arreglo usando el índice
+                            $resultados_p[$index]['Price'] = calcularCostoEstanciaPHP($JsonPrice, $ingreso, $salida);
+
+                                if (isset($cantidadesOcupadas[$resultados_p[$index]['Producto']])) {
+                                    $cantidadOcupada = $cantidadesOcupadas[$resultados_p[$index]['Producto']];
+                                } else {
+                                    $cantidadOcupada = 0; // Si no está en el arreglo, nadie lo ha rentado
+                                }                            
+
+                            $resultados_p[$index]['Quantity'] = $resultados_p[$index]['Quantity'] - $cantidadOcupada;
+                            //if ($resultados_p[$index]['Quantity'] <= 0)
+                            //    unset($resultados_p[$index]);
+                        }
+                }                
+
+
                 http_response_code(200);
                 echo json_encode(array(
                     "products" => $resultados_p
@@ -1476,7 +1590,7 @@ function get_related_products($table_name,$db, $method, $id, $data){
     }   
 }
 
-function get_organizatios($table_name,$db, $method, $id, $data){
+function get_organization($table_name,$db, $method, $id, $data){
     global $IDS;
     switch ($method) {
         case 'GET': 
@@ -1504,6 +1618,56 @@ function get_organizatios($table_name,$db, $method, $id, $data){
                 echo json_encode(array(
                     "items" => []
                 ));
+            }
+        break;
+
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }  
+}
+
+function save_organization($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+            $query = "INSERT INTO  organizations (Nombre,Estatus,FechaCreacion,FechaCambio) VALUES(:nombre,'A',now(),now()) ";
+            $stmt = $db->prepare($query);
+            $stmt->bindValue(":nombre", $data->{'nombre'});
+            
+            if ($stmt->execute()) {
+
+                $lastInsertId = $db->lastInsertId();
+                $InsertLog ="INSERT INTO log (FechaHora,Usuario,Tabla,Id,Id2,Tipo,Log) VALUES(now(),'','organizations',$lastInsertId,0,'I','Registro Insertado')";
+                $stmt = $db->prepare($InsertLog);
+                $stmt->execute();
+                http_response_code(201); // Created
+                echo json_encode(   array( "id" => $lastInsertId, "nombre"=> $data->{'nombre'}) );
+            }            
+        break;
+        case 'PUT':
+            if ($data->{'IdOrganization'} > 0) {
+                $query = "UPDATE  organizations  SET Pais = :pais, Estado = :estado, Direccion = :direccion, Ciudad = :ciudad, CP = :cp, TelefonoCelular = :celular, Correo = :correo, Notas = :notas, FechaCambio = now() WHERE Id = :id ";
+                $stmt = $db->prepare($query);
+                $stmt->bindValue("pais", $data->{'Country'});
+                $stmt->bindValue("estado", $data->{'State'});
+                $stmt->bindValue("direccion", $data->{'Street'});
+                $stmt->bindValue("ciudad", $data->{'City'});
+                $stmt->bindValue("cp", $data->{'Zip'});
+                $stmt->bindValue("celular", $data->{'Cell'});
+                $stmt->bindValue("correo", $data->{'CustomerEmail'});
+                $stmt->bindValue("notas", $data->{'CustomerNote'});
+                $stmt->bindValue(":id", $data->{'IdOrganization'});
+                if ($stmt->execute()) {
+                    http_response_code(200);
+                    echo json_encode(array("message" => "Registro actualizado."));
+                }
+                else{
+                    http_response_code(503);
+                    echo json_encode(array("message" => "No se pudo actualizar el registro."));
+                }
             }
         break;
 
@@ -1555,6 +1719,145 @@ function get_customers($table_name,$db, $method, $id, $data){
     }      
     
 }
+
+function save_customer($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+            $query = "INSERT INTO  customers (Nombres,Estatus,FechaCreacion,FechaCambio) VALUES(:nombre,'A',now(),now()) ";
+            $stmt = $db->prepare($query);
+            $stmt->bindValue(":nombre", $data->{'nombre'});
+            
+            if ($stmt->execute()) {
+
+                $lastInsertId = $db->lastInsertId();
+                $InsertLog ="INSERT INTO log (FechaHora,Usuario,Tabla,Id,Id2,Tipo,Log) VALUES(now(),'','customers',$lastInsertId,0,'I','Registro Insertado')";
+                $stmt = $db->prepare($InsertLog);
+                $stmt->execute();
+                http_response_code(201); // Created
+                echo json_encode(   array( "id" => $lastInsertId, "nombre"=> $data->{'nombre'}) );
+            }            
+        break;
+        case 'PUT':
+            if ($data->{'IdCustomer'} > 0) {
+                $query = "UPDATE  customers  SET Pais = :pais, Estado = :estado, Direccion = :direccion, Ciudad = :ciudad, CP = :cp, TelefonoCelular = :celular, Correo = :correo, Notas = :notas, FechaCambio = now() WHERE Id = :id ";
+                $stmt = $db->prepare($query);
+                $stmt->bindValue("pais", $data->{'Country'});
+                $stmt->bindValue("estado", $data->{'State'});
+                $stmt->bindValue("direccion", $data->{'Street'});
+                $stmt->bindValue("ciudad", $data->{'City'});
+                $stmt->bindValue("cp", $data->{'Zip'});
+                $stmt->bindValue("celular", $data->{'Cell'});
+                $stmt->bindValue("correo", $data->{'CustomerEmail'});
+                $stmt->bindValue("notas", $data->{'CustomerNote'});
+                $stmt->bindValue(":id", $data->{'IdCustomer'});
+                if ($stmt->execute()) {
+                    http_response_code(200);
+                    echo json_encode(array("message" => "Registro actualizado."));
+                }
+                else{
+                    http_response_code(503);
+                    echo json_encode(array("message" => "No se pudo actualizar el registro."));
+                }
+            }
+        break;
+
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }  
+}
+
+function save_venue($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+            $query = "INSERT INTO  venues (Nombre,FechaCreacion,FechaCambio) VALUES(:nombre,now(),now()) ";
+            $stmt = $db->prepare($query);
+            $stmt->bindValue(":nombre", $data->{'nombre'});
+            
+            if ($stmt->execute()) {
+
+                $lastInsertId = $db->lastInsertId();
+                $InsertLog ="INSERT INTO log (FechaHora,Usuario,Tabla,Id,Id2,Tipo,Log) VALUES(now(),'','venues',$lastInsertId,0,'I','Registro Insertado')";
+                $stmt = $db->prepare($InsertLog);
+                $stmt->execute();
+                http_response_code(201); // Created
+                echo json_encode(   array( "id" => $lastInsertId, "nombre"=> $data->{'nombre'}) );
+            }            
+        break;
+        case 'PUT':
+            if ($data->{'IdVenue'} > 0) {
+                $query = "UPDATE  venues  SET Pais = :pais, Estado = :estado, Direccion = :direccion, Ciudad = :ciudad, CP = :cp, FechaCambio = now() WHERE Id = :id ";
+                $stmt = $db->prepare($query);
+                $stmt->bindValue("pais", $data->{'EventCountry'});
+                $stmt->bindValue("estado", $data->{'EventState'});
+                $stmt->bindValue("direccion", $data->{'EventStreet'});
+                $stmt->bindValue("ciudad", $data->{'EventCity'});
+                $stmt->bindValue("cp", $data->{'EventZip'});
+                $stmt->bindValue(":id", $data->{'IdVenue'});
+                if ($stmt->execute()) {
+                    http_response_code(200);
+                    echo json_encode(array("message" => "Registro actualizado."));
+                }
+                else{
+                    http_response_code(503);
+                    echo json_encode(array("message" => "No se pudo actualizar el registro."));
+                }
+            }
+        break;
+
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }  
+}
+
+function get_referals($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+            $Q = isset($_GET['q']) ? $_GET['q'] : '';
+            if ($Q!=""){
+            $query = "
+                SELECT Id, CONCAT(Nombres,' ', Apellidos) as Nombre, Direccion FROM referals
+                WHERE ( Nombres LIKE :q  OR Apellidos LIKE :q2)  AND Estatus = 'A'
+            ";                            
+            $stmt = $db->prepare($query);
+
+            // Adiciona os curingas para busca parcial
+            $searchTerm = "%" . $Q . "%";
+            $stmt->bindParam(':q', $searchTerm, PDO::PARAM_STR);
+            $stmt->bindParam(':q2', $searchTerm, PDO::PARAM_STR);
+
+            $stmt->execute();
+            $resultados_p = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            http_response_code(200);
+            echo json_encode(array(
+                "items" => $resultados_p
+            ));
+            }
+            else{
+                echo json_encode(array(
+                    "items" => []
+                ));
+            }
+        break;
+
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }      
+    
+}
+
 
 function get_venues($table_name,$db, $method, $id, $data){
     global $IDS;
@@ -1668,16 +1971,36 @@ function distance_charge($table_name,$db, $method, $id, $data){
                         }
                         //$costo_total;
                         
-                            $respuesta = [
-                                "status" => "success",
-                                "total_millas" => $total_millas,
-                                "costo_total" => round($costo_total, 2),
-                            ];
 
-                            echo json_encode(array(
-                                "cost" => $respuesta
-                            ));                    
+
                     }
+
+                    $TaxRate = 0;
+                    $query = "SELECT EstimatedCombineRate FROM taxrates_zip WHERE Zip = :zip";
+                    
+                    $stmt = $db->prepare($query);
+                    $stmt->bindParam(':zip', $ZIP, PDO::PARAM_STR);
+                    $stmt->execute();
+                    //$costo_extra = $stmt->fetchColumn();
+                    $data = $stmt->fetch(PDO::FETCH_ASSOC);
+                    
+                    if ($data) {
+                        // Ahora accedes a cada valor por su nombre
+                        $TaxRate =  $data['EstimatedCombineRate'];
+                    }
+
+                    $respuesta = [
+                        "status" => "success",
+                        "total_millas" => $total_millas,
+                        "costo_total" => round($costo_total, 2),
+                        "taxrate" => $TaxRate
+                    ];
+
+                    echo json_encode(array(
+                        "cost" => $respuesta
+                    ));  
+
+
                 }
         break;
 
@@ -1690,4 +2013,169 @@ function distance_charge($table_name,$db, $method, $id, $data){
     
 }
 
+function calcularCostoEstanciaPHP($jsonConfig, $inicio, $fin) {
+    $configTotal = is_string($jsonConfig) ? json_decode($jsonConfig, true) : $jsonConfig;
+    if (empty($configTotal)) return 0;
+
+    $fechaInicio = new DateTime($inicio);
+    $fechaFin = new DateTime($fin);
+    $intervalo = $fechaInicio->diff($fechaFin);
+    
+    // Si la fecha fin es menor, costo 0
+    if ($fechaFin < $fechaInicio) return 0;
+
+    // Calcular horas totales (equivalente a Math.ceil)
+    // Convertimos diferencia a segundos y dividimos por 3600
+    $segundos = $fechaFin->getTimestamp() - $fechaInicio->getTimestamp();
+    $horasReales = ceil($segundos / 3600);
+    
+    // REGLA: Mínimo 8 horas
+    $h = max($horasReales, 8);
+
+    $conv = [
+        "hora" => 1, "horas" => 1, 
+        "dia" => 24, "dias" => 24, 
+        "semana" => 168, "semanas" => 168
+    ];
+
+    // Buscar configuraciones (sustituye al .find de JS)
+    $f1 = null; $f2 = null; $f3 = null;
+    foreach ($configTotal as $c) {
+        if ($c['funcion'] === 'f1') $f1 = $c;
+        if ($c['funcion'] === 'f2') $f2 = $c;
+        if ($c['funcion'] === 'f3') $f3 = $c;
+    }
+
+    if (!$f1) return 0;
+
+    $costoTotal = 0;
+    $p1 = floatval($f1['precio'] ?? 0);
+
+    // --- LÓGICA DE CÁLCULO ---
+    if ($f1['tipo'] === "Indefinido") {
+        $costoTotal = $p1;
+    } 
+    elseif ($f1['tipo'] === "Cada") {
+        $t1 = (floatval($f1['tiempo'] ?? 1)) * $conv[$f1['unidad']];
+        $costoTotal = $p1; // Cobro inicial
+
+        $limiteF2 = ($f2 && $f2['tipo'] === "Hasta") 
+            ? (floatval($f2['tiempo'] ?? 1)) * $conv[$f2['unidad']] 
+            : PHP_INT_MAX;
+
+        if ($h > 0) {
+            if ($h < $limiteF2) {
+                $costoTotal += floor($h / $t1) * $p1;
+            } else {
+                // Se cobra F1 hasta el límite definido por F2
+                $costoTotal += floor(($limiteF2 - 1) / $t1) * $p1;
+            }
+
+            // Aplicar F3 si sobrepasa o iguala el límite de F2
+            if ($h >= $limiteF2 && $f3 && $f3['tipo'] === "Cada") {
+                $t3 = (floatval($f3['tiempo'] ?? 1)) * $conv[$f3['unidad']];
+                $p3 = floatval($f3['precio'] ?? 0);
+                
+                // Cálculo de ciclos de F3 desde el punto de corte
+                $costoTotal += (floor(($h - $limiteF2) / $t3) + 1) * $p3;
+            }
+        }
+    } 
+    elseif ($f1['tipo'] === "Hasta") {
+        $t1 = (floatval($f1['tiempo'] ?? 1)) * $conv[$f1['unidad']];
+        if ($h <= $t1) {
+            $costoTotal = $p1;
+        } elseif ($f3) {
+            $p3 = floatval($f3['precio'] ?? 0);
+            $t3 = (floatval($f3['tiempo'] ?? 1)) * $conv[$f3['unidad']];
+            
+            if ($f3['tipo'] === "Hasta") {
+                $costoTotal = $p3;
+            } elseif ($f3['tipo'] === "Cada") {
+                $costoTotal = $p1 + (floor(($h - $t1) / $t3) * $p3);
+            }
+        } else {
+            $costoTotal = $p1;
+        }
+    }
+
+    return $costoTotal;
+}
+function lead_auto_save($table_name,$db, $method, $id, $data){
+
+    if (!$data || !isset($data->header) || !isset($data->detalle)) {
+        echo json_encode(["status" => "error", "message" => "Datos incompletos"]);
+        exit;
+    }
+
+    $h = $data->header;
+
+ $idLead = (!empty($h->IdLead)) ? $h->IdLead : null;
+
+    if ($idLead) {
+        // --- MODO UPDATE ---
+        $sqlLead = "UPDATE lead SET 
+            StartDateTime=?, EndDateTime=?, Organization=?, Customer=?, Referal=?, 
+            OkT=?, WA=?, AE=?, ME=?, CustomerNote=?, Venue=?, EventName=?, Surface=?, 
+            Delivery=?, Note1=?, Note2=?, ItemTotals=?, ChkDstC=?, DistanceCharges=?, ChkStCs=?, 
+            StafCost=?, ChkDsc=?, Discount=?, SubTotal=?, TaxId=?, TaxPc=?, 
+            TaxAmount=?, Total=?, Deposit=?, Balance=?, Status='Draft',FechaCambio=now()
+            WHERE Id = ?";
+        
+        $stmtLead = $db->prepare($sqlLead);
+        $stmtLead->execute([
+            $h->FHI, $h->FHF, $h->Organization, $h->Customer, $h->Referal,
+            $h->OkT, $h->WA, $h->AE, $h->ME, $h->CusNt, $h->Venue, $h->EventName, $h->Surface,
+            $h->Delivety, $h->Nt1, $h->Nt2, $h->Item_Totals, $h->ChkDstC, $h->DstC, $h->ChkStCs, 
+            $h->StCs, $h->ChkDsc, $h->Dsc, $h->SubT, $h->TaxId, $h->TaxPc, 
+            $h->TaxAm, $h->Total, $h->Depo, $h->BalDue, $idLead
+        ]);
+
+        // Limpiar detalles anteriores para evitar duplicados
+        $db->prepare("DELETE FROM lead_detail WHERE IdLead = ?")->execute([$idLead]);
+
+    } else {
+        // --- MODO INSERT ---
+        $sqlLead = "INSERT INTO lead (
+            StartDateTime, EndDateTime, Organization, Customer, Referal, 
+            OkT, WA, AE, ME, CustomerNote, Venue, EventName, Surface, 
+            Delivery, Note1, Note2, ItemTotals, ChkDstC, DistanceCharges, ChkStCs, 
+            StafCost, ChkDsc, Discount, SubTotal, TaxId, TaxPc, 
+            TaxAmount, Total, Deposit, Balance, Status,FechaCreacion,FechaCambio
+        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,now(),now())";
+
+        $stmtLead = $db->prepare($sqlLead);
+        $stmtLead->execute([
+            $h->FHI, $h->FHF, $h->Organization, $h->Customer, $h->Referal,
+            $h->OkT, $h->WA, $h->AE, $h->ME, $h->CusNt, $h->Venue, $h->EventName, $h->Surface,
+            $h->Delivety, $h->Nt1, $h->Nt2, $h->Item_Totals, $h->ChkDstC, $h->DstC, $h->ChkStCs, 
+            $h->StCs, $h->ChkDsc, $h->Dsc, $h->SubT, $h->TaxId, $h->TaxPc, 
+            $h->TaxAm, $h->Total, $h->Depo, $h->BalDue, 'Draft'
+        ]);
+        $idLead = $db->lastInsertId();
+    }
+
+    // --- 3. INSERTAR DETALLES (detalle es un array de objetos) ---
+    $sqlDetail = "INSERT INTO lead_detail (IdLead, IdProduct, IdProductRel, Quantity, Discount, Tax, Price,OrgPrice) 
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    $stmtDetail = $db->prepare($sqlDetail);
+
+    foreach ($data->detalle as $item) {
+        $stmtDetail->execute([
+            $idLead, 
+            $item->id_prd, 
+            $item->id_rel, 
+            $item->cant, 
+            $item->descuento, 
+            $item->imp, 
+            $item->precio,
+            $item->price
+        ]);
+    }
+
+    echo json_encode(["status" => "success", "IdLead" => $idLead]);
+
+
+
+}
 ?>

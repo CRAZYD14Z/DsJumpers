@@ -845,6 +845,10 @@ session_start();
         if (Id=='products'){
             $("#add_form_products_clone").show();
         }
+        if (Id=='item_prices'){
+            IdSelected = 0;
+        }        
+        
     }
 
     function Clonar(Id,IdTabla){
@@ -1267,6 +1271,10 @@ function getRecordData(Id,IdTabla) {
     if (IdTabla == 'price_lists')
         IdSelected = Id;
 
+    if (IdTabla == 'item_prices')
+        IdSelected = Id;    
+
+
     $("#listado_"+IdTabla).hide();
     $("#edit_form_"+IdTabla).show();
     //alert(IdTabla)
@@ -1387,7 +1395,7 @@ function getRecordData(Id,IdTabla) {
             }
             else if (IdTabla == 'price_lists'){
                 listado('detail_price_lists');
-            }else if (IdTabla == 'item_prices' || IdTabla == 'products_item_price'){
+            }else if (IdTabla == 'item_prices' || IdTabla == 'products_item_price'){                
                 cargar();
                 if (IdTabla == 'products_item_price'){
                     //const contenedor = document.getElementById('edit_contenedor-funciones');
@@ -1995,8 +2003,8 @@ $(document).ready(function() {
 function actualizarJSON() {
     const idsExistentes = $('.linea-config').map(function() { return this.id; }).get();
     configTotal = configTotal.filter(item => idsExistentes.includes(item.id_linea));
-    $('#JsonPrice').val(JSON.stringify(configTotal, null, 2));
-    $('#edit_JsonPrice').val(JSON.stringify(configTotal, null, 2));
+    //$('#JsonPrice').val(JSON.stringify(configTotal, null, 2));
+    //$('#edit_JsonPrice').val(JSON.stringify(configTotal, null, 2));
     proyectarTarifa(); 
 }
 
@@ -2135,8 +2143,14 @@ function ejecutarFuncion1() {
         </select>
         <span class="dinamico"></span>
     </div>`;
-    $('#contenedor-funciones').append(html);
-    $('#edit_contenedor-funciones').append(html);
+    //alert(IdSelected)
+    if (IdSelected == 0 || IdSelected == ''){
+        $('#contenedor-funciones').append(html);
+    }
+    else{
+        $('#edit_contenedor-funciones').append(html);
+    }
+        
 
     $(`#${id} .sel-tipo`).on('change', function() {
         limpiarHijos(`#${id}`);
@@ -2195,8 +2209,13 @@ function ejecutarFuncion2(pPrev, tPrev, uPrev) {
         </select>
         <span class="dinamico"></span>
     </div>`;
-    $('#contenedor-funciones').append(html);
-    $('#edit_contenedor-funciones').append(html);
+    //alert(IdSelected)
+    if (IdSelected == 0 || IdSelected == ''){
+        $('#contenedor-funciones').append(html);
+    }
+    else{
+        $('#edit_contenedor-funciones').append(html);
+    }
 
     $(`#${id} .sel-tipo`).on('change', function() {
         limpiarHijos(`#${id}`);
@@ -2230,8 +2249,13 @@ function ejecutarFuncion3(tPrev, uPrev) {
         </select>
         <span class="dinamico"></span>
     </div>`;
-    $('#contenedor-funciones').append(html);
-    $('#edit_contenedor-funciones').append(html);
+    //alert(IdSelected)
+    if (IdSelected == 0 || IdSelected == ''){
+        $('#contenedor-funciones').append(html);
+    }
+    else{
+        $('#edit_contenedor-funciones').append(html);
+    }
 
     $(`#${id} .sel-tipo`).on('change', function() {
         limpiarHijos(`#${id}`);
@@ -2281,12 +2305,13 @@ function cargar() {
 
         
         const rawValue = $('#edit_JsonPrice').val();
-        const decodedValue = $('<div/>').html(rawValue).text();        
+        const decodedValue = $('<div/>').html(rawValue).text();
         const data = JSON.parse(decodedValue);
+
         if (!Array.isArray(data) || data.length === 0) return;
 
         // 1. Limpiar el estado actual
-        // $('#contenedor-funciones').empty();
+        $('#contenedor-funciones').empty();
         $('#edit_contenedor-funciones').empty();
         configTotal = [];
 
@@ -2294,6 +2319,7 @@ function cargar() {
         const f1 = data.find(item => item.funcion === "f1");
         const f2 = data.find(item => item.funcion === "f2");
         const f3 = data.find(item => item.funcion === "f3");
+
 
         // 3. Reconstruir F1
         if (f1) {
@@ -2334,7 +2360,7 @@ function cargar() {
         proyectarTarifa();
 
     } catch (e) {
-        //alert("Error al leer el JSON: " + e.message);
+        alert("Error al leer el JSON: " + e.message);
     }
 }
 

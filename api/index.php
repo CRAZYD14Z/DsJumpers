@@ -252,18 +252,35 @@ switch ($resource) {
     case 'get_related_products':
         get_related_products($resource,$db, $method, $id, $data);
         break;
-    case 'get_organizatios':
-        get_organizatios($resource,$db, $method, $id, $data);
+    case 'get_organization':
+        get_organization($resource,$db, $method, $id, $data);
         break;
+    case 'save_organization':
+        save_organization($resource,$db, $method, $id, $data);
+        break;        
     case 'get_customers':
         get_customers($resource,$db, $method, $id, $data);
         break;
+    case 'save_customer':
+        save_customer($resource,$db, $method, $id, $data);
+        break;        
+
+    case 'save_venue':
+        save_venue($resource,$db, $method, $id, $data);
+        break;                
+
+    case 'get_referals':
+        get_referals($resource,$db, $method, $id, $data);
+        break;        
     case 'get_venues':
         get_venues($resource,$db, $method, $id, $data);
         break;
     case 'distance_charge':
         distance_charge($resource,$db, $method, $id, $data);
-        break;                
+        break;
+    case 'lead_auto_save':
+        lead_auto_save($resource,$db, $method, $id, $data);
+        break;        
     default:
         // Manejar rutas no definidas
         http_response_code(404);

@@ -1,4 +1,4 @@
-    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
     <div class="container-fluid">
         <a class="navbar-brand" href="#">DsJumpers</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -26,12 +26,13 @@
                 <li><a class="dropdown-item" href="crud.php?Id=organizations">Organizations</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=price_lists">Price Lists</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=products">Products</a></li>
+                <li><a class="dropdown-item" href="crud.php?Id=referals">Referals</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=surfaces">Surfaces</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=venues">Venues</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=wharehouses">Wharehouses</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="lead.php">Leads</a></li>
-                <li><a class="dropdown-item" href="#">Sing Out</a></li>
+                <li><a class="dropdown-item" href="#">Sign Out</a></li>
             </ul>
             </li>
         </ul>

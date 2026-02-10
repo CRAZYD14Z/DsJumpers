@@ -1,4 +1,118 @@
-        /* Ajuste opcional para centrar verticalmente la 'X' en algunos navegadores */
+
+/* Unificar apariencia de inputs de fecha en diferentes navegadores */
+input[type="datetime-local"] {
+    font-size: 0.8rem;
+    color: #444;
+    border: 1px solid #dee2e6;
+}
+
+input[type="datetime-local"]:focus {
+    border-color: #0d6efd;
+    box-shadow: none;
+}
+
+/* Ajuste para que los iconos del input-group se vean limpios */
+.input-group-text {
+    font-size: 0.8rem;
+    color: #6c757d;
+    border-color: #dee2e6;
+}
+/* Botón tipo pestaña minimalista */
+.btn-pestaña-minimal {
+    position: fixed;
+    left: 0;
+    top: 25%;
+    z-index: 1040;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-left: none;
+    border-radius: 0 6px 6px 0;
+    padding: 10px 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+}
+
+.btn-pestaña-minimal span {
+    writing-mode: vertical-rl;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    margin-top: 5px;
+    color: #888;
+}
+
+/* Fix para forzar el ocultamiento en escritorio */
+@media (min-width: 768px) {
+    .d-md-none-custom {
+        display: none !important;
+    }
+    .offcanvas-md {
+        position: relative !important;
+        transform: none !important;
+        visibility: visible !important;
+        display: block;
+    }
+}
+
+/* Suavizar la expansión del contenido derecho */
+#selections {
+    transition: all 0.25s ease-out;
+}
+
+
+/* ESCRITORIO: Manejo manual del ocultamiento */
+@media (min-width: 768px) {
+    .offcanvas-md {
+        transform: none !important;
+        visibility: visible !important;
+        position: relative !important;
+        z-index: 1;
+        display: block; /* Por defecto visible */
+        border-right: 1px solid #dee2e6;
+    }
+    
+    /* Clase que forzará el ocultamiento en escritorio */
+    .d-md-none-custom {
+        display: none !important;
+    }
+
+    .offcanvas-backdrop { display: none !important; }
+}
+
+#selections { transition: width 0.3s ease, flex 0.3s ease; }
+
+
+body {
+    padding-top: 70px;    /* Espacio para el nav superior */
+}
+
+#barra-mensajes {
+    transition: all 0.3s ease;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+.msg-minimal-normal  { background: rgba(255, 255, 255, 0.9); color: #333; }
+.msg-minimal-exito   { background: rgba(232, 245, 233, 0.9); color: #2e7d32; }
+.msg-minimal-error   { background: rgba(253, 235, 235, 0.9); color: #c62828; }
+.msg-minimal-alerta  { background: rgba(255, 248, 225, 0.9); color: #f9a825; }
+
+.btn-cerrar-mini {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    opacity: 0.5;
+    font-weight: bold;
+}
+
+.btn-cerrar-mini:hover { opacity: 1; }
+
+.tracking-tight { letter-spacing: -0.02em; }
+/* Ajuste opcional para centrar verticalmente la 'X' en algunos navegadores */
         .select2-container--bootstrap-5 .select2-selection--single .select2-selection__clear {
             margin-right: 0.5rem;
         }

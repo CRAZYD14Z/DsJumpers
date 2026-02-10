@@ -9,6 +9,40 @@ You should have received a copy of the GNU General Public License along with thi
 */
 
 @charset "utf-8";
+
+
+body {
+    padding-top: 70px;    /* Espacio para el nav superior */
+}
+
+#barra-mensajes {
+    transition: all 0.3s ease;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+.msg-minimal-normal  { background: rgba(255, 255, 255, 0.9); color: #333; }
+.msg-minimal-exito   { background: rgba(232, 245, 233, 0.9); color: #2e7d32; }
+.msg-minimal-error   { background: rgba(253, 235, 235, 0.9); color: #c62828; }
+.msg-minimal-alerta  { background: rgba(255, 248, 225, 0.9); color: #f9a825; }
+
+.btn-cerrar-mini {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    opacity: 0.5;
+    font-weight: bold;
+}
+
+.btn-cerrar-mini:hover { opacity: 1; }
+
+.tracking-tight { letter-spacing: -0.02em; }
+
+
+
+
 /* base styles */
 .jumbotron {
    background-color: #67A754;

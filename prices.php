@@ -451,8 +451,227 @@ function cargar() {
     } catch (e) {
         alert("Error al leer el JSON: " + e.message);
     }
+
+
+const ingreso = "2026-02-03 10:00:00";
+const salida = "2026-02-05 12:00:00"; // Solo 2 horas
+const total = calcularCostoEstancia(ingreso, salida);
+
+console.log(`Estancia real: 2hrs. Cobrando como 8hrs. Total: $${total}`);    
+
+}
+
+function calcularCostoEstancia(inicio, fin) {
+    if (!configTotal || configTotal.length === 0) return 0;
+
+    const fechaInicio = new Date(inicio);
+    const fechaFin = new Date(fin);
+    const diferenciaMs = fechaFin - fechaInicio;
+    
+    if (diferenciaMs < 0) return 0; 
+
+    // Calculamos horas reales y aplicamos el mínimo de 8
+    let horasReales = Math.ceil(diferenciaMs / (1000 * 60 * 60));
+    const h = Math.max(horasReales, 8);
+
+    const conv = { 
+        "hora": 1, "horas": 1, 
+        "dia": 24, "dias": 24, 
+        "semana": 168, "semanas": 168 
+    };
+
+    const f1 = configTotal.find(c => c.funcion === "f1");
+    const f2 = configTotal.find(c => c.funcion === "f2");
+    const f3 = configTotal.find(c => c.funcion === "f3");
+
+    if (!f1) return 0;
+
+    let costoTotal = 0;
+    const p1 = parseFloat(f1.precio) || 0;
+
+    if (f1.tipo === "Indefinido") {
+        costoTotal = p1;
+    } 
+    else if (f1.tipo === "Cada") {
+        const t1 = (parseFloat(f1.tiempo) || 1) * conv[f1.unidad];
+        costoTotal = p1; // Cobro base en t=0
+
+        let limiteF2 = (f2 && f2.tipo === "Hasta") 
+            ? (parseFloat(f2.tiempo) || 1) * conv[f2.unidad] 
+            : Infinity;
+
+        // F1 solo suma si h > 0 Y h < limiteF2
+        if (h > 0) {
+            // Calculamos cuántos intervalos de t1 han COMPLETADO su ciclo antes del límite
+            let horasParaF1 = Math.min(h, limiteF2);
+            
+            // Usamos (h-1) o una validación de residuo para imitar el "h % t1 === 0" de tu bucle
+            // Si h=24 y t1=24, el bucle sumaba. Si h=26, seguía siendo una sola vez.
+            if (h < limiteF2) {
+                costoTotal += Math.floor(h / t1) * p1;
+            } else {
+                // Si llegamos al límite, sumamos lo correspondiente a F1 hasta justo antes del límite
+                costoTotal += Math.floor((limiteF2 - 1) / t1) * p1;
+            }
+
+            // Aplicar F3 si h >= limiteF2
+            if (h >= limiteF2 && f3 && f3.tipo === "Cada") {
+                const t3 = (parseFloat(f3.tiempo) || 1) * conv[f3.unidad];
+                const p3 = parseFloat(f3.precio) || 0;
+                
+                // (h - limiteF2) nos da cuánto tiempo ha pasado desde que entró en vigor F3
+                // Si es 0, significa que acaba de empezar el primer bloque de F3
+                costoTotal += (Math.floor((h - limiteF2) / t3) + 1) * p3;
+            }
+        }
+    } 
+    else if (f1.tipo === "Hasta") {
+        const t1 = (parseFloat(f1.tiempo) || 1) * conv[f1.unidad];
+        if (h <= t1) {
+            costoTotal = p1;
+        } else if (f3) {
+            const p3 = parseFloat(f3.precio) || 0;
+            const t3 = (parseFloat(f3.tiempo) || 1) * conv[f3.unidad];
+            if (f3.tipo === "Hasta") {
+                costoTotal = p3; 
+            } else if (f3.tipo === "Cada") {
+                costoTotal = p1 + (Math.floor((h - t1) / t3) * p3);
+            }
+        }
+    }
+
+    return costoTotal;
 }
 
 </script>
 </body>
+
+
+<?php
+
+function calcularCostoEstanciaPHP($jsonConfig, $inicio, $fin) {
+    $configTotal = is_string($jsonConfig) ? json_decode($jsonConfig, true) : $jsonConfig;
+    if (empty($configTotal)) return 0;
+
+    $fechaInicio = new DateTime($inicio);
+    $fechaFin = new DateTime($fin);
+    $intervalo = $fechaInicio->diff($fechaFin);
+    
+    // Si la fecha fin es menor, costo 0
+    if ($fechaFin < $fechaInicio) return 0;
+
+    // Calcular horas totales (equivalente a Math.ceil)
+    // Convertimos diferencia a segundos y dividimos por 3600
+    $segundos = $fechaFin->getTimestamp() - $fechaInicio->getTimestamp();
+    $horasReales = ceil($segundos / 3600);
+    
+    // REGLA: Mínimo 8 horas
+    $h = max($horasReales, 8);
+
+    $conv = [
+        "hora" => 1, "horas" => 1, 
+        "dia" => 24, "dias" => 24, 
+        "semana" => 168, "semanas" => 168
+    ];
+
+    // Buscar configuraciones (sustituye al .find de JS)
+    $f1 = null; $f2 = null; $f3 = null;
+    foreach ($configTotal as $c) {
+        if ($c['funcion'] === 'f1') $f1 = $c;
+        if ($c['funcion'] === 'f2') $f2 = $c;
+        if ($c['funcion'] === 'f3') $f3 = $c;
+    }
+
+    if (!$f1) return 0;
+
+    $costoTotal = 0;
+    $p1 = floatval($f1['precio'] ?? 0);
+
+    // --- LÓGICA DE CÁLCULO ---
+    if ($f1['tipo'] === "Indefinido") {
+        $costoTotal = $p1;
+    } 
+    elseif ($f1['tipo'] === "Cada") {
+        $t1 = (floatval($f1['tiempo'] ?? 1)) * $conv[$f1['unidad']];
+        $costoTotal = $p1; // Cobro inicial
+
+        $limiteF2 = ($f2 && $f2['tipo'] === "Hasta") 
+            ? (floatval($f2['tiempo'] ?? 1)) * $conv[$f2['unidad']] 
+            : PHP_INT_MAX;
+
+        if ($h > 0) {
+            if ($h < $limiteF2) {
+                $costoTotal += floor($h / $t1) * $p1;
+            } else {
+                // Se cobra F1 hasta el límite definido por F2
+                $costoTotal += floor(($limiteF2 - 1) / $t1) * $p1;
+            }
+
+            // Aplicar F3 si sobrepasa o iguala el límite de F2
+            if ($h >= $limiteF2 && $f3 && $f3['tipo'] === "Cada") {
+                $t3 = (floatval($f3['tiempo'] ?? 1)) * $conv[$f3['unidad']];
+                $p3 = floatval($f3['precio'] ?? 0);
+                
+                // Cálculo de ciclos de F3 desde el punto de corte
+                $costoTotal += (floor(($h - $limiteF2) / $t3) + 1) * $p3;
+            }
+        }
+    } 
+    elseif ($f1['tipo'] === "Hasta") {
+        $t1 = (floatval($f1['tiempo'] ?? 1)) * $conv[$f1['unidad']];
+        if ($h <= $t1) {
+            $costoTotal = $p1;
+        } elseif ($f3) {
+            $p3 = floatval($f3['precio'] ?? 0);
+            $t3 = (floatval($f3['tiempo'] ?? 1)) * $conv[$f3['unidad']];
+            
+            if ($f3['tipo'] === "Hasta") {
+                $costoTotal = $p3;
+            } elseif ($f3['tipo'] === "Cada") {
+                $costoTotal = $p1 + (floor(($h - $t1) / $t3) * $p3);
+            }
+        } else {
+            $costoTotal = $p1;
+        }
+    }
+
+    return $costoTotal;
+}
+
+
+$json = '[
+  {
+    "id_linea": "f1_1770167566160",
+    "funcion": "f1",
+    "precio": "150",
+    "tipo": "Cada",
+    "tiempo": "1",
+    "unidad": "dias"
+  },
+  {
+    "id_linea": "f2_1770167566182",
+    "funcion": "f2",
+    "precio": "150",
+    "tipo": "Hasta",
+    "tiempo": "1",
+    "unidad": "dias"
+  },
+  {
+    "id_linea": "f3_1770167566201",
+    "funcion": "f3",
+    "precio": "100",
+    "tipo": "Cada",
+    "tiempo": "1",
+    "unidad": "dias"
+  }
+]';
+
+$ingreso = "2026-02-03 10:00:00";
+$salida  = "2026-02-05 12:00:00"; // 26 horas
+
+echo "Total a pagar: $" . calcularCostoEstanciaPHP($json, $ingreso, $salida);
+
+?>
+
+
 </html>

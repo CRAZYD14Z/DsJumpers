@@ -18,6 +18,10 @@ $db = $database->getConnection();
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>        
+
     <link rel="stylesheet" href="css/lead.css" />
 
 </head>
@@ -27,16 +31,102 @@ $db = $database->getConnection();
 ?>
 <div class="container-fluid px-3">
     <?php
+        if (isset($_GET['IdLead']) AND $_GET['IdLead'] > 0 ){
+            $IdLead = $_GET['IdLead'];
+            $query = "select * FROM lead WHERE Id = ?";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(1, $IdLead);
+            $stmt->execute();
+            $lead = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($lead) {
+                $query = "select * FROM lead_detail WHERE IdLead = $IdLead";
+                $stmt = $db->prepare($query);
+                $stmt->execute();
+                $lead_details = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                if ($lead_details) {
+                    //foreach ($lead_details as $lead_detail) {
+                    
+                    //}
+                }        
+            }
+        }
+
+
+
         include_once 'lead_grid.php';
         include_once 'lead_customer.php';
         include_once 'lead_venues.php';
+        include_once 'bottom.php';
     ?>
+    <button onclick="LoadContract()">Contrato</button>
+
+
+<div class="modal fade" id="modalContrato" tabindex="-1" aria-labelledby="modalContratoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content" style="border-radius: 0; border: none;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="modalContratoLabel">Visualización de Contrato</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body bg-light">
+                <div id="Contract">
+
+                </div>
+            </div>
+            <div class="modal-footer border-0 bg-light">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-dark btn-sm" onclick="generarPDFContrato()">
+                    <i class="fas fa-file-pdf me-2"></i>Descargar PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>    
+
+<div class="modal fade" id="modalReserva" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold">Configurar Periodo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="row g-0">
+                    <div class="col-md-7 p-4 border-end d-flex justify-content-center bg-white">
+                        <input type="text" id="calendarioRango" class="d-none">
+                    </div>
+                    
+                    <div class="col-md-5 p-4 bg-light">
+                        <div class="mb-4">
+                            <label class="small fw-bold text-primary text-uppercase d-block mb-2">Hora Inicio</label>
+                            <select id="hInicio" class="form-select hour-select"></select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="small fw-bold text-success text-uppercase d-block mb-2">Hora Término</label>
+                            <select id="hFin" class="form-select hour-select"></select>
+                        </div>
+                        <div class="alert alert-info py-2 small border-0 shadow-sm">
+                            Haga clic en el primer día y luego en el segundo para definir el rango.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-0">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="btnConfirmar" class="btn btn-primary px-4 fw-bold">Sincronizar Datos</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 </div>
 
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>        
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>    
 
 
     <script>
@@ -48,6 +138,12 @@ $db = $database->getConnection();
     let Row = 0;
     let Rltpc = 0;
     let TrDsc = 0;
+
+    //AUTO GUARDADO !!
+    // Variable para controlar el tiempo de espera (debounce)
+    let autoSaveTimer;
+    let autoSaveTimerQuant;    
+
 
     class ProductCounter {
         constructor() {
@@ -72,7 +168,7 @@ $db = $database->getConnection();
             if (this.hasProduct(id)) {
             const name = this.cart[id].name;
             delete this.cart[id];
-            console.log(`"${name}" ha sido eliminado totalmente.`);
+            //console.log(`"${name}" ha sido eliminado totalmente.`);
             this.debugInventory();
             return true;
             }
@@ -103,28 +199,28 @@ $db = $database->getConnection();
             return Object.entries(this.cart).map(([id, data]) => ({ id, ...data }));
         }
 
-// --- Método de Debugging ---
-  debugInventory() {
-    console.log("%c--- ESTADO DEL INVENTARIO SELECCIONADO ---", "color: #007bff; font-weight: bold;");
-    
-    if (Object.keys(this.cart).length === 0) {
-      console.log("El carrito está vacío.");
-    } else {
-      // Formateamos los datos para que la tabla sea clara
-      const dataToPrint = Object.entries(this.cart).map(([id, data]) => ({
-        ID: id,
-        Producto: data.name,
-        Cantidad: data.quantity,
-        Inventario: data.inventory
-      }));
-      
-      console.table(dataToPrint);
-      
-      const total = dataToPrint.reduce((acc, item) => acc + item.Cantidad, 0);
-      console.log(`Total de artículos: ${total}`);
-    }
-    console.log("------------------------------------------");
-  }        
+        // --- Método de Debugging ---
+        debugInventory() {
+            //console.log("%c--- ESTADO DEL INVENTARIO SELECCIONADO ---", "color: #007bff; font-weight: bold;");
+            
+            if (Object.keys(this.cart).length === 0) {
+            //console.log("El carrito está vacío.");
+            } else {
+            // Formateamos los datos para que la tabla sea clara
+            const dataToPrint = Object.entries(this.cart).map(([id, data]) => ({
+                ID: id,
+                Producto: data.name,
+                Cantidad: data.quantity,
+                Inventario: data.inventory
+            }));
+            
+            //console.table(dataToPrint);
+            
+            const total = dataToPrint.reduce((acc, item) => acc + item.Cantidad, 0);
+            //console.log(`Total de artículos: ${total}`);
+            }
+            //console.log("------------------------------------------");
+        }        
 
     }
 
@@ -158,76 +254,9 @@ $db = $database->getConnection();
                 theme: "bootstrap-5",
                 width: '100%',
                 allowClear: true,
+                selectOnClose: true,
                 ajax: {
-                    url: "http://localhost/dsJumpers/clientes.php", // URL de tu Web Service
-                    dataType: 'json',
-                    delay: 300, // Espera 300ms antes de enviar la petición (evita spam al server)
-                    data: function (params) {
-                        return {
-                            q: params.term // El texto que el usuario escribió
-                        };
-                    },
-                    processResults: function (data) {
-                        // 'data' es la respuesta de tu WS. 
-                        // Debes retornar un objeto con la propiedad 'results'.
-                        return {
-                            results: data.items.map(function(item) {
-                                return {
-                                    id: item.id,
-                                    text: item.nombre, // Primera fila (Nombre)
-                                    direccion: item.direccion // Segunda fila (Dirección)
-                                };
-                            })
-                        };
-                    },
-                    cache: true
-                },
-                templateResult: formatResult,   // Cómo se ve en la lista desplegable
-                templateSelection: formatRepo   // Cómo se ve cuando ya se seleccionó
-            });                
-
-            $('#Organization').select2({
-                theme: "bootstrap-5",
-                width: '100%',
-                allowClear: true,
-                ajax: {
-                    url:  API_BASE_URL+"get_organizatios/", // URL de tu Web Service
-                    dataType: 'json',
-                    headers: {
-                        // *** Aquí se adjunta el token en el encabezado Authorization ***
-                        'Authorization': 'Bearer ' + TOKEN 
-                    },                    
-                    delay: 300, // Espera 300ms antes de enviar la petición (evita spam al server)
-                    data: function (params) {
-                        return {
-                            q: params.term // El texto que el usuario escribió
-                        };
-                    },
-                    processResults: function (data) {
-                        // 'data' es la respuesta de tu WS. 
-                        // Debes retornar un objeto con la propiedad 'results'.
-                        return {
-                            results: data.items.map(function(item) {
-                                return {
-                                    id: item.Id,
-                                    text: item.Nombre, // Primera fila (Nombre)
-                                    direccion: item.Direccion // Segunda fila (Dirección)
-                                };
-                            })
-                        };
-                    },
-                    cache: true
-                },
-                templateResult: formatResult,   // Cómo se ve en la lista desplegable
-                templateSelection: formatRepo   // Cómo se ve cuando ya se seleccionó
-            });
-
-            $('#Customer').select2({
-                theme: "bootstrap-5",
-                width: '100%',
-                allowClear: true,
-                ajax: {
-                    url:  API_BASE_URL+"get_customers/", // URL de tu Web Service
+                    url:  API_BASE_URL+"get_referals/", // URL de tu Web Service
                     dataType: 'json',
                     headers: {
                         // *** Aquí se adjunta el token en el encabezado Authorization ***
@@ -256,56 +285,534 @@ $db = $database->getConnection();
                 },
                 templateResult: formatResult,   // Cómo se ve en la lista desplegable
                 templateSelection: formatRepo   // Cómo se ve cuando ya se seleccionó
+            });                
+
+
+
+    var $select = $('#Organization').select2({
+        theme: "bootstrap-5",
+        width: '100%',
+        allowClear: true,
+        selectOnClose: true,
+        placeholder: '',
+        tags: true, // Permite crear nuevos
+        tokenSeparators: [',', '\n'], // Ayuda a que detecte el "Enter" como selección
+        ajax: {
+            url: API_BASE_URL + "get_organization/",
+            dataType: 'json',
+            headers: { 'Authorization': 'Bearer ' + TOKEN },
+            delay: 300,
+            data: function (params) {
+                return { q: params.term };
+            },
+            processResults: function (data) {
+                return {
+                    results: data.items.map(function(item) {
+                        return {
+                            id: item.Id,
+                            text: item.Nombre,
+                            direccion: item.Direccion
+                        };
+                    })
+                };
+            }
+        },
+        createTag: function (params) {
+            var term = $.trim(params.term);
+            if (term === '') return null;
+
+            return {
+                id: term,
+                text: term,
+                newTag: true
+            };
+        },
+        templateResult: formatResult,
+        templateSelection: formatRepo
+    });
+
+    // USA ESTE MÉTODO PARA CAPTURAR LA SELECCIÓN
+    $select.on('select2:select', function (e) {
+        var data = e.params.data;
+        
+        //console.log("Seleccionado:", data); // Mira la consola de F12
+        
+        if (data.newTag) {
+            //alert("Detectado nuevo tag: " + data.text);
+            registrarOrganizacion(data.text);
+        } else {
+            // Si no es nuevo, ejecuta tu función normal
+            if (typeof load_organization === "function") {
+                load_organization(data.id);
+            }
+        }
+    });
+
+    function registrarOrganizacion(nombreNuevo) {
+        $.ajax({
+            url: API_BASE_URL + "save_organization/",
+            method: 'POST',
+            headers: { 
+                'Authorization': 'Bearer ' + TOKEN,
+                'Content-Type': 'application/json' 
+            },
+            data: JSON.stringify({ nombre: nombreNuevo }),
+            success: function (response) {
+                // Importante: La API debe retornar el ID asignado
+                // response = { id: 500, nombre: 'Empresa Nueva' }
+                
+                // Reemplazamos el tag de texto por la opción real con su ID numérico
+                var newOption = new Option(response.nombre, response.id, true, true);
+                $('#Organization').find('option[value="' + nombreNuevo + '"]').remove();
+                $('#Organization').append(newOption).trigger('change');
+                
+                $('#IdOrganization').val(response.id)
+
+                //console.log("Registrado con éxito!");
+                lanzarMensaje("¡Organización registrada con éxito!", "exito", 5000);
+            },
+            error: function () {
+                alert("No se pudo guardar la organización.");
+                $('#Organization').val(null).trigger('change');
+            }
+        });
+    }    
+
+
+    function triggerAutoSave() {
+        if ($('#IdOrganization').val() > 0 || $('#IdCustomer').val() > 0){
+            // Obtenemos el formulario y lo convertimos a un objeto plano
+            const formArray = $('#customers').serializeArray();
+            const formData = {};
+            
+            $.map(formArray, function(n, i){
+                formData[n['name']] = n['value'];
             });
-
-            $('#Venue').select2({
-                theme: "bootstrap-5",
-                width: '100%',
-                allowClear: true,
-                ajax: {
-                    url:  API_BASE_URL+"get_venues/", // URL de tu Web Service
-                    dataType: 'json',
-                    headers: {
-                        // *** Aquí se adjunta el token en el encabezado Authorization ***
-                        'Authorization': 'Bearer ' + TOKEN 
-                    },
-                    delay: 300, // Espera 300ms antes de enviar la petición (evita spam al server)
-                    data: function (params) {
-                        return {
-                            q: params.term // El texto que el usuario escribió
-                        };
-                    },
-                    processResults: function (data) {
-                        // 'data' es la respuesta de tu WS. 
-                        // Debes retornar un objeto con la propiedad 'results'.
-                        return {
-                            results: data.items.map(function(item) {
-                                return {
-                                    id: item.Id,
-                                    text: item.Nombre, // Primera fila (Nombre)
-                                    direccion: item.Direccion // Segunda fila (Dirección)
-                                };
-                            })
-                        };
-                    },
-                    cache: true
+            URL_DESTINO = '';
+            // Añadimos metadatos si es necesario
+            if ($('#IdOrganization').val() > 0 ){
+                formData['action'] = 'autosave_organization';
+                URL_DESTINO = 'save_organization/"';
+            }
+            else{
+                formData['action'] = 'autosave_customer';
+                URL_DESTINO = 'save_customer/"';
+            }
+            $.ajax({
+                url: API_BASE_URL + URL_DESTINO,
+                type: 'PUT',
+                contentType: 'application/json',
+                    headers: { 
+                        'Authorization': 'Bearer ' + TOKEN,
+                        'Content-Type': 'application/json' 
+                    },        
+                data: JSON.stringify(formData), // Enviamos como JSON para que el PHP lo lea fácil
+                success: function(response) {
+                    //const res = typeof response === 'string' ? JSON.parse(response) : response;
+                    // Si el servidor nos devuelve un ID nuevo (porque el cliente no existía)
+                    //if (res.newIdCustomer) {
+                    //    $('#IdCustomer').val(res.newIdCustomer);
+                    //}
+                    lanzarMensaje("¡Registro actualizado con éxito!", "exito", 5000);
                 },
-                templateResult: formatResult,   // Cómo se ve en la lista desplegable
-                templateSelection: formatRepo   // Cómo se ve cuando ya se seleccionó
-            });              
+                error: function(xhr, status, error) {
+                    console.error('Error en el autoguardado:', error);
+                }
+            });
+        }
+    }    
 
-        //add_row(1);
-        //add_row(2);
+
+    $('#customers select, #customers input[type="checkbox"]').on('change', function() {
+        triggerAutoSave();
+    });
+
+    // 2. Para inputs de texto y textareas (con delay de 1.5 segundos para no agobiar)
+    $('#customers input[type="text"], #customers input[type="email"], #CustomerNote').on('keyup', function() {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(triggerAutoSave, 1500);
+    });
+
+
+
+
+    var $selectcustomer = $('#Customer').select2({
+        theme: "bootstrap-5",
+        width: '100%',
+        allowClear: true,
+        selectOnClose: true,
+        placeholder: '',
+        tags: true, // Permite crear nuevos
+        tokenSeparators: [',', '\n'], // Ayuda a que detecte el "Enter" como selección
+        ajax: {
+            url:  API_BASE_URL+"get_customers/", // URL de tu Web Service
+            dataType: 'json',
+            headers: {
+                // *** Aquí se adjunta el token en el encabezado Authorization ***
+                'Authorization': 'Bearer ' + TOKEN 
+            }, 
+            delay: 300, // Espera 300ms antes de enviar la petición (evita spam al server)
+            data: function (params) {
+                return {
+                    q: params.term // El texto que el usuario escribió
+                };
+            },
+            processResults: function (data) {
+                // 'data' es la respuesta de tu WS. 
+                // Debes retornar un objeto con la propiedad 'results'.
+                return {
+                    results: data.items.map(function(item) {
+                        return {
+                            id: item.Id,
+                            text: item.Nombre, // Primera fila (Nombre)
+                            direccion: item.Direccion // Segunda fila (Dirección)
+                        };
+                    })
+                };
+            },
+            cache: true
+        },
+        createTag: function (params) {
+            var term = $.trim(params.term);
+            if (term === '') return null;
+
+            return {
+                id: term,
+                text: term,
+                newTag: true
+            };
+        },
+        templateResult: formatResult,   // Cómo se ve en la lista desplegable
+        templateSelection: formatRepo   // Cómo se ve cuando ya se seleccionó
+    });
+
+    $selectcustomer.on('select2:select', function (e) {
+        var data = e.params.data;
+        
+        //console.log("Seleccionado:", data); // Mira la consola de F12
+        
+        if (data.newTag) {
+            //alert("Detectado nuevo tag: " + data.text);
+            registrarCustomer(data.text);
+        } else {
+            // Si no es nuevo, ejecuta tu función normal
+            if (typeof load_customer === "function") {
+                load_customer(data.id);
+            }
+        }
+    });
+
+
+    function registrarCustomer(nombreNuevo) {
+        $.ajax({
+            url: API_BASE_URL + "save_customer/",
+            method: 'POST',
+            headers: { 
+                'Authorization': 'Bearer ' + TOKEN,
+                'Content-Type': 'application/json' 
+            },
+            data: JSON.stringify({ nombre: nombreNuevo }),
+            success: function (response) {
+                // Importante: La API debe retornar el ID asignado
+                // response = { id: 500, nombre: 'Empresa Nueva' }
+                
+                // Reemplazamos el tag de texto por la opción real con su ID numérico
+                var newOption = new Option(response.nombre, response.id, true, true);
+                $('#Customer').find('option[value="' + nombreNuevo + '"]').remove();
+                $('#Customer').append(newOption).trigger('change');
+                
+                $('#IdCustomer').val(response.id)
+
+                //console.log("Registrado con éxito!");
+                lanzarMensaje("¡Cliente registradao con éxito!", "exito", 5000);
+            },
+            error: function () {
+                //alert("No se pudo guardar el cliente.");
+                lanzarMensaje("¡No se pudo guardar el cliente.!", "error", 5000);
+                $('#Customer').val(null).trigger('change');
+            }
+        });
+    }      
+    
+
+
+    
+
+
+    var $selectvenue = $('#Venue').select2({
+        theme: "bootstrap-5",
+        width: '100%',
+        allowClear: true,
+        selectOnClose: true,
+        placeholder: '',
+        tags: true, // Permite crear nuevos
+        tokenSeparators: [',', '\n'], // Ayuda a que detecte el "Enter" como selección          
+        ajax: {
+            url:  API_BASE_URL+"get_venues/", // URL de tu Web Service
+            dataType: 'json',
+            headers: {
+                // *** Aquí se adjunta el token en el encabezado Authorization ***
+                'Authorization': 'Bearer ' + TOKEN 
+            },
+            delay: 300, // Espera 300ms antes de enviar la petición (evita spam al server)
+            data: function (params) {
+                return {
+                    q: params.term // El texto que el usuario escribió
+                };
+            },
+            processResults: function (data) {
+                // 'data' es la respuesta de tu WS. 
+                // Debes retornar un objeto con la propiedad 'results'.
+                return {
+                    results: data.items.map(function(item) {
+                        return {
+                            id: item.Id,
+                            text: item.Nombre, // Primera fila (Nombre)
+                            direccion: item.Direccion // Segunda fila (Dirección)
+                        };
+                    })
+                };
+            },
+            cache: true
+        },
+        createTag: function (params) {
+            var term = $.trim(params.term);
+            if (term === '') return null;
+
+            return {
+                id: term,
+                text: term,
+                newTag: true
+            };
+        },        
+        templateResult: formatResult,   // Cómo se ve en la lista desplegable
+        templateSelection: formatRepo   // Cómo se ve cuando ya se seleccionó
+    });              
+
+    $selectvenue.on('select2:select', function (e) {
+        var data = e.params.data;
+        
+        //console.log("Seleccionado:", data); // Mira la consola de F12
+        
+        if (data.newTag) {
+            //alert("Detectado nuevo tag: " + data.text);
+            registrarVenue(data.text);
+        } else {
+            // Si no es nuevo, ejecuta tu función normal
+            if (typeof load_venue === "function") {
+                load_venue(data.id);
+            }
+        }
+    });
+
+
+    function registrarVenue(nombreNuevo) {
+        $.ajax({
+            url: API_BASE_URL + "save_venue/",
+            method: 'POST',
+            headers: { 
+                'Authorization': 'Bearer ' + TOKEN,
+                'Content-Type': 'application/json' 
+            },
+            data: JSON.stringify({ nombre: nombreNuevo }),
+            success: function (response) {
+                // Importante: La API debe retornar el ID asignado
+                // response = { id: 500, nombre: 'Empresa Nueva' }
+                
+                // Reemplazamos el tag de texto por la opción real con su ID numérico
+                var newOption = new Option(response.nombre, response.id, true, true);
+                $('#Venue').find('option[value="' + nombreNuevo + '"]').remove();
+                $('#Venue').append(newOption).trigger('change');
+                
+                $('#IdVenue').val(response.id)
+
+                //console.log("Registrado con éxito!");
+                lanzarMensaje("¡Lugar de evento registrado con éxito!", "exito", 5000);
+            },
+            error: function () {
+                //alert("No se pudo guardar el ligar del evento.");
+                lanzarMensaje("¡No se pudo guardar el lugar del evento.!", "error", 5000);
+                $('#Venue').val(null).trigger('change');
+            }
+        });
+    }        
+
+
+
+    function triggerAutoSaveVenue() {
+        if ($('#IdVenue').val() > 0 ){
+            // Obtenemos el formulario y lo convertimos a un objeto plano
+            const formArray = $('#venues').serializeArray();
+            const formData = {};
+            
+            $.map(formArray, function(n, i){
+                formData[n['name']] = n['value'];
+            });
+            URL_DESTINO = '';
+            // Añadimos metadatos si es necesario
+            formData['action'] = 'autosave_venue';
+            URL_DESTINO = 'save_venue/"';
+            $.ajax({
+                url: API_BASE_URL + URL_DESTINO,
+                type: 'PUT',
+                contentType: 'application/json',
+                    headers: { 
+                        'Authorization': 'Bearer ' + TOKEN,
+                        'Content-Type': 'application/json' 
+                    },        
+                data: JSON.stringify(formData), // Enviamos como JSON para que el PHP lo lea fácil
+                success: function(response) {
+                    //const res = typeof response === 'string' ? JSON.parse(response) : response;
+                    // Si el servidor nos devuelve un ID nuevo (porque el cliente no existía)
+                    //if (res.newIdCustomer) {
+                    //    $('#IdCustomer').val(res.newIdCustomer);
+                    //}
+                    //console.log('Autoguardado exitoso');
+                    lanzarMensaje("¡Lugar de evento actualizado con éxito!", "exito", 5000);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error en el autoguardado:', error);
+                }
+            });
+        }
+    }    
+
+
+    $('#venues select, #venues input[type="checkbox"]').on('change', function() {
+        triggerAutoSaveVenue();
+    });    
+
+    $('#venues input[type="text"], #venues input[type="email"], #CustomerNote').on('keyup', function() {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(triggerAutoSaveVenue, 1500);
+    });    
+
+
 
         $("input").on("focus", function() {
             var $this = $(this);
-            // Usamos un pequeño timeout para asegurar que el navegador haya terminado de procesar el clic
             //setTimeout(function() {
                 $this.select();
             //}, 10);
         });        
 
+        
+        <?php 
+            if (isset($_GET['IdLead']) AND $_GET['IdLead'] > 0 AND $lead){ 
+            
+
+                if ($lead['Organization']>0){
+
+                    $query = "select Nombre FROM organization WHERE Id = ". $lead['Organization'];
+                    $stmt = $db->prepare($query);
+                    $stmt->execute();
+                    $organization = $stmt->fetch(PDO::FETCH_ASSOC);
+
+
+                    echo "
+                    load_organization(".$lead['Organization'].");
+                        var dataorganization = {
+                            id: ".$lead['Organization'].",
+                            text: '".$organization['Nombre']."',
+                            direccion: 'Av. Siempre Viva 123' // Datos extra que usas en tus templates
+                        };
+                        var newOption = new Option(dataorganization.text, dataorganization.id, true, true);
+                        $(newOption).data('data', dataorganization); 
+                        $('#Organization').append(newOption).trigger('change');                    
+                    ";
+                }            
+
+                if ($lead['Customer']>0){
+
+
+                    $query = "select Nombres, Apellidos FROM customers WHERE Id = ". $lead['Customer'];
+                    $stmt = $db->prepare($query);
+                    $stmt->execute();
+                    $customers = $stmt->fetch(PDO::FETCH_ASSOC);
+
+
+                    echo "
+                    load_customer(".$lead['Customer'].");
+                        var datacustomer = {
+                            id: ".$lead['Customer'].",
+                            text: '".$customers['Nombres']." ".$customers['Apellidos']."',
+                            direccion: 'Av. Siempre Viva 123' // Datos extra que usas en tus templates
+                        };
+                        var newOption = new Option(datacustomer.text, datacustomer.id, true, true);
+                        $(newOption).data('data', datacustomer); 
+                        $('#Customer').append(newOption).trigger('change');                    
+                    ";
+                }
+
+                if ($lead['Venue']>0){
+
+                    $query = "select Nombre FROM venues WHERE Id = ". $lead['Venue'];
+                    $stmt = $db->prepare($query);
+                    $stmt->execute();
+                    $venue = $stmt->fetch(PDO::FETCH_ASSOC);                
+
+                    echo "
+                    load_venue(".$lead['Venue'].");
+                        var datavenue = {
+                            id: ".$lead['Venue'].",
+                            text: '".$venue['Nombre']."',
+                            direccion: 'Av. Siempre Viva 123' // Datos extra que usas en tus templates
+                        };
+                        var newOption = new Option(datavenue.text, datavenue.id, true, true);
+                        $(newOption).data('data', datavenue); 
+                        $('#Venue').append(newOption).trigger('change');                    
+                    ";
+                }                
+
+
+                if ($lead_details) {
+                    foreach ($lead_details as $lead_detail) {
+
+                    $query = "select * FROM products WHERE Id = ". $lead_detail['IdProduct'];
+                    $stmt = $db->prepare($query);
+                    $stmt->execute();
+                    $product = $stmt->fetch(PDO::FETCH_ASSOC);                    
+                        //$IdProd = $lead_detail['IdProduct'];
+                        //$IdProdRel = $lead_detail['IdProductRel'];
+                        //if ($IdProdRel > 0){
+                        //    $IdP =
+                        //    $IdPR =
+                        //}
+
+                        echo "
+                            Row+=1;
+                            $('#IdProducto').val('".$lead_detail['IdProduct']."');
+                            $('#NombreProducto').val('".$product['Name']."');
+                            add_row(Row,".$lead_detail['IdProductRel'].",{
+                                id: Row,
+                                rel: '".$lead_detail['IdProductRel']."',
+                                product: '".$lead_detail['IdProduct']."',
+                                name:  '".$product['Name']."',
+                                quantity:  '".$product['Quantity']."',
+                                quantityS:  '".$lead_detail['Quantity']."',
+                                unlimited:  '".$product['Unlimited']."',
+                                price:  '".$lead_detail['Price']."',
+                                priceS:  '".$lead_detail['Price']."',
+                                taxable:  '".$lead_detail['Tax']."',
+                                operationstaff:  '".$product['OperationStaff']."',
+                                setupstaff:  '".$product['SetUpStaff']."',
+                                volunteer:  '".$product['Volunteer']."',
+                                electric:  '".$product['Electric']."'
+                            },1
+                            );
+                            ";
+                    
+                    }
+                }                
+
+            }
+        ?>
+
+
         });
+
+//END DOCUMENT READY
+
 
         $(".decimals").keypress(function (e) {
             if(e.which == 46){
@@ -318,7 +825,13 @@ $db = $database->getConnection();
             }
         });          
 
-
+        $(".numbers-only").keypress(function (e) {
+            if (e.which != 8 && e.which != 0  && (e.which < 48 || e.which > 57)) {
+                return false;
+            }
+        });
+        
+        //RESET CATEGORIA
         function reset_cat(){
             $('#IdCategory').val('');
             $('#Category').val('');
@@ -329,7 +842,7 @@ $db = $database->getConnection();
             $('#ProductSelect').hide();
             $('#Products_Elements').hide();
         }
-
+        //RESET PRODUCTO
         function reset_prod(){
             $('#Category_Products').show();
             $('#ProductSelect').hide();
@@ -349,23 +862,17 @@ $db = $database->getConnection();
 
         // Seleccion de Category_Products_List
         $('.table-custom-prd tbody').on('click', 'tr', function() {
-            
             const idProd = $(this).find('td:nth-child(1)').text();
             const nombreProd = $(this).find('td:nth-child(2)').text();
-
             $('#IdProducto').val(idProd);
             $('#NombreProducto').val(nombreProd);
-
             $('#Category_Products').hide();
             $('#ProductSelect').show();
-            
             $('#Products_Elements').show();
-
             const $primerTd = $(this).find('td:nth-child(1)');
             const todosLosDatos = $primerTd.data();            
             Row+=1;
             add_row(Row,0,todosLosDatos);
-
             get_related_products($(this).find('td:nth-child(1)').text());            
             //alert($(this).find('td:nth-child(1)').data('name'))
             //console.log('Producto seleccionado:', nombreProd);
@@ -373,20 +880,16 @@ $db = $database->getConnection();
 
         // Seleccion de Category_Products_List
         $('.table-custom-sprd tbody ').on('click','tr', function() {
-
             const $primerTd = $(this).find('td:nth-child(1)');
             $(this).hide();
             const todosLosDatos = $primerTd.data();            
             Row+=1;
             add_row(Row,$('#IdProducto').val(),todosLosDatos);
-
         });          
 
-
+        //RECUPERAR PRODUCTOS DE CATERGORIA
         function get_products(IdCat){
-
             const $tbody = $("#Category_Products_List");
-                
                 // 2. Insertamos el spinner de carga (Bootstrap)
                 $tbody.html(`
                     <tr id="loading-row">
@@ -399,9 +902,11 @@ $db = $database->getConnection();
                     </tr>
                 `);        
 
-
+            const FHI = $('#fechahorainicio').val(); // "2026-02-04T18:30"
+            const FHF = $('#fechahorafin').val(); // "2026-02-04T18:30"
+            //alert(FHIp[0].replaceAll('-',''))
             $.ajax ({
-                url: API_BASE_URL+"get_products_categories/?IdCat="+IdCat+"&Date=20260101", // URL de tu Web Service
+                url: API_BASE_URL+"get_products_categories/?IdCat="+IdCat+"&DateS="+FHI+"&DateE="+FHF, // URL de tu Web Service
                 type: 'GET',
                 dataType: 'json', // Indica que esperamos JSON
                 headers: {
@@ -415,14 +920,13 @@ $db = $database->getConnection();
                 success: function(response) {
 
                     $tbody.empty();
-
-                    if (response && response.products.length > 0) {
+                    if (response && response.products.length >= 0) {
                         response.products.forEach(row => {
                             // VALIDAR SI EXISTE
                             
                             //if (Codes.indexOf(row.Producto) < 0 ){
                             //alert(inventario.hasProduct(row.Producto))
-                            if ( ! inventario.hasProduct(row.Producto) ){
+                            if ( ! inventario.hasProduct(row.Producto) && row.Quantity > 0){
                                 $tbody.append(`<tr>
                                 <td style='display: none' 
                                 data-product='${row.Producto}' 
@@ -459,10 +963,9 @@ $db = $database->getConnection();
 
         }
 
+        //RECUPERAR PRODUCTOS RELACIONADOS
         function get_related_products(IdCat){
-
             const $tbody = $("#Products_Elements_List");
-                
                 // 2. Insertamos el spinner de carga (Bootstrap)
                 $tbody.html(`
                     <tr id="loading-row">
@@ -475,9 +978,10 @@ $db = $database->getConnection();
                     </tr>
                 `);        
 
-
+            const FHI = $('#fechahorainicio').val(); // "2026-02-04T18:30"
+            const FHF = $('#fechahorafin').val(); // "2026-02-04T18:30"
             $.ajax ({
-                url: API_BASE_URL+"get_related_products/?IdP="+IdCat+"&Date=20260101", // URL de tu Web Service
+                url: API_BASE_URL+"get_related_products/?IdP="+IdCat+"&DateS="+FHI+"&DateE="+FHF, // URL de tu Web Service
                 type: 'GET',
                 dataType: 'json', // Indica que esperamos JSON
                 headers: {
@@ -537,6 +1041,7 @@ $db = $database->getConnection();
 
         }        
 
+        //REMOVER FILA
         function remove(id){
             const $el = $(`#row_${id}`);
             if ($el.length > 0) {
@@ -591,14 +1096,19 @@ $db = $database->getConnection();
                     $(`#row_${i}_col_2_`).val(inventario.getInventory($ell.data('product')) - inventario.getQuantity($ell.data('product')));
                 }            
             }
+
+        autosave_lead()
+
         }
 
-//FORMATO CUSTOMER
-
+    //FORMATO CUSTOMER DE SELECT2
     // Función para dibujar las 2 filas en el listado
     function formatResult(repo) {
         if (repo.loading) return "Buscando...";
-
+        // Si es un tag nuevo, mostramos un diseño simple o un aviso
+        if (repo.newTag) {
+            return $("<span><strong>Agregar nuevo: </strong>" + repo.text + "</span>");
+        }        
         // Estructura de dos filas con clases de Bootstrap 5
         var $container = $(
             "<div class='d-flex flex-column py-1'>" +
@@ -614,41 +1124,105 @@ $db = $database->getConnection();
 
     // Cómo se muestra el ítem seleccionado en el cuadro de búsqueda
     function formatRepo(repo) {
-        return repo.text || repo.placeholder;
+        return repo.text ;
     }
 
-function attemptLogin(username, password) {
-    $.ajax({
-        url: LOGIN_URL,
-        type: 'POST',
-        contentType: 'application/json', // Indica que enviamos JSON
-        data: JSON.stringify({
-            username: username,
-            password: password
-        }),
-        success: function(response) {
-            // Éxito: Guardar el token para futuras llamadas
-            const jwtToken = response.jwt;
-            console.log('Login exitoso. Token:', jwtToken);
-            
-            // *** Almacena el token de forma segura (ej: localStorage) ***
-            localStorage.setItem('apiToken', jwtToken); 
-            
-        },
-        error: function(xhr, status, error) {
-            // Error: Credenciales inválidas (401) o error del servidor
-            const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'Error desconocido.';
-            console.error('Error de login:', errorMessage);
-            alert('Fallo el inicio de sesión: ' + errorMessage);
-        }
-    });
-}    
+
+    // LOGIN PARA TOKEN
+
+    function attemptLogin(username, password) {
+        $.ajax({
+            url: LOGIN_URL,
+            type: 'POST',
+            contentType: 'application/json', // Indica que enviamos JSON
+            data: JSON.stringify({
+                username: username,
+                password: password
+            }),
+            success: function(response) {
+                // Éxito: Guardar el token para futuras llamadas
+                const jwtToken = response.jwt;
+                //console.log('Login exitoso. Token:', jwtToken);
+                
+                // *** Almacena el token de forma segura (ej: localStorage) ***
+                localStorage.setItem('apiToken', jwtToken); 
+                
+            },
+            error: function(xhr, status, error) {
+                // Error: Credenciales inválidas (401) o error del servidor
+                const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'Error desconocido.';
+                //console.error('Error de login:', errorMessage);
+                //alert('Fallo el inicio de sesión: ' + errorMessage);
+            }
+        });
+    }    
 
 
 
-//PARA SINCRONIZAR INPUTS DESKTOP Y MOVIL
+
 document.addEventListener('DOMContentLoaded', function() {
+
+
+    // SECCION DE CALENDARIO 
+    const fp = flatpickr("#calendarioRango", {
+        mode: "range",
+        inline: true,
+        locale: "es",
+        minDate: "today",
+        dateFormat: "Y-m-d"
+    });
+
+    const hInicio = document.getElementById('hInicio');
+    const hFin = document.getElementById('hFin');
+
+    // 2. Llenar selectores con etiquetas AM/PM pero valores en 24h
+    function llenarHoras() {
+        for (let i = 0; i < 24; i++) {
+            let valor24 = i.toString().padStart(2, '0') + ":00";
+            let ampm = i >= 12 ? 'PM' : 'AM';
+            let h12 = i % 12 || 12;
+            let label = `${h12}:00 ${ampm}`;
+            
+            hInicio.innerHTML += `<option value="${valor24}">${label}</option>`;
+            hFin.innerHTML += `<option value="${valor24}">${label}</option>`;
+        }
+    }
+    llenarHoras();
+
+    // 3. Sugerencia de +8 horas
+    hInicio.addEventListener('change', function() {
+        let h = parseInt(this.value.split(':')[0]);
+        let nuevaH = (h + 8) % 24;
+        hFin.value = nuevaH.toString().padStart(2, '0') + ":00";
+    });
+
+    // 4. Confirmar y formatear para datetime-local
+    document.getElementById('btnConfirmar').addEventListener('click', function() {
+        const fechas = fp.selectedDates;
+        
+        if (fechas.length < 2) {
+            alert("Por favor selecciona dos fechas en el calendario.");
+            return;
+        }
+
+        // Formato ISO local: YYYY-MM-DD
+        const f1 = fechas[0].toLocaleDateString('sv-SE'); // sv-SE devuelve YYYY-MM-DD
+        const f2 = fechas[1].toLocaleDateString('sv-SE');
+
+        // Los inputs datetime-local requieren el formato: YYYY-MM-DDTHH:mm
+        document.getElementById('fechahorainicio').value = `${f1}T${hInicio.value}`;
+        document.getElementById('fechahorafin').value = `${f2}T${hFin.value}`;
+
+        bootstrap.Modal.getInstance(document.getElementById('modalReserva')).hide();
+    });
+
+    // Valores iniciales
+    hInicio.value = "08:00";
+    hInicio.dispatchEvent(new Event('change'));
+
+
     
+    //PARA SINCRONIZAR INPUTS DESKTOP Y MOVIL    
     // 1. Sincronizar campos de texto (Delegación de eventos)
     // Escuchamos el evento 'input' en todo el documento
     document.addEventListener('input', function(event) {
@@ -685,13 +1259,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
 });
 
-function add_row(id,rel,data){
+
+// AGREGAR PRODUCTO SELECCIONADO
+function add_row(id,rel,data,clc=0){
     //data.quantity = data.quantity - 1;
     //if (rel == 0){
         //Codes.push(data.product);
-        
-        inventario.add(data.product, data.name, 1,data.quantity);
-
+        let Quan=0;
+        if (clc == 1){
+            inventario.add(data.product, data.name, data.quantityS,data.quantity);
+            Quan=data.quantityS;
+        }
+        else{
+            inventario.add(data.product, data.name, 1, data.quantity);
+            Quan=1;
+        }
+            
     //}
     row = `
         <div class="row custom-row mx-0" id="row_${id}"
@@ -703,7 +1286,7 @@ function add_row(id,rel,data){
             data-unlimited='${data.unlimited}' 
             data-price='${data.price}' 
             data-taxable='${data.taxable}' 
-            data-operationstaff='${data.Ooerationstaff}' 
+            data-operationstaff='${data.operationstaff}' 
             data-setupstaff='${data.setupstaff}' 
             data-volunteer='${data.volunteer}' 
             data-electric='${data.electric}'
@@ -726,8 +1309,8 @@ function add_row(id,rel,data){
                 <div class="">
                     <div class="mobile-label" >Disp.</div>
                     ${data.unlimited == 1 
-                    ? `<i class="fa-solid fa-infinity"></i><input type="hidden" class="form-control form-control-sm border-0 bg-light text-end sync-disp_${id}" data-sync="disp_${id}" placeholder="" id="row_${id}_col_2" value="${(data.quantity - 1)}" readonly>`
-                    :`<input type="number" class="form-control form-control-sm border-0 bg-light text-end sync-disp_${id}" data-sync="disp_${id}" placeholder="" id="row_${id}_col_2" value="${(data.quantity - 1)}" readonly>`}
+                    ? `<i class="fa-solid fa-infinity"></i><input type="hidden" class="form-control form-control-sm border-0 bg-light text-end sync-disp_${id}" data-sync="disp_${id}" placeholder="" id="row_${id}_col_2" value="${(data.quantity - Quan)}" readonly>`
+                    :`<input type="number" class="form-control form-control-sm border-0 bg-light text-end sync-disp_${id}" data-sync="disp_${id}" placeholder="" id="row_${id}_col_2" value="${(data.quantity - Quan)}" readonly>`}
                     
                 </div>
                 <div class="">
@@ -738,7 +1321,7 @@ function add_row(id,rel,data){
                                 type="button" 
                                 onclick="cambiarCantidad('${id}', -1)">-</button>                    
 
-                                    <input type="text" class="form-control form-control-sm border-0 bg-light text-end sync-cant_${id}" data-sync="cant_${id}" placeholder="" id="row_${id}_col_3" value='1'>
+                                    <input type="text" class="form-control form-control-sm border-0 bg-light text-end sync-cant_${id}" data-sync="cant_${id}" placeholder="" id="row_${id}_col_3" value='${Quan}'>
 
                         <button class="btn btn-outline-secondary border-0 bg-light btn-plus" 
                                 type="button" 
@@ -756,8 +1339,8 @@ function add_row(id,rel,data){
             <div class="col-sm-2 col-md-1 d-none d-md-block text-center">
                 <div class="mobile-label ">Disp.</div>
                     ${data.unlimited == 1 
-                    ? `<i class="fa-solid fa-infinity"></i><input type="hidden" class="form-control form-control-sm border-0 bg-light text-end sync-disp_${id}" data-sync="disp_${id}" placeholder="0.00" id="row_${id}_col_2_" value="${(data.quantity - 1)}" readonly>`
-                    :`<input type="text" class="form-control form-control-sm border-0 bg-light text-end sync-disp_${id}" data-sync="disp_${id}" placeholder="0.00" id="row_${id}_col_2_" value="${(data.quantity - 1)}" readonly>`}
+                    ? `<i class="fa-solid fa-infinity"></i><input type="hidden" class="form-control form-control-sm border-0 bg-light text-end sync-disp_${id}" data-sync="disp_${id}" placeholder="0.00" id="row_${id}_col_2_" value="${(data.quantity - Quan)}" readonly>`
+                    :`<input type="text" class="form-control form-control-sm border-0 bg-light text-end sync-disp_${id}" data-sync="disp_${id}" placeholder="0.00" id="row_${id}_col_2_" value="${(data.quantity - Quan)}" readonly>`}
             </div>        
             <div class="col-sm-2 col-md-1 d-none d-md-block">
                 <div class="mobile-label">Cant.</div>
@@ -772,7 +1355,7 @@ function add_row(id,rel,data){
                         class="form-control form-control-sm border-0 bg-light text-center p-0 sync-cant_${id}" 
                         data-sync="cant_${id}" 
                         id="row_${id}_col_3_" 
-                        value="1" 
+                        value="${Quan}" 
                         readonly>
                     
                     <button class="btn btn-outline-secondary border-0 bg-light btn-plus" 
@@ -789,7 +1372,7 @@ function add_row(id,rel,data){
                     <div class="mobile-label">Desc.</div>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-transparent border-0 text-muted">$</span>
-                        <input type="number" class="form-control form-control-sm border-0 bg-light text-end sync-price_${id}" data-sync="price_${id}" placeholder="0.00" id="row_${id}_col_4" value='0.00'>
+                        <input type="text" class="form-control form-control-sm border-0 bg-light text-end sync-price_${id} decimals" data-sync="price_${id}" placeholder="0.00" id="row_${id}_col_4" value='0.00' onfocus="this.select()">
                     </div>
                 </div>
                 <div class="tax-col">
@@ -812,7 +1395,7 @@ function add_row(id,rel,data){
                 <div class="mobile-label">Desc.</div>
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-transparent border-0 text-muted">$</span>
-                    <input type="number" class="form-control form-control-sm border-0 bg-light text-end sync-price_${id}" data-sync="price_${id}" placeholder="0.00" id="row_${id}_col_4_" value='0.00'>
+                    <input type="text" class="form-control form-control-sm border-0 bg-light text-end sync-price_${id} decimals" data-sync="price_${id}" placeholder="0.00" id="row_${id}_col_4_" value='0.00' onfocus="this.select()">
                 </div>
             </div>
             <div class="col-sm-2 col-md-1 text-center d-none d-md-block">
@@ -835,30 +1418,31 @@ function add_row(id,rel,data){
         </div>`;
         $("#lead_detail").append(row);
 
-
-        for (f=1; f<= Row;f++){
-            const $el = $(`#row_${f}`);
-            if ($el.length > 0 ) {
-                if ($el.data('product') == data.product && id != f ){
-                    const ajusteDisponible = document.getElementById(`row_${f}_col_2_`);
-                    const ajusteDisponible_ = document.getElementById(`row_${f}_col_2`);
-                    //if (delta > 0) {
-                        ajusteDisponible.value = parseInt(ajusteDisponible.value) - 1;
-                        ajusteDisponible_.value = ajusteDisponible.value
-                    //}
-                    //else{
-                    //    ajusteDisponible.value = parseInt(ajusteDisponible.value) + 1;
-                    //}
-                    
+        
+            for (f=1; f<= Row;f++){
+                const $el = $(`#row_${f}`);
+                if ($el.length > 0 ) {
+                    if ($el.data('product') == data.product && id != f ){
+                        const ajusteDisponible = document.getElementById(`row_${f}_col_2_`);
+                        const ajusteDisponible_ = document.getElementById(`row_${f}_col_2`);
+                        //if (delta > 0) {
+                            ajusteDisponible.value = parseInt(ajusteDisponible.value) - 1;
+                            ajusteDisponible_.value = ajusteDisponible.value
+                        //}
+                        //else{
+                        //    ajusteDisponible.value = parseInt(ajusteDisponible.value) + 1;
+                        //}
+                        
+                    }
                 }
             }
-        }        
-
-        recalculate();
-
+        if (clc==0){                    
+            recalculate();
+            autosave_lead();
+        }
 }
 
-
+//CAMBIO DE CANTIDADES -/+
 function cambiarCantidad(id, delta) {
     const fila_afectada = document.getElementById(`row_${id}`);
 
@@ -883,7 +1467,8 @@ function cambiarCantidad(id, delta) {
             // Actualizar la clase (opcional: tu ProductCounter)
             inventario.add(fila_afectada.dataset.product, fila_afectada.dataset.name, 1);
         } else {
-            alert("¡No hay más stock disponible!");
+            //alert("¡No hay más stock disponible!");
+            lanzarMensaje("¡No hay más stock disponible!", "alert", 5000);
         }
     } else if (delta < 0) {
         // Lógica para RESTAR
@@ -938,7 +1523,17 @@ function cambiarCantidad(id, delta) {
     // Feedback visual si se agota
     //spanDisponible.className = stockDisponible === 0 ? "fw-bold text-danger" : "fw-bold text-success";
     recalculate();
+
+    clearTimeout(autoSaveTimerQuant);
+
+    autoSaveTimerQuant = setTimeout(function() {
+        autosave_lead();
+    }, 5000);    
+
+    
 }
+
+//RECCALCULAR POSICIONES
 function recalculate(){
     
     let total = 0;
@@ -963,6 +1558,7 @@ function recalculate(){
     
 }
 
+//RECALCULAR TOTALES
 function recalculate_totals(){
     let total = 0;
     let DCT = 0;
@@ -973,8 +1569,6 @@ function recalculate_totals(){
     let Balance = 0;
     total = $('#Item_Totals').val() * 1;
 
-    SubT= (total - DCT - SCT - DsCT);
-
     if ($('#Distance_Charges_check').prop('checked'))
         DCT = $('#Distance_Charges_Total').val() * 1;
     if ($('#Staff_Charges_check').prop('checked'))
@@ -982,27 +1576,52 @@ function recalculate_totals(){
     if ($('#Discount_Charges_check').prop('checked'))
         DsCT = $('#Discount_Charges_Total').val() * 1;
 
+    SubT= ((total + DCT + SCT) - DsCT);
 
     $('#SubTotal').val(SubT.toFixed(2));
+
+    //Tax
+    if ($('#Tax').prop('checked')){
+        $("#Excempt").show();
+
+        $("#NoExcempt1").hide();
+        $("#NoExcempt2").hide();
+        
+        let TaxPc = $('#TaxPc').val();
+        let TaxAm = "0.00";
+        $('#TaxAm').val(TaxAm.toFixed(2));
+        SubT+= TaxAm;
+    }
+    else{
+        $("#Excempt").hide();
+
+        $("#NoExcempt1").show();
+        $("#NoExcempt2").show();        
+        let TaxPc = $('#TaxPc').val();
+        let TaxAm = SubT * TaxPc;
+        $('#TaxAm').val(TaxAm.toFixed(2));
+        SubT+= TaxAm;        
+    }
 
     $('#Total').val(SubT.toFixed(2));
     //$('#Depopsit').val('0.00');
     $('#Balance').val(SubT.toFixed(2));
-    
-    
 }
 
+//CARGA DATOS DE ORGANIZACION
 function load_organization(Id){
         var misHeaders = {
             'Authorization': 'Bearer ' + TOKEN
         };
-
         $.ajax({
         url: API_BASE_URL + 'organizations/'+Id,
         type: 'GET',
         dataType: 'json', // Indica que esperamos JSON
         headers: misHeaders,
         success: function(data) {
+            $('#Country').val( data.Pais);
+            $('#Country').trigger('change');
+            $('#State').val( data.Estado);
             $('#Street').val( data.Direccion+' '+data.Direccion2);
             $('#Cell').val( data.TelefonoCelular);
             $('#City').val( data.Ciudad);
@@ -1020,6 +1639,7 @@ function load_organization(Id){
     });
 }
 
+//CARGA DATOS DE CLIENTE
 function load_customer(Id){
         var misHeaders = {
             'Authorization': 'Bearer ' + TOKEN
@@ -1031,6 +1651,9 @@ function load_customer(Id){
         dataType: 'json', // Indica que esperamos JSON
         headers: misHeaders,
         success: function(data) {
+            $('#Country').val( data.Pais);
+            $('#Country').trigger('change');
+            $('#State').val( data.Estado);        
             $('#Street').val( data.Direccion+' '+data.Direccion2);
             $('#Cell').val( data.TelefonoCelular);
             $('#City').val( data.Ciudad);
@@ -1048,6 +1671,7 @@ function load_customer(Id){
     });
 }
 
+//CARGA DATOS DE LUGAR DE EVENTO
 function load_venue(Id){
         var misHeaders = {
             'Authorization': 'Bearer ' + TOKEN
@@ -1060,6 +1684,10 @@ function load_venue(Id){
         headers: misHeaders,
         success: function(data) {
             //alert(response.Nombre)
+            $('#EventCountry').val( data.Pais);
+            $('#EventCountry').trigger('change');
+            $('#EventState').val( data.Estado);
+            $('#EventStreet').val( data.Direccion+' '+data.Direccion2);
             $('#EventStreet').val( data.Direccion+' '+data.Direccion2);
             $('#EventCity').val( data.Ciudad);
             $('#EventZip').val( data.CP);
@@ -1075,6 +1703,7 @@ function load_venue(Id){
     });
 }
 
+//COPIAR DIRECCION DE ORGANIZACION/CLIENTE
 function copy_ad(){
             $('#EventStreet').val($('#Street').val());
             $('#EventCity').val( $('#City').val());
@@ -1083,6 +1712,7 @@ function copy_ad(){
             distance_charge($('#Zip').val())
 }
 
+//CARGO POR DISTANCIA
 function distance_charge(zip){
         var misHeaders = {
             'Authorization': 'Bearer ' + TOKEN
@@ -1095,8 +1725,13 @@ function distance_charge(zip){
         headers: misHeaders,
 
         success: function(data) {
-            $('#Distance_Charges_Total').val(data.cost.costo_total)
+            let totaldist = data.cost.costo_total;
+            $('#Distance_Charges_Total').val(totaldist.toFixed(2))
             $('#Distance_Charges_check').prop('checked', true);
+            
+            $('#Tax').prop('checked', true);
+            $('#TaxPc').val(data.cost.taxrate);
+            
             recalculate_totals()
         },
         error: function(xhr, status, error) {
@@ -1110,6 +1745,7 @@ function distance_charge(zip){
     });
 }
 
+//ABRIR RUTA EN GOOGLE
 function abrirRutaGoogleMaps() {
     // 1. Limpiar y codificar los textos para la URL
     const origenURL = encodeURIComponent('villa Fontana Poniente 1379, tlaquepaque, jalisco, 45615');
@@ -1121,9 +1757,11 @@ function abrirRutaGoogleMaps() {
     window.open(url, '_blank');
 }
 
+//AGREGAR FILAS DE DESCUENTO ** AUN NO FUNCIONA
 function Add_Discount(){
     if ($('#DiscountType').val()==''){
-        alert('No selecciono tipo descuento')
+        //alert('No selecciono tipo descuento')
+        lanzarMensaje("¡No selecciono tipo descuento!", "alert", 5000);
     }
     if ($('#DiscountType').val()=='Fee'){
         TrDsc+=1;
@@ -1156,6 +1794,373 @@ function Add_Discount(){
 
     }
 }
+
+//MENSAJES EN LA BARRA INFERIOR
+let msgTimer;
+
+function lanzarMensaje(texto, tipo = 'normal', duracion = 4000) {
+    const $barra = $('#barra-mensajes');
+    const $texto = $('#mensaje-texto');
+    const $icono = $('#mensaje-icono');
+
+    // Resetear clases
+    $barra.removeClass('msg-minimal-normal msg-minimal-exito msg-minimal-error msg-minimal-alerta d-none');
+    
+    // Configurar según tipo
+    let clase, icono;
+    switch(tipo) {
+        case 'exito':  clase = 'msg-minimal-exito';  icono = '<i class="fas fa-check-circle"></i>'; break;
+        case 'error':  clase = 'msg-minimal-error';  icono = '<i class="fas fa-times-circle"></i>'; break;
+        case 'alerta': clase = 'msg-minimal-alerta'; icono = '<i class="fas fa-exclamation-triangle"></i>'; break;
+        default:       clase = 'msg-minimal-normal'; icono = '<i class="fas fa-info-circle"></i>';
+    }
+
+    $barra.addClass(clase);
+    $texto.text(texto);
+    $icono.html(icono);
+
+    // Animación de entrada
+    $barra.hide().fadeIn(400);
+
+    clearTimeout(msgTimer);
+    if (duracion > 0) {
+        msgTimer = setTimeout(cerrarBarra, duracion);
+    }
+}
+
+function cerrarBarra() {
+    $('#barra-mensajes').fadeOut(400);
+}
+
+
+
+//FUNCION PARA CARGAR CONTRATO 
+
+function LoadContract(){
+
+const FHI = $('#fechahorainicio').val(); // "2026-02-04T18:30"
+const FHF = $('#fechahorafin').val(); // "2026-02-04T18:30"
+const FHIp = FHI.split('T')
+const FHFp = FHF.split('T')
+TaxPc = 0
+TaxAm = 0
+    if ($('#Tax').prop('checked')){
+        TaxPc = 0;
+        TaxAm = 0;        
+    }
+    else{
+        TaxPc = $('#TaxPc').val() * 1;
+        TaxAm = $('#TaxAm').val() * 1;
+    }
+
+    const datosGenerales = {
+        leadid: "90210",
+        contractsentdate: "",
+        company_name: "DsJumpers LLC",
+        company_address:"",
+        company_phone:"",
+
+        organization: $('#Organization option:selected').text(),
+        ctfirstname:$('#Customer option:selected').text(),
+        ctlastname:"",
+        eventstreet:$('#EventStreet').val(),
+        eventcity:$('#EventCity').val(),
+        eventstate:$('#EventState option:selected').text(),
+        eventzip:$('#EventZip').val(),
+        phones:$('#Cell').val(),
+        startdate: FHIp[0],
+        starttime: FHIp[1],
+        enddate: FHFp[0],
+        endtime: FHFp[1],
+        deliverytype:$('#DeliveryType option:selected').text(),
+
+        subtotal: $('#SubTotal').val(),
+        taxrate: TaxPc.toFixed(2),
+        salestax: TaxAm.toFixed(2),
+        total: $('#Total').val(),
+        ctr_balance_due: $('#Balance').val(),
+
+        electric:"",
+        signature:"",
+        signeddate:""
+    };
+
+    const productos = [];
+
+    for (let i = 1; i <= Row; i++) {
+                const $el = $(`#row_${i}`);
+                if ($el.length > 0 ) {
+                    // Creamos el objeto con las llaves que espera nuestro contrato
+                    let item = {
+                        rentalname: $el.data('name'),
+                        fullrentaltime: "",
+                        rentalqty: $(`#row_${i}_col_3`).val(),
+                        rentaltotalprice: $(`#row_${i}_col_6`).val()
+                    };
+                    
+                    // Lo agregamos al arreglo
+                    productos.push(item);            
+
+                }
+    }    
+
+
+
+        fetch('plantilla_contrato.html')
+        .then(response => response.text()) // O .json() si el HTML viene dentro de un objeto
+        .then(htmlRecibido => {
+            // 1. Inyectamos el HTML en un contenedor que ya exista en tu index.php
+            // Por ejemplo: <div id="contenedor-principal"></div>
+            $('#Contract').html(htmlRecibido);
+
+            // 2. AHORA que el HTML existe en el DOM, definimos las constantes
+            const $contenedor = $('#contrato-dsj');
+            const $cuerpoTabla = $('#lista-productos');
+            const $filaPlantilla = $cuerpoTabla.find('.item-fila').first();
+
+            // 3. Ya puedes llamar a tu lógica de renderizado
+            // datosGenerales y productos vendrían de tu API también
+            ejecutarRenderizado($contenedor, $cuerpoTabla, $filaPlantilla, datosGenerales, productos);
+            
+            // Avisamos al usuario con la barra minimalista que creamos
+            lanzarMensaje("Contrato cargado correctamente", "exito");
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            lanzarMensaje("Error al obtener el contrato", "error");
+        });
+
+}
+
+function ejecutarRenderizado($contenedor, $cuerpoTabla, $filaPlantilla, datosGenerales, productos){
+    // 1. Limpiar productos previos (excepto la plantilla)
+    $cuerpoTabla.find('tr:not(.item-fila)').remove();
+    // 2. Procesar y agregar cada producto
+    productos.forEach(producto => {
+        let nuevaFilaHtml = $filaPlantilla[0].outerHTML;
+        // Reemplazar etiquetas del producto
+        $.each(producto, function(key, val) {
+            let regex = new RegExp('\\*' + key + '\\*', 'g');
+            nuevaFilaHtml = nuevaFilaHtml.replace(regex, val ?? '');
+        });
+        // Convertir a elemento jQuery, quitar el 'display: none' y añadir a la tabla
+        let $nuevaFila = $(nuevaFilaHtml).clone().removeClass('item-fila').show();
+        $cuerpoTabla.append($nuevaFila);
+    });
+    // 3. Procesar datos generales en todo el contenedor
+    let htmlFinal = $contenedor.html();
+    $.each(datosGenerales, function(key, val) {
+        let regex = new RegExp('\\*' + key + '\\*', 'g');
+        htmlFinal = htmlFinal.replace(regex, val ?? '');
+    });
+    $contenedor.html(htmlFinal);
+
+const miModal = new bootstrap.Modal(document.getElementById('modalContrato'));
+    miModal.show();    
+
+}
+
+// LLENADO DE ESTADOS POR PAIS
+
+    $('#Country').on('change', function() {
+
+        const selectedCountry = $(this).val();
+        const $stateSelect = $('#State');
+
+        // Limpiar selección actual
+        $stateSelect.val('');
+
+        // 2. IMPORTANTE: Ocultar y deshabilitar todos primero
+        $stateSelect.find('option[data-country]')
+            .prop('disabled', true)
+            .attr('hidden', true) // Forzamos el atributo HTML
+            .hide();
+
+        if (selectedCountry) {
+            // 3. Mostrar y habilitar los estados que coinciden
+            // Removemos 'hidden' y usamos .show() para forzar la vista
+            $stateSelect.find('option[data-country="' + selectedCountry + '"]')
+                .prop('disabled', false)
+                .removeAttr('hidden') 
+                .show();
+        }
+    });
+
+    $('#EventCountry').on('change', function() {
+
+        const selectedCountry = $(this).val();
+        const $stateSelect = $('#EventState');
+
+        // Limpiar selección actual
+        $stateSelect.val('');
+
+        // 2. IMPORTANTE: Ocultar y deshabilitar todos primero
+        $stateSelect.find('option[data-country]')
+            .prop('disabled', true)
+            .attr('hidden', true) // Forzamos el atributo HTML
+            .hide();
+
+        if (selectedCountry) {
+            // 3. Mostrar y habilitar los estados que coinciden
+            // Removemos 'hidden' y usamos .show() para forzar la vista
+            $stateSelect.find('option[data-country="' + selectedCountry + '"]')
+                .prop('disabled', false)
+                .removeAttr('hidden') 
+                .show();
+        }
+    });    
+
+
+    function autosave_lead(){
+
+        const headerData = {
+            IdLead : $('#IdLead').val(),
+            FHI: $('#fechahorainicio').val(),
+            FHF: $('#fechahorafin').val(),
+
+            Item_Totals: $('#Item_Totals').val(),
+
+            ChkDstC:    $('#Distance_Charges_check').is(':checked') ? 1 : 0,
+            DstC:       $('#Distance_Charges_Total').val(),
+            ChkStCs:    $('#Staff_Charges_check').is(':checked') ? 1 : 0,
+            StCs:       $('#Staff_Charges_Total').val(),
+            ChkDsc:     $('#Discount_Charges_check').is(':checked') ? 1 : 0,
+            Dsc:        $('#Discount_Charges_Total').val(),
+
+            SubT:   $('#SubTotal').val(),
+            TaxId:  $('#IDTAX').val(),
+            TaxPc:  $('#TaxPc').val(),
+            TaxAm:  $('#TaxAm').val(),
+            Total:  $('#Total').val(),
+            Depo:   $('#Deposit').val(),
+            BalDue: $('#Balance').val(),
+
+            Referal: $('#Referal').val(),
+            Organization:   $('#IdOrganization').val() || $('#Organization').val(),
+            Customer:       $('#IdCustomer').val() || $('#Customer').val(),
+            OkT:    $('#OkText').is(':checked') ? 1 : 0,
+            WA:     $('#WindAlert').is(':checked') ? 1 : 0,
+            AE:     $('#AutoEmail').is(':checked') ? 1 : 0,
+            ME:     $('#ManualEmail').is(':checked') ? 1 : 0,
+            CusNt:  $('#CustomerNote').val(),
+
+            Venue:   $('#IdVenue').val() || $('#Venue').val(),
+            EventName:  $('#EventName').val(),
+            Surface:    $('#Surface').val(),
+            Delivety:   $('#DeliveryType').val(),
+            Nt1:        $('#Note_1').val(),
+            Nt2:        $('#Note_2').val()
+        };
+
+        let detalleProductos = [];
+        for (f=1; f<= Row;f++){
+            const $el = $(`#row_${f}`);
+            if ($el.length > 0 ) {
+                detalleProductos.push({
+                    id_referencia: f,
+                    id_prd:     $el.data('product'),
+                    id_rel:     $el.data('rel'),
+                    nombre_prd: $el.data('name'),
+                    price:      $el.data('price'),
+                    cant:       $(`#row_${f}_col_3`).val(),
+                    descuento:  $(`#row_${f}_col_4`).val(),
+                    imp:        $(`#row_${f}_col_5`).is(':checked') ? 1 : 0,
+                    precio:     $(`#row_${f}_col_6`).val()
+                });
+            }
+        }
+
+        const dataGlobal = {
+            header: headerData,
+            detalle: detalleProductos
+        };
+
+        var misHeaders = {
+            'Authorization': 'Bearer ' + TOKEN
+        };
+
+        $.ajax({
+            url: API_BASE_URL + 'lead_auto_save/',
+            type: 'PUT',
+            contentType: 'application/json',
+            headers: misHeaders,
+            data: JSON.stringify(dataGlobal),
+            success: function(response) {
+                //console.log("¡Detalle guardado correctamente!");
+                //alert(response.IdLead)
+                $('#IdLead').val(response.IdLead);
+                lanzarMensaje("¡Auto guadado correctamente!", tipo = 'exito');
+                
+            }
+        });
+
+    }
+
+    $(document).on('input', 'input[id^="row_"]', function() {
+        // Obtenemos el ID del input actual
+        const currentId = $(this).attr('id');
+        // Extraemos el número de fila (ej: de "row_25_col_4" sacamos "25")
+        const rowId = currentId.split('_')[1];
+        // Referenciamos los campos de esa fila específica
+        const $inputDescuento = $(`#row_${rowId}_col_4_`);
+        const $inputPrecio = $(`#row_${rowId}_col_6_`);
+        // Convertimos a números para operar
+        let descuento = parseFloat($inputDescuento.val()) || 0;
+        let precio = parseFloat($inputPrecio.val()) || 0;
+        // --- Lógica de Validación ---
+        // 1. Evitar que sea menor a cero
+        if (descuento < 0) {
+            $inputDescuento.val(0);
+            descuento = 0;
+        }
+        // 2. Evitar que el descuento sea mayor al precio
+        if (descuento > precio) {
+            // Si es mayor, lo igualamos al precio máximo permitido
+            $inputDescuento.val(precio);
+            descuento = precio;
+            // Opcional: un toque visual para avisar del error
+            $inputDescuento.css('border-color', 'red');
+            setTimeout(() => $inputDescuento.css('border-color', ''), 1000);
+        }
+        // --- Disparar el timer de Autoguardado ---
+        clearTimeout(autoSaveTimerQuant);
+        autoSaveTimerQuant = setTimeout(function() {
+            autosave_lead();
+        }, 5000);
+    });    
+
+    $(document).on('input', 'input[id^="row_"]', function() {
+        // Obtenemos el ID del input actual
+        const currentId = $(this).attr('id');
+        // Extraemos el número de fila (ej: de "row_25_col_4" sacamos "25")
+        const rowId = currentId.split('_')[1];
+        // Referenciamos los campos de esa fila específica
+        const $inputDescuento = $(`#row_${rowId}_col_4`);
+        const $inputPrecio = $(`#row_${rowId}_col_6`);
+        // Convertimos a números para operar
+        let descuento = parseFloat($inputDescuento.val()) || 0;
+        let precio = parseFloat($inputPrecio.val()) || 0;
+        // --- Lógica de Validación ---
+        // 1. Evitar que sea menor a cero
+        if (descuento < 0) {
+            $inputDescuento.val(0);
+            descuento = 0;
+        }
+        // 2. Evitar que el descuento sea mayor al precio
+        if (descuento > precio) {
+            // Si es mayor, lo igualamos al precio máximo permitido
+            $inputDescuento.val(precio);
+            descuento = precio;
+            // Opcional: un toque visual para avisar del error
+            $inputDescuento.css('border-color', 'red');
+            setTimeout(() => $inputDescuento.css('border-color', ''), 1000);
+        }
+        // --- Disparar el timer de Autoguardado ---
+        clearTimeout(autoSaveTimerQuant);
+        autoSaveTimerQuant = setTimeout(function() {
+            autosave_lead();
+        }, 5000);
+    });    
 
     </script>
 
