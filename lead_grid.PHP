@@ -254,7 +254,7 @@
                                 </td>
                                 <td >
                                     <div class="input-group input-group-sm">
-                                        <span class="input-group-text bg-light">$</span>
+                                        <span class="input-group-text bg-light">$ -</span>
                                         <input type="text" class="form-control text-end decimals" value="0.00" id="Discount_Charges_Total" name="Discount_Charges_Total" onchange="recalculate_totals()"
                                         value = "<?php  echo !empty($lead['Discount']) ? $lead['Discount'] : '0.00';?>"
                                         >

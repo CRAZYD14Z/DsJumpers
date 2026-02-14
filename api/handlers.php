@@ -1462,6 +1462,9 @@ function get_products_categories($table_name,$db, $method, $id, $data){
                 $resultados_p = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 if ($resultados_p) {
                     foreach ($resultados_p as $index => $Precio) {
+
+
+
                             $JsonPrice = $Precio['JsonPrice'];
                             $JsonPrice = html_entity_decode($JsonPrice);
                             $ingreso =  $objDateS->format('Y-m-d H:i:00');
@@ -1476,6 +1479,13 @@ function get_products_categories($table_name,$db, $method, $id, $data){
                                 }                            
 
                             $resultados_p[$index]['Quantity'] = $resultados_p[$index]['Quantity'] - $cantidadOcupada;
+
+                            $query = "SELECT *  from products_images WHERE Product = ".$resultados_p[$index]['Producto']." ORDER BY Orden LIMIT 1";
+                            $stmtigm = $db->prepare($query);
+                            $stmtigm->execute();
+                            $Img = $stmtigm->fetch(PDO::FETCH_ASSOC);                             
+
+                            $resultados_p[$index]['Image'] = $Img['Image'];                            
                             //if ($resultados_p[$index]['Quantity'] <= 0)
                             //    unset($resultados_p[$index]);
                         }
@@ -1570,6 +1580,13 @@ function get_related_products($table_name,$db, $method, $id, $data){
                                 }                            
 
                             $resultados_p[$index]['Quantity'] = $resultados_p[$index]['Quantity'] - $cantidadOcupada;
+
+                            $query = "SELECT *  from products_images WHERE Product = ".$resultados_p[$index]['Producto']." ORDER BY Orden LIMIT 1";
+                            $stmtigm = $db->prepare($query);
+                            $stmtigm->execute();
+                            $Img = $stmtigm->fetch(PDO::FETCH_ASSOC);                             
+
+                            $resultados_p[$index]['Image'] = $Img['Image'];
                             //if ($resultados_p[$index]['Quantity'] <= 0)
                             //    unset($resultados_p[$index]);
                         }
@@ -2134,6 +2151,8 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
         // Limpiar detalles anteriores para evitar duplicados
         $db->prepare("DELETE FROM lead_detail WHERE IdLead = ?")->execute([$idLead]);
 
+        $db->prepare("DELETE FROM lead_discounts WHERE IdLead = ?")->execute([$idLead]);
+
     } else {
         // --- MODO INSERT ---
         $sqlLead = "INSERT INTO lead (
@@ -2172,6 +2191,21 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
             $item->price
         ]);
     }
+
+    // --- 4. INSERTAR DESCUENTOS (detalle es un array de objetos) ---
+    $sqlDiscounts = "INSERT INTO lead_discounts (IdLead, IdDiscount, Type, Amount,AmountVal) 
+                  VALUES (?, ?, ?, ?, ?)";
+    $stmtDiscounts = $db->prepare($sqlDiscounts);
+
+    foreach ($data->descuentos as $item) {
+        $stmtDiscounts->execute([
+            $idLead, 
+            $item->IdDiscount,
+            $item->Type, 
+            $item->Amount,
+            $item->AmountVal
+        ]);
+    }    
 
     echo json_encode(["status" => "success", "IdLead" => $idLead]);
 

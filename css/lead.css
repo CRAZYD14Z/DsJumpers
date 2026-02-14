@@ -402,3 +402,30 @@ body {
     color: #000;
     background-color: #e2e6ea !important;
 }
+
+.barra-minimalista {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    z-index: 1999;
+    /* Forzamos una altura máxima opcional */
+    line-height: 1; 
+}
+
+.btn-minimal {
+    background: transparent;
+    border: none;
+    padding: 5px 15px; /* Reducido: 5px arriba/abajo, 15px lados */
+    margin: 0 2px;
+    font-size: 0.85rem; /* Un poco más pequeña para ahorrar espacio */
+    font-weight: 500;
+    color: #555;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.btn-minimal:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+    color: #000;
+}

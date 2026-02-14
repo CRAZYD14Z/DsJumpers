@@ -1,16 +1,18 @@
-<div id="contrato-dsj" style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #333; max-width: 900px; margin: auto; line-height: 1.4; font-size: 13px; background-color: #fff; padding: 20px;">
+<div id="contrato-dsj" style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #333; max-width: 900px; margin: 20px auto; line-height: 1.4; font-size: 13px; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
 
-    <table width="100%" style="border-collapse: collapse; margin-bottom: 30px;">
+    <table class="responsive-table" width="100%" style="border-collapse: collapse; margin-bottom: 30px;">
         <tr>
-            <td style="vertical-align: top; width: 60%;">
-                <img src="https://rental.software/users/DsJumpers/images/LOGO - DSJUMPERS_979149.jpg" style="width: 180px; margin-bottom: 15px;">
+            <td class="stack-column" style="vertical-align: top; width: 60%; padding-bottom: 15px;">
+                <img src="ajax/tmp/LOGO - DSJUMPERS_979149.jpg" style="width: 180px; max-width: 100%; margin-bottom: 15px;">
                 <div style="font-size: 12px; color: #555;">
                     <strong style="font-size: 16px; color: #000; display: block; margin-bottom: 4px;">*company_name*</strong>
                     *company_address*<br>
+                    *company_city*<br>
+                    *company_state*<br>
                     <strong>Phone:</strong> *company_phone*
                 </div>
             </td>
-            <td style="vertical-align: top; text-align: right; width: 40%;">
+            <td class="stack-column" style="vertical-align: top; text-align: left; width: 40%;">
                 <div style="background-color: #f9f9f9; border: 1px solid #eee; padding: 15px; border-radius: 4px;">
                     <p style="margin: 0; font-size: 14px;"><strong>Invoice:</strong> #*leadid*</p>
                     <p style="margin: 5px 0 0; color: #777;"><strong>Order Date:</strong> *contractsentdate*</p>
@@ -19,9 +21,9 @@
         </tr>
     </table>
 
-    <table width="100%" style="border-collapse: collapse; margin-bottom: 25px; border: 1px solid #eee;">
+    <table class="responsive-table" width="100%" style="border-collapse: collapse; margin-bottom: 25px; border: 1px solid #eee;">
         <tr>
-            <td style="width: 55%; padding: 15px; border-right: 1px solid #eee; vertical-align: top;">
+            <td class="stack-column" style="width: 55%; padding: 15px; border-right: 1px solid #eee; vertical-align: top;">
                 <h4 style="margin: 0 0 10px 0; font-size: 11px; text-transform: uppercase; color: #999; letter-spacing: 1px;">Renter & Location</h4>
                 <strong style="font-size: 14px; display: block; margin-bottom: 3px;">*organization*</strong>
                 <strong>*ctfirstname* *ctlastname*</strong><br>
@@ -29,7 +31,7 @@
                 *eventcity*, *eventstate* *eventzip*<br>
                 <span style="color: #666;">*phones*</span>
             </td>
-            <td style="width: 45%; padding: 15px; vertical-align: top; background-color: #fafafa;">
+            <td class="stack-column" style="width: 45%; padding: 15px; vertical-align: top; background-color: #fafafa;">
                 <h4 style="margin: 0 0 10px 0; font-size: 11px; text-transform: uppercase; color: #999; letter-spacing: 1px;">Event Timing</h4>
                 <p style="margin: 0 0 5px 0;"><strong>Start:</strong> *startdate* *starttime*</p>
                 <p style="margin: 0 0 5px 0;"><strong>End:</strong> *enddate* *endtime*</p>
@@ -38,36 +40,72 @@
         </tr>
     </table>
 
-<table width="100%" style="border-collapse: collapse; margin-bottom: 20px;">
-    <thead>
-        <tr style="border-bottom: 2px solid #333;">
-            <th style="text-align: left; padding: 10px; font-weight: 600;">Rental Item Description</th>
-            <th style="text-align: center; padding: 10px; font-weight: 600; width: 80px;">Qty</th>
-            <th style="text-align: right; padding: 10px; font-weight: 600; width: 120px;">Total</th>
-        </tr>
-    </thead>
-    <tbody id="lista-productos">
-        <tr class="item-fila" style="border-bottom: 1px solid #eee; display: none;">
-            <td style="padding: 12px 10px;">
-                <div style="font-weight: 500;">*rentalname*</div>
-                <div style="font-size: 11px; color: #777;">*fullrentaltime*</div>
-            </td>
-            <td style="padding: 12px 10px; text-align: center;">*rentalqty*</td>
-            <td style="padding: 12px 10px; text-align: right; font-weight: 600;">$*rentaltotalprice*</td>
-        </tr>
-    </tbody>
-</table>
+    <div style="overflow-x: auto;">
+        <table width="100%" style="border-collapse: collapse; margin-bottom: 20px; min-width: 500px;">
+            <thead>
+                <tr style="border-bottom: 2px solid #333;">
+                    <th style="text-align: left; padding: 10px; font-weight: 600; width: 80px;"></th>
+                    <th style="text-align: left; padding: 10px; font-weight: 600;">Rental Item Description</th>
+                    <th style="text-align: center; padding: 10px; font-weight: 600; width: 60px;">Disc</th>
+                    <th style="text-align: center; padding: 10px; font-weight: 600; width: 60px;">Qty</th>
+                    <th style="text-align: right; padding: 10px; font-weight: 600; width: 100px;">Total</th>
+                </tr>
+            </thead>
+            <tbody id="lista-productos">
+                <tr class="item-fila" style="border-bottom: 1px solid #eee; display: none;">
+                    <td style="padding: 12px 10px; text-align: center;"> 
+                        <img src="*rentalname_url_photo*" width="60" style="border-radius: 4px;" alt="*rentalname*"> 
+                    </td>
+                    <td style="padding: 12px 10px;">
+                        <div style="font-weight: 500;">*rentalname*</div>
+                        <div style="font-size: 11px; color: #777;">*fullrentaltime*</div>
+                    </td>
+                    <td style="padding: 12px 10px; text-align: center;">*discount*</td>
+                    <td style="padding: 12px 10px; text-align: center;">*rentalqty*</td>
+                    <td style="padding: 12px 10px; text-align: right; font-weight: 600;">$*rentaltotalprice*</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
     <div style="display: flex; justify-content: flex-end; margin-bottom: 30px;">
-        <table style="width: 300px; border-collapse: collapse;">
-            <tr>
+        <table class="total-table" style="width: 100%; max-width: 300px; border-collapse: collapse;">
+            <tr id="itemtotals">
+                <td style="padding: 6px 0; color: #666;">Item Totals</td>
+                <td style="padding: 6px 0; text-align: right;">$*itemtotals*</td>
+            </tr>
+            <tr id="distanecharges">
+                <td style="padding: 6px 0; color: #666;">Distance Charges</td>
+                <td style="padding: 6px 0; text-align: right;">$*distanecharges*</td>
+            </tr>
+            <tr id="staffcosts">
+                <td style="padding: 6px 0; color: #666;">Staff Costs</td>
+                <td style="padding: 6px 0; text-align: right;">$*staffcosts*</td>
+            </tr>
+            <tr id="discount">
+                <td style="padding: 6px 0; color: #666;">Discount</td>
+                <td style="padding: 6px 0; text-align: right;">$*discount*</td>
+            </tr>
+            <tbody id="extra_discounts">
+                <tr>
+                    <td style="padding: 6px 0; color: #666;">*conceptdiscount*</td>
+                    <td style="padding: 6px 0; text-align: right;">$*discountconcept*</td>
+                </tr>
+            </tbody>            
+            <tr style="border-top: 1px solid #eee;">
                 <td style="padding: 6px 0; color: #666;">Subtotal</td>
                 <td style="padding: 6px 0; text-align: right;">$*subtotal*</td>
-            </tr>
-            <tr>
+            </tr>            
+            <tr id="salestax">
                 <td style="padding: 6px 0; color: #666;">Sales Tax (*taxrate*%)</td>
                 <td style="padding: 6px 0; text-align: right;">$*salestax*</td>
             </tr>
+            <tbody id="tips">
+                <tr>
+                    <td style="padding: 6px 0; color: #666;">Tip</td>
+                    <td style="padding: 6px 0; text-align: right;">$*tip*</td>
+                </tr>
+            </tbody>               
             <tr style="border-top: 1px solid #333; font-size: 15px;">
                 <td style="padding: 10px 0;"><strong>Total</strong></td>
                 <td style="padding: 10px 0; text-align: right;"><strong>$*total*</strong></td>
@@ -79,12 +117,12 @@
         </table>
     </div>
 
-    <div style="page-break-after: always; border-bottom: 1px dashed #eee; margin: 40px 0;"></div>
+    <div style="border-bottom: 1px dashed #eee; margin: 40px 0;"></div>
 
     <div style="font-size: 10.5px; text-align: justify; color: #444; line-height: 1.3;">
         <h3 style="text-align: center; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; color: #000;">Rental Agreement & Policies</h3>
         
-        <div style="column-count: 2; column-gap: 30px;">
+        <div class="policy-columns" style="column-count: 2; column-gap: 30px; widows: 2; orphans: 2;">
 
         <ol>
 			<li style="list-style-type:decimal;"><strong>Identity of parties:</strong> For this Rental Agreement, Company shall mean *company_name*, its owners, officers, directors, employees, contractors, and agents. &quot;Customer&quot; shall mean the person(s) listed in the &quot;Event Location &amp; Renter&quot; section on the invoice page of this agreement as well as the person signing the agreement (if different), and their agents and/or employees.</li>
@@ -165,26 +203,28 @@
 			<li style="list-style-type:decimal;"><strong>Entire Agreement:</strong> This Agreement constitutes the full Agreement between Company and Customer. Any prior agreements, whether written or oral, promises, negotiations, or representations not expressly set forth herein shall be of no force or effect. Customer acknowledges the receipt of the Rental Equipment that is the subject of the Rental Agreement and General Release and the fact that it is in good working order.</li>
 		</ol>            
 
-BY SIGNING MY NAME ON THIS CONTRACT, I ACKNOWLEDGE THAT I HAVE COMPLETELY READ AND UNDERSTAND THIS CONTRACT, I WILL AGREE TO BE FULLY INSTRUCTED BY COMPANY PERSONNEL AS A TRAINED OPERATOR FOR THE AFOREMENTIONED EQUIPMENT AND HAVE HAD ALL OF MY QUESTIONS ANSWERED TO MY SATISFACTION.  I UNDERSTAND THAT I AM MUTUALLY RESPONSIBLE FOR ADHERING TO THE TERMS IN THIS AGREEMENT.        
+BY SIGNING MY NAME ON THIS CONTRACT, I ACKNOWLEDGE THAT I HAVE COMPLETELY READ AND UNDERSTAND THIS CONTRACT, I WILL AGREE TO BE FULLY INSTRUCTED BY COMPANY PERSONNEL AS A TRAINED OPERATOR FOR THE AFOREMENTIONED EQUIPMENT AND HAVE HAD ALL OF MY QUESTIONS ANSWERED TO MY SATISFACTION.  I UNDERSTAND THAT I AM MUTUALLY RESPONSIBLE FOR ADHERING TO THE TERMS IN THIS AGREEMENT.                
 
         </div>
 
-        <p style="margin-top: 20px; font-weight: bold; text-align: center; border: 1px solid #333; padding: 10px; text-transform: uppercase;">
+        <p style="margin-top: 20px; font-weight: bold; text-align: center; border: 1px solid #333; padding: 15px; text-transform: uppercase; background-color: #fcfcfc;">
             I confirm that I have read, understood, and agreed to all terms and safety rules.
         </p>
     </div>
 
-    <table width="100%" style="margin-top: 40px; border-collapse: collapse;">
+    <table class="responsive-table" width="100%" style="margin-top: 40px; border-collapse: collapse;">
         <tr>
-            <td style="width: 45%; border-top: 1px solid #333; padding-top: 8px; text-align: center;">
-                <div style="font-family: 'Courier New', Courier, monospace; font-size: 18px; min-height: 40px; color: #002d72;">*signature*</div>
+            <td class="stack-column signature-box" style="width: 45%; border-top: 1px solid #333; padding-top: 8px; text-align: center;">
+                <div style="font-family: 'Courier New', Courier, monospace; font-size: 18px; min-height: 40px; color: #002d72;">
+                    <img id="img-firma-tabla" alt="*signature*" style="max-height: 80px;width: auto;">                    
+                </div>
                 <div style="font-size: 10px; color: #999; text-transform: uppercase;">Customer Digital Signature</div>
             </td>
-            <td style="width: 10%;"></td>
-            <td style="width: 45%; border-top: 1px solid #333; padding-top: 8px; text-align: center; vertical-align: top;">
+            <td class="stack-column" style="width: 10%; height: 20px;"></td>
+            <td class="stack-column signature-box" style="width: 45%; border-top: 1px solid #333; padding-top: 8px; text-align: center; vertical-align: top;">
                 <div style="font-size: 13px; min-height: 40px; padding-top: 10px;">*signeddate*</div>
                 <div style="font-size: 10px; color: #999; text-transform: uppercase;">Date Signed</div>
             </td>
         </tr>
     </table>
-</div>
+</div>      

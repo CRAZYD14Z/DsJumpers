@@ -138,7 +138,7 @@
     <div class="row">
         <div class='col-12 col-sm-12 col-md-4 col-lg-12 col-xl-12 col-xxl-12'>
             <label class="form-label text-muted small">Contenido de la Nota Cliente</label>
-            <textarea class="form-control form-control-minimal" rows="5" placeholder="" id="CustomerNote" name="CustomerNote"><?php  echo !empty($lead['CustomerNote']) ? $lead['CustomerNote'] : '';?></textarea>
+            <textarea class="form-control form-control-minimal" rows="5" placeholder="" id="CustomerNote" name="CustomerNote" onchange="aplicar_autosave_10();" ><?php  echo !empty($lead['CustomerNote']) ? $lead['CustomerNote'] : '';?></textarea>
         </div>
     </div>
 </form> 

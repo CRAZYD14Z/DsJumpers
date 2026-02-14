@@ -8,6 +8,8 @@ function enviarContratoPorEmail($datosGenerales, $productos, $emailDestino) {
     // 1. Configurar Dompdf
     $options = new Options();
     $options->set('isRemoteEnabled', true); // Vital para cargar el LOGO desde la URL
+    $options->set('isHtml5ParserEnabled', true);    
+    $options->set('chroot', __DIR__);
     $options->set('defaultFont', 'Helvetica');
     $dompdf = new Dompdf($options);
 

@@ -15,7 +15,7 @@ $lang ='es';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contrato Digital Profesional</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">        
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">    
     <style>
         :root { --primary-color: #0d6efd; }
         body { background-color: #f4f7f9; min-height: 100vh; }
@@ -48,21 +48,6 @@ $lang ='es';
             font-size: 1.1rem;
         }
 
-        .signature-area {
-            border-top: 2px solid #eee;
-            margin-top: 50px;
-            padding-top: 30px;
-        }
-
-        .canvas-container {
-            border: 2px solid #dee2e6;
-            border-radius: 10px;
-            background: #fafafa;
-            height: 250px;
-            touch-action: none;
-        }
-
-        canvas { width: 100%; height: 100%; cursor: url('https://img.icons8.com/ios-filled/20/000000/edit--v1.png'), auto; }
     </style>
 
 <style>
@@ -79,10 +64,16 @@ $lang ='es';
 </head>
 <body>
 
+
 <?php
     if (!isset($_GET['Id'])){
         echo "Enlace no válido.";
         die();
+    }
+
+    $Tip=0;
+    if (isset($_GET['Tip'])){
+        $Tip=$_GET['Tip'];
     }
 
     $token = $_GET['Id']; // El UUID de la URL
@@ -105,7 +96,7 @@ $lang ='es';
 ?>
 
 <div id="scroll-indicator">
-    <span>⬇ Deslice hacia abajo para leer y firmar</span>
+    <span>⬇ Deslice hacia abajo para acetar</span>
 </div>
 
 <div id="main-container" class="container-fluid">
@@ -113,150 +104,92 @@ $lang ='es';
         <div class="col-lg-8">
             
             <div class="contract-content">
-                <h1 class="text-center mb-5">Contrato</h1>
+                <h1 class="text-center mb-5">Cotización</h1>
                 
-                <div id="Contract">
-
+                <div id="Quote">
 
                     <?php
-                        $query = "select Template FROM document_center WHERE Tipo = 'contract' AND IdTemplate = 2 AND Activo = 1 AND Idioma ='$lang'";
+                        $query = "select Template FROM document_center WHERE Tipo = 'quote' AND IdTemplate = 4 AND Activo = 1 AND Idioma ='$lang'";
                         $stmt = $db->prepare($query);
                         $stmt->execute();
                         $Template = $stmt->fetch(PDO::FETCH_ASSOC);
                         echo $Template['Template'];
-                    ?>                
-
+                    ?>
 
                 </div>
 
                 <div class="signature-area" id="signature-section">
-                    <h4 class="mb-4">Aceptación y Firma</h4>
-                    <form id="signature-form">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Firma Digital</label>
-                            <div class="canvas-container">
-                                <canvas id="signature-pad"></canvas>
-                            </div>
-                            <div class="mt-2 d-flex justify-content-between">
-                                <small class="text-muted">Use su ratón o dedo para firmar arriba</small>
-                                <button type="button" id="clear-btn" class="btn btn-link btn-sm text-danger text-decoration-none">Borrar firma</button>
-                            </div>
-                        </div>
 
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Nombre Completo del Firmante</label>
-                            <input type="text" id="signer-name" class="form-control form-control-lg" placeholder="Escriba su nombre completo" required>
-                        </div>                        
-
-                        <div class="d-grid gap-2 mt-5">
-                            <button type="submit" class="btn btn-primary btn-lg">Validar y Enviar Contrato</button>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+<div id="modal-confirmacion-tip" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); font-family: 'Segoe UI', Arial, sans-serif;">
+    <div style="background-color: #fff; margin: 15% auto; padding: 25px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+        <div style="font-size: 18px; font-weight: bold; color: #002d72; margin-bottom: 15px;">Confirmar Propina</div>
+        <p style="font-size: 14px; color: #555; margin-bottom: 25px;">
+            ¿Deseas agregar <span id="text-monto-confirmar" style="font-weight: bold; color: #27ae60;">$0.00</span> como propina para el equipo?
+        </p>
+        <div style="display: flex; justify-content: space-around;">
+            <button id="btn-cancelar-tip" style="padding: 10px 20px; border: 1px solid #ccc; background: #fff; border-radius: 4px; cursor: pointer; color: #666;">Cancelar</button>
+            <button id="btn-aceptar-tip" style="padding: 10px 20px; border: none; background: #27ae60; color: #fff; border-radius: 4px; cursor: pointer; font-weight: bold;">Sí, agregar</button>
+        </div>
+    </div>
+</div>
+
+
+<div id="modal-remove-tip" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); font-family: 'Segoe UI', Arial, sans-serif;">
+    <div style="background-color: #fff; margin: 15% auto; padding: 25px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+        <div style="font-size: 18px; font-weight: bold; color: #002d72; margin-bottom: 15px;">Remover Propina</div>
+        <p style="font-size: 14px; color: #555; margin-bottom: 25px;">
+            ¿Deseas retirar la propina para el equipo?
+        </p>
+        <div style="display: flex; justify-content: space-around;">
+            <button id="btn-cancelar-remove-tip" style="padding: 10px 20px; border: 1px solid #ccc; background: #fff; border-radius: 4px; cursor: pointer; color: #666;">Cancelar</button>
+            <button id="btn-aceptar-remove-tip" style="padding: 10px 20px; border: none; background: #27ae60; color: #fff; border-radius: 4px; cursor: pointer; font-weight: bold;">Sí, remover</button>
+        </div>
+    </div>
+</div>
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>   
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 
 <script>
-    $(document).ready(function() {
-        // 1. Inicializar Signature Pad
-        const canvas = document.getElementById('signature-pad');
-        const signaturePad = new SignaturePad(canvas);
 
-        function resizeCanvas() {
-            const ratio = Math.max(window.devicePixelRatio || 1, 1);
-            canvas.width = canvas.offsetWidth * ratio;
-            canvas.height = canvas.offsetHeight * ratio;
-            canvas.getContext("2d").scale(ratio, ratio);
-            signaturePad.clear();
-        }
-
-        window.addEventListener("resize", resizeCanvas);
-        resizeCanvas();
-
-        // 2. Control del Indicador de Scroll
-        $(window).scroll(function() {
-            // Si el usuario llega a la sección de firma (o cerca de ella), ocultar indicador
-            const signatureOffset = $('#signature-section').offset().top - window.innerHeight;
-            if ($(window).scrollTop() > signatureOffset) {
-                $('#scroll-indicator').css('opacity', '0');
-            } else {
-                $('#scroll-indicator').css('opacity', '1');
-            }
-        });
-
-        // 3. Botón Limpiar
-        $('#clear-btn').click(function() {
-            signaturePad.clear();
-        });
-
-        // 4. Envío de Formulario
-        $('#signature-form').submit(function(e) {
-            e.preventDefault();
-            if (signaturePad.isEmpty()) {
-                alert("Por favor, firme el documento antes de continuar.");
-                return;
-            }
-            
-            const data = {
-                nombre: $('#signer-name').val(),
-                firma: signaturePad.toDataURL()
-            };
-            
-            console.log("Datos capturados:", data);
-            //alert("¡Contrato firmado con éxito por " + data.nombre + "!");
-            const dataURL = signaturePad.toDataURL();
-
-            $('#img-firma-tabla').attr('src', dataURL).show();
-
-
-            const contenidoDiv = document.getElementById('Contract').innerHTML;            
-
-            const datos = { contrato: contenidoDiv };
-
-            fetch('pdf.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(datos)
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Éxito:', data);
-                alert('Contrato guardado correctamente');
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });            
-
-
-        });
-
-        LoadDocument();
-
-        
-
-    });
-
-
-function LoadDocument(){
-
-    <?php
+ <?php
         $query = "select NombreCompania, Direccion,Direccion2, Ciudad,CP,Estado,Pais,TelefonoCelular FROM account";
         $stmt = $db->prepare($query);
         $stmt->execute();
         $account = $stmt->fetch(PDO::FETCH_ASSOC);
 
+        if ($Tip > 0){
+            $query = "UPDATE lead SET Tip = ?, Total = Total + ? WHERE Id = ? ";        
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(1, $Tip);
+            $stmt->bindParam(2, $Tip);
+            $stmt->bindParam(3, $cotizacion['IdQuote']);
+            $stmt->execute();
+        }else{
+            $query = "UPDATE lead SET  Total = Total - Tip WHERE Id = ? ";        
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(1, $cotizacion['IdQuote']);
+            $stmt->execute();
+
+            $query = "UPDATE lead SET Tip = 0 WHERE Id = ? ";        
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(1, $cotizacion['IdQuote']);
+            $stmt->execute();            
+        }
+
         $query = "select * FROM lead WHERE Id = ?";
         $stmt = $db->prepare($query);
         $stmt->bindParam(1, $cotizacion['IdQuote']);
         $stmt->execute();
-        $lead = $stmt->fetch(PDO::FETCH_ASSOC);    
+        $lead = $stmt->fetch(PDO::FETCH_ASSOC);
 
         $query = "select * FROM lead_detail WHERE IdLead = ".$lead['Id']." ORDER BY Id";
         $stmt = $db->prepare($query);
@@ -389,32 +322,129 @@ const FHFp = FHF.split(' ')
             };
             descuentos.push(descuento".$discount['Id'].");";
         }
-    }          
+    }      
 
 ?>
 
+    $(document).ready(function() {
+        // 1. Inicializar Signature Pad
 
-    const $contenedor = $('#contrato-dsj');
-    const $cuerpoTabla = $('#lista-productos');
-    const $filaPlantilla = $cuerpoTabla.find('.item-fila').first();
-    ejecutarRenderizadoContract($contenedor, $cuerpoTabla, $filaPlantilla, datosGenerales, productos,descuentos);
+        // 2. Control del Indicador de Scroll
+        $(window).scroll(function() {
+            // Si el usuario llega a la sección de firma (o cerca de ella), ocultar indicador
+            const signatureOffset = $('#signature-section').offset().top - window.innerHeight;
+            if ($(window).scrollTop() > signatureOffset) {
+                $('#scroll-indicator').css('opacity', '0');
+            } else {
+                $('#scroll-indicator').css('opacity', '1');
+            }
+        });
+
+        LoadDocument();
+
+        let montoPendiente = 0;
+
+        // 1. Evento para los botones de %
+        $(document).on('click', '.btn-tip', function() {
+            
+            const porcentaje = $(this).data('tip');
+            const subtotal = parseFloat(datosGenerales.total) || 0; // Ajusta según tu variable de precio
+            montoPendiente = (subtotal * (porcentaje / 100)).toFixed(2);
+            
+            abrirModalConfirmacion(montoPendiente);
+        });
+
+        // 2. Evento para el input manual (cuando pierde el foco y tiene valor)
+        $(document).on('change', '#custom-tip', function() {
+            const valor = parseFloat($(this).val());
+            if (valor > 0) {
+                montoPendiente = valor.toFixed(2);
+                abrirModalConfirmacion(montoPendiente);
+            }
+        });
+
+        // Funciones del Modal
+        function abrirModalConfirmacion(monto) {
+            $('#text-monto-confirmar').text('$' + monto);
+            $('#modal-confirmacion-tip').fadeIn(200);
+        }
+
+        $(document).on('click', '#btn-cancelar-tip', function() {
+            $('#modal-confirmacion-tip').fadeOut(200);
+            $('#custom-tip').val(''); // Limpia el input si cancela
+            montoPendiente = 0;
+        });
+
+        $(document).on('click', '#btn-aceptar-tip', function() {
+            // AQUÍ VA TU LÓGICA PARA SUMAR AL TOTAL
+            //console.log("Propina confirmada: $" + montoPendiente);
+            // Ejemplo: Actualizar un campo de total en tu UI
+            //$('#valor-propina-final').text('$' + montoPendiente);
+            $('#modal-confirmacion-tip').fadeOut(200);
+
+            let params = new URLSearchParams(window.location.search);
+            let id = params.get('Id'); // Extraemos el UUID
+
+            if (id) {
+                let nuevaUrl = window.location.origin + window.location.pathname + '?Id=' + id;
+                window.history.replaceState({}, document.title, nuevaUrl);
+            }            
+
+            window.location.href = window.location.href+'&Tip='+ montoPendiente
+        });
+
+        $(document).on('click', '.btn-tip-remove', function() {
+            $('#modal-remove-tip').fadeIn(200);
+        });        
+
+        $(document).on('click', '#btn-cancelar-remove-tip', function() {
+            $('#modal-remove-tip').fadeOut(200);
+        });
+
+        $(document).on('click', '#btn-aceptar-remove-tip', function() {
+            $('#modal-remove-tip').fadeOut(200);
+
+            let params = new URLSearchParams(window.location.search);
+            let id = params.get('Id'); // Extraemos el UUID
+
+            if (id) {
+                let nuevaUrl = window.location.origin + window.location.pathname + '?Id=' + id;
+                window.history.replaceState({}, document.title, nuevaUrl);
+            }            
+
+            window.location.href = window.location.href+'&Tip=0'
+        });        
 
         <?php 
             if ($lead['Tip'] > 0){
                 echo"
+                    $('#tip-add').hide();
+                    $('#tip-remove').show();
                     $('#tips').show();
                 ";
             }
             else{
                 echo"
+                    $('#tip-add').show();
+                    $('#tip-remove').hide();
                     $('#tips').hide();
                 ";
             }
-        ?>    
+        ?>
+
+    });
+
+
+function LoadDocument(){
+
+            const $contenedor = $('#cotizacion-dsj');
+            const $cuerpoTabla = $('#lista-productos');
+            const $filaPlantilla = $cuerpoTabla.find('.item-fila').first();
+            ejecutarRenderizadoQuote($contenedor, $cuerpoTabla, $filaPlantilla, datosGenerales, productos,descuentos);
 
 }    
 
-function ejecutarRenderizadoContract($contenedor, $cuerpoTabla, $filaPlantilla, datosGenerales, productos,descuentos) {
+function ejecutarRenderizadoQuote($contenedor, $cuerpoTabla, $filaPlantilla, datosGenerales, productos,descuentos) {
     // 1. Limpiar productos previos (excepto la plantilla)
     $cuerpoTabla.find('tr:not(.item-fila)').remove();
 
@@ -465,6 +495,9 @@ function ejecutarRenderizadoContract($contenedor, $cuerpoTabla, $filaPlantilla, 
     });
 
 }
+
+
+
 
 
 

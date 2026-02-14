@@ -12,7 +12,7 @@
         </div>
         <div class='col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 col-xxl-4'>
             <label for="EventName" class="form-label">Event Name</label>
-            <input type="text" class="form-control" id="EventName" name="EventName" value = "<?php  echo !empty($lead['EventName']) ? $lead['EventName'] : '';?>">
+            <input type="text" class="form-control" id="EventName" name="EventName" value = "<?php  echo !empty($lead['EventName']) ? $lead['EventName'] : '';?>" onchange="aplicar_autosave();" >
         </div>        
     </div>
     <div class="row">
@@ -27,7 +27,7 @@
         <div class='col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 col-xxl-4'>
             <label for="Surface" class="form-label">Surface</label>
             <input type="hidden" id="IdSurface" name="IdSurface" >
-            <select class="form-select" id="Surface" name="Surface">
+            <select class="form-select" id="Surface" name="Surface"  onchange="aplicar_autosave();">
                 <option></option> 
 
                         <?php
@@ -95,9 +95,9 @@
         <div class='col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 col-xxl-4'>
             <label for="DeliveryType" class="form-label">Delivery type</label>
             <input type="hidden" id="IdDeliveryType" name="IdDeliveryType" >
-            <select class="form-select " id="DeliveryType" name="DeliveryType">
+            <select class="form-select " id="DeliveryType" name="DeliveryType"  onchange="aplicar_autosave();">
                 <option></option> 
-                <option value="OS">ON SITE</option>
+                <option value="1">ON SITE</option>
             </select>    
         </div>        
         <div class='col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 col-xxl-4'>
@@ -127,12 +127,12 @@
             <div class="tab-content" id="myTabContent">
                 <div class="tab-pane fade show active" id="nota1" role="tabpanel" aria-labelledby="nota1-tab">
                     <label class="form-label text-muted small">Contenido de la Nota 1</label>
-                    <textarea class="form-control form-control-minimal" rows="5" placeholder="" id="Note_1" name="Note_1">
+                    <textarea class="form-control form-control-minimal" rows="5" placeholder="" id="Note_1" name="Note_1" onchange="aplicar_autosave_10();">
 <?php  echo !empty($lead['Note1']) ? $lead['Note1'] : '';?></textarea>
                 </div>
                 <div class="tab-pane fade" id="nota2" role="tabpanel" aria-labelledby="nota2-tab">
                     <label class="form-label text-muted small">Contenido de la Nota 2</label>
-                    <textarea class="form-control form-control-minimal" rows="5" placeholder=""  id="Note_2" name="Note_2">
+                    <textarea class="form-control form-control-minimal" rows="5" placeholder=""  id="Note_2" name="Note_2"  onchange="aplicar_autosave_10();">
 <?php  echo !empty($lead['Note2']) ? $lead['Note2'] : '';?></textarea>
                 </div>
             </div>   

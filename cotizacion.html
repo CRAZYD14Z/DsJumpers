@@ -1,0 +1,242 @@
+<div id="cotizacion-dsj" style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #333; max-width: 900px; margin: 20px auto; line-height: 1.4; font-size: 13px; background-color: #fff; padding: 20px; border: 1px solid #eee;">
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin-bottom: 30px;">
+        <tr>
+            <td style="vertical-align: top; padding-bottom: 20px; min-width: 280px;">
+                <img src="https://rental.software/users/DsJumpers/images/LOGO - DSJUMPERS_979149.jpg" style="width: 180px; max-width: 100%; margin-bottom: 15px; display: block;">
+                <div style="font-size: 12px; color: #555;">
+                    <strong style="font-size: 16px; color: #000; display: block; margin-bottom: 4px;">*company_name*</strong>
+                    *company_address*<br>
+                    *company_city*<br>
+                    *company_state*<br>
+                    <strong>Phone:</strong> *company_phone*
+                </div>
+            </td>
+            <td style="vertical-align: top; text-align: right; padding-bottom: 20px;">
+                <div style="background-color: #eef2f7; border: 1px solid #d1d9e6; padding: 15px; border-radius: 4px; display: inline-block; text-align: left; min-width: 180px;">
+                    <h2 style="margin: 0; font-size: 18px; color: #002d72; text-transform: uppercase;">Quotation</h2>
+                    <p style="margin: 5px 0 0; font-size: 13px;"><strong>Quote #:</strong> *leadid*</p>
+                    <p style="margin: 3px 0 0; color: #777; font-size: 12px;"><strong>Date:</strong> *contractsentdate*</p>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin-bottom: 25px; border: 1px solid #eee;">
+        <tr>
+            <td style="width: 50%; padding: 15px; border-right: 1px solid #eee; vertical-align: top; min-width: 240px;">
+                <h4 style="margin: 0 0 10px 0; font-size: 11px; text-transform: uppercase; color: #999; letter-spacing: 1px;">Renter & Location</h4>
+                <strong style="font-size: 14px; display: block; margin-bottom: 3px;">*organization*</strong>
+                <div style="font-weight: bold;">*ctfirstname* *ctlastname*</div>
+                <div>*eventstreet*</div>
+                <div>*eventcity*, *eventstate* *eventzip*</div>
+                <div style="color: #666; margin-top: 5px;">*phones*</div>
+            </td>
+            <td style="width: 50%; padding: 15px; vertical-align: top; background-color: #fafafa; min-width: 240px;">
+                <h4 style="margin: 0 0 10px 0; font-size: 11px; text-transform: uppercase; color: #999; letter-spacing: 1px;">Event Timing</h4>
+                <p style="margin: 0 0 5px 0;"><strong>Start:</strong> *startdate* *starttime*</p>
+                <p style="margin: 0 0 5px 0;"><strong>End:</strong> *enddate* *endtime*</p>
+                <p style="margin: 0;"><strong>Type:</strong> *deliverytype*</p>
+            </td>
+        </tr>
+    </table>
+
+    <div style="width: 100%; overflow-x: auto; margin-bottom: 20px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; min-width: 500px;">
+            <thead>
+                <tr style="border-bottom: 2px solid #002d72; background-color: #f8f9fa;">
+                    <th style="text-align: left; padding: 12px 10px; font-weight: 600; width: 70px;">Item</th>
+                    <th style="text-align: left; padding: 12px 10px; font-weight: 600;">Service Description</th>
+                    <th style="text-align: center; padding: 12px 10px; font-weight: 600; width: 60px;">Disc</th>
+                    <th style="text-align: center; padding: 12px 10px; font-weight: 600; width: 60px;">Qty</th>
+                    <th style="text-align: right; padding: 12px 10px; font-weight: 600; width: 100px;">Total</th>
+                </tr>
+            </thead>
+            <tbody id="lista-productos">
+                <tr class="item-fila"  style="border-bottom: 1px solid #eee; display: none;">
+                    <td style="padding: 12px 10px; text-align: center;"> 
+                        <img src="*rentalname_url_photo*" width="60" style="border-radius: 4px; display: block;" alt="Item"> 
+                    </td>
+                    <td style="padding: 12px 10px;">
+                        <div style="font-weight: 500; font-size: 13px; color: #002d72;">*rentalname*</div>
+                        <div style="font-size: 11px; color: #777;">*fullrentaltime*</div>
+                    </td>
+                    <td style="padding: 12px 10px; text-align: center;">*discount*</td>
+                    <td style="padding: 12px 10px; text-align: center;">*rentalqty*</td>
+                    <td style="padding: 12px 10px; text-align: right; font-weight: 600;">$*rentaltotalprice*</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="tip-add" style="margin: 30px 0; padding: 20px; background-color: #fdfdfd; border: 1px dashed #ccc; border-radius: 8px;">
+        <h4 style="margin: 0 0 15px 0; color: #002d72; font-size: 14px; text-align: center;">Add a Tip for the Delivery Crew?</h4>
+        <table width="100%" cellpadding="0" cellspacing="5">
+        <tr>
+            <td style="width: 25%;">
+                <button type="button" class="btn-tip" data-tip="5" style="width: 100%; padding: 10px; border: 1px solid #002d72; border-radius: 5px; text-align: center; background-color: #fff; font-weight: bold; color: #002d72; cursor: pointer; display: block; font-family: inherit;">
+                    5%
+                </button>
+            </td>
+            <td style="width: 25%;">
+                <button type="button" class="btn-tip" data-tip="10" style="width: 100%; padding: 10px; border: 1px solid #002d72; border-radius: 5px; text-align: center; background-color: #fff; font-weight: bold; color: #002d72; cursor: pointer; display: block; font-family: inherit;">
+                    10%
+                </button>
+            </td>
+            <td style="width: 25%;">
+                <button type="button" class="btn-tip" data-tip="15" style="width: 100%; padding: 10px; border: 1px solid #002d72; border-radius: 5px; text-align: center; background-color: #fff; font-weight: bold; color: #002d72; cursor: pointer; display: block; font-family: inherit;">
+                    15%
+                </button>
+            </td>
+            <td style="width: 25%;">
+                <div style="position: relative; border: 1px solid #999; border-radius: 5px; background-color: #fff; padding: 0 5px;">
+                    <span style="position: absolute; left: 8px; top: 10px; font-size: 11px; color: #666;">$</span>
+                    <input type="number" id="custom-tip" placeholder="Custom" style="width: 80%; padding: 10px 5px 10px 15px; border: none; outline: none; font-size: 12px; font-family: inherit; display: block; background: transparent; text-align: right;">
+                </div>
+            </td>
+        </tr>
+        </table>
+    </div>   
+
+    <div id = "tip-remove" style="margin: 30px 0; padding: 20px; background-color: #fdfdfd; border: 1px dashed #ccc; border-radius: 8px;">
+        <table width="100%" cellpadding="0" cellspacing="5">
+        <tr>
+            <td style="width: 25%;">
+            </td>
+            <td style="width: 50%;" colspan="2">
+                <button type="button" class="btn-tip-remove" data-tip="10" style="width: 100%; padding: 10px; border: 1px solid #f30101; border-radius: 5px; text-align: center; background-color: #fff; font-weight: bold; color: #ff0000; cursor: pointer; display: block; font-family: inherit;">
+                    Remove Tip
+                </button>
+            </td>
+            <td style="width: 25%;">
+            </td>
+        </tr>
+        </table>
+    </div>
+<div style="margin: 40px 0;">
+        <h4 style="margin: 0 0 15px 0; text-transform: uppercase; color: #333; border-bottom: 2px solid #f39c12; display: inline-block; padding-bottom: 5px;">Exclusive Add-ons (Mejora tu evento)</h4>
+        
+        <div style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+            <table cellpadding="0" cellspacing="0" style="border-collapse: collapse; table-layout: fixed;">
+                <tr>
+                    <td style="width: 220px; padding-right: 15px; vertical-align: top;">
+                        <div style="border: 1px solid #eee; border-radius: 8px; overflow: hidden; background-color: #fff; width: 200px;">
+                            <img src="https://images.unsplash.com/photo-1533777857889-4be7c70b33f7?auto=format&fit=crop&q=80&w=400" style="width: 100%; height: 120px; object-fit: cover; display: block;">
+                            <div style="padding: 12px;">
+                                <div style="font-weight: bold; font-size: 13px; height: 35px; overflow: hidden;">Máquina de Palomitas</div>
+                                <div style="font-size: 16px; font-weight: bold; color: #27ae60; margin: 8px 0;">$45.00</div>
+                                <a href="#" style="background-color: #002d72; color: #fff; text-decoration: none; padding: 8px; border-radius: 4px; font-size: 11px; font-weight: bold; display: block; text-align: center;">AGREGAR</a>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td style="width: 220px; padding-right: 15px; vertical-align: top;">
+                        <div style="border: 1px solid #eee; border-radius: 8px; overflow: hidden; background-color: #fff; width: 200px;">
+                            <img src="https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&q=80&w=400" style="width: 100%; height: 120px; object-fit: cover; display: block;">
+                            <div style="padding: 12px;">
+                                <div style="font-weight: bold; font-size: 13px; height: 35px; overflow: hidden;">Hora Extra de Diversión</div>
+                                <div style="font-size: 16px; font-weight: bold; color: #27ae60; margin: 8px 0;">$25.00</div>
+                                <a href="#" style="background-color: #002d72; color: #fff; text-decoration: none; padding: 8px; border-radius: 4px; font-size: 11px; font-weight: bold; display: block; text-align: center;">AGREGAR</a>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td style="width: 220px; padding-right: 15px; vertical-align: top;">
+                        <div style="border: 1px solid #eee; border-radius: 8px; overflow: hidden; background-color: #fff; width: 200px;">
+                            <img src="https://images.unsplash.com/photo-1505935428862-770b6f24f629?auto=format&fit=crop&q=80&w=400" style="width: 100%; height: 120px; object-fit: cover; display: block;">
+                            <div style="padding: 12px;">
+                                <div style="font-weight: bold; font-size: 13px; height: 35px; overflow: hidden;">Generador Eléctrico</div>
+                                <div style="font-size: 16px; font-weight: bold; color: #27ae60; margin: 8px 0;">$60.00</div>
+                                <a href="#" style="background-color: #002d72; color: #fff; text-decoration: none; padding: 8px; border-radius: 4px; font-size: 11px; font-weight: bold; display: block; text-align: center;">AGREGAR</a>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td style="width: 220px; padding-right: 15px; vertical-align: top;">
+                        <div style="border: 1px solid #eee; border-radius: 8px; overflow: hidden; background-color: #fff; width: 200px;">
+                            <img src="https://images.unsplash.com/photo-1527529482837-459821850a45?auto=format&fit=crop&q=80&w=400" style="width: 100%; height: 120px; object-fit: cover; display: block;">
+                            <div style="padding: 12px;">
+                                <div style="font-weight: bold; font-size: 13px; height: 35px; overflow: hidden;">Máquina de Humo</div>
+                                <div style="font-size: 16px; font-weight: bold; color: #27ae60; margin: 8px 0;">$30.00</div>
+                                <a href="#" style="background-color: #002d72; color: #fff; text-decoration: none; padding: 8px; border-radius: 4px; font-size: 11px; font-weight: bold; display: block; text-align: center;">AGREGAR</a>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td style="width: 220px; padding-right: 15px; vertical-align: top;">
+                        <div style="border: 1px solid #eee; border-radius: 8px; overflow: hidden; background-color: #fff; width: 200px;">
+                            <img src="https://images.unsplash.com/photo-1527529482837-459821850a45?auto=format&fit=crop&q=80&w=400" style="width: 100%; height: 120px; object-fit: cover; display: block;">
+                            <div style="padding: 12px;">
+                                <div style="font-weight: bold; font-size: 13px; height: 35px; overflow: hidden;">Máquina de Humo</div>
+                                <div style="font-size: 16px; font-weight: bold; color: #27ae60; margin: 8px 0;">$30.00</div>
+                                <a href="#" style="background-color: #002d72; color: #fff; text-decoration: none; padding: 8px; border-radius: 4px; font-size: 11px; font-weight: bold; display: block; text-align: center;">AGREGAR</a>
+                            </div>
+                        </div>
+                    </td>                    
+
+                </tr>
+            </table>
+        </div>
+        <p style="font-size: 11px; color: #999; margin-top: 10px; text-align: center;"><i class="fa-solid fa-caret-left"></i> Desliza para ver más opciones <i class="fa-solid fa-caret-right"></i></p>
+    </div>
+
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px; background-color: #f9f9f9; border-radius: 8px;">
+                <tr>
+                    <td style="padding: 20px;">
+                        <table width="100%" style="border-collapse: collapse;">
+                    <tr id="itemtotals">
+                        <td style="padding: 6px 0; color: #666;">Item Totals</td>
+                        <td style="padding: 6px 0; text-align: right;">$*itemtotals*</td>
+                    </tr>
+                    <tr id="distanecharges">
+                        <td style="padding: 6px 0; color: #666;">Distance Charges</td>
+                        <td style="padding: 6px 0; text-align: right;">$*distanecharges*</td>
+                    </tr>
+                    <tr id="staffcosts">
+                        <td style="padding: 6px 0; color: #666;">Staff Costs</td>
+                        <td style="padding: 6px 0; text-align: right;">$*staffcosts*</td>
+                    </tr>
+                    <tr id="discount">
+                        <td style="padding: 6px 0; color: #666;">Discount</td>
+                        <td style="padding: 6px 0; text-align: right;">$*discount*</td>
+                    </tr>
+                    <tbody id="extra_discounts">
+                        <tr>
+                            <td style="padding: 6px 0; color: #666;">*conceptdiscount*</td>
+                            <td style="padding: 6px 0; text-align: right;">$*discountconcept*</td>
+                        </tr>
+                    </tbody>            
+                    <tr style="border-top: 1px solid #eee;">
+                        <td style="padding: 6px 0; color: #666;">Subtotal</td>
+                        <td style="padding: 6px 0; text-align: right;">$*subtotal*</td>
+                    </tr>            
+                    <tr id="salestax">
+                        <td style="padding: 6px 0; color: #666;">Sales Tax (*taxrate*%)</td>
+                        <td style="padding: 6px 0; text-align: right;">$*salestax*</td>
+                    </tr>
+
+                    <tbody id="tips">
+                        <tr>
+                            <td style="padding: 6px 0; color: #666;">Tip</td>
+                            <td style="padding: 6px 0; text-align: right;">$*tip*</td>
+                        </tr>
+                    </tbody>                     
+
+                    <tr style="border-top: 2px solid #333;">
+                        <td style="padding: 12px 0; font-size: 18px; color: #002d72;"><strong>Estimated Total</strong></td>
+                        <td style="padding: 12px 0; text-align: right; font-size: 18px; color: #002d72;"><strong>$*total*</strong></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <div style="text-align: center; margin-bottom: 20px;">
+        <a href="*link_to_accept*" style="background-color: #27ae60; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px; display: inline-block;">Accept Quote & Book Now</a>
+    </div>
+
+    <div style="text-align: center; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 20px;">
+        *company_name* - Professional Event Rentals
+    </div>
+</div>
+

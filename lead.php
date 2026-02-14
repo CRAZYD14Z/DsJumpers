@@ -6,9 +6,11 @@ include_once 'config/config.php';
 include_once 'config/database.php'; 
 $database = new Database();
 $db = $database->getConnection();
+//$_SESSION['Idioma'];
+$lang ='es';
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo $_SESSION['Idioma'];?>">
+<html lang="<?php echo $lang; ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,6 +25,17 @@ $db = $database->getConnection();
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>        
 
     <link rel="stylesheet" href="css/lead.css" />
+
+<style>
+        @media only screen and (max-width: 600px) {
+            .responsive-table { width: 100% !important; }
+            .stack-column { display: block !important; width: 100% !important; box-sizing: border-box; border: none !important; }
+            .item-description { width: auto !important; }
+            .policy-columns { column-count: 1 !important; }
+            .signature-box { width: 100% !important; margin-bottom: 20px; }
+            .total-table { width: 100% !important; }
+        }
+    </style>    
 
 </head>
 <body >
@@ -39,15 +52,19 @@ $db = $database->getConnection();
             $stmt->execute();
             $lead = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($lead) {
-                $query = "select * FROM lead_detail WHERE IdLead = $IdLead";
+                $query = "select * FROM lead_detail WHERE IdLead = $IdLead ORDER BY Id";
                 $stmt = $db->prepare($query);
                 $stmt->execute();
                 $lead_details = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 if ($lead_details) {
-                    //foreach ($lead_details as $lead_detail) {
-                    
-                    //}
                 }        
+                $query = "select * FROM lead_discounts WHERE IdLead = $IdLead ORDER BY Id";
+                $stmt = $db->prepare($query);
+                $stmt->execute();
+                $lead_discounts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                if ($lead_discounts) {
+
+                }                
             }
         }
 
@@ -58,10 +75,10 @@ $db = $database->getConnection();
         include_once 'lead_venues.php';
         include_once 'bottom.php';
     ?>
-    <button onclick="LoadContract()">Contrato</button>
 
 
-<div class="modal fade" id="modalContrato" tabindex="-1" aria-labelledby="modalContratoLabel" aria-hidden="true">
+
+<div class="modal fade" id="modalContrato" tabindex="-1" aria-labelledby="modalContratoLabel" aria-hidden="true" style="z-index: 2000;">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content" style="border-radius: 0; border: none;">
             <div class="modal-header border-0">
@@ -689,11 +706,20 @@ $db = $database->getConnection();
 
 
 
-        $("input").on("focus", function() {
+        //$("input").on("focus", function() {
+        //    var $this = $(this);
+        //    //setTimeout(function() {
+        //        $this.select();
+        //    //}, 10);
+        //});        
+
+        $(document).on("focus", "input", function() {
             var $this = $(this);
-            //setTimeout(function() {
+            // El setTimeout a veces es necesario en navegadores móviles o Chrome 
+            // para ganarle al evento de click que deselecciona el texto
+            setTimeout(function() {
                 $this.select();
-            //}, 10);
+            }, 50); 
         });        
 
         
@@ -703,7 +729,7 @@ $db = $database->getConnection();
 
                 if ($lead['Organization']>0){
 
-                    $query = "select Nombre FROM organization WHERE Id = ". $lead['Organization'];
+                    $query = "select Nombre FROM organizations WHERE Id = ". $lead['Organization'];
                     $stmt = $db->prepare($query);
                     $stmt->execute();
                     $organization = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -764,14 +790,27 @@ $db = $database->getConnection();
                     ";
                 }                
 
+                //if ( $lead['Venue'] >0){
+                    echo "$('#Surface').val('".$lead['Surface']."');
+                          $('#DeliveryType').val('".$lead['Delivery']."');
+                    ";
 
+                //}
+
+                //CARGAR DETALLES
                 if ($lead_details) {
                     foreach ($lead_details as $lead_detail) {
 
                     $query = "select * FROM products WHERE Id = ". $lead_detail['IdProduct'];
                     $stmt = $db->prepare($query);
                     $stmt->execute();
-                    $product = $stmt->fetch(PDO::FETCH_ASSOC);                    
+                    $product = $stmt->fetch(PDO::FETCH_ASSOC);  
+                    
+                    $query = "SELECT *  from products_images WHERE Product = ". $lead_detail['IdProduct']." ORDER BY Orden LIMIT 1";
+                    $stmt = $db->prepare($query);
+                    $stmt->execute();
+                    $Images = $stmt->fetch(PDO::FETCH_ASSOC);                      
+                    
                         //$IdProd = $lead_detail['IdProduct'];
                         //$IdProdRel = $lead_detail['IdProductRel'];
                         //if ($IdProdRel > 0){
@@ -797,13 +836,34 @@ $db = $database->getConnection();
                                 operationstaff:  '".$product['OperationStaff']."',
                                 setupstaff:  '".$product['SetUpStaff']."',
                                 volunteer:  '".$product['Volunteer']."',
-                                electric:  '".$product['Electric']."'
+                                electric:  '".$product['Electric']."',
+                                discount:  '".$lead_detail['Discount']."',
+                                image:'".$Images['Image']."'
                             },1
                             );
                             ";
                     
                     }
-                }                
+                }
+                //CARGAR DESCUENTOS  
+                if ($lead_discounts){
+                    $DiscCnt=0;
+                    foreach ($lead_discounts as $lead_discount) {
+                        $DiscCnt+=1;
+                        if ($lead_discount['IdDiscount'] == 0 ){
+                            echo "//DESCUENTO APLICADO ".$lead_discount['IdDiscount']." - ".$lead_discount['AmountVal'];
+                            //echo "$('#DiscountType').val('Fee');Add_Discount();";
+                            //echo "$('#Discount_Desc_$DiscCnt').val('Fee');";
+                            //echo "$('#Discount_Amount_$DiscCnt').val('".$lead_discount['AmountVal']."');";
+                        }
+                        else{
+                            //echo "//DESCUENTO APLICADO ".$lead_discount['IdDiscount']." - ".$lead_discount['AmountVal'];
+                            echo "$('#DiscountType').val('Cupon');Add_Discount();";
+                            echo "$('#Discount_Desc_$DiscCnt').val('".$lead_discount['IdDiscount']."');";
+                            echo "$('#Discount_Amount_$DiscCnt').val('".$lead_discount['AmountVal']."');";                            
+                        }
+                    }
+                }              
 
             }
         ?>
@@ -814,23 +874,40 @@ $db = $database->getConnection();
 //END DOCUMENT READY
 
 
-        $(".decimals").keypress(function (e) {
-            if(e.which == 46){
-                if($(this).val().indexOf('.') != -1) {
-                    return false;
-                }
-            }    
-            if (e.which != 8 && e.which != 0 && e.which != 46 && (e.which < 48 || e.which > 57)) {
-                return false;
-            }
-        });          
+        //$(".decimals").keypress(function (e) {
+        //    if(e.which == 46){
+        //        if($(this).val().indexOf('.') != -1) {
+        //            return false;
+        //        }
+        //    }    
+        //    if (e.which != 8 && e.which != 0 && e.which != 46 && (e.which < 48 || e.which > 57)) {
+        //        return false;
+        //    }
+        //});          
 
-        $(".numbers-only").keypress(function (e) {
+        //$(".numbers-only").keypress(function (e) {
+        //    if (e.which != 8 && e.which != 0  && (e.which < 48 || e.which > 57)) {
+        //        return false;
+        //    }
+        //});
+        
+$(document).on("keypress", ".decimals", function (e) {
+    if(e.which == 46){
+        if($(this).val().indexOf('.') != -1) {
+            return false;
+        }
+    }    
+    if (e.which != 8 && e.which != 0 && e.which != 46 && (e.which < 48 || e.which > 57)) {
+        return false;
+    }
+});
+
+$(document).on("keypress", ".numbers-only", function (e) {
             if (e.which != 8 && e.which != 0  && (e.which < 48 || e.which > 57)) {
                 return false;
             }
-        });
-        
+});
+
         //RESET CATEGORIA
         function reset_cat(){
             $('#IdCategory').val('');
@@ -938,7 +1015,8 @@ $db = $database->getConnection();
                                 data-operationstaff='${row.OperationStaff}' 
                                 data-setupstaff='${row.SetUpStaff}' 
                                 data-volunteer='${row.Volunteer}' 
-                                data-electric='${row.Electric}' 
+                                data-electric='${row.Electric}'
+                                data-image='${row.Image}' 
                                 >${row.Producto}</td>
                                 <td>${row.ProductName}</td>
                                 <td>
@@ -1016,6 +1094,7 @@ $db = $database->getConnection();
                                 data-setupstaff='${row.SetUpStaff}' 
                                 data-volunteer='${row.Volunteer}' 
                                 data-electric='${row.Electric}' 
+                                data-image='${row.Image}' 
                                 id='Rltpc${Rltpc}'>${row.Producto}</td>
                                 <td>${row.ProductName}</td>
                                 <td id='Rltpc${Rltpc}Cnt' >
@@ -1266,13 +1345,16 @@ function add_row(id,rel,data,clc=0){
     //if (rel == 0){
         //Codes.push(data.product);
         let Quan=0;
+        let Disc=0;
         if (clc == 1){
             inventario.add(data.product, data.name, data.quantityS,data.quantity);
             Quan=data.quantityS;
+            Disc=data.discount;
         }
         else{
             inventario.add(data.product, data.name, 1, data.quantity);
             Quan=1;
+            Disc=0;
         }
             
     //}
@@ -1289,7 +1371,8 @@ function add_row(id,rel,data,clc=0){
             data-operationstaff='${data.operationstaff}' 
             data-setupstaff='${data.setupstaff}' 
             data-volunteer='${data.volunteer}' 
-            data-electric='${data.electric}'
+            data-electric='${data.electric}',
+            data-image='${data.image}'
         >
             <div class="col-sm-12 col-md-3">
                 <div class="mobile-label">Producto</div>
@@ -1372,7 +1455,7 @@ function add_row(id,rel,data,clc=0){
                     <div class="mobile-label">Desc.</div>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-transparent border-0 text-muted">$</span>
-                        <input type="text" class="form-control form-control-sm border-0 bg-light text-end sync-price_${id} decimals" data-sync="price_${id}" placeholder="0.00" id="row_${id}_col_4" value='0.00' onfocus="this.select()">
+                        <input type="text" class="form-control form-control-sm border-0 bg-light text-end sync-price_${id} decimals" data-sync="price_${id}" placeholder="0.00" id="row_${id}_col_4" value='${Disc}' onfocus="this.select()">
                     </div>
                 </div>
                 <div class="tax-col">
@@ -1395,7 +1478,7 @@ function add_row(id,rel,data,clc=0){
                 <div class="mobile-label">Desc.</div>
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-transparent border-0 text-muted">$</span>
-                    <input type="text" class="form-control form-control-sm border-0 bg-light text-end sync-price_${id} decimals" data-sync="price_${id}" placeholder="0.00" id="row_${id}_col_4_" value='0.00' onfocus="this.select()">
+                    <input type="text" class="form-control form-control-sm border-0 bg-light text-end sync-price_${id} decimals" data-sync="price_${id}" placeholder="0.00" id="row_${id}_col_4_" value='${Disc}' onfocus="this.select()">
                 </div>
             </div>
             <div class="col-sm-2 col-md-1 text-center d-none d-md-block">
@@ -1564,6 +1647,7 @@ function recalculate_totals(){
     let DCT = 0;
     let SCT = 0;
     let DsCT = 0;
+    let ADsCT = 0;
     let SubT = 0;
     let Total = 0;
     let Balance = 0;
@@ -1577,6 +1661,32 @@ function recalculate_totals(){
         DsCT = $('#Discount_Charges_Total').val() * 1;
 
     SubT= ((total + DCT + SCT) - DsCT);
+
+    
+    //APLICAR DESCUENTOS 
+    for (let i=1; i<= TrDsc; i ++){
+
+        const $el = $(`#Discount_Amount_${i}`);
+        if ($el.length > 0 ) {    
+            if ($(`#Discount_Charges_check_${i}`).prop('checked')){
+                if ($(`#Discount_Amount_${i}`).data('type') == 'fee'){
+                    SubT-= $(`#Discount_Amount_${i}`).val() * 1;
+                }
+                else{
+                    if ($(`#Discount_Desc_${i} option:selected`).data('type') == 'amount'){
+                        SubT-= $(`#Discount_Amount_${i}`).val() * 1;
+                    }
+                    else{
+                        $(`#Discount_Amount_${i}`).val(SubT *  ( $(`#Discount_Desc_${i} option:selected`).data('amount') / 100) ) * 1;
+                        SubT-= $(`#Discount_Amount_${i}`).val() * 1;
+                    }
+                }
+            }
+        }
+        //Discount_Amount_
+
+    }
+    //APLICAR DESCUENTOS 
 
     $('#SubTotal').val(SubT.toFixed(2));
 
@@ -1627,6 +1737,7 @@ function load_organization(Id){
             $('#City').val( data.Ciudad);
             $('#Zip').val( data.CP);
             $('#CustomerEmail').val( data.Correo);
+            aplicar_autosave();
         },
         error: function(xhr, status, error) {
             if (xhr.status === 401) {
@@ -1658,7 +1769,8 @@ function load_customer(Id){
             $('#Cell').val( data.TelefonoCelular);
             $('#City').val( data.Ciudad);
             $('#Zip').val( data.CP);
-            $('#CustomerEmail').val( data.Correo);            
+            $('#CustomerEmail').val( data.Correo); 
+            aplicar_autosave();           
         },
         error: function(xhr, status, error) {
             if (xhr.status === 401) {
@@ -1691,6 +1803,7 @@ function load_venue(Id){
             $('#EventStreet').val( data.Direccion+' '+data.Direccion2);
             $('#EventCity').val( data.Ciudad);
             $('#EventZip').val( data.CP);
+            aplicar_autosave();
         },
         error: function(xhr, status, error) {
             if (xhr.status === 401) {
@@ -1768,29 +1881,70 @@ function Add_Discount(){
             let Discount = `
                 <tr id="tr_discount_${TrDsc}">
                     <td>
-                        <input type="text" class="form-control" id="Discount_Desc_${TrDsc}" name="Discount_Desc_${TrDsc}" placeholder="Fee" >
+                        <input type="text" class="form-control" id="Discount_Desc_${TrDsc}" name="Discount_Desc_${TrDsc}" value="Fee"  readonly >
                     </td>
                     <td class="text-center">
-                        <input class="form-check-input" type="checkbox" id="Discount_Charges_check_${TrDsc}" name="Discount_Charges_check_${TrDsc}" checked>
+                        <input class="form-check-input" type="checkbox" id="Discount_Charges_check_${TrDsc}" name="Discount_Charges_check_${TrDsc}" checked onchange="recalculate_totals()">
                     </td>
                     <td>
                         <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-light">$</span>
-                            <input type="text" class="form-control text-end decimals" placeholder="0.00" id="Discount_Amount_${TrDsc}" name="Discount_Amount_${TrDsc}">
+                            <span class="input-group-text bg-light">$-</span>
+                            <input type="text" data-type="fee" class="form-control text-end decimals" placeholder="0.00" id="Discount_Amount_${TrDsc}" name="Discount_Amount_${TrDsc}" onchange="ApplyDsc(${TrDsc})">
                         </div>                            
                     </td>
                     <td class="text-center">
-                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="$('#tr_discount_${TrDsc}').remove()">
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="$('#tr_discount_${TrDsc}').remove();recalculate_totals()">
                             <i class="fa-solid fa-trash"></i>
                         </button>    
                     </td>
                 </tr>`;
 
             $('#tr_discount').before(Discount);
-                //tr_discount
-                //DiscountType
+
     }
-    else{
+    else if ($('#DiscountType').val()=='Cupon'){
+        TrDsc+=1;
+
+        <?php 
+                $disc='';
+                $query = "select * FROM discounts WHERE DateExp > now() AND Active = 1 AND ( Quantity > 0 OR Unlimited = 1) ORDER BY Name";
+                $stmt = $db->prepare($query);
+                $stmt->execute();
+                $discounts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                if ($discounts) {
+                    $disc.='<option value="">...</option>';
+                    foreach ($discounts as $discount) {
+                        $disc.='<option value="'.$discount['Id'].'" data-Id="'.$discount['Id'].'" data-type="'.$discount['Type'].'" data-amount="'.$discount['Amount'].'" >'.$discount['Name'].'</option>';
+                    }
+                    
+                }   
+
+        ?>
+
+            let Discount = `
+                <tr id="tr_discount_${TrDsc}">
+                    <td>
+                        <select class="form-select" id="Discount_Desc_${TrDsc}" name="Discount_Desc_${TrDsc}" onchange="ApplyDsc(${TrDsc})">
+                            <?php echo $disc;?>
+                        </select>
+                    </td>
+                    <td class="text-center">
+                        <input class="form-check-input" type="checkbox" id="Discount_Charges_check_${TrDsc}" name="Discount_Charges_check_${TrDsc}" checked  onchange="recalculate_totals()">
+                    </td>
+                    <td>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light">$-</span>
+                            <input type="text" data-type="cupon" class="form-control text-end decimals" placeholder="0.00" id="Discount_Amount_${TrDsc}" name="Discount_Amount_${TrDsc}" readonly>
+                        </div>                            
+                    </td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="$('#tr_discount_${TrDsc}').remove();recalculate_totals()">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>    
+                    </td>
+                </tr>`;
+
+            $('#tr_discount').before(Discount);    
 
     }
 }
@@ -1836,7 +1990,7 @@ function cerrarBarra() {
 
 //FUNCION PARA CARGAR CONTRATO 
 
-function LoadContract(){
+function LoadDocument(DocumentType){
 
 const FHI = $('#fechahorainicio').val(); // "2026-02-04T18:30"
 const FHF = $('#fechahorafin').val(); // "2026-02-04T18:30"
@@ -1852,13 +2006,34 @@ TaxAm = 0
         TaxPc = $('#TaxPc').val() * 1;
         TaxAm = $('#TaxAm').val() * 1;
     }
+    <?php
+        $query = "select NombreCompania, Direccion,Direccion2, Ciudad,CP,Estado,Pais,TelefonoCelular FROM account";
+        $stmt = $db->prepare($query);
+        $stmt->execute();
+        $account = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        $query = "select Template FROM document_center WHERE Tipo = 'contract' AND IdTemplate = 2 AND Activo = 1 AND Idioma ='$lang'";
+        $stmt = $db->prepare($query);
+        $stmt->execute();
+        $Template = $stmt->fetch(PDO::FETCH_ASSOC);
+        $Contract = $Template['Template'];
+
+        $query = "select Template FROM document_center WHERE Tipo = 'quote' AND IdTemplate = 4 AND Activo = 1 AND Idioma ='$lang'";
+        $stmt = $db->prepare($query);
+        $stmt->execute();
+        $Template = $stmt->fetch(PDO::FETCH_ASSOC);
+        $Quote = $Template['Template'];
+
+    ?>
 
     const datosGenerales = {
-        leadid: "90210",
+        leadid: "",
         contractsentdate: "",
-        company_name: "DsJumpers LLC",
-        company_address:"",
-        company_phone:"",
+        company_name: "<?php echo $account['NombreCompania']?>",
+        company_address:"<?php echo $account['Direccion']." ".$account['Direccion2'];?>",
+        company_city:"<?php echo $account['Ciudad']." ".$account['CP'];?>",
+        company_state:"<?php echo $account['Estado'];?>",
+        company_phone:"<?php echo $account['TelefonoCelular']?>",
 
         organization: $('#Organization option:selected').text(),
         ctfirstname:$('#Customer option:selected').text(),
@@ -1874,9 +2049,16 @@ TaxAm = 0
         endtime: FHFp[1],
         deliverytype:$('#DeliveryType option:selected').text(),
 
+        itemtotals: $('#Item_Totals').val(),
+        distanecharges: $('#Distance_Charges_Total').val() * 1,
+        staffcosts: $('#Staff_Charges_Total').val() * 1,
+        discount: $('#Discount_Charges_Total').val() * 1,
+
         subtotal: $('#SubTotal').val(),
+        taxexcempt: $('#IDTAX').val(),
         taxrate: TaxPc.toFixed(2),
         salestax: TaxAm.toFixed(2),
+        tip: 0,
         total: $('#Total').val(),
         ctr_balance_due: $('#Balance').val(),
 
@@ -1886,78 +2068,178 @@ TaxAm = 0
     };
 
     const productos = [];
+    const descuentos = [];
 
     for (let i = 1; i <= Row; i++) {
-                const $el = $(`#row_${i}`);
-                if ($el.length > 0 ) {
-                    // Creamos el objeto con las llaves que espera nuestro contrato
-                    let item = {
-                        rentalname: $el.data('name'),
-                        fullrentaltime: "",
-                        rentalqty: $(`#row_${i}_col_3`).val(),
-                        rentaltotalprice: $(`#row_${i}_col_6`).val()
-                    };
-                    
-                    // Lo agregamos al arreglo
-                    productos.push(item);            
-
-                }
+        const $el = $(`#row_${i}`);
+        if ($el.length > 0 ) {
+            // Creamos el objeto con las llaves que espera nuestro contrato
+            let item = {
+                rentalname_url_photo: 'ajax/tmp/'+$el.data('image'),
+                rentalname: $el.data('name'),
+                fullrentaltime: "",
+                rentalqty: $(`#row_${i}_col_3`).val(),
+                rentaltotalprice: $(`#row_${i}_col_6`).val()
+            };
+            productos.push(item);
+        }
     }    
 
 
+    for (let i=1; i<= TrDsc; i ++){
+        const $el = $(`#Discount_Amount_${i}`);
+        if ($el.length > 0 ) {    
+            if ($(`#Discount_Charges_check_${i}`).prop('checked')){
+                if ($(`#Discount_Amount_${i}`).data('type') == 'fee'){
+                    descuentos.push({
+                        concepto:$(`#Discount_Desc_${i}`).val(),
+                        monto: $(`#Discount_Amount_${i}`).val()
+                    });
+                }
+                else{
+                    descuentos.push({
+                        concepto:  $(`#Discount_Desc_${i} option:selected`).text(),
+                        monto: $(`#Discount_Amount_${i}`).val()
+                    });
+                }
+            }
+        }
+        //Discount_Amount_
+    }            
 
-        fetch('plantilla_contrato.html')
-        .then(response => response.text()) // O .json() si el HTML viene dentro de un objeto
-        .then(htmlRecibido => {
-            // 1. Inyectamos el HTML en un contenedor que ya exista en tu index.php
-            // Por ejemplo: <div id="contenedor-principal"></div>
+
+
+    if (DocumentType =='Contract' ){
+
+            const htmlRecibido = <?php echo json_encode($Contract); ?>;
             $('#Contract').html(htmlRecibido);
-
-            // 2. AHORA que el HTML existe en el DOM, definimos las constantes
             const $contenedor = $('#contrato-dsj');
             const $cuerpoTabla = $('#lista-productos');
             const $filaPlantilla = $cuerpoTabla.find('.item-fila').first();
-
-            // 3. Ya puedes llamar a tu lógica de renderizado
-            // datosGenerales y productos vendrían de tu API también
-            ejecutarRenderizado($contenedor, $cuerpoTabla, $filaPlantilla, datosGenerales, productos);
+            ejecutarRenderizadoContract($contenedor, $cuerpoTabla, $filaPlantilla, datosGenerales, productos,descuentos);
             
-            // Avisamos al usuario con la barra minimalista que creamos
             lanzarMensaje("Contrato cargado correctamente", "exito");
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            lanzarMensaje("Error al obtener el contrato", "error");
-        });
+    }
+    else if (DocumentType =='Quote'){
 
+            const htmlRecibido = <?php echo json_encode($Quote); ?>;
+            $('#Contract').html(htmlRecibido);
+            const $contenedor = $('#cotizacion-dsj');
+            const $cuerpoTabla = $('#lista-productos');
+            const $filaPlantilla = $cuerpoTabla.find('.item-fila').first();
+            ejecutarRenderizadoQuote($contenedor, $cuerpoTabla, $filaPlantilla, datosGenerales, productos,descuentos);
+            
+            lanzarMensaje("Contrato cargado correctamente", "exito");
+
+    }
 }
 
-function ejecutarRenderizado($contenedor, $cuerpoTabla, $filaPlantilla, datosGenerales, productos){
+function ejecutarRenderizadoContract($contenedor, $cuerpoTabla, $filaPlantilla, datosGenerales, productos,descuentos) {
     // 1. Limpiar productos previos (excepto la plantilla)
     $cuerpoTabla.find('tr:not(.item-fila)').remove();
+
     // 2. Procesar y agregar cada producto
     productos.forEach(producto => {
         let nuevaFilaHtml = $filaPlantilla[0].outerHTML;
-        // Reemplazar etiquetas del producto
         $.each(producto, function(key, val) {
             let regex = new RegExp('\\*' + key + '\\*', 'g');
             nuevaFilaHtml = nuevaFilaHtml.replace(regex, val ?? '');
         });
-        // Convertir a elemento jQuery, quitar el 'display: none' y añadir a la tabla
-        let $nuevaFila = $(nuevaFilaHtml).clone().removeClass('item-fila').show();
+        
+        let $nuevaFila = $(nuevaFilaHtml).removeClass('item-fila').css('display', ''); // Quitar display:none
         $cuerpoTabla.append($nuevaFila);
     });
-    // 3. Procesar datos generales en todo el contenedor
-    let htmlFinal = $contenedor.html();
+
+
+    const $contenedorDescuentos = $contenedor.find('#extra_discounts');
+    const $filaOriginal = $contenedorDescuentos.find('tr').first();
+
+    if ($filaOriginal.length > 0) {
+        const htmlPlantillaDesc = $filaOriginal[0].outerHTML;
+        $contenedorDescuentos.empty(); // Limpiamos después de copiar la plantilla
+
+        descuentos.forEach(desc => {
+            let filaDescHtml = htmlPlantillaDesc
+                .replace('*conceptdiscount*', desc.concepto)
+                .replace('*discountconcept*', desc.monto);
+            $contenedorDescuentos.append(filaDescHtml);
+        });
+    }    
+
+
+    // 3. Lógica para ocultar IDs si el valor es 0
     $.each(datosGenerales, function(key, val) {
+        // Buscamos el elemento que tenga el ID igual a la 'key'
+        let $elemento = $contenedor.find('#' + key);
+        
+        if (val === 0 || val === "0") {
+            $elemento.hide(); // Oculta el elemento si es cero
+        } else {
+            $elemento.show(); // Se asegura de mostrarlo si tiene valor
+        }
+
+        // 4. Reemplazar etiquetas en el HTML (Mantenemos tu lógica de reemplazo)
         let regex = new RegExp('\\*' + key + '\\*', 'g');
-        htmlFinal = htmlFinal.replace(regex, val ?? '');
+        let contenidoActual = $contenedor.html();
+        $contenedor.html(contenidoActual.replace(regex, val ?? ''));
     });
-    $contenedor.html(htmlFinal);
 
-const miModal = new bootstrap.Modal(document.getElementById('modalContrato'));
-    miModal.show();    
+    const miModal = new bootstrap.Modal(document.getElementById('modalContrato'));
+    miModal.show();
+}
 
+function ejecutarRenderizadoQuote($contenedor, $cuerpoTabla, $filaPlantilla, datosGenerales, productos,descuentos) {
+    // 1. Limpiar productos previos (excepto la plantilla)
+    $cuerpoTabla.find('tr:not(.item-fila)').remove();
+
+    // 2. Procesar y agregar cada producto
+    productos.forEach(producto => {
+        let nuevaFilaHtml = $filaPlantilla[0].outerHTML;
+        $.each(producto, function(key, val) {
+            let regex = new RegExp('\\*' + key + '\\*', 'g');
+            nuevaFilaHtml = nuevaFilaHtml.replace(regex, val ?? '');
+        });
+        
+        let $nuevaFila = $(nuevaFilaHtml).removeClass('item-fila').css('display', ''); // Quitar display:none
+        $cuerpoTabla.append($nuevaFila);
+    });
+
+
+    const $contenedorDescuentos = $contenedor.find('#extra_discounts');
+    const $filaOriginal = $contenedorDescuentos.find('tr').first();
+
+    if ($filaOriginal.length > 0) {
+        const htmlPlantillaDesc = $filaOriginal[0].outerHTML;
+        $contenedorDescuentos.empty(); // Limpiamos después de copiar la plantilla
+
+        descuentos.forEach(desc => {
+            let filaDescHtml = htmlPlantillaDesc
+                .replace('*conceptdiscount*', desc.concepto)
+                .replace('*discountconcept*', desc.monto);
+            $contenedorDescuentos.append(filaDescHtml);
+        });
+    }    
+
+
+    // 3. Lógica para ocultar IDs si el valor es 0
+    $.each(datosGenerales, function(key, val) {
+        // Buscamos el elemento que tenga el ID igual a la 'key'
+        let $elemento = $contenedor.find('#' + key);
+        
+        if (val === 0 || val === "0") {
+            $elemento.hide(); // Oculta el elemento si es cero
+        } else {
+            $elemento.show(); // Se asegura de mostrarlo si tiene valor
+        }
+
+        // 4. Reemplazar etiquetas en el HTML (Mantenemos tu lógica de reemplazo)
+        let regex = new RegExp('\\*' + key + '\\*', 'g');
+        let contenidoActual = $contenedor.html();
+        $contenedor.html(contenidoActual.replace(regex, val ?? ''));
+    });
+
+    const miModal = new bootstrap.Modal(document.getElementById('modalContrato'));
+    miModal.show();
 }
 
 // LLENADO DE ESTADOS POR PAIS
@@ -2010,6 +2292,8 @@ const miModal = new bootstrap.Modal(document.getElementById('modalContrato'));
         }
     });    
 
+
+//AUTO GUARDADO GRAL
 
     function autosave_lead(){
 
@@ -2070,9 +2354,38 @@ const miModal = new bootstrap.Modal(document.getElementById('modalContrato'));
             }
         }
 
+        let discounts = [];
+
+        for (let i=1; i<= TrDsc; i ++){
+            const $el = $(`#Discount_Amount_${i}`);
+            if ($el.length > 0 ) {    
+                if ($(`#Discount_Charges_check_${i}`).prop('checked')){
+                    if ($(`#Discount_Amount_${i}`).data('type') == 'fee'){
+                        discounts.push({
+                            IdDiscount:0 ,
+                            Type:  'fee',
+                            Amount: '0',
+                            AmountVal: $(`#Discount_Amount_${i}`).val()
+                        });
+                    }
+                    else{
+                        discounts.push({
+                            IdDiscount:$(`#Discount_Desc_${i} option:selected`).data('id') ,
+                            Type:  $(`#Discount_Desc_${i} option:selected`).data('type'),
+                            Amount:  $(`#Discount_Desc_${i} option:selected`).data('amount'),
+                            AmountVal: $(`#Discount_Amount_${i}`).val()
+                        });
+                    }
+                }
+            }
+            //Discount_Amount_
+        }        
+
+
         const dataGlobal = {
             header: headerData,
-            detalle: detalleProductos
+            detalle: detalleProductos,
+            descuentos: discounts,
         };
 
         var misHeaders = {
@@ -2096,6 +2409,7 @@ const miModal = new bootstrap.Modal(document.getElementById('modalContrato'));
 
     }
 
+// VALIDACIONES DE APLICACION DE DESCUENTO
     $(document).on('input', 'input[id^="row_"]', function() {
         // Obtenemos el ID del input actual
         const currentId = $(this).attr('id');
@@ -2162,6 +2476,38 @@ const miModal = new bootstrap.Modal(document.getElementById('modalContrato'));
         }, 5000);
     });    
 
+
+    function aplicar_autosave(){
+        if ($('#IdLead').val() > 0){
+                clearTimeout(autoSaveTimerQuant);
+                autoSaveTimerQuant = setTimeout(function() {
+                    autosave_lead();
+                }, 5000);
+        }        
+    }
+
+    function aplicar_autosave_10(){
+        if ($('#IdLead').val() > 0){
+                clearTimeout(autoSaveTimerQuant);
+                autoSaveTimerQuant = setTimeout(function() {
+                    autosave_lead();
+                }, 10000);
+        }        
+    }    
+
+    //APLICAR DECUENTOS
+    function ApplyDsc(IdDsc){
+        //alert(1)
+        //alert($(`#Discount_Desc_${IdDsc} option:selected`).data('type'))
+        //alert($(`#Discount_Desc_${IdDsc} option:selected`).data('amount'))
+        if ($(`#Discount_Desc_${IdDsc} option:selected`).data('type') == 'amount'){
+            $(`#Discount_Amount_${IdDsc}`).val($(`#Discount_Desc_${IdDsc} option:selected`).data('amount'))
+            
+        }
+        
+        recalculate_totals();
+        
+    }
     </script>
 
 
