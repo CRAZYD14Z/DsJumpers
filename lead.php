@@ -82,7 +82,7 @@ $lang ='es';
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content" style="border-radius: 0; border: none;">
             <div class="modal-header border-0">
-                <h5 class="modal-title" id="modalContratoLabel">Visualización de Contrato</h5>
+                <h5 class="modal-title" id="modalContratoLabel"></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body bg-light">
@@ -92,9 +92,10 @@ $lang ='es';
             </div>
             <div class="modal-footer border-0 bg-light">
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-dark btn-sm" onclick="generarPDFContrato()">
-                    <i class="fas fa-file-pdf me-2"></i>Descargar PDF
+                <button type="button" class="btn btn-dark btn-sm" id="ShareButton" onclick="var newTab = window.open('quote.php?Id=550e8400-e29b-41d4-a716-446655440000', '_blank');">
+                    <i class="fa-solid fa-share-nodes"></i>Compartir
                 </button>
+
             </div>
         </div>
     </div>
@@ -1992,12 +1993,13 @@ function cerrarBarra() {
 
 function LoadDocument(DocumentType){
 
-const FHI = $('#fechahorainicio').val(); // "2026-02-04T18:30"
-const FHF = $('#fechahorafin').val(); // "2026-02-04T18:30"
-const FHIp = FHI.split('T')
-const FHFp = FHF.split('T')
-TaxPc = 0
-TaxAm = 0
+    const FHI = $('#fechahorainicio').val(); // "2026-02-04T18:30"
+    const FHF = $('#fechahorafin').val(); // "2026-02-04T18:30"
+    const FHIp = FHI.split('T')
+    const FHFp = FHF.split('T')
+    TaxPc = 0
+    TaxAm = 0
+
     if ($('#Tax').prop('checked')){
         TaxPc = 0;
         TaxAm = 0;        
@@ -2023,6 +2025,12 @@ TaxAm = 0
         $stmt->execute();
         $Template = $stmt->fetch(PDO::FETCH_ASSOC);
         $Quote = $Template['Template'];
+
+        $query = "select Template FROM document_center WHERE Tipo = 'picking' AND IdTemplate = 5 AND Activo = 1 AND Idioma ='$lang'";
+        $stmt = $db->prepare($query);
+        $stmt->execute();
+        $Template = $stmt->fetch(PDO::FETCH_ASSOC);
+        $Picking = $Template['Template'];        
 
     ?>
 
@@ -2069,12 +2077,14 @@ TaxAm = 0
 
     const productos = [];
     const descuentos = [];
+    const extras = [];
 
     for (let i = 1; i <= Row; i++) {
         const $el = $(`#row_${i}`);
         if ($el.length > 0 ) {
             // Creamos el objeto con las llaves que espera nuestro contrato
             let item = {
+                rentalid: '',
                 rentalname_url_photo: 'ajax/tmp/'+$el.data('image'),
                 rentalname: $el.data('name'),
                 fullrentaltime: "",
@@ -2110,28 +2120,62 @@ TaxAm = 0
 
 
     if (DocumentType =='Contract' ){
-
+            $('#modalContratoLabel').html('Visualización de Contrato');
             const htmlRecibido = <?php echo json_encode($Contract); ?>;
             $('#Contract').html(htmlRecibido);
             const $contenedor = $('#contrato-dsj');
             const $cuerpoTabla = $('#lista-productos');
             const $filaPlantilla = $cuerpoTabla.find('.item-fila').first();
             ejecutarRenderizadoContract($contenedor, $cuerpoTabla, $filaPlantilla, datosGenerales, productos,descuentos);
-            
+            $('#ShareButton').hide();
             lanzarMensaje("Contrato cargado correctamente", "exito");
     }
     else if (DocumentType =='Quote'){
-
+            $('#modalContratoLabel').html('Visualización de Cotización');
             const htmlRecibido = <?php echo json_encode($Quote); ?>;
             $('#Contract').html(htmlRecibido);
             const $contenedor = $('#cotizacion-dsj');
             const $cuerpoTabla = $('#lista-productos');
             const $filaPlantilla = $cuerpoTabla.find('.item-fila').first();
             ejecutarRenderizadoQuote($contenedor, $cuerpoTabla, $filaPlantilla, datosGenerales, productos,descuentos);
-            
-            lanzarMensaje("Contrato cargado correctamente", "exito");
+            $('#ShareButton').show();
+            lanzarMensaje("Cotizacion cargada correctamente", "exito");
 
     }
+    else if (DocumentType =='Picking'){
+        $('#modalContratoLabel').html('Visualización de Picking');
+        const htmlRecibido = <?php echo json_encode($Picking);?>;    
+        $('#Contract').html(htmlRecibido);
+        const $contenedor = $('#picking-list-dsj');
+        const $cuerpoTabla = $('#lista-productos');
+        const $extracuerpoTabla = $('#extra-lista-productos');
+        const $filaPlantilla = $cuerpoTabla.find('.item-fila').first();
+        const $extrafilaPlantilla = $extracuerpoTabla.find('.extra-item-fila').first();
+                
+
+            extra = {
+                extra_item_name: 'Estacas',
+                extra_qty: 10
+            };
+            extras.push(extra);        
+            extra = {
+                extra_item_name: 'Extensión',
+                extra_qty: 2
+            };            
+            extras.push(extra);
+
+            extra = {
+                extra_item_name: '____________________________________',
+                extra_qty: '____'
+            };            
+            extras.push(extra);            
+
+        ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla, $filaPlantilla,$extrafilaPlantilla,datosGenerales, productos, descuentos, extras);
+        $('#ShareButton').hide();
+        lanzarMensaje("Picking cargado correctamente", "exito");        
+
+    }
+    
 }
 
 function ejecutarRenderizadoContract($contenedor, $cuerpoTabla, $filaPlantilla, datosGenerales, productos,descuentos) {
@@ -2241,6 +2285,59 @@ function ejecutarRenderizadoQuote($contenedor, $cuerpoTabla, $filaPlantilla, dat
     const miModal = new bootstrap.Modal(document.getElementById('modalContrato'));
     miModal.show();
 }
+
+function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla, $filaPlantilla,$extrafilaPlantilla, datosGenerales, productos, descuentos, extras)
+{
+
+    $cuerpoTabla.find('tr:not(.item-fila)').remove();
+
+    // 2. Procesar y agregar cada producto
+    productos.forEach(producto => {
+        let nuevaFilaHtml = $filaPlantilla[0].outerHTML;
+        $.each(producto, function(key, val) {
+            let regex = new RegExp('\\*' + key + '\\*', 'g');
+            nuevaFilaHtml = nuevaFilaHtml.replace(regex, val ?? '');
+        });
+        
+        let $nuevaFila = $(nuevaFilaHtml).removeClass('item-fila').css('display', ''); // Quitar display:none
+        $cuerpoTabla.append($nuevaFila);
+    });
+
+    $extracuerpoTabla.find('tr:not(.extra-item-fila)').remove();
+
+    extras.forEach(extra => {
+        let nuevaFilaHtml = $extrafilaPlantilla[0].outerHTML;
+        $.each(extra, function(key, val) {
+            let regex = new RegExp('\\*' + key + '\\*', 'g');
+            nuevaFilaHtml = nuevaFilaHtml.replace(regex, val ?? '');
+        });
+        
+        let $nuevaFila = $(nuevaFilaHtml).removeClass('extra-item-fila').css('display', ''); // Quitar display:none
+        $extracuerpoTabla.append($nuevaFila);
+    });    
+
+
+    $.each(datosGenerales, function(key, val) {
+        // Buscamos el elemento que tenga el ID igual a la 'key'
+        let $elemento = $contenedor.find('#' + key);
+        
+        if (val === 0 || val === "0") {
+            $elemento.hide(); // Oculta el elemento si es cero
+        } else {
+            $elemento.show(); // Se asegura de mostrarlo si tiene valor
+        }
+
+        // 4. Reemplazar etiquetas en el HTML (Mantenemos tu lógica de reemplazo)
+        let regex = new RegExp('\\*' + key + '\\*', 'g');
+        let contenidoActual = $contenedor.html();
+        $contenedor.html(contenidoActual.replace(regex, val ?? ''));
+    });
+
+    const miModal = new bootstrap.Modal(document.getElementById('modalContrato'));
+    miModal.show();
+
+}
+
 
 // LLENADO DE ESTADOS POR PAIS
 

@@ -280,15 +280,19 @@ switch ($resource) {
         break;
     case 'lead_auto_save':
         lead_auto_save($resource,$db, $method, $id, $data);
-        break;        
+        break;
+    case 'template':
+        get_template($resource,$db, $method, $id, $data);
+        break;
+    case 'leads':
+        leads($resource,$db, $method, $id, $data);
+        break;            
     default:
         // Manejar rutas no definidas
         http_response_code(404);
         echo json_encode(["message" => "Recurso '" . $resource . "' no encontrado."]);
         break;
-    case 'template':
-        get_template($resource,$db, $method, $id, $data);
-        break;        
+    
 }
 
 ?>

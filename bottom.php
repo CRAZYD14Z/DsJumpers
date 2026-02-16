@@ -3,7 +3,7 @@
             <button class="btn-minimal" onclick="LoadDocument('Quote')">Cotización</button>
             <button class="btn-minimal" onclick="LoadDocument('Contract')">Contrato</button>
             <button class="btn-minimal" onclick="LoadDocument('Invoice')">Factura</button>
-            <button class="btn-minimal" onclick="LoadDocument('Shiping')">Envío</button>
+            <button class="btn-minimal" onclick="LoadDocument('Picking')">Envío</button>
         </div>
     </div>
 </div>

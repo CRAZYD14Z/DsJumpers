@@ -948,7 +948,7 @@ function get_price($table_name,$db, $method, $id, $data) {
 
         }
 }
-    function get_template($table_name,$db, $method, $id, $data){
+function get_template($table_name,$db, $method, $id, $data){
     global $IDS;
     switch ($method) {
         case 'GET': 
@@ -959,7 +959,6 @@ function get_price($table_name,$db, $method, $id, $data) {
                 templates
             WHERE 
             Id = ?
-
             ";
             $stmt = $db->prepare($query);
             $stmt->bindParam(1, $id);
@@ -1422,6 +1421,31 @@ function get_products_categories($table_name,$db, $method, $id, $data){
                 $fechaE = $objDateE->format('Ymd'); // 2026-02-05
                 $horaE  = $objDateE->format('H:i');   // 02:00
 
+                $DayWeek = date('w', strtotime($fechaS));
+
+                switch ($DayWeek) {
+                    case '0':
+                        $DayWeek =' AND Do = 1 ';
+                    break;
+                    case '1':
+                        $DayWeek =' AND Lu = 1 ';
+                    break;
+                    case '2':
+                        $DayWeek =' AND Ma = 1 ';
+                    break;
+                    case '3':
+                        $DayWeek =' AND Mi = 1 ';
+                    break;
+                    case '4':
+                        $DayWeek =' AND Ju = 1 ';
+                    break;
+                    case '5':
+                        $DayWeek =' AND Vi = 1 ';
+                    break;
+                    case '6':
+                        $DayWeek =' AND Sa = 1 ';
+                    break;
+                }
 
                 //RECUPERAR TODO EL DETALLE DE EVENTOS ACTIVOS DE ESTA FECHA PARA RESTAR LAS CANTIDADES DE LOS PRODUCTOS
 
@@ -1451,7 +1475,7 @@ function get_products_categories($table_name,$db, $method, $id, $data){
                     WHERE Category = :idCat  AND 
                                 Estatus_price_list = 1 AND
                                 Estatus_price = 1 AND 
-                    :date BETWEEN  FechaHoraInicio AND FechaHoraFin                                      
+                    :date BETWEEN  FechaHoraInicio AND FechaHoraFin  $DayWeek                                    
                 ";                            
                 $stmt = $db->prepare($query);
                 $stmt->bindParam(':idCat', $IdCat, PDO::PARAM_INT);
@@ -2212,4 +2236,51 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
 
 
 }
+
+
+function leads($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+
+
+            $limit = 15;
+            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+            $offset = ($page - 1) * $limit;
+            $search = isset($_GET['search']) ? $_GET['search'] : '';
+
+            // Consulta con lógica de negocio integrada
+            $sql = "SELECT *, 
+                    CASE 
+                        WHEN Organization > 0 THEN NombreOrganizacion 
+                        WHEN Customer > 0 THEN CONCAT(NombreCliente, ' ', ApellidosCliente)
+                        ELSE 'Sin identificar'
+                    END AS NombreMostrar
+                    FROM v_leads 
+                    WHERE (NombreOrganizacion LIKE :s OR NombreCliente LIKE :s OR ApellidosCliente LIKE :s)
+                    ORDER BY StartDateTime DESC 
+                    LIMIT :limit OFFSET :offset";
+
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(':s', "%$search%", PDO::PARAM_STR);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->execute();            
+
+
+            if ($stmt) {
+                http_response_code(200);
+                echo json_encode($stmt->fetchAll());
+            } else {
+                http_response_code(404);
+                echo json_encode(array("message" => "Registro no encontrado."));
+            }
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+}   
 ?>

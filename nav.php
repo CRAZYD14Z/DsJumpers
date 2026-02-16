@@ -31,7 +31,8 @@
                 <li><a class="dropdown-item" href="crud.php?Id=venues">Venues</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=wharehouses">Wharehouses</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="lead.php">Leads</a></li>
+                <li><a class="dropdown-item" href="lead.php">New Lead</a></li>
+                <li><a class="dropdown-item" href="leads.php">Leads</a></li>
                 <li><a class="dropdown-item" href="#">Sign Out</a></li>
             </ul>
             </li>
