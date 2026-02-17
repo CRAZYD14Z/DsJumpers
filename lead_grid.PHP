@@ -1,4 +1,3 @@
-
 <div class="container-fluid">
     
 <button class="btn-pestaña-minimal d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#filtersOffcanvas">

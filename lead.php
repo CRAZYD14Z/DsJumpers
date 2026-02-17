@@ -70,10 +70,10 @@ $lang ='es';
 
 
 
-        include_once 'lead_grid.php';
-        include_once 'lead_customer.php';
-        include_once 'lead_venues.php';
-        include_once 'bottom.php';
+        require 'lead_grid.php';
+        require 'lead_customer.php';
+        require 'lead_venues.php';
+        require 'bottom.php';
     ?>
 
 
