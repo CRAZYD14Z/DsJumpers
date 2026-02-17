@@ -1548,6 +1548,32 @@ function get_related_products($table_name,$db, $method, $id, $data){
                 $fechaE = $objDateE->format('Ymd'); // 2026-02-05
                 $horaE  = $objDateE->format('H:i');   // 02:00
 
+                $DayWeek = date('w', strtotime($fechaS));
+
+                switch ($DayWeek) {
+                    case '0':
+                        $DayWeek =' AND Do = 1 ';
+                    break;
+                    case '1':
+                        $DayWeek =' AND Lu = 1 ';
+                    break;
+                    case '2':
+                        $DayWeek =' AND Ma = 1 ';
+                    break;
+                    case '3':
+                        $DayWeek =' AND Mi = 1 ';
+                    break;
+                    case '4':
+                        $DayWeek =' AND Ju = 1 ';
+                    break;
+                    case '5':
+                        $DayWeek =' AND Vi = 1 ';
+                    break;
+                    case '6':
+                        $DayWeek =' AND Sa = 1 ';
+                    break;
+                }                
+
 
                 //RECUPERAR TODO EL DETALLE DE EVENTOS ACTIVOS DE ESTA FECHA PARA RESTAR LAS CANTIDADES DE LOS PRODUCTOS
 
@@ -1578,7 +1604,7 @@ function get_related_products($table_name,$db, $method, $id, $data){
                     WHERE Producto_rp = :idp  AND 
                                 Estatus_price_list = 1 AND
                                 Estatus_price = 1 AND 
-                    :date BETWEEN  FechaHoraInicio AND FechaHoraFin                                      
+                    :date BETWEEN  FechaHoraInicio AND FechaHoraFin $DayWeek                                   
                 ";                            
                 $stmt = $db->prepare($query);
                 $stmt->bindParam(':idp', $IdP, PDO::PARAM_INT);
