@@ -2068,7 +2068,9 @@ function LoadDocument(DocumentType){
         salestax: TaxAm.toFixed(2),
         tip: 0,
         total: $('#Total').val(),
+        apayment: $('#Deposit').val(),
         ctr_balance_due: $('#Balance').val(),
+        balancedue: $('#Balance').val(),
 
         electric:"",
         signature:"",
@@ -2414,6 +2416,7 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
             TaxAm:  $('#TaxAm').val(),
             Total:  $('#Total').val(),
             Depo:   $('#Deposit').val(),
+            DepoA:   $('#DepositAmount').val(),
             BalDue: $('#Balance').val(),
 
             Referal: $('#Referal').val(),

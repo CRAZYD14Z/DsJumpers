@@ -338,7 +338,8 @@
                                 <td  colspan="2">
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text bg-light">$</span>
-                                        <input type="text" class="form-control text-end" placeholder="0.00" id="Deposit" name="Depopsit" value = "<?php  echo !empty($lead['Deposit']) ? $lead['Deposit'] : '0.00';?>" readonly>
+                                        <input type="hidden" class="form-control text-end" placeholder="0.00" id="Deposit" name="Depopsit" value = "<?php  echo !empty($lead['Deposit']) ? $lead['Deposit'] : '0.00';?>" readonly>
+                                        <input type="text" class="form-control text-end" placeholder="0.00" id="DepositAmount" name="DepositAmount" value = "<?php  echo !empty($lead['DepositAmount']) ? $lead['DepositAmount'] : '0.00';?>" readonly>
                                     </div>                            
                                 </td>
                             </tr>

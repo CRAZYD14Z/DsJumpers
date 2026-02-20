@@ -2186,7 +2186,7 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
             OkT=?, WA=?, AE=?, ME=?, CustomerNote=?, Venue=?, EventName=?, Surface=?, 
             Delivery=?, Note1=?, Note2=?, ItemTotals=?, ChkDstC=?, DistanceCharges=?, ChkStCs=?, 
             StafCost=?, ChkDsc=?, Discount=?, SubTotal=?, TaxId=?, TaxPc=?, 
-            TaxAmount=?, Total=?, Deposit=?, Balance=?, Status='Draft',FechaCambio=now()
+            TaxAmount=?, Total=?, Deposit=?,DepositAmount=?, Balance=?, Status='Draft',FechaCambio=now()
             WHERE Id = ?";
         
         $stmtLead = $db->prepare($sqlLead);
@@ -2195,7 +2195,7 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
             $h->OkT, $h->WA, $h->AE, $h->ME, $h->CusNt, $h->Venue, $h->EventName, $h->Surface,
             $h->Delivety, $h->Nt1, $h->Nt2, $h->Item_Totals, $h->ChkDstC, $h->DstC, $h->ChkStCs, 
             $h->StCs, $h->ChkDsc, $h->Dsc, $h->SubT, $h->TaxId, $h->TaxPc, 
-            $h->TaxAm, $h->Total, $h->Depo, $h->BalDue, $idLead
+            $h->TaxAm, $h->Total, $h->Depo,$h->DepoA, $h->BalDue, $idLead
         ]);
 
         // Limpiar detalles anteriores para evitar duplicados
@@ -2210,7 +2210,7 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
             OkT, WA, AE, ME, CustomerNote, Venue, EventName, Surface, 
             Delivery, Note1, Note2, ItemTotals, ChkDstC, DistanceCharges, ChkStCs, 
             StafCost, ChkDsc, Discount, SubTotal, TaxId, TaxPc, 
-            TaxAmount, Total, Deposit, Balance, Status,FechaCreacion,FechaCambio
+            TaxAmount, Total, Deposit,DepositAmount, Balance, Status,FechaCreacion,FechaCambio
         ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,now(),now())";
 
         $stmtLead = $db->prepare($sqlLead);
@@ -2219,7 +2219,7 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
             $h->OkT, $h->WA, $h->AE, $h->ME, $h->CusNt, $h->Venue, $h->EventName, $h->Surface,
             $h->Delivety, $h->Nt1, $h->Nt2, $h->Item_Totals, $h->ChkDstC, $h->DstC, $h->ChkStCs, 
             $h->StCs, $h->ChkDsc, $h->Dsc, $h->SubT, $h->TaxId, $h->TaxPc, 
-            $h->TaxAm, $h->Total, $h->Depo, $h->BalDue, 'Draft'
+            $h->TaxAm, $h->Total, $h->Depo,$h->DepoA, $h->BalDue, 'Draft'
         ]);
         $idLead = $db->lastInsertId();
     }

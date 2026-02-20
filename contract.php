@@ -213,10 +213,25 @@ $lang ='es';
 
             $('#img-firma-tabla').attr('src', dataURL).show();
 
+            //const contenidoDiv = document.getElementById('Contract').innerHTML;
+            //contenidoDiv = contenidoDiv.replace("*signeddate*", "<?php echo date('Y-m-d')?>"); 
+            //contenidoDiv = contenidoDiv.replace("*customerdsname*", $('#signer-name').val()); 
+            //$('#Contract').html(Contract);
+            let contenido = $('#Contract').html(); 
+
+            // 2. Ejecutamos los reemplazos (encadenados para mayor limpieza)
+            contenido = contenido.replace("*signeddate*", "<?php echo date('Y-m-d')?>")
+                                .replace("*customerdsname*", $('#signer-name').val()); 
+
+            // 3. Volvemos a insertar el contenido procesado en el div
+            $('#Contract').html(contenido);            
 
             const contenidoDiv = document.getElementById('Contract').innerHTML;            
 
-            const datos = { contrato: contenidoDiv };
+            const datos = { 
+                token: '<?php echo $token;?>',
+                contrato: contenidoDiv 
+            };
 
             fetch('pdf.php', {
                 method: 'POST',
@@ -227,8 +242,10 @@ $lang ='es';
             })
             .then(response => response.json())
             .then(data => {
-                console.log('Éxito:', data);
-                alert('Contrato guardado correctamente');
+                //console.log('Éxito:', data);
+                //alert('Contrato guardado correctamente ' + data.UUID);
+                var url = "makepayment.php?Id="+data.UUID;
+                $(location).attr('href', url);
             })
             .catch((error) => {
                 console.error('Error:', error);
@@ -321,11 +338,10 @@ const FHFp = FHF.split(' ')
         salestax: "<?php echo $lead['TaxAmount']?>",
         tip: "<?php echo $lead['Tip']?>",
         total: "<?php echo $lead['Total']?>",
+        apayment: "<?php echo $lead['DepositAmount']?>",
         ctr_balance_due: "<?php echo $lead['Balance']?>",
 
-        electric:"",
-        signature:"",
-        signeddate:""
+        electric:""
     };
 
     const productos = [];

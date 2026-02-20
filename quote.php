@@ -76,6 +76,16 @@ $lang ='es';
         $Tip=$_GET['Tip'];
     }
 
+    $APay=20;
+    if (isset($_GET['APay'])){
+        $APay=$_GET['APay'];
+    }    
+
+    if ($APay != 20 AND $APay != 50 AND $APay != 100){
+        echo "Anticipo  $APay no válido.";
+        die();        
+    }
+
     $token = $_GET['Id']; // El UUID de la URL
     $ahora = date("Y-m-d H:i:s");
 
@@ -154,6 +164,20 @@ $lang ='es';
 </div>
 
 
+<div id="modal-change-apay" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); font-family: 'Segoe UI', Arial, sans-serif;">
+    <div style="background-color: #fff; margin: 15% auto; padding: 25px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+        <div style="font-size: 18px; font-weight: bold; color: #002d72; margin-bottom: 15px;">Cambiar Anticipo</div>
+        <p style="font-size: 14px; color: #555; margin-bottom: 25px;">
+            ¿Deseas cambiar el anticipo a <span id="text-monto-anticipo" style="font-weight: bold; color: #27ae60;">$0.00</span>?
+        </p>
+        <div style="display: flex; justify-content: space-around;">
+            <button id="btn-cancelar-apay" style="padding: 10px 20px; border: 1px solid #ccc; background: #fff; border-radius: 4px; cursor: pointer; color: #666;">Cancelar</button>
+            <button id="btn-aceptar-apay" style="padding: 10px 20px; border: none; background: #27ae60; color: #fff; border-radius: 4px; cursor: pointer; font-weight: bold;">Sí, cambiar</button>
+        </div>
+    </div>
+</div>
+
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>   
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
@@ -167,14 +191,14 @@ $lang ='es';
         $account = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($Tip > 0){
-            $query = "UPDATE lead SET Tip = ?, Total = Total + ? WHERE Id = ? ";        
+            $query = "UPDATE lead SET Tip = ?, Total = TotalBT + ? WHERE Id = ? ";        
             $stmt = $db->prepare($query);
             $stmt->bindParam(1, $Tip);
             $stmt->bindParam(2, $Tip);
             $stmt->bindParam(3, $cotizacion['IdQuote']);
             $stmt->execute();
         }else{
-            $query = "UPDATE lead SET  Total = Total - Tip WHERE Id = ? ";        
+            $query = "UPDATE lead SET  Total = TotalBT WHERE Id = ? ";        
             $stmt = $db->prepare($query);
             $stmt->bindParam(1, $cotizacion['IdQuote']);
             $stmt->execute();
@@ -183,6 +207,21 @@ $lang ='es';
             $stmt = $db->prepare($query);
             $stmt->bindParam(1, $cotizacion['IdQuote']);
             $stmt->execute();            
+        }
+        
+        if ($APay > 0){
+            $query = "UPDATE lead SET Deposit = ?, DepositAmount = Total * ( ? / 100) WHERE Id = ? ";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(1, $APay);
+            $stmt->bindParam(2, $APay);
+            $stmt->bindParam(3, $cotizacion['IdQuote']);
+            $stmt->execute();
+
+            $query = "UPDATE lead SET Balance = Total - DepositAmount  WHERE Id = ? ";        
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(1, $cotizacion['IdQuote']);
+            $stmt->execute();            
+
         }
 
         $query = "select * FROM lead WHERE Id = ?";
@@ -254,11 +293,13 @@ const FHFp = FHF.split(' ')
         salestax: "<?php echo $lead['TaxAmount']?>",
         tip: "<?php echo $lead['Tip']?>",
         total: "<?php echo $lead['Total']?>",
-        ctr_balance_due: "<?php echo $lead['Balance']?>",
+        apayment: "<?php echo $lead['DepositAmount']?>",
+        balancedue: "<?php echo $lead['Balance']?>",
 
         electric:"",
         signature:"",
-        signeddate:""
+        signeddate:"",
+        "link_to_accept":'contract.php?Id=<?php echo $token;?>'
     };
 
     const productos = [];
@@ -343,6 +384,7 @@ const FHFp = FHF.split(' ')
         LoadDocument();
 
         let montoPendiente = 0;
+        let anticipo = 0;
 
         // 1. Evento para los botones de %
         $(document).on('click', '.btn-tip', function() {
@@ -376,21 +418,8 @@ const FHFp = FHF.split(' ')
         });
 
         $(document).on('click', '#btn-aceptar-tip', function() {
-            // AQUÍ VA TU LÓGICA PARA SUMAR AL TOTAL
-            //console.log("Propina confirmada: $" + montoPendiente);
-            // Ejemplo: Actualizar un campo de total en tu UI
-            //$('#valor-propina-final').text('$' + montoPendiente);
             $('#modal-confirmacion-tip').fadeOut(200);
-
-            let params = new URLSearchParams(window.location.search);
-            let id = params.get('Id'); // Extraemos el UUID
-
-            if (id) {
-                let nuevaUrl = window.location.origin + window.location.pathname + '?Id=' + id;
-                window.history.replaceState({}, document.title, nuevaUrl);
-            }            
-
-            window.location.href = window.location.href+'&Tip='+ montoPendiente
+            actualizarUrlYRedirigir({ Tip: montoPendiente });
         });
 
         $(document).on('click', '.btn-tip-remove', function() {
@@ -403,17 +432,55 @@ const FHFp = FHF.split(' ')
 
         $(document).on('click', '#btn-aceptar-remove-tip', function() {
             $('#modal-remove-tip').fadeOut(200);
+            actualizarUrlYRedirigir({ Tip: 0 });
+        });
 
-            let params = new URLSearchParams(window.location.search);
-            let id = params.get('Id'); // Extraemos el UUID
 
-            if (id) {
-                let nuevaUrl = window.location.origin + window.location.pathname + '?Id=' + id;
-                window.history.replaceState({}, document.title, nuevaUrl);
-            }            
 
-            window.location.href = window.location.href+'&Tip=0'
+
+        $(document).on('click', '.btn-apay', function() {
+            
+            const porcentaje = $(this).data('apay');
+            const subtotal = parseFloat(datosGenerales.total) || 0; // Ajusta según tu variable de precio
+            anticipo = porcentaje;
+            //alert (anticipo)
+            abrirModalAnticipo((subtotal * (porcentaje / 100)).toFixed(2));
         });        
+
+        function abrirModalAnticipo(monto) {
+            $('#text-monto-anticipo').text('$' + monto);
+            $('#modal-change-apay').fadeIn(200);
+        }        
+
+        $(document).on('click', '#btn-cancelar-apay', function() {
+            $('#modal-change-apay').fadeOut(200);
+        });        
+
+
+        $(document).on('click', '#btn-aceptar-apay', function() {
+            $('#modal-confirmacion-tip').fadeOut(200);
+            actualizarUrlYRedirigir({ APay: anticipo });
+        });
+
+function actualizarUrlYRedirigir(nuevosParams) {
+
+    // 1. Capturamos los parámetros actuales de la URL
+    let params = new URLSearchParams(window.location.search);
+
+    // 2. Iteramos sobre los nuevos parámetros y los aplicamos
+    // Esto sobreescribe si ya existen o los crea si no.
+    Object.keys(nuevosParams).forEach(key => {
+        params.set(key, nuevosParams[key]);
+    });
+
+    // 3. Construimos la nueva URL de destino
+    // window.location.pathname contiene la ruta sin los parámetros viejos
+    let nuevaUrl = window.location.origin + window.location.pathname + '?' + params.toString();
+
+    // 4. Redirigimos
+    window.location.href = nuevaUrl;
+}        
+
 
         <?php 
             if ($lead['Tip'] > 0){
@@ -430,6 +497,25 @@ const FHFp = FHF.split(' ')
                     $('#tips').hide();
                 ";
             }
+
+            if ($lead['Deposit'] == 20){
+                echo "$('#apay-20').prop('disabled', true);
+                      $('#apay-20').css('background-color', '#ccc');
+                      $('#apay-20').css('cursor', 'default');
+                ";
+            }
+            elseif ($lead['Deposit'] == 50){
+                echo "$('#apay-50').prop('disabled', true);
+                      $('#apay-50').css('background-color', '#ccc');
+                      $('#apay-50').css('cursor', 'default');                
+                ";
+            }
+            elseif($lead['Deposit'] == 100){
+                echo "$('#apay-100').prop('disabled', true);
+                      $('#apay-100').css('background-color', '#ccc');
+                      $('#apay-100').css('cursor', 'default');";
+            }
+
         ?>
 
     });

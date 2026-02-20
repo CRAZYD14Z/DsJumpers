@@ -84,12 +84,12 @@
             </tr>
             <tr id="discount">
                 <td style="padding: 6px 0; color: #666;">Discount</td>
-                <td style="padding: 6px 0; text-align: right;">$*discount*</td>
+                <td style="padding: 6px 0; text-align: right;">$-*discount*</td>
             </tr>
             <tbody id="extra_discounts">
                 <tr>
                     <td style="padding: 6px 0; color: #666;">*conceptdiscount*</td>
-                    <td style="padding: 6px 0; text-align: right;">$*discountconcept*</td>
+                    <td style="padding: 6px 0; text-align: right;">$-*discountconcept*</td>
                 </tr>
             </tbody>            
             <tr style="border-top: 1px solid #eee;">
@@ -105,14 +105,22 @@
                     <td style="padding: 6px 0; color: #666;">Tip</td>
                     <td style="padding: 6px 0; text-align: right;">$*tip*</td>
                 </tr>
-            </tbody>               
-            <tr style="border-top: 1px solid #333; font-size: 15px;">
+            </tbody>  
+
+            <tr style="color: #002d72; font-size: 15px;">
                 <td style="padding: 10px 0;"><strong>Total</strong></td>
                 <td style="padding: 10px 0; text-align: right;"><strong>$*total*</strong></td>
             </tr>
-            <tr style="color: #c0392b; font-weight: 600;">
-                <td style="padding: 6px 0;">Balance Due</td>
-                <td style="padding: 6px 0; text-align: right;">$*ctr_balance_due*</td>
+
+            <tr style="color: #00722f; font-size: 15px;">
+                <td style="padding: 10px 0;"><strong>Advance Payment</strong></td>
+                <td style="padding: 10px 0; text-align: right;"><strong>$-*apayment*</strong></td>
+            </tr>            
+
+
+            <tr style="color: #c0392b; font-size: 15px;">
+                <td style="padding: 10px 0;"><strong>Balance Due</strong></td>
+                <td style="padding: 10px 0; text-align: right;"><strong>$*ctr_balance_due*</strong></td>
             </tr>
         </table>
     </div>
@@ -214,15 +222,20 @@ BY SIGNING MY NAME ON THIS CONTRACT, I ACKNOWLEDGE THAT I HAVE COMPLETELY READ A
 
     <table class="responsive-table" width="100%" style="margin-top: 40px; border-collapse: collapse;">
         <tr>
-            <td class="stack-column signature-box" style="width: 45%; border-top: 1px solid #333; padding-top: 8px; text-align: center;">
+            <td class="stack-column signature-box" style="width: 45%;  padding-top: 8px; text-align: center;">
                 <div style="font-family: 'Courier New', Courier, monospace; font-size: 18px; min-height: 40px; color: #002d72;">
                     <img id="img-firma-tabla" alt="*signature*" style="max-height: 80px;width: auto;">                    
-                </div>
+                </div>                
+                <hr>
+                <div style="font-size: 10px; color: #999;">*customerdsname*</div>
                 <div style="font-size: 10px; color: #999; text-transform: uppercase;">Customer Digital Signature</div>
             </td>
+            
             <td class="stack-column" style="width: 10%; height: 20px;"></td>
-            <td class="stack-column signature-box" style="width: 45%; border-top: 1px solid #333; padding-top: 8px; text-align: center; vertical-align: top;">
+
+            <td class="stack-column signature-box" style="width: 45%;  padding-top: 8px; text-align: center; vertical-align: top;">
                 <div style="font-size: 13px; min-height: 40px; padding-top: 10px;">*signeddate*</div>
+                <hr>
                 <div style="font-size: 10px; color: #999; text-transform: uppercase;">Date Signed</div>
             </td>
         </tr>

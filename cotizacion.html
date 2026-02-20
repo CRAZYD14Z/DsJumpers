@@ -113,6 +113,7 @@
         </tr>
         </table>
     </div>
+
 <div style="margin: 40px 0;">
         <h4 style="margin: 0 0 15px 0; text-transform: uppercase; color: #333; border-bottom: 2px solid #f39c12; display: inline-block; padding-bottom: 5px;">Exclusive Add-ons (Mejora tu evento)</h4>
         
@@ -180,6 +181,32 @@
         <p style="font-size: 11px; color: #999; margin-top: 10px; text-align: center;"><i class="fa-solid fa-caret-left"></i> Desliza para ver más opciones <i class="fa-solid fa-caret-right"></i></p>
     </div>
 
+
+    <div id="tip-add" style="margin: 30px 0; padding: 20px; background-color: #fdfdfd; border: 1px dashed #ccc; border-radius: 8px;">
+        <h4 style="margin: 0 0 15px 0; color: #002d72; font-size: 14px; text-align: center;">Advance Payment</h4>
+        <table width="100%" cellpadding="0" cellspacing="5">
+        <tr>
+            <td style="width: 33.33%;">
+                <button type="button" class="btn-apay" id="apay-20" data-apay="20" style="width: 100%; padding: 10px; border: 1px solid #002d72; border-radius: 5px; text-align: center; background-color: #fff; font-weight: bold; color: #002d72; cursor: pointer; display: block; font-family: inherit;">
+                    20%
+                </button>
+            </td>
+            <td style="width: 33.33%;">
+                <button type="button" class="btn-apay" id="apay-50" data-apay="50" style="width: 100%; padding: 10px; border: 1px solid #002d72; border-radius: 5px; text-align: center; background-color: #fff; font-weight: bold; color: #002d72; cursor: pointer; display: block; font-family: inherit;">
+                    50%
+                </button>
+            </td>
+            <td style="width: 33.33%;">
+                <button type="button" class="btn-apay" id="apay-100" data-apay="100" style="width: 100%; padding: 10px; border: 1px solid #002d72; border-radius: 5px; text-align: center; background-color: #fff; font-weight: bold; color: #002d72; cursor: pointer; display: block; font-family: inherit;">
+                    100%
+                </button>
+            </td>
+        </tr>
+        </table>
+    </div>       
+
+
+
             <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px; background-color: #f9f9f9; border-radius: 8px;">
                 <tr>
                     <td style="padding: 20px;">
@@ -198,12 +225,12 @@
                     </tr>
                     <tr id="discount">
                         <td style="padding: 6px 0; color: #666;">Discount</td>
-                        <td style="padding: 6px 0; text-align: right;">$*discount*</td>
+                        <td style="padding: 6px 0; text-align: right;">$-*discount*</td>
                     </tr>
                     <tbody id="extra_discounts">
                         <tr>
                             <td style="padding: 6px 0; color: #666;">*conceptdiscount*</td>
-                            <td style="padding: 6px 0; text-align: right;">$*discountconcept*</td>
+                            <td style="padding: 6px 0; text-align: right;">$-*discountconcept*</td>
                         </tr>
                     </tbody>            
                     <tr style="border-top: 1px solid #eee;">
@@ -226,6 +253,18 @@
                         <td style="padding: 12px 0; font-size: 18px; color: #002d72;"><strong>Estimated Total</strong></td>
                         <td style="padding: 12px 0; text-align: right; font-size: 18px; color: #002d72;"><strong>$*total*</strong></td>
                     </tr>
+
+                    <tr style="border-top: 2px solid #333;">
+                        <td style="padding: 12px 0; font-size: 18px; color: #00722f;"><strong>Advance Payment</strong></td>
+                        <td style="padding: 12px 0; text-align: right; font-size: 18px; color: #00722f;"><strong>$-*apayment*</strong></td>
+                    </tr>                    
+
+                    <tr style="border-top: 2px solid #333;">
+                        <td style="padding: 12px 0; font-size: 18px; color: #c0392b;"><strong>Balance Due</strong></td>
+                        <td style="padding: 12px 0; text-align: right; font-size: 18px; color: #c0392b;"><strong>$*balancedue*</strong></td>
+                    </tr>                     
+
+                    
                 </table>
             </td>
         </tr>

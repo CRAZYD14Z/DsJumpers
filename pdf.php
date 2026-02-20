@@ -29,7 +29,7 @@ $contenido ="
 
 //echo json_encode(["status" => "ok"]);
 
-
+$token = $data->token;
 // 2. Configurar opciones (Permitir imágenes y assets remotos)
 $options = new Options();
     $options->set('isRemoteEnabled', true); // Vital para cargar el LOGO desde la URL
@@ -49,14 +49,18 @@ $dompdf = new Dompdf($options);
 //$html = file_get_contents($url); 
 
 // 4. Cargar el HTML en Dompdf
-
 $dompdf->loadHtml($contenido);
+$dompdf->setPaper('A4', 'portrait');
+$dompdf->render();
+// 6. Obtener el output del PDF
+$pdfOutput = $dompdf->output();
+file_put_contents($token.".pdf", $pdfOutput);
 
-// (Opcional) Configurar tamaño de papel
-   $dompdf->setPaper('A4', 'portrait');
-    $dompdf->render();
+http_response_code(200);
+echo json_encode(array(
+    "data" => 'Ok',
+    "document" => $token.".pdf",
+    "UUID" => $token
+));
 
-    // 6. Obtener el output del PDF
-    $pdfOutput = $dompdf->output();
-    file_put_contents("Contrato_Nvo.pdf", $pdfOutput);
 ?>
