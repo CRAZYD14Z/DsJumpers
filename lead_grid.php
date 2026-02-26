@@ -136,6 +136,7 @@
     <!-- SECCION PIE -->
     <div class="row">
         <input type="hidden"  id="IdLead" name="IdLead" value = "<?php  echo !empty($lead['Id']) ? $lead['Id'] : '';?>" >
+        <input type="hidden"  id="UUID" name="UUID" value = "<?php echo $UUID['UUID']?>" >
         <!-- SECCION REFERIDOS -->
         <div class='col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6 col-xxl-6'>
             <div class="row">

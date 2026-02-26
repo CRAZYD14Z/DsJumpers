@@ -6,16 +6,8 @@ include_once 'config/config.php';
 include_once 'config/database.php'; 
 $database = new Database();
 $db = $database->getConnection();
-$lang ='es';
-?>
-<!DOCTYPE html>
-<html lang="<?php echo $lang;?>">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contrato Digital Profesional</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">    
+    include_once 'head.php';
+?>   
     <style>
         :root { --primary-color: #0d6efd; }
         body { background-color: #f4f7f9; min-height: 100vh; }

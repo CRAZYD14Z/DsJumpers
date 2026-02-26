@@ -47,13 +47,6 @@ class OpenpayApiConnector
             throw new OpenpayApiAuthError("Invalid Private Key '" . $myApiKey . "'");
         }
 
-        $publicIp = Openpay::getPublicIp();
-        if(is_null($publicIp)){
-            throw new OpenpayApiAuthError("Empty or no public ip provided");
-        } else if (!filter_var($publicIp, FILTER_VALIDATE_IP)){
-            throw new OpenpayApiAuthError("Invalid public ip '" . $publicIp . "'");
-        }
-
         $absUrl = Openpay::getEndpointUrl();
         if (!$absUrl) {
             throw new OpenpayApiConnectionError("No API endpoint set");
@@ -68,8 +61,6 @@ class OpenpayApiConnector
             $headers = array('User-Agent: OpenpayPhp/v2');
         else
             $headers = array('User-Agent: ' . $userAgent);
-
-        array_push($headers, 'X-Forwarded-For: ' . $publicIp);
 
         list($rbody, $rcode) = $this->_curlRequest($method, $absUrl, $headers, $params, $myApiKey);
         return $this->interpretResponse($rbody, $rcode);

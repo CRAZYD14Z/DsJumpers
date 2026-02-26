@@ -3,6 +3,6 @@
         "firebase/php-jwt": "^6.11",
         "dompdf/dompdf": "^3.1",
         "phpmailer/phpmailer": "^7.0",
-        "openpay/sdk": "^3.1"
+        "openpay/sdk": "3.0"
     }
 }

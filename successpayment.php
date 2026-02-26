@@ -48,7 +48,13 @@ $lang ='es';
         die();
     }
 
+    if (!isset($_GET['TId'])){
+        echo "Enlace no válido.";
+        die();
+    }    
+
     $token = $_GET['Id']; // El UUID de la URL
+    $TId = $_GET['TId']; // El UUID de la URL
     $ahora = date("Y-m-d H:i:s");
 
     $stmt = $db->prepare("SELECT * FROM quotes WHERE UUID = ? AND Status = 'A'");
@@ -113,7 +119,7 @@ $lang ='es';
                 <a href="<?php echo URL_BASE;?>" class="btn btn-outline-secondary btn-lg px-4">Volver al Inicio</a>
             </div>
             
-            <p class="mt-5 text-muted small">ID de Transacción: #ABC-123456789</p>
+            <p class="mt-5 text-muted small">ID de Transacción: # <?php echo $TId;?></p>
         </div>            
         </div>
     </div>

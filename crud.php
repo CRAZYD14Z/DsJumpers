@@ -28,28 +28,12 @@ session_start();
         global $Traducciones;
         return $Traducciones[$Id];
     }
+    include_once 'head.php';
 ?>
-<!DOCTYPE html>
-<html lang="<?php echo $Idioma;?>">
-<head>  
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Page with jQuery</title>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />    
-
-    <script type="text/javascript" src="//code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>    
-
-
-
     <link href="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.js"></script>
-
     <link href="https://cdn.jsdelivr.net/npm/choices.js@9.0.1/public/assets/styles/choices.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>     
-
 <?php
     if ($IdTabla == 'item_prices' OR $IdTabla == 'products'){
     echo '<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>';
@@ -68,11 +52,7 @@ session_start();
         global $Traducciones2;
         echo isset($Traducciones2[$Id]) ? $Traducciones2[$Id] : "Trd_2[$Id]";
     }    
-
 ?>
-
-
-
     <style>
         
         h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
@@ -108,12 +88,9 @@ session_start();
             height: 350px; 
         }
     </style>
-
-
 <?php
     }
 ?>
-
   <style>
         .table-container {
             overflow-x: auto;
@@ -355,6 +332,16 @@ session_start();
                     </div>
 
                     <input type="hidden" id ="edit_JsonPrice" name ="edit_JsonPrice">
+
+            <div class="container">
+                <div class="seccion-proyeccion">
+                    <h3><?php Trd_2(3)?></h3>
+
+                    <div class="grafica-container">
+                        <canvas id="costosChart"></canvas>
+                    </div>        
+                </div>
+            </div>                    
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button class="btn btn-primary" type="submit"><?php echo Trd(7)?></button>
@@ -1481,7 +1468,9 @@ function deleteRecord(Id,IdTabla) {
             //});
             let alineaciones = [];
             titulos.forEach(row => {
+                if (row['Titulo'] != 'Id' && row['Titulo'] != 'IId' && row['Titulo'] != 'Producto_rup' && row['Titulo'] != 'Producto_rsp')
                 html += `<th style="text-align: center">${row['Titulo'] || ''}</th>`;
+
                 let alineacion = row['Alineacion'] || 'center';
                 alineaciones.push(alineacion);
             });
@@ -1517,8 +1506,10 @@ function deleteRecord(Id,IdTabla) {
                         html += `<td style="text-align: ${alineaciones[idx]}" ><a href="ajax/tmp/${row[col] || ''}" target="_blank" rel="noopener noreferrer">${row[col] || ''}</a></td>`;
                 }                
                 else{
-                    html += `<td style="text-align: ${alineaciones[idx]}" >${row[col] || ''}</td>`;
+                    if (col != 'Id' && col != 'IId' && col != 'Producto_rup' && col != 'Producto_rsp')
+                        html += `<td style="text-align: ${alineaciones[idx]}" >${row[col] || ''}</td>`;
                 }
+
                     if (col == 'Id' || col == 'IId' || col == 'IdWhareHouse')
                         Id = row[col];
                     idx=idx+1;
@@ -2306,6 +2297,7 @@ function cargar() {
         
         const rawValue = $('#edit_JsonPrice').val();
         const decodedValue = $('<div/>').html(rawValue).text();
+
         const data = JSON.parse(decodedValue);
 
         if (!Array.isArray(data) || data.length === 0) return;

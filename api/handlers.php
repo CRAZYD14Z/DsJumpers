@@ -1409,116 +1409,130 @@ function get_products_categories($table_name,$db, $method, $id, $data){
         case 'GET': 
             $IdCat = isset($_GET['IdCat']) ? (int)$_GET['IdCat'] : 0;
 
-                $DateS_raw = isset($_GET['DateS']) ? $_GET['DateS'] : date('Y-m-d\TH:i');
-                $DateE_raw = isset($_GET['DateE']) ? $_GET['DateE'] : date('Y-m-d\TH:i');
+            $DateS_raw = isset($_GET['DateS']) ? $_GET['DateS'] : date('Y-m-d\TH:i');
+            $DateE_raw = isset($_GET['DateE']) ? $_GET['DateE'] : date('Y-m-d\TH:i');
 
-                $objDateS = new DateTime($DateS_raw);
-                $objDateE = new DateTime($DateE_raw);
+            $objDateS = new DateTime($DateS_raw);
+            $objDateE = new DateTime($DateE_raw);
 
-                $fechaS = $objDateS->format('Ymd'); // 2026-02-04
-                $horaS  = $objDateS->format('H:i');   // 18:00
+            $fechaS = $objDateS->format('Ymd'); // 2026-02-04
+            $horaS  = $objDateS->format('H:i');   // 18:00
 
-                $fechaE = $objDateE->format('Ymd'); // 2026-02-05
-                $horaE  = $objDateE->format('H:i');   // 02:00
+            $fechaE = $objDateE->format('Ymd'); // 2026-02-05
+            $horaE  = $objDateE->format('H:i');   // 02:00
 
-                $DayWeek = date('w', strtotime($fechaS));
+            $DayWeek = date('w', strtotime($fechaS));
 
-                switch ($DayWeek) {
-                    case '0':
-                        $DayWeek =' AND Do = 1 ';
-                    break;
-                    case '1':
-                        $DayWeek =' AND Lu = 1 ';
-                    break;
-                    case '2':
-                        $DayWeek =' AND Ma = 1 ';
-                    break;
-                    case '3':
-                        $DayWeek =' AND Mi = 1 ';
-                    break;
-                    case '4':
-                        $DayWeek =' AND Ju = 1 ';
-                    break;
-                    case '5':
-                        $DayWeek =' AND Vi = 1 ';
-                    break;
-                    case '6':
-                        $DayWeek =' AND Sa = 1 ';
-                    break;
-                }
+            switch ($DayWeek) {
+                case '0':
+                    $DayWeek =' AND Do = 1 ';
+                break;
+                case '1':
+                    $DayWeek =' AND Lu = 1 ';
+                break;
+                case '2':
+                    $DayWeek =' AND Ma = 1 ';
+                break;
+                case '3':
+                    $DayWeek =' AND Mi = 1 ';
+                break;
+                case '4':
+                    $DayWeek =' AND Ju = 1 ';
+                break;
+                case '5':
+                    $DayWeek =' AND Vi = 1 ';
+                break;
+                case '6':
+                    $DayWeek =' AND Sa = 1 ';
+                break;
+            }
 
-                //RECUPERAR TODO EL DETALLE DE EVENTOS ACTIVOS DE ESTA FECHA PARA RESTAR LAS CANTIDADES DE LOS PRODUCTOS
+            //RECUPERAR TODO EL DETALLE DE EVENTOS ACTIVOS DE ESTA FECHA PARA RESTAR LAS CANTIDADES DE LOS PRODUCTOS
 
-                $fechaS_db = $objDateS->format('Y-m-d H:i:s');
-                $fechaE_db = $objDateE->format('Y-m-d H:i:s');
+            $fechaS_db = $objDateS->format('Y-m-d H:i:s');
+            $fechaE_db = $objDateE->format('Y-m-d H:i:s');
 
-                $query = "
-                    SELECT IdProduct, SUM(Quantity) as Quantity 
-                    FROM v_leads_detail 
-                    WHERE Status = 'A' 
-                    AND (StartDateTime < :DateE AND EndDateTime > :DateS)
-                    AND Unlimited = 0
-                    GROUP BY IdProduct
-                ";
+            $query = "
+                SELECT IdProduct, SUM(Quantity) as Quantity 
+                FROM v_leads_detail 
+                WHERE Status = 'quoted' 
+                AND (StartDateTime < :DateE AND EndDateTime > :DateS)
+                AND Unlimited = 0
+                GROUP BY IdProduct
+                
+                UNION
 
-                $stmt = $db->prepare($query);
-                $stmt->bindParam(':DateS', $fechaS_db);
-                $stmt->bindParam(':DateE', $fechaE_db);
-                $stmt->execute();                
+                SELECT
+                    relationship_products.Producto_rsp as IdProduct, 
+                    count(relationship_products.Producto_rsp) as Quantity
+                FROM
+                    v_leads_detail
+                    INNER JOIN
+                    relationship_products
+                    ON 
+                        v_leads_detail.IdProduct = relationship_products.Producto_sp
+                        
+                WHERE v_leads_detail.Status = 'quoted' 
+                AND (v_leads_detail.StartDateTime < :DateEE AND v_leads_detail.EndDateTime > :DateSS)
+                AND v_leads_detail.Unlimited = 0
+                GROUP BY relationship_products.Producto_rsp		                
 
-                $ocupados = $stmt->fetchAll(PDO::FETCH_ASSOC);                
+            ";
 
-                $cantidadesOcupadas = array_column($ocupados, 'Quantity', 'IdProduct');                
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':DateS', $fechaS_db);
+            $stmt->bindParam(':DateE', $fechaE_db);
+            $stmt->bindParam(':DateSS', $fechaS_db);
+            $stmt->bindParam(':DateEE', $fechaE_db);            
+            $stmt->execute();                
 
-                $query = "
-                    SELECT * FROM v_items_prices_lists
-                    WHERE Category = :idCat  AND 
-                                Estatus_price_list = 1 AND
-                                Estatus_price = 1 AND 
-                    :date BETWEEN  FechaHoraInicio AND FechaHoraFin  $DayWeek                                    
-                ";                            
-                $stmt = $db->prepare($query);
-                $stmt->bindParam(':idCat', $IdCat, PDO::PARAM_INT);
-                $stmt->bindParam(':date', $fechaS, PDO::PARAM_STR);
-                //$stmt->bindValue(1, $IdCat);
-                //$stmt->bindValue(2, $Date);
-                $stmt->execute();
-                $resultados_p = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                if ($resultados_p) {
-                    foreach ($resultados_p as $index => $Precio) {
+            $ocupados = $stmt->fetchAll(PDO::FETCH_ASSOC);                
 
+            $cantidadesOcupadas = array_column($ocupados, 'Quantity', 'IdProduct');                
 
+            $query = "
+                SELECT * FROM v_items_prices_lists
+                WHERE Category = :idCat  AND 
+                            Estatus_price_list = 1 AND
+                            Estatus_price = 1 AND 
+                :date BETWEEN  FechaHoraInicio AND FechaHoraFin  $DayWeek                                    
+            ";                            
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':idCat', $IdCat, PDO::PARAM_INT);
+            $stmt->bindParam(':date', $fechaS, PDO::PARAM_STR);
+            //$stmt->bindValue(1, $IdCat);
+            //$stmt->bindValue(2, $Date);
+            $stmt->execute();
+            $resultados_p = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            if ($resultados_p) {
+                foreach ($resultados_p as $index => $Precio) {
+                        $JsonPrice = $Precio['JsonPrice'];
+                        $JsonPrice = html_entity_decode($JsonPrice);
+                        $ingreso =  $objDateS->format('Y-m-d H:i:00');
+                        $salida  = $objDateE->format('Y-m-d H:i:00');
+                        // Modificamos directamente el arreglo usando el índice
+                        $resultados_p[$index]['Price'] = calcularCostoEstanciaPHP($JsonPrice, $ingreso, $salida);
+                            if (isset($cantidadesOcupadas[$resultados_p[$index]['Producto']])) {
+                                $cantidadOcupada = $cantidadesOcupadas[$resultados_p[$index]['Producto']];
+                            } else {
+                                $cantidadOcupada = 0; // Si no está en el arreglo, nadie lo ha rentado
+                            }                            
+                        $resultados_p[$index]['Quantity'] = $resultados_p[$index]['Quantity'] - $cantidadOcupada;
+                        $query = "SELECT *  from products_images WHERE Product = ".$resultados_p[$index]['Producto']." ORDER BY Orden LIMIT 1";
+                        $stmtigm = $db->prepare($query);
+                        $stmtigm->execute();
+                        $Img = $stmtigm->fetch(PDO::FETCH_ASSOC);                             
+                        if ($Img)
+                            $resultados_p[$index]['Image'] = $Img['Image'];
+                        //if ($resultados_p[$index]['Quantity'] <= 0)
+                        //    unset($resultados_p[$index]);
+                    }
+            }
 
-                            $JsonPrice = $Precio['JsonPrice'];
-                            $JsonPrice = html_entity_decode($JsonPrice);
-                            $ingreso =  $objDateS->format('Y-m-d H:i:00');
-                            $salida  = $objDateE->format('Y-m-d H:i:00');
-                            // Modificamos directamente el arreglo usando el índice
-                            $resultados_p[$index]['Price'] = calcularCostoEstanciaPHP($JsonPrice, $ingreso, $salida);
-
-                                if (isset($cantidadesOcupadas[$resultados_p[$index]['Producto']])) {
-                                    $cantidadOcupada = $cantidadesOcupadas[$resultados_p[$index]['Producto']];
-                                } else {
-                                    $cantidadOcupada = 0; // Si no está en el arreglo, nadie lo ha rentado
-                                }                            
-
-                            $resultados_p[$index]['Quantity'] = $resultados_p[$index]['Quantity'] - $cantidadOcupada;
-
-                            $query = "SELECT *  from products_images WHERE Product = ".$resultados_p[$index]['Producto']." ORDER BY Orden LIMIT 1";
-                            $stmtigm = $db->prepare($query);
-                            $stmtigm->execute();
-                            $Img = $stmtigm->fetch(PDO::FETCH_ASSOC);                             
-
-                            $resultados_p[$index]['Image'] = $Img['Image'];                            
-                            //if ($resultados_p[$index]['Quantity'] <= 0)
-                            //    unset($resultados_p[$index]);
-                        }
-                }
-
-                http_response_code(200);
-                echo json_encode(array(
-                    "products" => $resultados_p
-                ));
+            http_response_code(200);
+            echo json_encode(array(
+                "products" => $resultados_p
+            ));
         break;
 
         default:
@@ -1535,118 +1549,134 @@ function get_related_products($table_name,$db, $method, $id, $data){
         case 'GET': 
             $IdP = isset($_GET['IdP']) ? (int)$_GET['IdP'] : 0;
 
+            $DateS_raw = isset($_GET['DateS']) ? $_GET['DateS'] : date('Y-m-d\TH:i');
+            $DateE_raw = isset($_GET['DateE']) ? $_GET['DateE'] : date('Y-m-d\TH:i');
 
-                $DateS_raw = isset($_GET['DateS']) ? $_GET['DateS'] : date('Y-m-d\TH:i');
-                $DateE_raw = isset($_GET['DateE']) ? $_GET['DateE'] : date('Y-m-d\TH:i');
+            $objDateS = new DateTime($DateS_raw);
+            $objDateE = new DateTime($DateE_raw);
 
-                $objDateS = new DateTime($DateS_raw);
-                $objDateE = new DateTime($DateE_raw);
+            $fechaS = $objDateS->format('Ymd'); // 2026-02-04
+            $horaS  = $objDateS->format('H:i');   // 18:00
 
-                $fechaS = $objDateS->format('Ymd'); // 2026-02-04
-                $horaS  = $objDateS->format('H:i');   // 18:00
+            $fechaE = $objDateE->format('Ymd'); // 2026-02-05
+            $horaE  = $objDateE->format('H:i');   // 02:00
 
-                $fechaE = $objDateE->format('Ymd'); // 2026-02-05
-                $horaE  = $objDateE->format('H:i');   // 02:00
+            $DayWeek = date('w', strtotime($fechaS));
 
-                $DayWeek = date('w', strtotime($fechaS));
+            switch ($DayWeek) {
+                case '0':
+                    $DayWeek =' AND Do = 1 ';
+                break;
+                case '1':
+                    $DayWeek =' AND Lu = 1 ';
+                break;
+                case '2':
+                    $DayWeek =' AND Ma = 1 ';
+                break;
+                case '3':
+                    $DayWeek =' AND Mi = 1 ';
+                break;
+                case '4':
+                    $DayWeek =' AND Ju = 1 ';
+                break;
+                case '5':
+                    $DayWeek =' AND Vi = 1 ';
+                break;
+                case '6':
+                    $DayWeek =' AND Sa = 1 ';
+                break;
+            }                
 
-                switch ($DayWeek) {
-                    case '0':
-                        $DayWeek =' AND Do = 1 ';
-                    break;
-                    case '1':
-                        $DayWeek =' AND Lu = 1 ';
-                    break;
-                    case '2':
-                        $DayWeek =' AND Ma = 1 ';
-                    break;
-                    case '3':
-                        $DayWeek =' AND Mi = 1 ';
-                    break;
-                    case '4':
-                        $DayWeek =' AND Ju = 1 ';
-                    break;
-                    case '5':
-                        $DayWeek =' AND Vi = 1 ';
-                    break;
-                    case '6':
-                        $DayWeek =' AND Sa = 1 ';
-                    break;
-                }                
+            //RECUPERAR TODO EL DETALLE DE EVENTOS ACTIVOS DE ESTA FECHA PARA RESTAR LAS CANTIDADES DE LOS PRODUCTOS
 
+            $fechaS_db = $objDateS->format('Y-m-d H:i:s');
+            $fechaE_db = $objDateE->format('Y-m-d H:i:s');
 
-                //RECUPERAR TODO EL DETALLE DE EVENTOS ACTIVOS DE ESTA FECHA PARA RESTAR LAS CANTIDADES DE LOS PRODUCTOS
+            $query = "
+                SELECT IdProduct, SUM(Quantity) as Quantity 
+                FROM v_leads_detail 
+                WHERE Status = 'quoted' 
+                AND (StartDateTime < :DateE AND EndDateTime > :DateS)
+                AND Unlimited = 0
+                GROUP BY IdProduct
 
-                $fechaS_db = $objDateS->format('Y-m-d H:i:s');
-                $fechaE_db = $objDateE->format('Y-m-d H:i:s');
+                UNION
 
-                $query = "
-                    SELECT IdProduct, SUM(Quantity) as Quantity 
-                    FROM v_leads_detail 
-                    WHERE Status = 'A' 
-                    AND (StartDateTime < :DateE AND EndDateTime > :DateS)
-                    AND Unlimited = 0
-                    GROUP BY IdProduct
-                ";
+                SELECT
+                    relationship_products.Producto_rsp as IdProduct, 
+                    count(relationship_products.Producto_rsp) as Quantity
+                FROM
+                    v_leads_detail
+                    INNER JOIN
+                    relationship_products
+                    ON 
+                        v_leads_detail.IdProduct = relationship_products.Producto_sp
+                        
+                WHERE v_leads_detail.Status = 'quoted' 
+                AND (v_leads_detail.StartDateTime < :DateEE AND v_leads_detail.EndDateTime > :DateSS)
+                AND v_leads_detail.Unlimited = 0
+                GROUP BY relationship_products.Producto_rsp	                
 
-                $stmt = $db->prepare($query);
-                $stmt->bindParam(':DateS', $fechaS_db);
-                $stmt->bindParam(':DateE', $fechaE_db);
-                $stmt->execute();                
+            ";
 
-                $ocupados = $stmt->fetchAll(PDO::FETCH_ASSOC);                
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':DateS', $fechaS_db);
+            $stmt->bindParam(':DateE', $fechaE_db);
+            $stmt->bindParam(':DateSS', $fechaS_db);
+            $stmt->bindParam(':DateEE', $fechaE_db);            
+            $stmt->execute();                
 
-                $cantidadesOcupadas = array_column($ocupados, 'Quantity', 'IdProduct');             
+            $ocupados = $stmt->fetchAll(PDO::FETCH_ASSOC);                
 
+            $cantidadesOcupadas = array_column($ocupados, 'Quantity', 'IdProduct');             
 
-                $query = "
-                    SELECT * FROM v_related_products_prices_lists
-                    WHERE Producto_rp = :idp  AND 
-                                Estatus_price_list = 1 AND
-                                Estatus_price = 1 AND 
-                    :date BETWEEN  FechaHoraInicio AND FechaHoraFin $DayWeek                                   
-                ";                            
-                $stmt = $db->prepare($query);
-                $stmt->bindParam(':idp', $IdP, PDO::PARAM_INT);
-                $stmt->bindParam(':date', $fechaS, PDO::PARAM_STR);
-                //$stmt->bindValue(1, $IdCat);
-                //$stmt->bindValue(2, $Date);
-                $stmt->execute();
-                $resultados_p = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $query = "
+                SELECT * FROM v_related_products_prices_lists
+                WHERE Producto_rp = :idp  AND 
+                            Estatus_price_list = 1 AND
+                            Estatus_price = 1 AND 
+                :date BETWEEN  FechaHoraInicio AND FechaHoraFin $DayWeek                                   
+            ";                            
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':idp', $IdP, PDO::PARAM_INT);
+            $stmt->bindParam(':date', $fechaS, PDO::PARAM_STR);
+            //$stmt->bindValue(1, $IdCat);
+            //$stmt->bindValue(2, $Date);
+            $stmt->execute();
+            $resultados_p = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-                if ($resultados_p) {
-                    foreach ($resultados_p as $index => $Precio) {
-                            $JsonPrice = $Precio['JsonPrice'];
-                            $JsonPrice = html_entity_decode($JsonPrice);
-                            $ingreso =  $objDateS->format('Y-m-d H:i:00');
-                            $salida  = $objDateE->format('Y-m-d H:i:00');
-                            // Modificamos directamente el arreglo usando el índice
-                            $resultados_p[$index]['Price'] = calcularCostoEstanciaPHP($JsonPrice, $ingreso, $salida);
+            if ($resultados_p) {
+                foreach ($resultados_p as $index => $Precio) {
+                        $JsonPrice = $Precio['JsonPrice'];
+                        $JsonPrice = html_entity_decode($JsonPrice);
+                        $ingreso =  $objDateS->format('Y-m-d H:i:00');
+                        $salida  = $objDateE->format('Y-m-d H:i:00');
+                        // Modificamos directamente el arreglo usando el índice
+                        $resultados_p[$index]['Price'] = calcularCostoEstanciaPHP($JsonPrice, $ingreso, $salida);
 
-                                if (isset($cantidadesOcupadas[$resultados_p[$index]['Producto']])) {
-                                    $cantidadOcupada = $cantidadesOcupadas[$resultados_p[$index]['Producto']];
-                                } else {
-                                    $cantidadOcupada = 0; // Si no está en el arreglo, nadie lo ha rentado
-                                }                            
+                            if (isset($cantidadesOcupadas[$resultados_p[$index]['Producto']])) {
+                                $cantidadOcupada = $cantidadesOcupadas[$resultados_p[$index]['Producto']];
+                            } else {
+                                $cantidadOcupada = 0; // Si no está en el arreglo, nadie lo ha rentado
+                            }                            
 
-                            $resultados_p[$index]['Quantity'] = $resultados_p[$index]['Quantity'] - $cantidadOcupada;
+                        $resultados_p[$index]['Quantity'] = $resultados_p[$index]['Quantity'] - $cantidadOcupada;
 
-                            $query = "SELECT *  from products_images WHERE Product = ".$resultados_p[$index]['Producto']." ORDER BY Orden LIMIT 1";
-                            $stmtigm = $db->prepare($query);
-                            $stmtigm->execute();
-                            $Img = $stmtigm->fetch(PDO::FETCH_ASSOC);                             
-
+                        $query = "SELECT *  from products_images WHERE Product = ".$resultados_p[$index]['Producto']." ORDER BY Orden LIMIT 1";
+                        $stmtigm = $db->prepare($query);
+                        $stmtigm->execute();
+                        $Img = $stmtigm->fetch(PDO::FETCH_ASSOC);                             
+                        if ($Img)
                             $resultados_p[$index]['Image'] = $Img['Image'];
-                            //if ($resultados_p[$index]['Quantity'] <= 0)
-                            //    unset($resultados_p[$index]);
-                        }
-                }                
+                        //if ($resultados_p[$index]['Quantity'] <= 0)
+                        //    unset($resultados_p[$index]);
+                    }
+            }                
 
-
-                http_response_code(200);
-                echo json_encode(array(
-                    "products" => $resultados_p
-                ));
+            http_response_code(200);
+            echo json_encode(array(
+                "products" => $resultados_p
+            ));
         break;
 
         default:
@@ -1932,24 +1962,24 @@ function get_venues($table_name,$db, $method, $id, $data){
         case 'GET': 
             $Q = isset($_GET['q']) ? $_GET['q'] : '';
             if ($Q!=""){
-            $query = "
-                SELECT Id, Nombre, Direccion FROM venues
-                WHERE Nombre LIKE :q 
-            ";                            
-            $stmt = $db->prepare($query);
+                $query = "
+                    SELECT Id, Nombre, Direccion FROM venues
+                    WHERE Nombre LIKE :q 
+                ";                            
+                $stmt = $db->prepare($query);
 
-            // Adiciona os curingas para busca parcial
-            $searchTerm = "%" . $Q . "%";
-            $stmt->bindParam(':q', $searchTerm, PDO::PARAM_STR);
+                // Adiciona os curingas para busca parcial
+                $searchTerm = "%" . $Q . "%";
+                $stmt->bindParam(':q', $searchTerm, PDO::PARAM_STR);
 
-            $stmt->execute();
-            $resultados_p = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $stmt->execute();
+                $resultados_p = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            http_response_code(200);
-            echo json_encode(array(
-                "items" => $resultados_p
-            ));
-            }
+                http_response_code(200);
+                echo json_encode(array(
+                    "items" => $resultados_p
+                ));
+                }
             else{
                 echo json_encode(array(
                     "items" => []
@@ -1966,14 +1996,83 @@ function get_venues($table_name,$db, $method, $id, $data){
     
 }
 
+function get_venue($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+
+            $Adr = $data->EventStreet;
+            $EvC = $data->EventCity;
+            $EvZ = $data->EventZip;
+            $Ctry = $data->EventCountry;
+            $State = $data->EventState;
+            $EName = $data->EventName;
+            $query = "
+                SELECT Id FROM venues
+                WHERE Direccion = :q1 AND  
+                      Ciudad = :q2 AND
+                      Cp = :q3";                            
+            $stmt = $db->prepare($query);
+
+            // Adiciona os curingas para busca parcial            
+            $stmt->bindParam(':q1', $Adr, PDO::PARAM_STR);
+            $stmt->bindParam(':q2', $EvC, PDO::PARAM_STR);
+            $stmt->bindParam(':q3', $EvZ, PDO::PARAM_STR);
+
+            $stmt->execute();
+            $venue = $stmt->fetch(PDO::FETCH_ASSOC);            
+
+            if ($venue){
+                $query = "
+                    SELECT * FROM venues
+                    WHERE Id = :q";
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(':q', $venue['Id'], PDO::PARAM_STR);
+                $stmt->execute();
+                $venue = $stmt->fetch(PDO::FETCH_ASSOC);                            
+            }
+            else{
+            
+                $sqlLead = "INSERT INTO venues (Nombre,Direccion,Ciudad,CP,Estado,Pais,FechaCreacion,FechaCambio) VALUES (?,?,?,?,?,?,now(),now())";
+
+                $stmtLead = $db->prepare($sqlLead);
+                $stmtLead->execute([$EName,$Adr,$EvC,$EvZ,$State,$Ctry]);
+                $idLead = $db->lastInsertId();            
+
+                $query = "
+                    SELECT * FROM venues
+                    WHERE Id = :q";
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(':q', $idLead, PDO::PARAM_STR);
+                $stmt->execute();
+                $venue = $stmt->fetch(PDO::FETCH_ASSOC);                     
+
+            }
+
+            http_response_code(200);
+            echo json_encode($venue);
+        break;
+
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }      
+    
+}
+
 function distance_charge($table_name,$db, $method, $id, $data){
     global $IDS;
     switch ($method) {
-        case 'GET': 
-            $ZIP = $id;
-            if ($ZIP!=""){
+        case 'POST': 
+            $ZIPO = $data->{'ZIPO'};
+            $CONO = $data->{'CONO'};
+            $ZIPD = $data->{'ZIPD'};
+            $COND = $data->{'COND'};
+            if ($ZIPD!="" AND $ZIPD != $ZIPO){
                     //RECUPERAMOS EL COSTO EXTRA POR MILLA
-                    $query = "SELECT Rate, Zip,Distance,State,Total,Restriction FROM distance_charges  LIMIT 1";
+                    $query = "SELECT Rate, Zip, Distance, State, Total, Restriction FROM distance_charges  LIMIT 1";
                     
                     $stmt = $db->prepare($query);
                     $stmt->execute();
@@ -1988,8 +2087,19 @@ function distance_charge($table_name,$db, $method, $id, $data){
                         
                     }           
                     //echo " ** $Distance **";
+                    $total_millas = 0;
                     if ($Distance==1){
-                    $total_millas = 35; //AQUI VA LA FUNCION DE GOOGLE MAPS PARA SABER LAS MILLAS
+                        //die("$ZIPO,$CONO $ZIPD,$COND");
+                        $total_millas = get_distance("$ZIPO,$CONO","$ZIPD,$COND");                        
+                        if (str_starts_with($total_millas, 'Error')) {
+                            echo "Se detectó un error.";
+                        }
+                        else{
+                            $total_millas = str_replace(" mi", "", $total_millas);
+                            $total_millas = $total_millas * 1;
+                        }
+                        //$total_millas = 35; //AQUI VA LA FUNCION DE GOOGLE MAPS PARA SABER LAS MILLAS
+                        //die( $total_millas);
 
                     // 1. Consultamos los rangos ordenados
                         $query = "SELECT MinM, MaxM, ChargeD, ChargeType 
@@ -2046,7 +2156,7 @@ function distance_charge($table_name,$db, $method, $id, $data){
                     $query = "SELECT EstimatedCombineRate FROM taxrates_zip WHERE Zip = :zip";
                     
                     $stmt = $db->prepare($query);
-                    $stmt->bindParam(':zip', $ZIP, PDO::PARAM_STR);
+                    $stmt->bindParam(':zip', $ZIPD, PDO::PARAM_STR);
                     $stmt->execute();
                     //$costo_extra = $stmt->fetchColumn();
                     $data = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -2066,7 +2176,19 @@ function distance_charge($table_name,$db, $method, $id, $data){
                     echo json_encode(array(
                         "cost" => $respuesta
                     ));  
+                }
+                else{
 
+                    $respuesta = [
+                        "status" => "success",
+                        "total_millas" => 0,
+                        "costo_total" => 0,
+                        "taxrate" => 0
+                    ];
+
+                    echo json_encode(array(
+                        "cost" => $respuesta
+                    ));                 
 
                 }
         break;
@@ -2177,7 +2299,17 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
 
     $h = $data->header;
 
- $idLead = (!empty($h->IdLead)) ? $h->IdLead : null;
+    $idLead = (!empty($h->IdLead)) ? $h->IdLead : null;
+
+    if ($h->Organization == "" AND  $h->Customer == "" AND $h->Venue == "" ){
+        $Status = 'draft';
+    }
+    elseif (($h->Organization > 0 OR  $h->Customer > 0) AND $h->Venue == "" ){
+        $Status = 'draft';
+    }
+    elseif ( ($h->Organization > 0 OR  $h->Customer > 0) AND $h->Venue > 0 ){
+        $Status = 'quoted';
+    }  
 
     if ($idLead) {
         // --- MODO UPDATE ---
@@ -2186,7 +2318,7 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
             OkT=?, WA=?, AE=?, ME=?, CustomerNote=?, Venue=?, EventName=?, Surface=?, 
             Delivery=?, Note1=?, Note2=?, ItemTotals=?, ChkDstC=?, DistanceCharges=?, ChkStCs=?, 
             StafCost=?, ChkDsc=?, Discount=?, SubTotal=?, TaxId=?, TaxPc=?, 
-            TaxAmount=?, Total=?, Deposit=?,DepositAmount=?, Balance=?, Status='Draft',FechaCambio=now()
+            TaxAmount=?, Total=?, Deposit=?,DepositAmount=?, Balance=?, Status=?,FechaCambio=now()
             WHERE Id = ?";
         
         $stmtLead = $db->prepare($sqlLead);
@@ -2195,7 +2327,7 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
             $h->OkT, $h->WA, $h->AE, $h->ME, $h->CusNt, $h->Venue, $h->EventName, $h->Surface,
             $h->Delivety, $h->Nt1, $h->Nt2, $h->Item_Totals, $h->ChkDstC, $h->DstC, $h->ChkStCs, 
             $h->StCs, $h->ChkDsc, $h->Dsc, $h->SubT, $h->TaxId, $h->TaxPc, 
-            $h->TaxAm, $h->Total, $h->Depo,$h->DepoA, $h->BalDue, $idLead
+            $h->TaxAm, $h->Total, $h->Depo,$h->DepoA, $h->BalDue, $Status, $idLead
         ]);
 
         // Limpiar detalles anteriores para evitar duplicados
@@ -2204,14 +2336,30 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
         $db->prepare("DELETE FROM lead_discounts WHERE IdLead = ?")->execute([$idLead]);
 
     } else {
-        // --- MODO INSERT ---
+
+        $Folio = 0;    
+        $IdBranch = 1;
+        $stmt = $db->prepare("select MAX(Folio) as Folio FROM folios WHERE IdBranch = ? AND Type = 'Lead'");
+        $stmt->execute([$IdBranch]);
+        $Payments = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($Payments){
+            $Folio = $Payments['Folio'];
+        }
+        $Folio+=1;
+
+        // --- MODO INSERT --
         $sqlLead = "INSERT INTO lead (
             StartDateTime, EndDateTime, Organization, Customer, Referal, 
             OkT, WA, AE, ME, CustomerNote, Venue, EventName, Surface, 
             Delivery, Note1, Note2, ItemTotals, ChkDstC, DistanceCharges, ChkStCs, 
             StafCost, ChkDsc, Discount, SubTotal, TaxId, TaxPc, 
-            TaxAmount, Total, Deposit,DepositAmount, Balance, Status,FechaCreacion,FechaCambio
-        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,now(),now())";
+            TaxAmount, Total, Deposit,DepositAmount, Balance, Status,FechaCreacion,FechaCambio,IdBranch,Folio
+        ) VALUES (?,?,?,?,?,
+                  ?,?,?,?,?,
+                  ?,?,?,?,?,
+                  ?,?,?,?,?,
+                  ?,?,?,?,?,
+                  ?,?,?,?,?,?,?,now(),now(),?,?)";
 
         $stmtLead = $db->prepare($sqlLead);
         $stmtLead->execute([
@@ -2219,9 +2367,17 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
             $h->OkT, $h->WA, $h->AE, $h->ME, $h->CusNt, $h->Venue, $h->EventName, $h->Surface,
             $h->Delivety, $h->Nt1, $h->Nt2, $h->Item_Totals, $h->ChkDstC, $h->DstC, $h->ChkStCs, 
             $h->StCs, $h->ChkDsc, $h->Dsc, $h->SubT, $h->TaxId, $h->TaxPc, 
-            $h->TaxAm, $h->Total, $h->Depo,$h->DepoA, $h->BalDue, 'Draft'
+            $h->TaxAm, $h->Total, $h->Depo,$h->DepoA, $h->BalDue, $Status,$IdBranch,$Folio
         ]);
         $idLead = $db->lastInsertId();
+
+        $stmt = $db->prepare(" UPDATE folios SET Folio = ? WHERE IdBranch = ? AND Type = 'Pay'");
+        $stmt->execute([$Folio,$IdBranch]);
+        $UUID = generar_uuid_v4();
+        //$stmt = $db->prepare("INSERT INTO quotes (UUID,IdQuote,ExpDate,Status) VALUES (?,?,NOW() + INTERVAL '2 days',?)");
+        $stmt = $db->prepare("INSERT INTO quotes (UUID,IdQuote,ExpDate,Status) VALUES (?,?, NOW() + INTERVAL 2 DAY, ?)");
+        $stmt->execute([$UUID,$idLead,'A']);
+
     }
 
     // --- 3. INSERTAR DETALLES (detalle es un array de objetos) ---
@@ -2257,7 +2413,14 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
         ]);
     }    
 
-    echo json_encode(["status" => "success", "IdLead" => $idLead]);
+        $stmt = $db->prepare("select UUID FROM quotes WHERE IdQuote = ?");
+        $stmt->execute([$idLead]);
+        $Quotes = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($Quotes){
+            $UUID = $Quotes['UUID'];
+        }    
+
+    echo json_encode(["status" => "success", "IdLead" => $idLead, "UUID" => $UUID]);
 
 
 
@@ -2265,6 +2428,68 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
 
 
 function leads($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+
+
+            $limit = 15;
+            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+            $offset = ($page - 1) * $limit;
+            $search = isset($_GET['search']) ? $_GET['search'] : '';
+            if ($search != ''){
+                $sql = "SELECT *, 
+                        CASE 
+                            WHEN Organization > 0 THEN NombreOrganizacion 
+                            WHEN Customer > 0 THEN CONCAT(NombreCliente, ' ', ApellidosCliente)
+                            ELSE 'Sin identificar'
+                        END AS NombreMostrar
+                        FROM v_leads 
+                        WHERE (NombreOrganizacion LIKE :s OR NombreCliente LIKE :s OR ApellidosCliente LIKE :s)
+                        ORDER BY StartDateTime DESC 
+                        LIMIT :limit OFFSET :offset";
+
+                $stmt = $db->prepare($sql);
+                $stmt->bindValue(':s', "%$search%", PDO::PARAM_STR);
+                $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+                $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            }
+            else{
+                // Consulta con lógica de negocio integrada
+                $sql = "SELECT *, 
+                        CASE 
+                            WHEN Organization > 0 THEN NombreOrganizacion 
+                            WHEN Customer > 0 THEN CONCAT(NombreCliente, ' ', ApellidosCliente)
+                            ELSE 'Sin identificar'
+                        END AS NombreMostrar
+                        FROM v_leads 
+                        ORDER BY StartDateTime DESC 
+                        LIMIT :limit OFFSET :offset";
+
+                $stmt = $db->prepare($sql);
+                $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+                $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            }
+            $stmt->execute();            
+
+
+            if ($stmt) {
+                http_response_code(200);
+                echo json_encode($stmt->fetchAll());
+            } else {
+                http_response_code(404);
+                echo json_encode(array("message" => "Registro no encontrado."));
+            }
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+} 
+
+function pending_payments($table_name,$db, $method, $id, $data){
     global $IDS;
     switch ($method) {
         case 'GET': 
@@ -2284,6 +2509,7 @@ function leads($table_name,$db, $method, $id, $data){
                     END AS NombreMostrar
                     FROM v_leads 
                     WHERE (NombreOrganizacion LIKE :s OR NombreCliente LIKE :s OR ApellidosCliente LIKE :s)
+                    AND Status = 'Pending'
                     ORDER BY StartDateTime DESC 
                     LIMIT :limit OFFSET :offset";
 
@@ -2308,5 +2534,107 @@ function leads($table_name,$db, $method, $id, $data){
             echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
         break;
     }
-}   
+}  
+
+function get_packing_list($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+            // Consulta con lógica de negocio integrada
+            $sql = "SELECT
+                        packing_list.Item, 
+                        SUM(packing_list.Quantity_pl) as Quantity
+                    FROM
+                        lead_detail
+                        INNER JOIN
+                        packing_list
+                        ON 
+                            lead_detail.IdProduct = packing_list.Producto_pl
+                    WHERE 
+                    lead_detail.IdLead = :id
+                    GROUP BY packing_list.Item";
+            //die ($sql);
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+            $stmt->execute();
+
+            if ($stmt) {
+                $items = $stmt->fetchAll(PDO::FETCH_ASSOC);                
+                http_response_code(200);
+                echo json_encode(array(
+                    "items" => $items
+                ));            
+
+
+            } else {
+                http_response_code(404);
+                echo json_encode(array("message" => "Registro no encontrado."));
+            }
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+}  
+
+
+function generar_uuid_v4() {
+    // Generamos 16 bytes de datos aleatorios
+    $data = random_bytes(16);
+
+    // Configuramos el bit de versión a 4 (0100)
+    $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+    // Configuramos los bits de variante (10xx)
+    $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+
+    // Formateamos en el estándar 8-4-4-4-12
+    return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+}
+
+function get_distance($ORG,$DST){
+
+    $apiKey = GOOGLE_API_KEY;
+    $cpOrigen = urlencode($ORG);
+    $cpDestino = urlencode($DST);
+
+    // Construir URL
+    $url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={$cpOrigen}&destinations={$cpDestino}&units=imperial&key={$apiKey}";
+
+    //echo "--- Iniciando prueba de conexión ---\n";
+
+    // Realizar la petición
+    $response = file_get_contents($url);
+    $data = json_decode($response, true);
+
+    // 1. Verificar errores de conexión o API Key
+    if ($data['status'] !== 'OK') {
+        //echo "❌ ERROR DE CONFIGURACIÓN:\n";
+        //echo "Estado: " . $data['status'] . "\n";
+        //if (isset($data['error_message'])) {
+        //    echo "Mensaje: " . $data['error_message'] . "\n";
+        //}
+        //echo "Revisa: Que la API Key sea correcta y la 'Distance Matrix API' esté habilitada.\n";
+        return 'Error al llamar la API';
+    }
+
+    // 2. Verificar si encontró la ruta
+    $elemento = $data['rows'][0]['elements'][0];
+
+    if ($elemento['status'] === 'OK') {
+        //echo "✅ ¡CONEXIÓN EXITOSA!\n";
+        //echo "------------------------------\n";
+        //echo "Origen: " . $data['origin_addresses'][0] . "\n";
+        //echo "Destino: " . $data['destination_addresses'][0] . "\n";
+        //echo "Distancia en carretera: " . $elemento['distance']['text'] . "\n";
+        //echo "Tiempo estimado: " . $elemento['duration']['text'] . "\n";
+        //echo "------------------------------\n";
+        return $elemento['distance']['text'];
+    } else {
+        //echo "❌ ERROR DE RUTA: " . $elemento['status'] . "\n";
+        return "Error los códigos postales no existen o no hay ruta terrestre entre ellos.";
+    }
+
+}
 ?>

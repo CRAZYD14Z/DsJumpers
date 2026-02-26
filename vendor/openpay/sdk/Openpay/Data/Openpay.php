@@ -6,22 +6,21 @@ class Openpay
 {
 
     private static $instance = null;
-    private static $id;
-    private static $apiKey;
+    private static $id = '';
+    private static $apiKey = '';
     private static $userAgent = '';
-    private static $country;
+    private static $country = 'MX';
     private static $apiEndpoint = '';
     private static $apiSandboxEndpoint = '';
     private static $sandboxMode = true;
     private static $classification = '';
-    private static $publicIp;
 
     public function __construct()
     {
 
     }
 
-    public static function getInstance($id, $apiKey, $country, $publicIp)
+    public static function getInstance($id = '', $apiKey = '', $country = 'MX')
     {
         if ($id != '') {
             self::setId($id);
@@ -32,9 +31,6 @@ class Openpay
         if ($country != '') {
             self::setCountry($country);
             self::setEndpointUrl($country);
-        }
-        if(!is_null($publicIp)){
-            self::setPublicIp($publicIp);
         }
         $instance = OpenpayApi::getInstance(null);
         return $instance;
@@ -109,18 +105,6 @@ class Openpay
             $id = getenv('OPENPAY_MERCHANT_ID');
         }
         return $id;
-    }
-
-    public static function setPublicIp($publicIp = null)
-    {
-        if (!is_null($publicIp)) {
-            self::$publicIp = $publicIp;
-        }
-    }
-
-    public static function getPublicIp() {
-        return self::$publicIp;
-
     }
 
     public static function getSandboxMode()

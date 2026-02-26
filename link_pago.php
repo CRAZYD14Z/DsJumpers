@@ -1,51 +1,61 @@
 <?php
-require_once 'vendor/autoload.php';
+ob_start();
+session_start(); 
+include_once 'config/config.php';     
+include_once 'config/database.php'; 
+$database = new Database();
+$db = $database->getConnection();
 
-use Openpay\Data\Openpay;
 
-// 1. Configuración (4 parámetros obligatorios)
-$merchantId = 'mles9ufd4m3rlilw00i8';
-$privateKey = 'sk_ab545fdf98b446e78ed7ef908d1687a2'; // REEMPLAZA CON TU LLAVE PRIVADA (sk_...)
-$countryCode = 'MX';
-$clientIp = $_SERVER['REMOTE_ADDR'];
-$isSandbox = true;
+$merchantId = id_OPAY;
+$privateKey = sk_OPAY; // REEMPLAZA CON TU LLAVE PRIVADA (sk_...)
 
-try {
-    $openpay = Openpay::getInstance($merchantId, $privateKey, $countryCode, $clientIp);
-    Openpay::setProductionMode(false);
+$base_url = "https://sandbox-api.openpay.mx/v1/$merchantId/checkouts"; // Sandbox
 
-    // 2. Definir el monto a liquidar (Ejemplo: Saldo del 80%)
-    $montoTotal = 1000.00;
-    $anticipoPagado = 200.00;
-    $saldoLiquidar = $montoTotal - $anticipoPagado;
+// Datos del pago
+$montoLiquidar = 800.00;
+$orderId = 'LIQ-' . time();
 
-    // 3. Configurar el Checkout (Link de Pago)
-    $checkoutData = [
-        'amount' => (float)$saldoLiquidar,
-        'currency' => 'MXN',
-        'description' => 'Liquidación de saldo pendiente - Orden #12345',
-        'order_id' => 'ORD-' . time(), // ID único de tu sistema
-        'send_email' => true,         // Openpay enviará el link por correo si incluyes el customer
-        'customer' => [
-            'name' => 'Juan',
-            'last_name' => 'Perez',
-            'email' => 'juan.perez@ejemplo.com',
-            'phone_number' => '5512345678'
-        ],
-        'expiration_date' => date('Y-m-d\TH:i:s', strtotime('+3 days')), // Expira en 3 días
-        'redirect_url' => 'https://tu-sitio.com/pago-finalizado',         // A donde regresa el cliente
-    ];
+$data = [
+    'amount' => (float)$montoLiquidar,
+    'currency' => 'MXN',
+    'description' => 'Liquidación de saldo pendiente - DsJumpers',
+    'order_id' => $orderId,
+    'send_email' => false,
+    'customer' => [
+        'name' => 'Juan',
+        'last_name' => 'Perez',
+        'email' => 'juan.perez@ejemplo.com',
+        'phone_number' => '5512345678'
+    ],    
+    'expiration_date' => date('Y-m-d H:i', strtotime('+3 days')),
+    'redirect_url' => 'http://localhost/DsJumpers/gracias.php'
+];
 
-    // 4. Crear el checkout
-    $checkout = $openpay->checkouts->create($checkoutData);
+// Configuración de CURL
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, $base_url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+curl_setopt($ch, CURLOPT_USERPWD, $privateKey . ":"); // La llave privada va aquí
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
 
-    // 5. Obtener la URL para enviar al cliente
-    $urlPago = $checkout->checkout_link;
+$response = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
 
-    echo "<h3>Link de Liquidación Generado</h3>";
-    echo "Monto a cobrar: $" . number_format($saldoLiquidar, 2) . " MXN<br>";
-    echo "Envía este link a tu cliente: <a href='$urlPago' target='_blank'>$urlPago</a>";
+$result = json_decode($response);
 
-} catch (Exception $e) {
-    echo "Error al generar el link: " . $e->getMessage();
+if ($httpCode == 201 || $httpCode == 200) {
+    // ÉXITO
+    $urlPago = $result->checkout_link;
+    echo "<h3>Link de Pago Generado Directamente via API</h3>";
+    echo "URL: <a href='$urlPago' target='_blank'>$urlPago</a>";
+} else {
+    // ERROR
+    echo "<h3>Error al generar el link</h3>";
+    echo "Código HTTP: $httpCode <br>";
+    echo "Descripción: " . ($result->description ?? 'Error desconocido');
 }

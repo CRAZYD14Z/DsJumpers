@@ -33,6 +33,7 @@
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="lead.php">New Lead</a></li>
                 <li><a class="dropdown-item" href="leads.php">Leads</a></li>
+                <li><a class="dropdown-item" href="pending_payments.php">Pending Payments</a></li>
                 <li><a class="dropdown-item" href="#">Sign Out</a></li>
             </ul>
             </li>
@@ -44,3 +45,5 @@
         </div>
     </div>
     </nav>
+    <br>
+    <br>

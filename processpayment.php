@@ -1,4 +1,13 @@
 <?php
+ob_start();
+session_start(); 
+// Incluye la clase de conexión a la BD
+include_once 'config/config.php';     
+include_once 'config/database.php'; 
+$database = new Database();
+$db = $database->getConnection();
+$lang ='es';
+
 require_once 'vendor/autoload.php';
 
 use Openpay\Data\Openpay;
@@ -9,8 +18,8 @@ use Openpay\Data\OpenpayApiAuthError;
 
 
 // 1. Configuración de credenciales (Asegúrate de usar las tuyas)
-$merchantId = 'mles9ufd4m3rlilw00i8';
-$privateKey = 'sk_ab545fdf98b446e78ed7ef908d1687a2'; // REEMPLAZA CON TU LLAVE PRIVADA (sk_...)
+$merchantId = id_OPAY;
+$privateKey = sk_OPAY; // REEMPLAZA CON TU LLAVE PRIVADA (sk_...)
 $countryCode = 'MX';
 $clientIp = $_SERVER['REMOTE_ADDR'];
 $isSandbox = true;
@@ -24,6 +33,36 @@ try {$openpay = Openpay::getInstance($merchantId, $privateKey,$countryCode,$clie
     $deviceId   = $_POST['deviceIdHiddenFieldName'] ?? null;
     $amount     = $_POST['amount'] ?? 0;
     
+    $ahora = date("Y-m-d H:i:s");
+
+    $stmt = $db->prepare("SELECT * FROM quotes WHERE UUID = ? AND Status = 'A'");
+    $stmt->execute([$token]);
+    $cotizacion = $stmt->fetch();
+    if ($cotizacion) {
+        // Verificar si la fecha actual es mayor a la de expiración
+        if ($ahora > $cotizacion['ExpDate']) {
+            echo "Lo sentimos, esta cotización ha caducado el " . $cotizacion['ExpDate']." $ahora";
+            die();
+        }
+    } else {
+        echo "Enlace no válido.";
+        die();
+    }        
+
+    $stmt = $db->prepare("SELECT IdBranch FROM lead WHERE Id = ? ");
+    $stmt->execute([$cotizacion['IdQuote']]);
+    $lead = $stmt->fetch();    
+
+
+    $Folio = 0;    
+    $stmt = $db->prepare("select MAX(Folio) as Folio FROM folios WHERE IdBranch = ? AND Type = 'Pay'");
+    $stmt->execute([$lead['IdBranch']]);
+    $Payments = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($Payments){
+        $Folio = $Payments['Folio'];
+    }
+    $Folio+=1;
+
     // Datos del cliente
     $customerData = [
         'name' => $_POST['name'],
@@ -35,13 +74,13 @@ try {$openpay = Openpay::getInstance($merchantId, $privateKey,$countryCode,$clie
     if (!$tokenId || !$deviceId) {
         throw new Exception("Faltan identificadores de seguridad (Token/Device ID).");
     }
-
+    $Currency = 'MXN';
     // 3. Preparar el objeto del cargo
     $chargeRequest = [
         'method' => 'card',
         'source_id' => $tokenId,
         'amount' => (float)$amount,
-        'currency' => 'MXN',
+        'currency' => $Currency,
         'description' => 'Pago de anticipo/servicio - ' . $customerData['name'],
         'device_session_id' => $deviceId, // Vital para el sistema antifraude
         'customer' => $customerData,
@@ -55,11 +94,28 @@ try {$openpay = Openpay::getInstance($merchantId, $privateKey,$countryCode,$clie
 
     // 5. Respuesta según el estado del pago
     if ($charge->status == 'completed') {
+    
+        $sqlPay = "INSERT INTO payments (IdLead,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus) 
+                                VALUES  (?,?,now(),'OpenPay',?,?,?,'A')";
+        $stmtPay = $db->prepare($sqlPay);
+        $stmtPay->execute([$cotizacion['IdQuote'],$Folio,$amount,$Currency,$charge->id]);    
+
+        $stmt = $db->prepare(" UPDATE folios sET Folio = ? WHERE IdBranch = ? AND Type = 'Pay'");
+        $stmt->execute([$Folio,$lead['IdBranch']]);        
+
+        //if ($amount == 0){
+
+        //}
+        //else{
+            $stmt = $db->prepare(" UPDATE lead SET Status = ? WHERE Id = ?");
+            $stmt->execute(['confirmed', $lead['IdBranch']]);
+        //}
+
         echo json_encode([
             'status' => 'success',
             'message' => '¡Pago realizado con éxito!',
             'transaction_id' => $charge->id,
-            'url' => 'successpayment.php?Id='.$token
+            'url' => 'successpayment.php?Id='.$token.'&TId='.$charge->id
         ]);
     } else {
         // En caso de pagos pendientes (como 3D Secure)

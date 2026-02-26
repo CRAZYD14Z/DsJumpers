@@ -6,26 +6,15 @@ include_once 'config/config.php';
 include_once 'config/database.php'; 
 $database = new Database();
 $db = $database->getConnection();
-//$_SESSION['Idioma'];
-$lang ='es';
+include_once 'head.php';
+
+        $query = "select NombreCompania, Direccion,Direccion2, Ciudad,CP,Estado,Pais,TelefonoCelular FROM account";
+        $stmt = $db->prepare($query);
+        $stmt->execute();
+        $account = $stmt->fetch(PDO::FETCH_ASSOC);
+
 ?>
-<!DOCTYPE html>
-<html lang="<?php echo $lang; ?>">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Configuración con Navbar</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">    
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">    
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>        
-
-    <link rel="stylesheet" href="css/lead.css" />
-
+<link rel="stylesheet" href="css/lead.css" />
 <style>
         @media only screen and (max-width: 600px) {
             .responsive-table { width: 100% !important; }
@@ -66,6 +55,14 @@ $lang ='es';
 
                 }                
             }
+
+            $query = "select * FROM quotes WHERE IdQuote = ?";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(1, $IdLead);
+            $stmt->execute();
+            $UUID = $stmt->fetch(PDO::FETCH_ASSOC);            
+
+
         }
 
 
@@ -92,7 +89,7 @@ $lang ='es';
             </div>
             <div class="modal-footer border-0 bg-light">
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-dark btn-sm" id="ShareButton" onclick="var newTab = window.open('quote.php?Id=550e8400-e29b-41d4-a716-446655440000', '_blank');">
+                <button type="button" class="btn btn-dark btn-sm" id="ShareButton" onclick="var newTab = window.open('quote.php?Id='+$('#UUID').val(), '_blank');">
                     <i class="fa-solid fa-share-nodes"></i>Compartir
                 </button>
 
@@ -139,14 +136,6 @@ $lang ='es';
 
 
 </div>
-
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>        
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>    
-
-
     <script>
 
     const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
@@ -272,7 +261,7 @@ $lang ='es';
                 theme: "bootstrap-5",
                 width: '100%',
                 allowClear: true,
-                selectOnClose: true,
+                selectOnClose: false,
                 ajax: {
                     url:  API_BASE_URL+"get_referals/", // URL de tu Web Service
                     dataType: 'json',
@@ -311,7 +300,7 @@ $lang ='es';
         theme: "bootstrap-5",
         width: '100%',
         allowClear: true,
-        selectOnClose: true,
+        selectOnClose: false,
         placeholder: '',
         tags: true, // Permite crear nuevos
         tokenSeparators: [',', '\n'], // Ayuda a que detecte el "Enter" como selección
@@ -355,7 +344,7 @@ $lang ='es';
         
         //console.log("Seleccionado:", data); // Mira la consola de F12
         
-        if (data.newTag) {
+        if (data.newTag === true) {
             //alert("Detectado nuevo tag: " + data.text);
             registrarOrganizacion(data.text);
         } else {
@@ -458,7 +447,7 @@ $lang ='es';
         theme: "bootstrap-5",
         width: '100%',
         allowClear: true,
-        selectOnClose: true,
+        selectOnClose: false,
         placeholder: '',
         tags: true, // Permite crear nuevos
         tokenSeparators: [',', '\n'], // Ayuda a que detecte el "Enter" como selección
@@ -509,7 +498,7 @@ $lang ='es';
         
         //console.log("Seleccionado:", data); // Mira la consola de F12
         
-        if (data.newTag) {
+        if (data.newTag === true) {
             //alert("Detectado nuevo tag: " + data.text);
             registrarCustomer(data.text);
         } else {
@@ -561,7 +550,7 @@ $lang ='es';
         theme: "bootstrap-5",
         width: '100%',
         allowClear: true,
-        selectOnClose: true,
+        selectOnClose: false,
         placeholder: '',
         tags: true, // Permite crear nuevos
         tokenSeparators: [',', '\n'], // Ayuda a que detecte el "Enter" como selección          
@@ -612,7 +601,7 @@ $lang ='es';
         
         //console.log("Seleccionado:", data); // Mira la consola de F12
         
-        if (data.newTag) {
+        if (data.newTag === true) {
             //alert("Detectado nuevo tag: " + data.text);
             registrarVenue(data.text);
         } else {
@@ -810,8 +799,10 @@ $lang ='es';
                     $query = "SELECT *  from products_images WHERE Product = ". $lead_detail['IdProduct']." ORDER BY Orden LIMIT 1";
                     $stmt = $db->prepare($query);
                     $stmt->execute();
-                    $Images = $stmt->fetch(PDO::FETCH_ASSOC);                      
-                    
+                    $Images = $stmt->fetch(PDO::FETCH_ASSOC);      
+                    $Img ='';                
+                    if ($Images)
+                        $Img = $Images['Image'];
                         //$IdProd = $lead_detail['IdProduct'];
                         //$IdProdRel = $lead_detail['IdProductRel'];
                         //if ($IdProdRel > 0){
@@ -839,7 +830,7 @@ $lang ='es';
                                 volunteer:  '".$product['Volunteer']."',
                                 electric:  '".$product['Electric']."',
                                 discount:  '".$lead_detail['Discount']."',
-                                image:'".$Images['Image']."'
+                                image:'".$Img."'
                             },1
                             );
                             ";
@@ -940,29 +931,42 @@ $(document).on("keypress", ".numbers-only", function (e) {
 
         // Seleccion de Category_Products_List
         $('.table-custom-prd tbody').on('click', 'tr', function() {
-            const idProd = $(this).find('td:nth-child(1)').text();
-            const nombreProd = $(this).find('td:nth-child(2)').text();
-            $('#IdProducto').val(idProd);
-            $('#NombreProducto').val(nombreProd);
-            $('#Category_Products').hide();
-            $('#ProductSelect').show();
-            $('#Products_Elements').show();
+
             const $primerTd = $(this).find('td:nth-child(1)');
-            const todosLosDatos = $primerTd.data();            
-            Row+=1;
-            add_row(Row,0,todosLosDatos);
-            get_related_products($(this).find('td:nth-child(1)').text());            
+            const todosLosDatos = $primerTd.data();
+            if (todosLosDatos.quantity > 0){
+
+                const idProd = $(this).find('td:nth-child(1)').text();
+                const nombreProd = $(this).find('td:nth-child(2)').text();
+                $('#IdProducto').val(idProd);
+                $('#NombreProducto').val(nombreProd);
+                $('#Category_Products').hide();
+                $('#ProductSelect').show();
+                $('#Products_Elements').show();            
+
+                Row+=1;
+                add_row(Row,0,todosLosDatos);
+                get_related_products($(this).find('td:nth-child(1)').text());
+            }
+            else{
+                lanzarMensaje("¡No hay más stock disponible!", "error", 5000);
+            }
             //alert($(this).find('td:nth-child(1)').data('name'))
             //console.log('Producto seleccionado:', nombreProd);
         });               
 
         // Seleccion de Category_Products_List
         $('.table-custom-sprd tbody ').on('click','tr', function() {
-            const $primerTd = $(this).find('td:nth-child(1)');
-            $(this).hide();
-            const todosLosDatos = $primerTd.data();            
-            Row+=1;
-            add_row(Row,$('#IdProducto').val(),todosLosDatos);
+            const $primerTd = $(this).find('td:nth-child(1)');            
+            const todosLosDatos = $primerTd.data();  
+            if (todosLosDatos.quantity > 0){          
+                $(this).hide();
+                Row+=1;
+                add_row(Row,$('#IdProducto').val(),todosLosDatos);
+            }
+            else{
+                lanzarMensaje("¡No hay más stock disponible!", "error", 5000);
+            }
         });          
 
         //RECUPERAR PRODUCTOS DE CATERGORIA
@@ -1004,7 +1008,11 @@ $(document).on("keypress", ".numbers-only", function (e) {
                             
                             //if (Codes.indexOf(row.Producto) < 0 ){
                             //alert(inventario.hasProduct(row.Producto))
-                            if ( ! inventario.hasProduct(row.Producto) && row.Quantity > 0){
+                            //if ( ! inventario.hasProduct(row.Producto) && row.Quantity > 0){
+                            if ( ! inventario.hasProduct(row.Producto) ){
+                                
+                                const rowStyle = row.Quantity <= 0 ? "color: red;" : "";
+                                
                                 $tbody.append(`<tr>
                                 <td style='display: none' 
                                 data-product='${row.Producto}' 
@@ -1019,11 +1027,11 @@ $(document).on("keypress", ".numbers-only", function (e) {
                                 data-electric='${row.Electric}'
                                 data-image='${row.Image}' 
                                 >${row.Producto}</td>
-                                <td>${row.ProductName}</td>
-                                <td>
+                                <td style="${rowStyle}">${row.ProductName}</td>
+                                <td style="${rowStyle}">
                                     ${row.Unlimited == 1 ? '<i class="fa-solid fa-infinity"></i>' : row.Quantity }
                                 </td>
-                                <td style="text-align: right;">$ ${row.Price}</td>                            
+                                <td style="text-align: right;${rowStyle}">$ ${row.Price}</td>                            
                                 </tr>`)
                             }
                         });
@@ -1082,6 +1090,9 @@ $(document).on("keypress", ".numbers-only", function (e) {
                             if (row.Quantity > 0 || row.Unlimited == 1){
                                 if (row.Unlimited == 1)
                                     row.Quantity = 100
+
+                                const rowStyle = row.Quantity <= 0 ? "color: red;" : "";
+
                                 Rltpc+=1;
                                 $tbody.append(`<tr>
                                 <td style='display: none' 
@@ -1097,11 +1108,11 @@ $(document).on("keypress", ".numbers-only", function (e) {
                                 data-electric='${row.Electric}' 
                                 data-image='${row.Image}' 
                                 id='Rltpc${Rltpc}'>${row.Producto}</td>
-                                <td>${row.ProductName}</td>
-                                <td id='Rltpc${Rltpc}Cnt' >
+                                <td style="${rowStyle}" >${row.ProductName}</td>
+                                <td style="${rowStyle}" id='Rltpc${Rltpc}Cnt' >
                                     ${row.Unlimited == 1 ? '<i class="fa-solid fa-infinity"></i>' : row.Quantity }
                                 </td>
-                                <td style="text-align: right;">$ ${row.Price}</td>                            
+                                <td style="text-align: right;${rowStyle}">$ ${row.Price}</td>
                                 </tr>`)
                             }
                         });
@@ -1699,7 +1710,7 @@ function recalculate_totals(){
         $("#NoExcempt2").hide();
         
         let TaxPc = $('#TaxPc').val();
-        let TaxAm = "0.00";
+        let TaxAm = 0;
         $('#TaxAm').val(TaxAm.toFixed(2));
         SubT+= TaxAm;
     }
@@ -1804,7 +1815,57 @@ function load_venue(Id){
             $('#EventStreet').val( data.Direccion+' '+data.Direccion2);
             $('#EventCity').val( data.Ciudad);
             $('#EventZip').val( data.CP);
+            distance_charge(data.CP,data.Pais)
             aplicar_autosave();
+        },
+        error: function(xhr, status, error) {
+            if (xhr.status === 401) {
+                console.error('Acceso denegado. Token expirado o inválido.');
+                // Aquí puedes redirigir al login o limpiar el token
+            } else {
+                console.error('Error al obtener registro:', error);
+            }
+        }
+    });
+}
+
+function get_venue(CusT,IdCus,NameVenue){
+        var misHeaders = {
+            'Authorization': 'Bearer ' + TOKEN
+        };
+
+        const dataGlobal = {
+            CusT: CusT,
+            IdCus: IdCus,
+            EventStreet: $('#Street').val(),
+            EventCity: $('#City').val(),
+            EventZip: $('#Zip').val(),
+            EventCountry: $('#Country').val(),
+            EventState: $('#State').val(),
+            EventName: NameVenue
+        };
+
+        $.ajax({
+        url: API_BASE_URL + 'get_venue/',
+        type: 'POST',
+        dataType: 'json', // Indica que esperamos JSON
+        headers: misHeaders,
+        data: JSON.stringify(dataGlobal),        
+        success: function(data) {
+            venueId = data.Id;
+            venueName = data.Nombre;
+            // Create the DOM option: new Option(text, value, defaultSelected, selected)
+            var newOption = new Option(venueName, venueId, true, true);
+            $('#Venue').append(newOption).trigger('change');
+            $('#EventCountry').val( data.Pais);
+            $('#EventCountry').trigger('change');
+            $('#EventState').val( data.Estado);
+            $('#EventStreet').val( data.Direccion+' '+data.Direccion2);
+            $('#EventStreet').val( data.Direccion+' '+data.Direccion2);
+            $('#EventCity').val( data.Ciudad);
+            $('#EventZip').val( data.CP);
+            distance_charge(data.CP,data.Pais)
+            autosave_lead();
         },
         error: function(xhr, status, error) {
             if (xhr.status === 401) {
@@ -1819,31 +1880,52 @@ function load_venue(Id){
 
 //COPIAR DIRECCION DE ORGANIZACION/CLIENTE
 function copy_ad(){
-            $('#EventStreet').val($('#Street').val());
-            $('#EventCity').val( $('#City').val());
-            $('#EventZip').val( $('#Zip').val());
 
-            distance_charge($('#Zip').val())
+            if ($('#IdOrganization').val() > 0 || $('#Organization').val() >0 ){
+                //alert('Organization');
+                var venueText = $('#Organization').find(':selected').text();
+                if ($('#IdOrganization').val() > 0)
+                    get_venue('Org',$('#IdOrganization').val(),venueText)
+                else
+                    get_venue('Org',$('#Organization').val(),venueText)
+            }
+            else if ($('#IdCustomer').val() > 0 || $('#Customer').val() >0 ){
+                var venueText = $('#Customer').find(':selected').text();
+                if ($('#IdCustomer').val() > 0)
+                    get_venue('Cus',$('#IdCustomer').val(),venueText)
+                else
+                    get_venue('Cus',$('#Customer').val(),venueText)
+
+            }
+            else{
+                lanzarMensaje("Es necesario seleccionar o registrar un cliente u organización", "error");
+            }
+            //$('#EventStreet').val($('#Street').val());
+            //$('#EventCity').val( $('#City').val());
+            //$('#EventZip').val( $('#Zip').val());
+
+            //distance_charge($('#Zip').val())
 }
 
 //CARGO POR DISTANCIA
-function distance_charge(zip){
+function distance_charge(zip,ctry){
         var misHeaders = {
             'Authorization': 'Bearer ' + TOKEN
         };
 
         $.ajax({
         url: API_BASE_URL + 'distance_charge/'+zip,
-        type: 'GET',
+        type: 'POST',
         dataType: 'json', // Indica que esperamos JSON
         headers: misHeaders,
+        data: JSON.stringify({ ZIPO: '<?php echo $account['CP']?>', CONO: '<?php echo $account['Pais']?>', ZIPD: zip, COND: ctry }),
 
         success: function(data) {
             let totaldist = data.cost.costo_total;
             $('#Distance_Charges_Total').val(totaldist.toFixed(2))
             $('#Distance_Charges_check').prop('checked', true);
             
-            $('#Tax').prop('checked', true);
+            //$('#Tax').prop('checked', true);
             $('#TaxPc').val(data.cost.taxrate);
             
             recalculate_totals()
@@ -2009,10 +2091,7 @@ function LoadDocument(DocumentType){
         TaxAm = $('#TaxAm').val() * 1;
     }
     <?php
-        $query = "select NombreCompania, Direccion,Direccion2, Ciudad,CP,Estado,Pais,TelefonoCelular FROM account";
-        $stmt = $db->prepare($query);
-        $stmt->execute();
-        $account = $stmt->fetch(PDO::FETCH_ASSOC);
+
 
         $query = "select Template FROM document_center WHERE Tipo = 'contract' AND IdTemplate = 2 AND Activo = 1 AND Idioma ='$lang'";
         $stmt = $db->prepare($query);
@@ -2035,7 +2114,7 @@ function LoadDocument(DocumentType){
     ?>
 
     const datosGenerales = {
-        leadid: "",
+        leadid: $('#IdLead').val(),
         contractsentdate: "",
         company_name: "<?php echo $account['NombreCompania']?>",
         company_address:"<?php echo $account['Direccion']." ".$account['Direccion2'];?>",
@@ -2155,26 +2234,50 @@ function LoadDocument(DocumentType){
         const $extrafilaPlantilla = $extracuerpoTabla.find('.extra-item-fila').first();
                 
 
-            extra = {
-                extra_item_name: 'Estacas',
-                extra_qty: 10
-            };
-            extras.push(extra);        
-            extra = {
-                extra_item_name: 'Extensión',
-                extra_qty: 2
-            };            
-            extras.push(extra);
 
-            extra = {
-                extra_item_name: '____________________________________',
-                extra_qty: '____'
-            };            
-            extras.push(extra);            
+        var misHeaders = {
+            'Authorization': 'Bearer ' + TOKEN
+        };
+        $.ajax({
+            url: API_BASE_URL + 'get_packing_list/'+$('#IdLead').val(),
+            type: 'GET',
+            dataType: 'json', // Indica que esperamos JSON
+            headers: misHeaders,
+            success: function(data) {
+                var listaDeItems = data.items;
 
-        ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla, $filaPlantilla,$extrafilaPlantilla,datosGenerales, productos, descuentos, extras);
-        $('#ShareButton').hide();
-        lanzarMensaje("Picking cargado correctamente", "exito");        
+                // 2. Recorrer los items (usando un forEach por ejemplo)
+                listaDeItems.forEach(function(producto) {
+
+                    extra = {
+                        extra_item_name: producto.Item,
+                        extra_qty: producto.Quantity
+                    };
+                    extras.push(extra);
+                });
+
+                extra = {
+                    extra_item_name: '____________________________________',
+                    extra_qty: '____'
+                };            
+                extras.push(extra);                    
+
+
+                ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla, $filaPlantilla,$extrafilaPlantilla,datosGenerales, productos, descuentos, extras);
+                $('#ShareButton').hide();
+                lanzarMensaje("Picking cargado correctamente", "exito");                        
+
+            },
+            error: function(xhr, status, error) {
+                if (xhr.status === 401) {
+                    console.error('Acceso denegado. Token expirado o inválido.');
+                    // Aquí puedes redirigir al login o limpiar el token
+                } else {
+                    console.error('Error al obtener registro:', error);
+                }
+            }
+        });        
+
 
     }
     
@@ -2502,6 +2605,7 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
                 //console.log("¡Detalle guardado correctamente!");
                 //alert(response.IdLead)
                 $('#IdLead').val(response.IdLead);
+                $('#UUID').val(response.UUID);                
                 lanzarMensaje("¡Auto guadado correctamente!", tipo = 'exito');
                 
             }

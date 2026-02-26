@@ -20,10 +20,10 @@ $db = $database->getConnection();
         .status-completado { background: #007bff !important; }
         .status-cancelado { background: #dc3545 !important; }
 
-.clickable-row:hover {
-    background-color: rgba(13, 110, 253, 0.05) !important; /* Un azul muy tenue */
-    transition: background-color 0.2s ease;
-}        
+        .clickable-row:hover {
+            background-color: rgba(13, 110, 253, 0.05) !important; /* Un azul muy tenue */
+            transition: background-color 0.2s ease;
+        }        
 
     </style>
 </head>
@@ -73,6 +73,10 @@ $db = $database->getConnection();
         <p class="text-muted small">Cargando datos...</p>
     </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>        
+
 
 <script>
 
@@ -138,7 +142,7 @@ $(document).ready(function() {
         $('#loadingIndicator').fadeIn();
 
         $.ajax({
-            url:  API_BASE_URL + 'leads/',
+            url:  API_BASE_URL + 'pending_payments/',
             type: 'GET',
             dataType: 'json',
             headers: { 'Authorization': 'Bearer ' + TOKEN },
@@ -231,7 +235,7 @@ $('#leadsData').on('click', '.clickable-row', function() {
     
     if (leadId) {
         // Redirección a la página de detalles
-        window.location.href = `lead.php?IdLead=${leadId}`;
+        window.location.href = `payments.php?IdLead=${leadId}`;
     }
 });    
 

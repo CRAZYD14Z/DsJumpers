@@ -19,11 +19,7 @@ class OpenpayApi extends OpenpayApiResourceBase
 
     public static function getInstance($r, $p = null)
     {
-        if(version_compare(phpversion(), '8.3.0', '<')){
-            $resourceName = get_class();
-        } else {
-            $resourceName = self::class;
-        }
+        $resourceName = get_class();
         return parent::getInstance($resourceName);
     }
 

@@ -230,8 +230,8 @@ $lang ='es';
 <script>
     $(document).ready(function() {
         // Configuración Openpay
-        OpenPay.setId('mles9ufd4m3rlilw00i8');
-        OpenPay.setApiKey('pk_ed306f11c3764a9da955092ee7350160');
+        OpenPay.setId('<?php echo id_OPAY?>');
+        OpenPay.setApiKey(pk_OPAY);
         OpenPay.setSandboxMode(true);
         OpenPay.deviceData.setup("payment-form", "deviceIdHiddenFieldName");
 

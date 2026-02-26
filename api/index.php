@@ -28,7 +28,7 @@ header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS"); // Incluir OPTIONS para CORS
 header("Access-Control-Max-Age: 3600");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, ID2,ID3,ID4");
 
 // Manejo de solicitudes OPTIONS (preflight requests de CORS)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -275,6 +275,9 @@ switch ($resource) {
     case 'get_venues':
         get_venues($resource,$db, $method, $id, $data);
         break;
+    case 'get_venue':
+        get_venue($resource,$db, $method, $id, $data);
+        break;        
     case 'distance_charge':
         distance_charge($resource,$db, $method, $id, $data);
         break;
@@ -286,7 +289,14 @@ switch ($resource) {
         break;
     case 'leads':
         leads($resource,$db, $method, $id, $data);
-        break;            
+        break;
+    case 'pending_payments':
+        pending_payments($resource,$db, $method, $id, $data);
+        break;
+    case 'get_packing_list':
+        get_packing_list($resource,$db, $method, $id, $data);
+        break;        
+
     default:
         // Manejar rutas no definidas
         http_response_code(404);
