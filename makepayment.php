@@ -56,6 +56,13 @@ $lang ='es';
     box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.2);
 }        
 
+.spinner-border {
+    --bs-spinner-width: 1.2rem;
+    --bs-spinner-height: 1.2rem;
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
     </style>
 </head>
 <body>
@@ -65,6 +72,9 @@ $lang ='es';
         echo "Enlace no válido.";
         die();
     }
+
+    $PayPlatform ='OPAY';
+    $PayPlatform ='SQUARE';
 
     $token = $_GET['Id']; // El UUID de la URL
     $ahora = date("Y-m-d H:i:s");
@@ -174,6 +184,7 @@ $lang ='es';
 
 
                     <div class="mb-4">
+                        <?php if ($PayPlatform == 'OPAY'){?>
                         <h6 class="fw-bold mb-3">Datos de Tarjeta</h6>
                         <div class="mb-2">
                             <input type="text" class="form-control" placeholder="Nombre en la tarjeta" data-openpay-card="holder_name">
@@ -192,6 +203,14 @@ $lang ='es';
                                 <input type="text" class="form-control only-numbers" placeholder="CVV" data-openpay-card="cvv2" maxlength="4">
                             </div>
                         </div>
+                        <?php }
+                        else{
+                        ?>
+                        <h6 class="fw-bold mb-3">Datos de Tarjeta</h6>
+                            <div id="card-container" class="mb-3"></div>
+                        <?php
+                        }
+                        ?>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center mb-2 opacity-75">
@@ -215,139 +234,261 @@ $lang ='es';
                             <h2 class="fw-bold mb-0 text-primary" id="display-pago-hoy">$<?php echo number_format($lead['DepositAmount'], 2, '.', ',') ;?></h2>
                         </div>
                     </div>
+                    <div id="payment-status-container" class="mt-3 text-center">
 
-                    <button class="btn btn-pay w-100" id="pay-button">Confirmar Pago</button>
-                    
+                    </div>
+
+                    <?php if ($PayPlatform == 'OPAY'){?>
+                        <button class="btn btn-pay w-100" id="pay-button">Confirmar Pago</button>
+                    <?php }
+                        else{
+                    ?>
+                        <button id="card-button" type="button" class="btn btn-primary w-100 py-2">Confirmar Pago</button>
+                    <?php
+                    }
+                    ?>
                     <div class="text-center mt-3">
-                        <img src="https://www.openpay.mx/_ipx/_/img/header/openpay-color.svg" alt="Openpay" style="height: 25px; opacity: 0.6;">
+
+                    <?php if ($PayPlatform == 'OPAY'){?>
+                          <img src="https://www.openpay.mx/_ipx/_/img/header/openpay-color.svg" alt="Openpay" style="height: 25px; opacity: 0.6;">
+                    <?php }
+                        else{
+                    ?>
+                          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Square%2C_Inc._logo.svg/1280px-Square%2C_Inc._logo.svg.png" alt="Square" style="height: 25px; opacity: 0.6;">
+                    <?php
+                    }
+                    ?>                    
+
+                      
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+<?php if ($PayPlatform == 'OPAY'){?>
+    <script>
+        $(document).ready(function() {
+            // Configuración Openpay
+            OpenPay.setId('<?php echo id_OPAY?>');
+            OpenPay.setApiKey('<?php echo pk_OPAY?>');
+            OpenPay.setSandboxMode(true);
+            OpenPay.deviceData.setup("payment-form", "deviceIdHiddenFieldName");
 
-<script>
-    $(document).ready(function() {
-        // Configuración Openpay
-        OpenPay.setId('<?php echo id_OPAY?>');
-        OpenPay.setApiKey(pk_OPAY);
-        OpenPay.setSandboxMode(true);
-        OpenPay.deviceData.setup("payment-form", "deviceIdHiddenFieldName");
-
-        //const montoBase = 1000.00;
-
-        // --- VALIDACIONES DE INPUTS ---
-        $('.only-numbers').on('input', function() {
-            this.value = this.value.replace(/[^0-9]/g, ''); // Elimina cualquier cosa que no sea número
-        });
-
-
-
-        // --- PROCESAR PAGO ---
-        $('#pay-button').on('click', function(e) {
-            e.preventDefault();
-            
-            // 1. Referencia al botón para feedback visual
-            var $btn = $(this);
-            $btn.prop("disabled", true).text("Procesando...");
-
-            // 2. Validación manual de campos requeridos (Nombre, Email, etc.)
-            let valid = true;
-            $('#payment-form input[required]').each(function() {
-                if ($(this).val().trim() === "") {
-                    $(this).addClass('is-invalid'); // Clase de Bootstrap para error
-                    valid = false;
-                } else {
-                    $(this).removeClass('is-invalid');
-                }
+            // --- VALIDACIONES DE INPUTS ---
+            $('.only-numbers').on('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, ''); // Elimina cualquier cosa que no sea número
             });
 
-            if (!valid) {
-                alert("Por favor completa los datos del cliente marcados como obligatorios.");
-                $btn.prop("disabled", false).text("Confirmar Pago");
-                return;
-            }
+            // --- PROCESAR PAGO ---
+            $('#pay-button').on('click', function(e) {
+                e.preventDefault();
+                
+                // 1. Referencia al botón para feedback visual
+                var $btn = $(this);
+                $btn.prop("disabled", true).text("Procesando...");
 
-            // 3. Crear Token con Openpay
-            // extractFormAndCreate lee automáticamente los campos con 'data-openpay-card'
-            OpenPay.token.extractFormAndCreate('payment-form', function(res) {
-                // --- CASO ÉXITO: Token generado ---
-                var token_id = res.data.id;
-                $('#token_id').val(token_id);
-
-                // Enviamos los datos al backend.php mediante AJAX
-                var datosFormulario = $('#payment-form').serialize();
-
-                $.ajax({
-                    type: "POST",
-                    url: "processpayment.php",
-                    data: datosFormulario,
-                    dataType: "json",
-                    success: function(respuestaBackend) {
-                        if(respuestaBackend.status === 'success') {
-                            //alert("¡Pago Exitoso! ID de transacción: " + respuestaBackend.transaction_id);
-                            // Opcional: Redirigir a página de éxito
-                            //window.location.href =  respuestaBackend.url;
-                            window.location.replace(respuestaBackend.url);
-                        } else if (respuestaBackend.status === 'pending') {
-                            // Manejo de 3D Secure (Si el banco pide autenticación extra)
-                            window.location.href = respuestaBackend.url;
-                        }
-                    },
-                    error: function(err) {
-                        var errorMsg = err.responseJSON ? err.responseJSON.description : "Error interno en el servidor.";
-                        alert("Error en el cobro: " + errorMsg);
-                        $btn.prop("disabled", false).text("Confirmar Pago");
+                // 2. Validación manual de campos requeridos (Nombre, Email, etc.)
+                let valid = true;
+                $('#payment-form input[required]').each(function() {
+                    if ($(this).val().trim() === "") {
+                        $(this).addClass('is-invalid'); // Clase de Bootstrap para error
+                        valid = false;
+                    } else {
+                        $(this).removeClass('is-invalid');
                     }
                 });
 
-            }, function(err) {
-                // --- CASO ERROR: Fallo al generar el token (ej. tarjeta inválida) ---
-                var desc = err.data.description != undefined ? err.data.description : err.message;
-                alert("Error con la tarjeta: " + desc);
-                $btn.prop("disabled", false).text("Confirmar Pago");
+                if (!valid) {
+                    alert("Por favor completa los datos del cliente marcados como obligatorios.");
+                    $btn.prop("disabled", false).text("Confirmar Pago");
+                    return;
+                }
+                const statusDiv = document.getElementById('payment-status-container');
+                statusDiv.innerHTML = ""; // Limpiar mensajes previos
+                // 3. Crear Token con Openpay
+                // extractFormAndCreate lee automáticamente los campos con 'data-openpay-card'
+                OpenPay.token.extractFormAndCreate('payment-form', function(res) {
+                    // --- CASO ÉXITO: Token generado ---
+                    var token_id = res.data.id;
+                    $('#token_id').val(token_id);
+
+                    // Enviamos los datos al backend.php mediante AJAX
+                    var datosFormulario = $('#payment-form').serialize();
+
+                    $.ajax({
+                        type: "POST",
+                        url: "processpayment.php",
+                        data: datosFormulario,
+                        dataType: "json",
+                        success: function(respuestaBackend) {
+                            if(respuestaBackend.status === 'success') {
+                                //alert("¡Pago Exitoso! ID de transacción: " + respuestaBackend.transaction_id);
+                                // Opcional: Redirigir a página de éxito
+                                //window.location.href =  respuestaBackend.url;
+                                window.location.replace(respuestaBackend.url);
+                            } else if (respuestaBackend.status === 'pending') {
+                                // Manejo de 3D Secure (Si el banco pide autenticación extra)
+                                window.location.href = respuestaBackend.url;
+                            }
+                        },
+                        error: function(err) {
+                            var errorMsg = err.responseJSON ? err.responseJSON.description : "Error interno en el servidor.";
+                            //alert("Error en el cobro: " + errorMsg);
+
+                            statusDiv.innerHTML = `
+                                <div class="alert alert-danger d-flex align-items-center mt-3">
+                                    <span class="me-2">❌</span>
+                                    <div>Error en el cobro:  ${errorMsg}</div>
+                                </div>`;                               
+
+                            $btn.prop("disabled", false).text("Confirmar Pago");
+                        }
+                    });
+
+                }, function(err) {
+                    // --- CASO ERROR: Fallo al generar el token (ej. tarjeta inválida) ---
+                    var desc = err.data.description != undefined ? err.data.description : err.message;
+                    statusDiv.innerHTML = `
+                        <div class="alert alert-danger d-flex align-items-center mt-3">
+                            <span class="me-2">❌</span>
+                            <div>Error con la tarjeta:  ${desc}</div>
+                        </div>`;                    
+
+                    $btn.prop("disabled", false).text("Confirmar Pago");
+                });
             });
+
+
+
+
         });
+    </script>
+<?php }
+    else{
+?>
+    <script type="text/javascript" src="https://sandbox.web.squarecdn.com/v1/square.js"></script>
+    <script>
+        const appId = '<?php echo appId_square;?>';
+        const locId = '<?php echo locId_square;?>';
+
+            async function initSquare() {
+            const payments = Square.payments(appId, locId);
+            const card     = await payments.card();
+            await card.attach('#card-container');
+
+            document.getElementById('card-button').addEventListener('click', async () => {
+                try {
+                    const result = await card.tokenize();
+                    if (result.status === 'OK') {
+                        await procesarPago(result.token);
+                    }
+                } catch (e) {
+                    console.error('Error al tokenizar:', e);
+                }
+            });
+        }
+        
+        async function procesarPago(token) {
+            const statusDiv = document.getElementById('payment-status-container');
+            const payButton = document.getElementById('card-button');
+            $('#token_id').val(token);
+            // 1. Bloquear botón y mostrar icono de carga
+            payButton.disabled = true;
+            payButton.innerHTML = `
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                Procesando pago...
+            `;
+            
+            statusDiv.innerHTML = ""; // Limpiar mensajes previos
+
+            try {
+                var datosFormulario = $('#payment-form').serialize();
+                
+
+                    $.ajax({
+                        type: "POST",
+                        url: "processpayment_square.php",
+                        data: datosFormulario,
+                        dataType: "json",
+                        success: function(respuestaBackend) {
+                            if(respuestaBackend.status === 'success') {
+                                window.location.replace(respuestaBackend.url);
+                            } else if (respuestaBackend.status === 'pending') {
+                                //window.location.href = respuestaBackend.url;
+                            }
+                        },
+                        error: function(err) {
+                            var errorMsg = err.responseJSON ? err.responseJSON.description : "Error interno en el servidor.";
+
+                            statusDiv.innerHTML = `
+                                <div class="alert alert-danger d-flex align-items-center mt-3">
+                                    <span class="me-2">❌</span>
+                                    <div>${errorMsg}</div>
+                                </div>`;                            
+
+                            payButton.disabled = false;
+                            payButton.innerHTML = "Reintentar Pago";
+                        }
+                    });                
+            } catch (error) {
+                statusDiv.innerHTML = `
+                    <div class="alert alert-danger d-flex align-items-center mt-3">
+                        <span class="me-2">❌</span>
+                        <div>${error.message}</div>
+                    </div>`;
+                
+                // Reactivar el botón para que el usuario pueda intentar de nuevo
+                payButton.disabled = false;
+                payButton.innerHTML = "Reintentar Pago";
+            }
+        }
+
+        initSquare();
+    </script>
 
 
+
+<?php }
+?>
+
+<script>
+    $(document).ready(function() {
     const url = '<?php echo $token;?>.pdf'; // Ruta de tu PDF
 
     const pdfjsLib = window['pdfjs-dist/build/pdf'] || window.pdfjsLib;
-    
-    if (pdfjsLib) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
-        pdfjsLib.getDocument(url).promise.then(pdf => {
-            pdf.getPage(1).then(page => {
-                const canvas = document.getElementById('pdf-canvas');
-                const context = canvas.getContext('2d');
+        if (pdfjsLib) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
-                // Ajustamos la escala para que se vea bien en la columna pequeña
-                const viewport = page.getViewport({ scale: 0.5 });
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
+            pdfjsLib.getDocument(url).promise.then(pdf => {
+                pdf.getPage(1).then(page => {
+                    const canvas = document.getElementById('pdf-canvas');
+                    const context = canvas.getContext('2d');
 
-                const renderContext = {
-                    canvasContext: context,
-                    viewport: viewport
-                };
+                    // Ajustamos la escala para que se vea bien en la columna pequeña
+                    const viewport = page.getViewport({ scale: 0.5 });
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
 
-                page.render(renderContext).promise.then(() => {
-                    // Ocultar el spinner cuando termine de renderizar
-                    $('#loader-pdf').fadeOut();
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+
+                    page.render(renderContext).promise.then(() => {
+                        // Ocultar el spinner cuando termine de renderizar
+                        $('#loader-pdf').fadeOut();
+                    });
                 });
+            }).catch(err => {
+                console.error("Error al cargar PDF:", err);
+                $('#loader-pdf').html('<small class="text-danger">Error</small>');
             });
-        }).catch(err => {
-            console.error("Error al cargar PDF:", err);
-            $('#loader-pdf').html('<small class="text-danger">Error</small>');
-        });
-    }    
-
+        }    
 
     });
 </script>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

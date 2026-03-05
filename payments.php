@@ -75,6 +75,13 @@ $db = $database->getConnection();
 ?>
 <div class="container-fluid px-3">
 <?php
+    $PayPlatform ='SQUARE';
+    if ($PayPlatform == 'OPAY')
+        $URLGenerate_Link = 'ajax_generar_link.php';
+    else
+        $URLGenerate_Link = 'ajax_generar_link_square.php';
+    
+
     if (isset($_GET['IdLead']) AND $_GET['IdLead'] > 0 ){
         $IdLead = $_GET['IdLead'];
         $query = "select Id,IdBranch,Folio,StartDateTime,EndDateTime, Organization,NombreOrganizacion,Customer,NombreCliente,ApellidosCliente, Venue,Lugar Estado,Ciudad, Total FROM v_leads WHERE Id = ?";
@@ -266,7 +273,7 @@ $('#btnPagar').on('click', function() {
 
     // Petición AJAX
     $.ajax({
-        url: 'ajax_generar_link.php',
+        url: '<?php echo $URLGenerate_Link;?>',
         method: 'POST',
         data: { idLead: idLead, monto: saldo },
         dataType: 'json',
