@@ -747,6 +747,9 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                     }
                     elseif ($tipocampo =='img'){
                         if ($data->{"file_".$registro['Campo']}!=""){
+                            $valor = isset($data->{"file_".$registro['Campo']}) 
+                                ? htmlspecialchars(strip_tags($data->{"file_".$registro['Campo']}))
+                                : null;                            
                             $stmt->bindValue(":" . $campo, $valor);
                         }else{
                             $valor = isset($data->{"file_".$registro['Campo']."_1"}) 

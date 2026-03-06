@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎂 D'S Jumpers — ¡Feliz Cumpleaños!</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Nunito:wght@400;600;700;800;900&family=Chewy&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --pink:      #ff6eb4;
+            --hot-pink:  #ff3d9a;
+            --yellow:    #ffe566;
+            --mint:      #6edcc4;
+            --lavender:  #c4a8ff;
+            --peach:     #ffb380;
+            --sky:       #7dd6ff;
+            --white:     #ffffff;
+            --cream:     #fffdf0;
+            --text:      #3d2c5e;
+            --card-bg:   #ffffff;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--cream);
+            font-family: 'Nunito', sans-serif;
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        /* ─── CONFETTI CANVAS ──────────────────────── */
+        #confetti-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* ─── POLKA DOT BACKGROUND ─────────────────── */
+        body::before {
+            content: "";
+            position: fixed; inset: 0;
+            background-image: radial-gradient(circle, rgba(255,110,180,.12) 2px, transparent 2px);
+            background-size: 36px 36px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ─── NAVBAR ───────────────────────────────── */
+        .navbar {
+            background: white !important;
+            border-bottom: 4px solid var(--pink);
+            box-shadow: 0 4px 0 var(--yellow), 0 8px 20px rgba(255,110,180,.12);
+            padding: 10px 0;
+            position: relative;
+            z-index: 100;
+        }
+        .navbar::after {
+            content: "🎈🎀🎈🎀🎈🎀🎈🎀🎈🎀🎈🎀🎈🎀🎈🎀🎈";
+            position: absolute;
+            bottom: -22px; left: 0; right: 0;
+            font-size: .85rem;
+            text-align: center;
+            letter-spacing: 2px;
+            pointer-events: none;
+        }
+        .navbar-brand {
+            font-family: 'Chewy', cursive;
+            font-size: 1.6rem;
+            color: var(--hot-pink) !important;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 0 rgba(255,61,154,.15);
+        }
+        .nav-link {
+            font-family: 'Bubblegum Sans', cursive;
+            font-size: 1.05rem;
+            color: var(--text) !important;
+            transition: color .2s;
+            padding: 6px 14px !important;
+        }
+        .nav-link:hover { color: var(--hot-pink) !important; }
+        .dropdown-menu {
+            border: 3px solid var(--pink);
+            border-radius: 18px;
+            box-shadow: 4px 4px 0 rgba(255,110,180,.2);
+            padding: 8px;
+        }
+        .dropdown-item {
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            border-radius: 10px;
+            color: var(--text);
+        }
+        .dropdown-item:hover { background: var(--pink); color: white; }
+        #cartCount { background: var(--hot-pink) !important; }
+
+        /* ─── HERO ─────────────────────────────────── */
+        .hero-section {
+            min-height: 100vh;
+            background: linear-gradient(160deg, #fff0f9 0%, #fffbe6 40%, #f0faff 100%);
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+            padding-top: 60px;
+        }
+
+        /* Streamers top */
+        .streamers {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            display: flex; gap: 0;
+            height: 18px;
+        }
+        .streamer-seg {
+            flex: 1;
+            height: 100%;
+            border-radius: 0 0 6px 6px;
+        }
+        .streamer-seg:nth-child(6n+1)  { background: var(--pink); }
+        .streamer-seg:nth-child(6n+2)  { background: var(--yellow); }
+        .streamer-seg:nth-child(6n+3)  { background: var(--mint); }
+        .streamer-seg:nth-child(6n+4)  { background: var(--lavender); }
+        .streamer-seg:nth-child(6n+5)  { background: var(--sky); }
+        .streamer-seg:nth-child(6n+6)  { background: var(--peach); }
+
+        /* Balloons */
+        .balloon {
+            position: absolute;
+            bottom: -20px;
+            border-radius: 50%;
+            animation: balloonFloat linear infinite;
+            opacity: .85;
+        }
+        .balloon::after {
+            content: "";
+            position: absolute;
+            bottom: -18px; left: 50%;
+            transform: translateX(-50%);
+            width: 1px; height: 20px;
+            background: rgba(0,0,0,.2);
+        }
+        .b1  { width:55px;  height:65px;  left:4%;   background:var(--pink);     animation-duration:9s;  animation-delay:0s;  }
+        .b2  { width:45px;  height:54px;  left:12%;  background:var(--sky);      animation-duration:12s; animation-delay:2s;  }
+        .b3  { width:65px;  height:78px;  left:20%;  background:var(--yellow);   animation-duration:8s;  animation-delay:1s;  }
+        .b4  { width:50px;  height:60px;  left:30%;  background:var(--mint);     animation-duration:14s; animation-delay:3s;  }
+        .b5  { width:60px;  height:72px;  left:55%;  background:var(--lavender); animation-duration:10s; animation-delay:1.5s;}
+        .b6  { width:48px;  height:57px;  left:68%;  background:var(--peach);    animation-duration:11s; animation-delay:4s;  }
+        .b7  { width:70px;  height:84px;  left:78%;  background:var(--pink);     animation-duration:9s;  animation-delay:0.5s;}
+        .b8  { width:52px;  height:62px;  left:88%;  background:var(--mint);     animation-duration:13s; animation-delay:2.5s;}
+        @keyframes balloonFloat {
+            0%   { transform: translateY(0)   rotate(-4deg); }
+            25%  { transform: translateY(-22vh) rotate(4deg); }
+            50%  { transform: translateY(-44vh) rotate(-3deg); }
+            75%  { transform: translateY(-66vh) rotate(3deg); }
+            100% { transform: translateY(-110vh) rotate(0deg); opacity: 0; }
+        }
+
+        /* Stars / sparkles scattered */
+        .sparkle {
+            position: absolute;
+            font-size: 1.6rem;
+            animation: sparklePop 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+        .sp1  { top:10%; left:8%;   animation-delay:0s;   }
+        .sp2  { top:18%; right:10%; animation-delay:.8s;  font-size:2rem; }
+        .sp3  { top:35%; left:5%;   animation-delay:1.4s; font-size:1.2rem; }
+        .sp4  { top:60%; right:6%;  animation-delay:.4s;  }
+        .sp5  { top:75%; left:15%;  animation-delay:2s;   font-size:2.2rem; }
+        .sp6  { top:25%; left:45%;  animation-delay:1s;   font-size:1rem; }
+        @keyframes sparklePop {
+            0%,100%{ transform: scale(1) rotate(0deg);   opacity:.7; }
+            50%    { transform: scale(1.4) rotate(20deg); opacity:1;  }
+        }
+
+        /* Hero cake SVG decoration */
+        .cake-deco {
+            position: absolute;
+            right: 6%;
+            bottom: 8%;
+            font-size: 10rem;
+            animation: cakeBounce 2.5s ease-in-out infinite;
+            filter: drop-shadow(0 12px 20px rgba(255,61,154,.2));
+        }
+        @keyframes cakeBounce {
+            0%,100%{ transform: translateY(0) rotate(-3deg); }
+            50%    { transform: translateY(-16px) rotate(3deg); }
+        }
+
+        /* Hero inner */
+        .hero-inner {
+            position: relative; z-index: 5;
+            text-align: center;
+            padding: 60px 20px 80px;
+        }
+
+        .logo-balloon {
+            width: 175px; height: 175px;
+            border-radius: 50%;
+            background: white;
+            border: 5px solid var(--pink);
+            box-shadow:
+                0 0 0 8px rgba(255,110,180,.15),
+                0 16px 40px rgba(255,110,180,.25);
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-bottom: 28px;
+            overflow: hidden;
+            animation: logoBounce 3s ease-in-out infinite;
+            position: relative;
+        }
+        .logo-balloon::before {
+            content: "";
+            position: absolute; inset: -4px;
+            border-radius: 50%;
+            background: conic-gradient(var(--pink), var(--yellow), var(--mint), var(--lavender), var(--pink));
+            z-index: -1;
+            animation: borderSpin 4s linear infinite;
+        }
+        @keyframes borderSpin { to { transform: rotate(360deg); } }
+        @keyframes logoBounce {
+            0%,100%{ transform: translateY(0) scale(1); }
+            50%    { transform: translateY(-14px) scale(1.03); }
+        }
+        .logo-balloon img { width: 128px; height: 128px; object-fit: contain; }
+
+        .hero-title {
+            font-family: 'Chewy', cursive;
+            font-size: clamp(3.2rem, 11vw, 7.5rem);
+            line-height: 1;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--hot-pink) 0%, var(--lavender) 50%, var(--sky) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(2px 3px 0 rgba(255,61,154,.15));
+            animation: titleWiggle 4s ease-in-out infinite;
+        }
+        @keyframes titleWiggle {
+            0%,100%{ letter-spacing: 2px; }
+            50%    { letter-spacing: 4px; }
+        }
+
+        .hero-sub {
+            font-family: 'Bubblegum Sans', cursive;
+            font-size: 1.5rem;
+            color: var(--text);
+            margin-bottom: 28px;
+            background: white;
+            display: inline-block;
+            padding: 8px 28px;
+            border-radius: 50px;
+            border: 3px dashed var(--pink);
+            box-shadow: 3px 3px 0 rgba(255,110,180,.2);
+        }
+
+        .hero-btn {
+            font-family: 'Bubblegum Sans', cursive;
+            font-size: 1.2rem;
+            letter-spacing: 1.5px;
+            padding: 15px 44px;
+            border-radius: 50px;
+            border: none;
+            background: linear-gradient(135deg, var(--hot-pink), var(--peach));
+            color: white;
+            text-shadow: 0 1px 3px rgba(0,0,0,.15);
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: .25s;
+            box-shadow: 0 6px 0 rgba(180,30,80,.25), 0 8px 20px rgba(255,61,154,.3);
+        }
+        .hero-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 0 rgba(180,30,80,.25), 0 14px 28px rgba(255,61,154,.4);
+            color: white;
+        }
+        .hero-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 3px 0 rgba(180,30,80,.25);
+        }
+
+        /* ─── BANNER MARQUEE ───────────────────────── */
+        .bunting-bar {
+            background: white;
+            border-top: 3px solid var(--yellow);
+            border-bottom: 3px solid var(--yellow);
+            padding: 10px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+        }
+        .bunting-text {
+            display: inline-block;
+            font-family: 'Chewy', cursive;
+            font-size: 1.1rem;
+            color: var(--hot-pink);
+            letter-spacing: 3px;
+            animation: buntingScroll 20s linear infinite;
+        }
+        @keyframes buntingScroll {
+            from { transform: translateX(100vw); }
+            to   { transform: translateX(-100%); }
+        }
+
+        /* ─── SECTION TITLE ────────────────────────── */
+        .section-title {
+            font-family: 'Chewy', cursive;
+            font-size: 2.2rem;
+            text-align: center;
+            color: var(--text);
+            margin-bottom: 38px;
+            letter-spacing: 1px;
+            position: relative;
+            display: inline-block;
+            left: 50%; transform: translateX(-50%);
+        }
+        .section-title .title-tag {
+            display: block;
+            font-family: 'Bubblegum Sans', cursive;
+            font-size: 1rem;
+            color: var(--pink);
+            letter-spacing: 2px;
+            margin-top: 4px;
+        }
+        /* Washi tape accent on section title */
+        .section-title::before {
+            content: "";
+            position: absolute;
+            top: 50%; left: -28px;
+            transform: translateY(-50%) rotate(-6deg);
+            width: 22px; height: 36px;
+            background: var(--yellow);
+            opacity: .7;
+            border-radius: 2px;
+        }
+        .section-title::after {
+            content: "";
+            position: absolute;
+            top: 50%; right: -28px;
+            transform: translateY(-50%) rotate(6deg);
+            width: 22px; height: 36px;
+            background: var(--yellow);
+            opacity: .7;
+            border-radius: 2px;
+        }
+
+        /* ─── DIVIDER ──────────────────────────────── */
+        .party-divider {
+            display: flex; align-items: center; gap: 12px;
+            margin: 52px 0;
+        }
+        .party-divider::before, .party-divider::after {
+            content: ""; flex: 1; height: 3px;
+            background: repeating-linear-gradient(
+                to right,
+                var(--pink) 0, var(--pink) 10px,
+                var(--yellow) 10px, var(--yellow) 20px,
+                var(--mint) 20px, var(--mint) 30px,
+                var(--lavender) 30px, var(--lavender) 40px
+            );
+            border-radius: 3px;
+        }
+        .party-divider span { font-size: 1.8rem; white-space: nowrap; }
+
+        /* ─── CAT CARDS ────────────────────────────── */
+        .cat-card {
+            background: white;
+            border-radius: 22px;
+            padding: 30px 16px 24px;
+            text-align: center;
+            margin: 8px 5px;
+            text-decoration: none;
+            color: var(--text);
+            display: block;
+            border: 3px solid transparent;
+            background-clip: padding-box;
+            box-shadow: 0 6px 0 rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.06);
+            transition: .25s cubic-bezier(.34,1.56,.64,1);
+            font-family: 'Bubblegum Sans', cursive;
+            font-size: 1.1rem;
+            position: relative;
+            outline: 3px solid var(--pink);
+            outline-offset: 0px;
+        }
+        .cat-card::before {
+            content: "";
+            position: absolute; top: -3px; left: 50%; transform: translateX(-50%);
+            width: 36px; height: 8px;
+            background: var(--yellow);
+            border-radius: 0 0 8px 8px;
+        }
+        .cat-card i { font-size: 2.2rem; margin-bottom: 10px; display: block; transition: .3s; color: var(--hot-pink); }
+        .cat-card:hover {
+            transform: translateY(-10px) rotate(-1deg);
+            box-shadow: 0 14px 0 rgba(0,0,0,.07), 0 18px 35px rgba(255,61,154,.15);
+            outline-color: var(--lavender);
+            color: var(--hot-pink);
+        }
+        .cat-card:hover i { transform: scale(1.3) rotate(10deg); color: var(--lavender); }
+        .cat-card:nth-child(2n) { outline-color: var(--mint); }
+        .cat-card:nth-child(3n) { outline-color: var(--yellow); }
+
+        /* ─── REVIEW CARDS ─────────────────────────── */
+        .review-card {
+            background: white;
+            border-radius: 24px;
+            padding: 32px;
+            margin: 16px 10px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 6px 0 rgba(0,0,0,.06), 0 10px 30px rgba(0,0,0,.05);
+        }
+        /* Washi tape corner */
+        .review-card::before {
+            content: "";
+            position: absolute; top: -4px; left: 20px;
+            width: 50px; height: 14px;
+            background: rgba(255,229,102,.85);
+            border-radius: 3px;
+            transform: rotate(-1deg);
+        }
+        /* Polka dot bottom right */
+        .review-card::after {
+            content: "🎉";
+            position: absolute; bottom: 12px; right: 16px;
+            font-size: 3rem; opacity: .12;
+        }
+        .review-card .stars { color: var(--yellow); font-size: 1.3rem; margin-bottom: 10px; text-shadow: 1px 1px 0 rgba(0,0,0,.1); }
+        .review-card p { color: #6a5080; font-style: italic; line-height: 1.7; }
+        .review-card h6 { font-family: 'Bubblegum Sans', cursive; color: var(--hot-pink); margin-top: 12px; font-size: 1rem; }
+
+        /* ─── GRID ITEMS ───────────────────────────── */
+        .grid-item {
+            background: white;
+            border-radius: 18px;
+            padding: 26px 14px;
+            text-align: center; height: 100%;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-decoration: none;
+            color: var(--text);
+            font-family: 'Bubblegum Sans', cursive;
+            font-size: 1.1rem;
+            transition: .25s cubic-bezier(.34,1.56,.64,1);
+            box-shadow: 0 5px 0 rgba(0,0,0,.06), 0 8px 20px rgba(0,0,0,.05);
+            border: 2px solid transparent;
+        }
+        .grid-item:nth-child(4n+1) { border-color: rgba(255,110,180,.3); }
+        .grid-item:nth-child(4n+2) { border-color: rgba(110,220,196,.3); }
+        .grid-item:nth-child(4n+3) { border-color: rgba(196,168,255,.3); }
+        .grid-item:nth-child(4n+4) { border-color: rgba(125,214,255,.3); }
+        .grid-item:hover {
+            transform: translateY(-7px) scale(1.04) rotate(1deg);
+            box-shadow: 0 12px 0 rgba(0,0,0,.07), 0 16px 32px rgba(255,61,154,.12);
+            border-color: var(--pink);
+            color: var(--hot-pink);
+        }
+
+        /* ─── ABOUT ────────────────────────────────── */
+        .about-section {
+            background: linear-gradient(135deg, #fff0f9, #f5f0ff, #f0faff);
+            border-radius: 30px;
+            padding: 50px 50px 50px;
+            border: 3px dashed var(--pink);
+            box-shadow: 0 10px 40px rgba(255,110,180,.1);
+            position: relative;
+            overflow: hidden;
+        }
+        /* Corner ribbon */
+        .about-section::before {
+            content: "🎀";
+            position: absolute; top: -10px; left: -10px;
+            font-size: 3.5rem;
+            transform: rotate(-20deg);
+        }
+        .about-section::after {
+            content: "🎀";
+            position: absolute; bottom: -10px; right: -10px;
+            font-size: 3.5rem;
+            transform: rotate(160deg);
+        }
+        .about-section p { color: #6a5080; }
+        .about-logo-container {
+            display: flex; justify-content: center; align-items: center;
+            height: 160px;
+        }
+        .moving-logo {
+            width: 125px; height: 125px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--pink), var(--lavender));
+            border: 4px solid white;
+            box-shadow: 0 8px 25px rgba(255,110,180,.3), 0 0 0 6px rgba(255,110,180,.1);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 3rem;
+            color: white;
+            position: relative;
+            transition: transform .15s linear;
+            animation: starSpin 6s linear infinite;
+        }
+        @keyframes starSpin {
+            0%,100%{ transform: scale(1) rotate(0deg); box-shadow: 0 8px 25px rgba(255,110,180,.3); }
+            25%    { transform: scale(1.05) rotate(5deg); }
+            75%    { transform: scale(.97) rotate(-5deg); box-shadow: 0 12px 35px rgba(196,168,255,.4); }
+        }
+
+        /* ─── EVENT CARDS ──────────────────────────── */
+        .event-card {
+            background: white;
+            border-radius: 22px;
+            padding: 28px 16px;
+            text-align: center;
+            margin: 8px 5px;
+            box-shadow: 0 5px 0 rgba(0,0,0,.06), 0 8px 20px rgba(0,0,0,.05);
+            transition: .25s cubic-bezier(.34,1.56,.64,1);
+            font-family: 'Bubblegum Sans', cursive;
+            position: relative;
+            overflow: hidden;
+        }
+        .event-card::before {
+            content: "";
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 6px;
+            background: linear-gradient(to right, var(--pink), var(--lavender), var(--mint));
+            border-radius: 0 0 18px 18px;
+        }
+        .event-card i { font-size: 2.3rem; margin-bottom: 10px; display: block; transition: .3s; color: var(--hot-pink); }
+        .event-card:nth-child(2n) i { color: var(--mint); }
+        .event-card:nth-child(3n) i { color: var(--lavender); }
+        .event-card h5 { font-size: 1.05rem; color: var(--text); }
+        .event-card:hover {
+            transform: translateY(-10px) scale(1.04);
+            box-shadow: 0 14px 0 rgba(0,0,0,.07), 0 18px 35px rgba(255,61,154,.15);
+        }
+        .event-card:hover i { transform: scale(1.25) rotate(-8deg); }
+
+        /* ─── LOCATION ─────────────────────────────── */
+        .location-section {
+            background: white;
+            border-radius: 28px;
+            padding: 40px;
+            box-shadow: 0 6px 0 rgba(0,0,0,.06), 0 10px 30px rgba(0,0,0,.05);
+            border: 2px solid var(--foam, #fff0f9);
+            position: relative;
+        }
+        .location-section h2 {
+            font-family: 'Chewy', cursive;
+            color: var(--hot-pink);
+            letter-spacing: 1px;
+        }
+        .location-section i { color: var(--hot-pink) !important; }
+        .location-section p, .location-section li { color: #6a5080; }
+
+        /* ─── CONTACT ──────────────────────────────── */
+        .contact-card {
+            background: white;
+            border-radius: 28px;
+            padding: 44px;
+            box-shadow: 0 8px 0 rgba(0,0,0,.06), 0 14px 40px rgba(0,0,0,.06);
+            position: relative;
+            overflow: hidden;
+        }
+        .contact-card::before {
+            content: "";
+            position: absolute; top:0; left:0; right:0;
+            height: 8px;
+            background: repeating-linear-gradient(
+                to right,
+                var(--pink) 0, var(--pink) 20px,
+                var(--yellow) 20px, var(--yellow) 40px,
+                var(--mint) 40px, var(--mint) 60px,
+                var(--lavender) 60px, var(--lavender) 80px,
+                var(--sky) 80px, var(--sky) 100px
+            );
+        }
+        .contact-card h2 {
+            font-family: 'Chewy', cursive;
+            color: var(--hot-pink);
+            letter-spacing: 1px;
+        }
+        .form-label { color: var(--text); font-weight: 800; font-size: .88rem; letter-spacing: .5px; }
+        .form-control {
+            background: #fff9fe;
+            border: 2.5px solid rgba(255,110,180,.25);
+            color: var(--text);
+            border-radius: 14px;
+            padding: 12px 16px;
+            transition: .25s;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 600;
+        }
+        .form-control:focus {
+            background: white;
+            border-color: var(--pink);
+            box-shadow: 0 0 0 4px rgba(255,110,180,.12);
+            color: var(--text);
+        }
+        .form-control::placeholder { color: #c9aabb; }
+        .btn-birthday {
+            font-family: 'Chewy', cursive;
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+            padding: 14px 50px;
+            border-radius: 50px;
+            border: none;
+            background: linear-gradient(135deg, var(--hot-pink), var(--lavender));
+            color: white;
+            text-shadow: 0 1px 3px rgba(0,0,0,.15);
+            box-shadow: 0 6px 0 rgba(160,20,80,.25), 0 10px 25px rgba(255,61,154,.3);
+            transition: .2s;
+            cursor: pointer;
+        }
+        .btn-birthday:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 0 rgba(160,20,80,.25), 0 16px 30px rgba(255,61,154,.4);
+        }
+        .btn-birthday:active { transform: translateY(2px); box-shadow: 0 3px 0 rgba(160,20,80,.25); }
+
+        /* ─── FOOTER ───────────────────────────────── */
+        footer {
+            background: linear-gradient(160deg, #fff0f9 0%, #f5f0ff 100%);
+            border-top: 4px solid var(--pink);
+            padding: 50px 20px 30px;
+            text-align: center;
+            position: relative;
+        }
+        footer::before {
+            content: "🎈 🎀 🎂 🎁 🎉 🎊 🎈 🎀 🎂 🎁 🎉 🎊 🎈 🎀 🎂 🎁 🎉 🎊";
+            display: block;
+            font-size: 1.1rem;
+            letter-spacing: 4px;
+            padding-bottom: 20px;
+            opacity: .6;
+        }
+        footer h4 {
+            font-family: 'Chewy', cursive;
+            color: var(--hot-pink);
+            letter-spacing: 2px;
+            font-size: 1.6rem;
+        }
+        .social-btn {
+            width: 56px; height: 56px;
+            border-radius: 50%;
+            border: 3px solid white;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+            transition: .25s;
+            text-decoration: none;
+            color: white;
+            box-shadow: 0 4px 0 rgba(0,0,0,.1);
+        }
+        .social-btn:nth-child(1) { background: var(--sky);      }
+        .social-btn:nth-child(2) { background: var(--mint);     }
+        .social-btn:nth-child(3) { background: var(--hot-pink); }
+        .social-btn:nth-child(4) { background: var(--lime, #39ff14); background: var(--mint); }
+        .social-btn:nth-child(5) { background: var(--lavender); }
+        .social-btn:hover { transform: translateY(-6px) scale(1.15) rotate(8deg); box-shadow: 0 8px 0 rgba(0,0,0,.12); color: white; }
+        footer p { color: #b08cb8; font-size: .85rem; margin-top: 20px; }
+
+        /* ─── SWIPER ───────────────────────────────── */
+        .swiper-button-next, .swiper-button-prev {
+            color: var(--hot-pink) !important;
+            background: white;
+            border-radius: 50%;
+            width: 44px !important; height: 44px !important;
+            box-shadow: 0 4px 0 rgba(0,0,0,.08), 0 6px 16px rgba(0,0,0,.08);
+            border: 2px solid rgba(255,110,180,.2);
+        }
+        .swiper-button-next::after, .swiper-button-prev::after { font-size: .85rem !important; font-weight: 900 !important; }
+        .swiper-pagination-bullet { background: rgba(255,110,180,.3) !important; }
+        .swiper-pagination-bullet-active { background: var(--hot-pink) !important; }
+
+        /* ─── UTILS ────────────────────────────────── */
+        .section-center { text-align: center; margin-bottom: 16px; }
+        .relative { position: relative; z-index: 1; }
+    </style>
+</head>
+<body>
+
+<!-- Confetti canvas -->
+<canvas id="confetti-canvas"></canvas>
+
+<!-- ══════════ NAVBAR ══════════ -->
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <img height="32px" src="https://dsjumpers.com/wp-content/uploads/2025/02/cropped-Logotipo-D%C2%B4S-Jumpers-qnohhmv0x0akjoiwicpksyn98vul3qjxppjyzgt6og.webp" alt="logo" class="me-2 rounded-circle" style="border:3px solid var(--pink);">
+            🎂 MI EMPRESA
+        </a>
+        <div class="d-flex align-items-center ms-auto me-3 order-lg-last">
+            <a class="nav-link position-relative p-2" href="#" id="cartIcon">
+                <i class="fas fa-shopping-cart fa-lg" style="color:var(--hot-pink);"></i>
+                <span id="cartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill" style="font-size:.65rem;">0</span>
+            </a>
+        </div>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="menuPrincipal">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#categorias">🎠 Categorías</a></li>
+                <li class="nav-item"><a class="nav-link" href="#eventos">🎭 Eventos</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">🎀 Nosotros</a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#nosotros">🌟 Sobre Nosotros</a></li>
+                        <li><a class="dropdown-item" href="#contacto">📨 Contáctanos</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ══════════ HERO ══════════ -->
+<section class="hero-section">
+    <!-- Streamers -->
+    <div class="streamers">
+        <div class="streamer-seg"></div><div class="streamer-seg"></div><div class="streamer-seg"></div>
+        <div class="streamer-seg"></div><div class="streamer-seg"></div><div class="streamer-seg"></div>
+        <div class="streamer-seg"></div><div class="streamer-seg"></div><div class="streamer-seg"></div>
+        <div class="streamer-seg"></div><div class="streamer-seg"></div><div class="streamer-seg"></div>
+        <div class="streamer-seg"></div><div class="streamer-seg"></div><div class="streamer-seg"></div>
+        <div class="streamer-seg"></div><div class="streamer-seg"></div><div class="streamer-seg"></div>
+        <div class="streamer-seg"></div><div class="streamer-seg"></div><div class="streamer-seg"></div>
+        <div class="streamer-seg"></div><div class="streamer-seg"></div><div class="streamer-seg"></div>
+    </div>
+
+    <!-- Balloons -->
+    <div class="balloon b1"></div><div class="balloon b2"></div>
+    <div class="balloon b3"></div><div class="balloon b4"></div>
+    <div class="balloon b5"></div><div class="balloon b6"></div>
+    <div class="balloon b7"></div><div class="balloon b8"></div>
+
+    <!-- Sparkles -->
+    <div class="sparkle sp1">✨</div><div class="sparkle sp2">⭐</div>
+    <div class="sparkle sp3">🌟</div><div class="sparkle sp4">✨</div>
+    <div class="sparkle sp5">⭐</div><div class="sparkle sp6">💫</div>
+
+    <!-- Cake decoration -->
+    <div class="cake-deco" aria-hidden="true">🎂</div>
+
+    <div class="hero-inner">
+        <div class="logo-balloon">
+            <img src="https://dsjumpers.com/wp-content/uploads/2025/02/cropped-Logotipo-D%C2%B4S-Jumpers-qnohhmv0x0akjoiwicpksyn98vul3qjxppjyzgt6og.webp" alt="logo">
+        </div>
+        <h1 class="hero-title">D'S Jumpers</h1>
+        <p class="hero-sub">🎈 Creatividad en Movimiento 🎁</p>
+        <a href="#categorias" class="hero-btn">🎟️ ¡A CELEBRAR!</a>
+    </div>
+</section>
+
+<!-- BUNTING BAR -->
+<div class="bunting-bar">
+    <span class="bunting-text">
+        🎂 CUMPLEAÑOS MÁGICOS &nbsp;•&nbsp; 🎈 GLOBOS Y SORPRESAS &nbsp;•&nbsp; 🎁 REGALOS INCREÍBLES &nbsp;•&nbsp; 🍭 DULCES Y DIVERSIÓN &nbsp;•&nbsp; 🎉 MOMENTOS INOLVIDABLES &nbsp;•&nbsp; 🌟 CADA FIESTA ES ESPECIAL &nbsp;•&nbsp; 🎀 DETALLES QUE ENAMORAN &nbsp;•&nbsp;
+    </span>
+</div>
+
+<!-- ══════════ MAIN CONTENT ══════════ -->
+<div class="container py-5 relative">
+
+    <!-- CATEGORÍAS -->
+    <section class="mb-5" id="categorias">
+        <div class="section-center">
+            <h2 class="section-title">Categorías Destacadas
+                <span class="title-tag">¡Elige tu favorita!</span>
+            </h2>
+        </div>
+        <div class="swiper swiperCategories">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-rocket"></i>🚀 Tech</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-paint-brush"></i>🎨 Diseño</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-music"></i>🎵 Música</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-camera"></i>📸 Fotos</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-utensils"></i>🍳 Cocina</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-running"></i>🏃 Deporte</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-gamepad"></i>🎮 Juegos</a></div>
+            </div>
+            <div class="swiper-pagination mt-4"></div>
+        </div>
+    </section>
+
+    <div class="party-divider"><span>🎉 🎊 🎉</span></div>
+
+    <!-- REVIEWS -->
+    <section class="mb-5">
+        <div class="section-center">
+            <h2 class="section-title">Lo que dicen los invitados
+                <span class="title-tag">¡Reseñas súper felices!</span>
+            </h2>
+        </div>
+        <div class="swiper swiperReviews">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"¡El servicio es increíble! Todo estuvo tan bien organizado que parece magia de cumpleaños."</p>
+                        <h6>🎀 — Juan Pérez</h6>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★☆</div>
+                        <p>"Muy fácil de usar y la interfaz es súper rápida. ¡Mi hija quedó feliz con su fiesta!"</p>
+                        <h6>🌟 — Maria García</h6>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"Encontré exactamente lo que buscaba. ¡Fue la fiesta más mágica que hemos tenido!"</p>
+                        <h6>🎂 — Carlos Ruiz</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+    </section>
+
+    <div class="party-divider"><span>🍭 🌈 🍭</span></div>
+
+    <!-- CATÁLOGO GRID -->
+    <section class="mb-5">
+        <div class="section-center">
+            <h2 class="section-title">Explora Todo el Catálogo
+                <span class="title-tag">¡Hay de todo aquí!</span>
+            </h2>
+        </div>
+        <div class="row g-3">
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">💻 Tecnología</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🎨 Arte</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🎵 Música</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">📸 Fotografía</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🍽️ Gastronomía</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">⚽ Deportes</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🎮 Gaming</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">✈️ Viajes</a></div>
+        </div>
+    </section>
+
+    <div class="party-divider"><span>🎁 ⭐ 🎁</span></div>
+
+    <!-- ABOUT -->
+    <section class="about-section mb-5" id="nosotros">
+        <div class="section-center">
+            <h2 class="section-title">Sobre Nosotros
+                <span class="title-tag">¡Con todo el amor!</span>
+            </h2>
+        </div>
+        <div class="row align-items-center g-4">
+            <div class="col-md-8">
+                <p class="lead mb-4">
+                    🎂 Somos una empresa dedicada a conectar a las personas con el contenido y los servicios que aman. Desde nuestra fundación, nos hemos esforzado por ofrecer una experiencia tan especial y llena de alegría como el día más feliz del año: ¡el cumpleaños!
+                </p>
+                <p>
+                    Nuestra misión es simple: facilitar el acceso a un mundo de posibilidades, ofreciendo una plataforma donde la diversidad de intereses se encuentra con la calidad y la innovación. Creemos en el poder de la comunidad y en la constante evolución para superar las expectativas.
+                </p>
+            </div>
+            <div class="col-md-4">
+                <div class="about-logo-container">
+                    <div id="movingLogo" class="moving-logo">
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EVENTOS -->
+    <section class="mb-5 py-4" id="eventos">
+        <div class="section-center">
+            <h2 class="section-title">Tipos de Eventos
+                <span class="title-tag">¡Para cada ocasión!</span>
+            </h2>
+        </div>
+        <div class="swiper swiperEvents">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <div class="event-card"><i class="fas fa-glass-cheers"></i><h5>💍 Bodas</h5></div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="event-card"><i class="fas fa-birthday-cake"></i><h5>🎂 Cumpleaños</h5></div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="event-card"><i class="fas fa-briefcase"></i><h5>🏢 Corporativos</h5></div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="event-card"><i class="fas fa-graduation-cap"></i><h5>🎓 Graduaciones</h5></div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="event-card"><i class="fas fa-music"></i><h5>🎶 Conciertos</h5></div>
+                </div>
+            </div>
+            <div class="swiper-pagination mt-4"></div>
+        </div>
+    </section>
+
+    <div class="party-divider"><span>📍 🗺️ 📍</span></div>
+
+    <!-- UBICACIÓN -->
+    <section class="location-section mb-5">
+        <div class="row align-items-center g-4">
+            <div class="col-md-5 px-4">
+                <h2 class="mb-4">🗺️ Nuestra Ubicación</h2>
+                <p>Cubrimos toda el área metropolitana y alrededores. ¡Llévanos a tu fiesta donde tú quieras!</p>
+                <ul class="list-unstyled mt-3">
+                    <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> Calle Falsa 123, Ciudad Central</li>
+                    <li class="mb-2"><i class="fas fa-clock me-2"></i> Lun - Vie: 9:00 AM - 6:00 PM</li>
+                </ul>
+            </div>
+            <div class="col-md-7">
+                <div class="ratio ratio-16x9 rounded-4 overflow-hidden" style="border:3px solid var(--pink); box-shadow: 6px 6px 0 rgba(255,110,180,.2);">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1422937611435!2d-73.98731968459391!3d40.75889497932681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480293%3A0x5117f70619c651b0!2sTimes%20Square!5e0!3m2!1ses!2scl!4v1625070000000!5m2!1ses!2scl" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="party-divider"><span>📨 💌 📨</span></div>
+
+    <!-- CONTACTO -->
+    <section class="mb-5" id="contacto">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="contact-card">
+                    <h2 class="text-center mb-4">🎉 ¡Contáctanos!</h2>
+                    <form>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">🎀 NOMBRE</label>
+                                <input type="text" class="form-control" placeholder="Tu nombre">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">📧 CORREO ELECTRÓNICO</label>
+                                <input type="email" class="form-control" placeholder="email@ejemplo.com">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">🎂 ASUNTO</label>
+                                <input type="text" class="form-control" placeholder="¿En qué podemos ayudarte?">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">💬 MENSAJE</label>
+                                <textarea class="form-control" rows="4" placeholder="Escribe tu mensaje aquí..."></textarea>
+                            </div>
+                            <div class="col-12 text-center mt-3">
+                                <button type="button" class="btn-birthday">🎈 ENVIAR MENSAJE 🎈</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer>
+    <h4 class="mb-4">🎉 Síguenos en nuestras redes 🎉</h4>
+    <div class="d-flex justify-content-center gap-3 flex-wrap mb-3">
+        <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-twitter"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-instagram"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-whatsapp"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-linkedin-in"></i></a>
+    </div>
+    <p>&copy; 2026 🎂 Tu Empresa. Todos los derechos reservados.</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+    /* ── SWIPER ── */
+    new Swiper(".swiperCategories", {
+        slidesPerView:1, spaceBetween:10, loop:true,
+        autoplay:{delay:2800, disableOnInteraction:false},
+        breakpoints:{640:{slidesPerView:2},768:{slidesPerView:3},1024:{slidesPerView:5}},
+        pagination:{el:".swiper-pagination",clickable:true},
+    });
+    new Swiper(".swiperReviews", {
+        slidesPerView:1, spaceBetween:20, loop:true,
+        autoplay:{delay:5000},
+        navigation:{nextEl:".swiper-button-next",prevEl:".swiper-button-prev"},
+        breakpoints:{768:{slidesPerView:2}}
+    });
+    new Swiper(".swiperEvents", {
+        slidesPerView:1, spaceBetween:20, loop:true,
+        autoplay:{delay:3500, disableOnInteraction:false},
+        breakpoints:{640:{slidesPerView:2},1024:{slidesPerView:4}},
+        pagination:{el:".swiper-pagination",clickable:true},
+    });
+
+    /* ── MOVING LOGO ── */
+    const movingLogo = document.getElementById('movingLogo');
+    const aboutLogoContainer = document.querySelector('.about-logo-container');
+    if (movingLogo && aboutLogoContainer) {
+        aboutLogoContainer.addEventListener('mousemove', (e) => {
+            const r = aboutLogoContainer.getBoundingClientRect();
+            const nx = ((e.clientX - r.left) / r.width)  * 2 - 1;
+            const ny = ((e.clientY - r.top)  / r.height) * 2 - 1;
+            movingLogo.style.transform = `translate(${nx*25}px,${ny*25}px)`;
+        });
+        aboutLogoContainer.addEventListener('mouseleave', () => {
+            movingLogo.style.transform = 'translate(0,0)';
+        });
+    }
+
+    /* ── CART ── */
+    let itemCount = 0;
+    const cartCountEl = document.getElementById('cartCount');
+    function agregarAlCarrito() { itemCount++; cartCountEl.innerText = itemCount; }
+
+    /* ── CONFETTI ── */
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+
+    const COLORS = ['#ff6eb4','#ffe566','#6edcc4','#c4a8ff','#7dd6ff','#ffb380','#ff3d9a','#b3f5e5'];
+    const pieces = [];
+
+    class Piece {
+        constructor() { this.reset(true); }
+        reset(initial = false) {
+            this.x = Math.random() * canvas.width;
+            this.y = initial ? Math.random() * -canvas.height : -16;
+            this.w = Math.random() * 10 + 6;
+            this.h = Math.random() * 6 + 3;
+            this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+            this.rot = Math.random() * Math.PI * 2;
+            this.rotSpeed = (Math.random() - 0.5) * 0.12;
+            this.vx = (Math.random() - 0.5) * 1.5;
+            this.vy = Math.random() * 2 + 1;
+            this.opacity = Math.random() * 0.5 + 0.5;
+            this.shape = Math.random() > 0.5 ? 'rect' : 'circle';
+        }
+        draw() {
+            ctx.save();
+            ctx.globalAlpha = this.opacity;
+            ctx.fillStyle = this.color;
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.rot);
+            if (this.shape === 'rect') {
+                ctx.fillRect(-this.w/2, -this.h/2, this.w, this.h);
+            } else {
+                ctx.beginPath();
+                ctx.arc(0, 0, this.w/2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+            this.rot += this.rotSpeed;
+            if (this.y > canvas.height + 20) this.reset();
+        }
+    }
+
+    for (let i = 0; i < 120; i++) pieces.push(new Piece());
+
+    function animateConfetti() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(p => { p.update(); p.draw(); });
+        requestAnimationFrame(animateConfetti);
+    }
+    animateConfetti();
+</script>
+</body>
+</html>

@@ -1332,7 +1332,7 @@ function getRecordData(Id,IdTabla) {
                         // Para inputs normales (text, hidden, etc.)
                         //alert(input.type)
                         //alert(valor)
-                        if ((IdTabla == 'products_images' || IdTabla == 'related_products')  && input.type == 'file'){
+                        if ((IdTabla == 'categories' || IdTabla == 'products_images' || IdTabla == 'related_products')  && input.type == 'file'){
                             var $select = $("#file_edit_" + clave+"_1")
                             $select.val(valor);
                             //alert(clave)
@@ -1844,7 +1844,9 @@ function deleteRecord(Id,IdTabla) {
                     //alert(field)
                     //alert(type)
                     //alert(xhr.responseText)
+                    //alert(field)
                     $("#"+field).val(xhr.responseText);
+                    //alert($("#"+field).val())
 
                 }
             };

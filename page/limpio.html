@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing con Categorías, Reviews y Empresa</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        :root { --primary-color: #0d6efd; }
+        body { background-color: #f8f9fa; }
+
+        /* Estilos Comunes */
+        .section-title { font-weight: 700; margin-bottom: 40px; text-align: center; color: #333; }
+        
+        /* 1. Carrusel Categorías */
+        .cat-card {
+            background: #fff; border-radius: 12px; padding: 25px;
+            text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: 0.3s; border: 1px solid #eee; margin: 10px 5px;
+            text-decoration: none; color: #333; display: block;
+        }
+        .cat-card:hover { transform: translateY(-5px); border-color: var(--primary-color); background-color: var(--primary-color); color: white; }
+
+        /* 2. Carrusel Reviews */
+        .review-card {
+            background: #fff; border-radius: 15px; padding: 30px;
+            margin: 20px 10px; border-left: 5px solid var(--primary-color);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .stars { color: #ffc107; margin-bottom: 10px; }
+
+        /* 3. Grid de Categorías */
+        .grid-item {
+            background: #fff; border-radius: 10px; padding: 20px;
+            text-align: center; transition: 0.3s; height: 100%;
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; border: 1px solid #e0e0e0;
+            text-decoration: none; color: #333;
+        }
+        .grid-item:hover { background: var(--primary-color); color: white; transform: scale(1.02); }
+
+        /* 4. Sección Sobre Nosotros */
+        .about-section {
+            background-color: #e9ecef; /* Un gris claro para diferenciar */
+            border-radius: 15px;
+            padding: 50px;
+        }
+        .about-logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 150px; /* Altura para el movimiento */
+            overflow: hidden; /* Oculta el logo si se sale del contenedor */
+        }
+        .moving-logo {
+            width: 100px; /* Tamaño del logo */
+            height: 100px;
+            background-color: var(--primary-color); /* Color de ejemplo */
+            border-radius: 50%; /* Para un logo redondo */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            color: white;
+            position: relative; /* Necesario para el movimiento con transform */
+            transition: transform 0.1s linear; /* Movimiento suave */
+        }
+        /* Para un logo de imagen, usa esto en vez del anterior */
+        /*
+        .moving-logo img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+        */
+
+/* Altura de la sección del logo */
+.hero-logo-section {
+    min-height: 50vh;
+    overflow: hidden;
+    background: radial-gradient(circle, #ffffff 0%, #f1f1f1 100%);
+}
+
+/* Contenedor del logo */
+.main-logo {
+    font-size: 8rem;
+    color: var(--primary-color);
+    display: inline-block;
+    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+    /* Aplicamos las animaciones combinadas */
+    animation: bounce 2s infinite ease-in-out, dance 3s infinite ease-in-out;
+}
+
+/* Animación de Rebote (Arriba y Abajo) */
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-30px);
+    }
+}
+
+/* Animación de Baile (Rotación y balanceo) */
+@keyframes dance {
+    0%, 100% {
+        rotate: 0deg;
+        scale: 1;
+    }
+    25% {
+        rotate: 15deg;
+        scale: 1.1;
+    }
+    75% {
+        rotate: -15deg;
+        scale: 0.9;
+    }
+}
+
+/* Si usas una imagen en lugar de un icono, esto asegura que escale bien */
+.main-logo img {
+    width: 200px;
+    height: auto;
+}        
+
+/* CAPA 1: Animación constante de baile y rebote */
+.dance-container {
+    display: inline-block;
+    animation: bounce 2s infinite ease-in-out, dance 3s infinite ease-in-out;
+}
+
+/* CAPA 2: El giro 360 independiente */
+.spinner-hover {
+    display: inline-block;
+    transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    cursor: pointer;
+}
+
+/* Al pasar el mouse, gira 360 sin importar lo que haga la capa de afuera */
+.spinner-hover:hover {
+    transform: rotate(360deg) scale(1.2);
+}
+
+/* Estilo del contenido del logo (Icono o Imagen) */
+.main-logo-content {
+    font-size: 8rem;
+    color: #0d6efd; /* Color primario */
+    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+}
+
+/* Mantenemos tus Keyframes originales */
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-30px); }
+}
+
+@keyframes dance {
+    0%, 100% { rotate: 0deg; }
+    25% { rotate: 15deg; }
+    75% { rotate: -15deg; }
+}
+
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="#">
+            <img height="36px" src="https://dsjumpers.com/wp-content/uploads/2025/02/cropped-Logotipo-D%C2%B4S-Jumpers-qnohhmv0x0akjoiwicpksyn98vul3qjxppjyzgt6og.webp" alt="dsjumpers"> MI EMPRESA
+        </a>
+
+        <div class="d-flex align-items-center ms-auto me-3 order-lg-last">
+            <a class="nav-link position-relative p-2" href="#" id="cartIcon" style="color: white;">
+                <i class="fas fa-shopping-cart fa-lg"></i>
+                <span id="cartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                    0
+                </span>
+            </a>
+        </div>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="menuPrincipal">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#categorias">Categorías</a></li>
+                <li class="nav-item"><a class="nav-link" href="#eventos">Eventos</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="dropNosotros" data-bs-toggle="dropdown">
+                        Acerca de nosotros
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                        <li><a class="dropdown-item" href="#nosotros">Nosotros</a></li>
+                        <li><a class="dropdown-item" href="#contacto">Contáctanos</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<section class="hero-logo-section d-flex align-items-center justify-content-center bg-white border-bottom">
+    <div class="container text-center">
+        <div class="dance-container">
+            <div class="spinner-hover">
+                <div id="dancingLogo" class="main-logo-content">
+                    <img src="https://dsjumpers.com/wp-content/uploads/2025/02/cropped-Logotipo-D%C2%B4S-Jumpers-qnohhmv0x0akjoiwicpksyn98vul3qjxppjyzgt6og.webp" alt="dsjumpers">
+            </div>
+        </div>
+        
+        <div class="hero-text mt-4">
+            <h1 class="display-3 fw-bold text-dark">Tu Empresa</h1>
+            <p class="lead text-secondary">Creatividad en movimiento.</p>
+        </div>
+    </div>
+</section>
+<div class="container py-5">
+    
+    <section class="mb-5">
+        <h2 class="section-title">Categorías Destacadas</h2>
+        <div class="swiper swiperCategories">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide"><a href="#" class="cat-card">🚀 Tech</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card">🎨 Diseño</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card">🎵 Música</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card">📸 Fotos</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card">🍳 Cocina</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card">🏃 Deporte</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card">🎮 Juegos</a></div>
+            </div>
+            <div class="swiper-pagination"></div>
+        </div>
+    </section>
+
+    <hr class="my-5">
+
+    <section class="mb-5">
+        <h2 class="section-title">Lo que dicen nuestros clientes</h2>
+        <div class="swiper swiperReviews">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p class="fst-italic">"El servicio es increíble, las categorías están muy bien organizadas."</p>
+                        <h6 class="mb-0">- Juan Pérez</h6>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★☆</div>
+                        <p class="fst-italic">"Muy fácil de usar y la interfaz es súper rápida. Recomendado."</p>
+                        <h6 class="mb-0">- Maria García</h6>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p class="fst-italic">"Encontré exactamente lo que buscaba en segundos."</p>
+                        <h6 class="mb-0">- Carlos Ruiz</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+    </section>
+
+    <hr class="my-5">
+
+    <section class="mb-5">
+        <h2 class="section-title">Explora Todo el Catálogo</h2>
+        <div class="row g-4">
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item"><h5>Tecnología</h5></a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item"><h5>Arte</h5></a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item"><h5>Música</h5></a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item"><h5>Fotografía</h5></a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item"><h5>Gastronomía</h5></a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item"><h5>Deportes</h5></a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item"><h5>Gaming</h5></a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item"><h5>Viajes</h5></a></div>
+        </div>
+    </section>
+
+    <hr class="my-5">
+
+    <section class="about-section text-center p-5">
+        <h2 class="section-title text-dark">Sobre Nosotros</h2>
+        <div class="row align-items-center">
+            <div class="col-md-8 text-md-start">
+                <p class="lead mb-4">
+                    Somos una empresa dedicada a conectar a las personas con el contenido y los servicios que aman. Desde nuestra fundación en [Año], nos hemos esforzado por ofrecer una experiencia única, intuitiva y enriquecedora.
+                </p>
+                <p>
+                    Nuestra misión es simple: facilitar el acceso a un mundo de posibilidades, ofreciendo una plataforma donde la diversidad de intereses se encuentra con la calidad y la innovación. Creemos en el poder de la comunidad y en la constante evolución para superar las expectativas.
+                </p>
+            </div>
+            <div class="col-md-4">
+                <div class="about-logo-container">
+                    <div id="movingLogo" class="moving-logo">
+                        <i class="fas fa-star"></i> </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="mb-5 py-5">
+        <h2 class="section-title">Tipos de Eventos</h2>
+        <div class="swiper swiperEvents">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <div class="cat-card border-0 shadow">
+                        <i class="fas fa-glass-cheers fa-3x mb-3 text-primary"></i>
+                        <h5>Bodas</h5>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="cat-card border-0 shadow">
+                        <i class="fas fa-birthday-cake fa-3x mb-3 text-primary"></i>
+                        <h5>Cumpleaños</h5>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="cat-card border-0 shadow">
+                        <i class="fas fa-briefcase fa-3x mb-3 text-primary"></i>
+                        <h5>Corporativos</h5>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="cat-card border-0 shadow">
+                        <i class="fas fa-graduation-cap fa-3x mb-3 text-primary"></i>
+                        <h5>Graduaciones</h5>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="cat-card border-0 shadow">
+                        <i class="fas fa-music fa-3x mb-3 text-primary"></i>
+                        <h5>Conciertos</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-pagination mt-4"></div>
+        </div>
+    </section>
+
+    <section class="mb-5 py-5 bg-white rounded-4 shadow-sm">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-5 px-4">
+                    <h2 class="fw-bold mb-4">Nuestra Ubicación</h2>
+                    <p class="text-muted">Cubrimos toda el área metropolitana y alrededores. Visítanos en nuestra oficina central para una asesoría personalizada.</p>
+                    <ul class="list-unstyled mt-3">
+                        <li class="mb-2"><i class="fas fa-map-marker-alt text-primary me-2"></i> Calle Falsa 123, Ciudad Central</li>
+                        <li class="mb-2"><i class="fas fa-clock text-primary me-2"></i> Lun - Vie: 9:00 AM - 6:00 PM</li>
+                    </ul>
+                </div>
+                <div class="col-md-7">
+                    <div class="ratio ratio-16x9 rounded-3 overflow-hidden shadow">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1422937611435!2d-73.98731968459391!3d40.75889497932681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480293%3A0x5117f70619c651b0!2sTimes%20Square!5e0!3m2!1ses!2scl!4v1625070000000!5m2!1ses!2scl" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="mb-5 py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card border-0 shadow-lg p-4">
+                    <h2 class="text-center fw-bold mb-4">Contáctanos</h2>
+                    <form>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Nombre</label>
+                                <input type="text" class="form-control" placeholder="Tu nombre">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Correo Electrónico</label>
+                                <input type="email" class="form-control" placeholder="email@ejemplo.com">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Asunto</label>
+                                <input type="text" class="form-control" placeholder="¿En qué podemos ayudarte?">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Mensaje</label>
+                                <textarea class="form-control" rows="4" placeholder="Escribe tu mensaje aquí..."></textarea>
+                            </div>
+                            <div class="col-12 text-center mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg px-5">Enviar Mensaje</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-5 text-center border-top">
+        <h4 class="mb-4 fw-bold">Síguenos en nuestras redes</h4>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="#" class="btn btn-outline-primary rounded-circle p-3 shadow-sm" style="width: 60px; height: 60px;">
+                <i class="fab fa-facebook-f fa-lg"></i>
+            </a>
+            <a href="#" class="btn btn-outline-info rounded-circle p-3 shadow-sm" style="width: 60px; height: 60px;">
+                <i class="fab fa-twitter fa-lg"></i>
+            </a>
+            <a href="#" class="btn btn-outline-danger rounded-circle p-3 shadow-sm" style="width: 60px; height: 60px;">
+                <i class="fab fa-instagram fa-lg"></i>
+            </a>
+            <a href="#" class="btn btn-outline-success rounded-circle p-3 shadow-sm" style="width: 60px; height: 60px;">
+                <i class="fab fa-whatsapp fa-lg"></i>
+            </a>
+            <a href="#" class="btn btn-outline-dark rounded-circle p-3 shadow-sm" style="width: 60px; height: 60px;">
+                <i class="fab fa-linkedin-in fa-lg"></i>
+            </a>
+        </div>
+        <p class="mt-4 text-muted small">&copy; 2026 Tu Empresa. Todos los derechos reservados.</p>
+    </footer>    
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+    // Inicializar Carrusel Categorías
+    new Swiper(".swiperCategories", {
+        slidesPerView: 1,
+        spaceBetween: 10,
+        loop: true,
+        autoplay: { delay: 3000, disableOnInteraction: false },
+        breakpoints: {
+            640: { slidesPerView: 2 },
+            768: { slidesPerView: 3 },
+            1024: { slidesPerView: 5 },
+        },
+        pagination: { el: ".swiper-pagination", clickable: true },
+    });
+
+    // Inicializar Carrusel Reviews
+    new Swiper(".swiperReviews", {
+        slidesPerView: 1,
+        spaceBetween: 20,
+        loop: true,
+        autoplay: { delay: 5000 },
+        navigation: { nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" },
+        breakpoints: {
+            768: { slidesPerView: 2 },
+        }
+    });
+
+    // JavaScript para el logo que sigue al puntero
+    const movingLogo = document.getElementById('movingLogo');
+    const aboutLogoContainer = document.querySelector('.about-logo-container');
+    const movementRange = 20; // Pixeles de movimiento máximo
+
+    if (movingLogo && aboutLogoContainer) {
+        aboutLogoContainer.addEventListener('mousemove', (e) => {
+            const containerRect = aboutLogoContainer.getBoundingClientRect();
+            
+            // Calcula la posición relativa del mouse dentro del contenedor
+            const mouseX = e.clientX - containerRect.left;
+            const mouseY = e.clientY - containerRect.top;
+
+            // Normaliza la posición a un rango de -1 a 1
+            const normalizedX = (mouseX / containerRect.width) * 2 - 1;
+            const normalizedY = (mouseY / containerRect.height) * 2 - 1;
+
+            // Calcula el desplazamiento del logo
+            const offsetX = normalizedX * movementRange;
+            const offsetY = normalizedY * movementRange;
+
+            movingLogo.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+        });
+
+        // Reiniciar posición cuando el mouse sale del contenedor
+        aboutLogoContainer.addEventListener('mouseleave', () => {
+            movingLogo.style.transform = `translate(0px, 0px)`;
+        });
+    }
+
+    new Swiper(".swiperEvents", {
+        slidesPerView: 1,
+        spaceBetween: 20,
+        loop: true,
+        autoplay: { delay: 3500, disableOnInteraction: false },
+        breakpoints: {
+            640: { slidesPerView: 2 },
+            1024: { slidesPerView: 4 },
+        },
+        pagination: { el: ".swiper-pagination", clickable: true },
+    });    
+
+
+// Lógica simple para el contador del carrito
+let itemCount = 0;
+const cartCountElement = document.getElementById('cartCount');
+
+// Esta función simula agregar un producto
+function agregarAlCarrito() {
+    itemCount++;
+    cartCountElement.innerText = itemCount;
+    
+    // Animación pequeña al icono
+    const cartIcon = document.getElementById('cartIcon');
+    cartIcon.classList.add('animate__animated', 'animate__rubberBand');
+    setTimeout(() => cartIcon.classList.remove('animate__animated', 'animate__rubberBand'), 1000);
+}
+
+// Ejemplo: Si quieres probarlo, puedes añadir un botón en tus tarjetas con: 
+// onclick="agregarAlCarrito()"    
+
+</script>
+</body>
+</html>

@@ -225,9 +225,9 @@ function armar_formulario_add($tabla,$etiqueta,$idioma){
                             break;                            
 
                         case 'img':
-                            echo '<label class="form-label" for="'.$Campo.'">'.$Titulo.'</label>';
+                            echo '<label class="form-label" for="file_'.$Campo.'">'.$Titulo.'</label>';
                             echo '<input name="file_'.$Campo.'" id="file_'.$Campo.'" class="'.$form_control.'" type="file"  accept="'.$Filtro.'">';
-                            echo '<input name="'.$Campo.'" id="'.$Campo.'"  type="hidden" >';
+                            echo '<input name="'.$Campo.'" id="'.$Campo.'"  type="text" style=" display: none;" >';
                             //echo '<input type="file" id="uploadfiles"  accept="image/*" />';
                             if ($Regla != "")
                                 echo '<small class="form-text text-muted">'.$Regla.'</small>';
@@ -248,7 +248,9 @@ function armar_formulario_add($tabla,$etiqueta,$idioma){
                                     uploadFile(this.files[i],'".$Campo."','img'); 
                                     previewImage(this.files[i],'".$Campo."');
                                 }
-                            }, false);                    
+                                    
+                            }, false);  
+                            
                             </script>
                             ";
                             break;

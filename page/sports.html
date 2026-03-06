@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ D'S Jumpers — Arena Sports</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700;1,900&family=Barlow:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --black:    #080810;
+            --dark:     #0e0e1a;
+            --panel:    #13131f;
+            --card:     #1a1a2e;
+            --accent:   #f5c518;   /* electric gold */
+            --red:      #e8002d;   /* championship red */
+            --white:    #f0f0ff;
+            --grey:     #8888aa;
+            --field:    #1a3a1a;
+            --line:     rgba(255,255,255,.12);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--black);
+            font-family: 'Barlow', sans-serif;
+            color: var(--white);
+            overflow-x: hidden;
+        }
+
+        /* ── SCANLINE TEXTURE ── */
+        body::after {
+            content: "";
+            position: fixed; inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,.04) 2px,
+                rgba(0,0,0,.04) 4px
+            );
+            pointer-events: none;
+            z-index: 9998;
+        }
+
+        /* ── NAVBAR ── */
+        .navbar {
+            background: var(--black) !important;
+            border-bottom: 3px solid var(--accent);
+            padding: 10px 0;
+        }
+        .navbar-brand {
+            font-family: 'Anton', sans-serif;
+            font-size: 1.6rem;
+            color: var(--accent) !important;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        .nav-link {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--white) !important;
+            transition: color .15s;
+            padding: 6px 14px !important;
+            position: relative;
+        }
+        .nav-link::after {
+            content: "";
+            position: absolute;
+            bottom: 0; left: 14px; right: 14px;
+            height: 2px;
+            background: var(--accent);
+            transform: scaleX(0);
+            transition: transform .2s;
+        }
+        .nav-link:hover { color: var(--accent) !important; }
+        .nav-link:hover::after { transform: scaleX(1); }
+        .dropdown-menu {
+            background: var(--panel);
+            border: 1px solid rgba(245,197,24,.2);
+            border-radius: 0;
+        }
+        .dropdown-item {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--white);
+            font-size: .9rem;
+        }
+        .dropdown-item:hover { background: rgba(245,197,24,.1); color: var(--accent); }
+        #cartCount { background: var(--red) !important; }
+
+        /* ══════════════════════════════════════
+           HERO — Stadium night
+        ══════════════════════════════════════ */
+        .hero-section {
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--black);
+        }
+
+        /* Stadium field floor */
+        .field-floor {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, #0f2a0f 0%, #0a1e0a 100%);
+            z-index: 1;
+        }
+        /* Field white lines */
+        .field-floor::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: rgba(255,255,255,.25);
+            box-shadow: 0 20px 0 rgba(255,255,255,.08), 0 60px 0 rgba(255,255,255,.05);
+        }
+        /* Center circle */
+        .center-circle {
+            position: absolute;
+            bottom: 5%;
+            left: 50%; transform: translateX(-50%);
+            width: 260px; height: 260px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,.12);
+            z-index: 2;
+        }
+        .center-circle::before {
+            content: "";
+            position: absolute;
+            top: 50%; left: 50%; transform: translate(-50%,-50%);
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,.2);
+        }
+
+        /* Stadium lights (4 corners) */
+        .stadium-light {
+            position: absolute;
+            z-index: 3;
+            pointer-events: none;
+        }
+        .stadium-light .pole {
+            width: 6px;
+            background: linear-gradient(to top, #333, #666);
+            border-radius: 3px;
+            margin: 0 auto;
+        }
+        .stadium-light .head {
+            width: 60px; height: 14px;
+            background: #555;
+            border-radius: 4px;
+            position: relative;
+            margin: 0 auto;
+        }
+        .stadium-light .beam {
+            position: absolute;
+            top: 100%;
+            left: 50%; transform: translateX(-50%);
+            width: 0; height: 0;
+            border-left: 80px solid transparent;
+            border-right: 80px solid transparent;
+            border-top: 300px solid rgba(255,240,100,.04);
+            animation: beamFlicker 3s ease-in-out infinite;
+        }
+        @keyframes beamFlicker {
+            0%,100%{ opacity:1; }
+            50%{ opacity:.6; }
+        }
+        .light-tl { top: 2%; left: 2%;  }
+        .light-tr { top: 2%; right: 2%; transform: scaleX(-1); }
+
+        /* Score ticker at top */
+        .score-ticker {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            background: var(--red);
+            height: 36px;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 20;
+            overflow: hidden;
+        }
+        .ticker-content {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            font-size: .75rem;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: white;
+            white-space: nowrap;
+            animation: tickerScroll 30s linear infinite;
+            display: inline-block;
+        }
+        @keyframes tickerScroll {
+            from { transform: translateX(100vw); }
+            to   { transform: translateX(-100%); }
+        }
+
+        /* Hero inner */
+        .hero-inner {
+            position: relative; z-index: 10;
+            text-align: center;
+            padding: 80px 20px 100px;
+        }
+
+        /* Logo — jersey number style */
+        .logo-ring {
+            width: 180px; height: 180px;
+            border-radius: 50%;
+            border: 4px solid var(--accent);
+            box-shadow:
+                0 0 0 8px rgba(245,197,24,.08),
+                0 0 60px rgba(245,197,24,.15),
+                0 20px 60px rgba(0,0,0,.8);
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-bottom: 30px;
+            overflow: hidden;
+            background: radial-gradient(circle, rgba(245,197,24,.08), var(--black));
+            animation: logoPulse 2.5s ease-in-out infinite;
+        }
+        .logo-ring img {
+            width: 130px; height: 130px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 12px rgba(245,197,24,.3));
+        }
+        @keyframes logoPulse {
+            0%,100%{ box-shadow: 0 0 0 8px rgba(245,197,24,.08), 0 0 40px rgba(245,197,24,.1); }
+            50%    { box-shadow: 0 0 0 14px rgba(245,197,24,.12), 0 0 70px rgba(245,197,24,.25); }
+        }
+
+        .hero-eyebrow {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 700;
+            font-size: .75rem;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 8px;
+            animation: fadeUp .6s .1s both;
+        }
+
+        .hero-title {
+            font-family: 'Anton', sans-serif;
+            font-size: clamp(4.5rem, 14vw, 10rem);
+            line-height: .88;
+            color: var(--white);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            animation: titleCrash .7s .2s cubic-bezier(.16,1,.3,1) both;
+            /* Italic slant — sports style */
+            transform: skewX(-4deg);
+            display: inline-block;
+        }
+        /* Gold underline stripe */
+        .hero-title span {
+            color: var(--accent);
+            position: relative;
+        }
+        .hero-title span::after {
+            content: "";
+            position: absolute;
+            bottom: 4px; left: 0; right: 0;
+            height: 6px;
+            background: var(--red);
+            z-index: -1;
+        }
+        @keyframes titleCrash {
+            from { opacity:0; transform: skewX(-4deg) translateY(-50px) scale(1.1); }
+            to   { opacity:1; transform: skewX(-4deg) translateY(0) scale(1); }
+        }
+
+        .hero-sub {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--grey);
+            margin-bottom: 36px;
+            animation: fadeUp .6s .4s both;
+        }
+
+        .hero-btn {
+            font-family: 'Anton', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            padding: 16px 52px;
+            border: none;
+            background: var(--accent);
+            color: var(--black);
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: .2s;
+            clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+            animation: fadeUp .6s .55s both;
+            position: relative;
+        }
+        .hero-btn::before {
+            content: "";
+            position: absolute; inset: 0;
+            background: var(--red);
+            clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform .25s;
+            z-index: 0;
+        }
+        .hero-btn span { position: relative; z-index: 1; }
+        .hero-btn:hover { color: white; transform: translateY(-3px); box-shadow: 0 10px 30px rgba(232,0,45,.3); }
+        .hero-btn:hover::before { transform: scaleX(1); }
+
+        @keyframes fadeUp {
+            from { opacity:0; transform: translateY(20px); }
+            to   { opacity:1; transform: translateY(0); }
+        }
+
+        /* Stats bar */
+        .hero-stats {
+            display: flex; justify-content: center; gap: 48px;
+            margin-top: 40px;
+            animation: fadeUp .6s .7s both;
+        }
+        .stat-item { text-align: center; }
+        .stat-num {
+            font-family: 'Anton', sans-serif;
+            font-size: 2.4rem;
+            color: var(--accent);
+            line-height: 1;
+            letter-spacing: 2px;
+        }
+        .stat-label {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 700;
+            font-size: .7rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--grey);
+            margin-top: 4px;
+        }
+        .stat-divider {
+            width: 1px;
+            background: rgba(255,255,255,.12);
+            align-self: stretch;
+        }
+
+        /* Bottom chevron */
+        .hero-chevron {
+            position: absolute;
+            bottom: -2px; left: 0; right: 0;
+            z-index: 4;
+        }
+        .hero-chevron svg { width: 100%; display: block; }
+
+        /* ── MARQUEE ── */
+        .sport-tape {
+            background: var(--accent);
+            padding: 10px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+            z-index: 5;
+        }
+        .tape-txt {
+            display: inline-block;
+            font-family: 'Anton', sans-serif;
+            font-size: 1rem;
+            color: var(--black);
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            animation: tapeScroll 20s linear infinite;
+            padding-right: 60px;
+        }
+        @keyframes tapeScroll {
+            from { transform: translateX(100vw); }
+            to   { transform: translateX(-100%); }
+        }
+
+        /* ── SECTION TITLE ── */
+        .section-title {
+            font-family: 'Anton', sans-serif;
+            font-size: 2.6rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--white);
+            margin-bottom: 4px;
+            transform: skewX(-3deg);
+            display: inline-block;
+        }
+        .title-accent {
+            display: block;
+            width: 48px; height: 4px;
+            background: var(--accent);
+            margin: 8px auto 32px;
+        }
+        .section-eye {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 700;
+            font-size: .7rem;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            color: var(--red);
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        /* ── DIVIDER ── */
+        .sport-divider {
+            display: flex; align-items: center; gap: 16px;
+            margin: 52px 0;
+        }
+        .sport-divider::before, .sport-divider::after {
+            content: ""; flex: 1; height: 1px;
+            background: linear-gradient(to right, transparent, rgba(245,197,24,.3), transparent);
+        }
+        .sport-divider span { font-size: 1.4rem; white-space: nowrap; color: var(--accent); font-family: 'Anton', sans-serif; letter-spacing: 4px; font-size: .8rem; text-transform: uppercase; }
+
+        /* ── CAT CARDS ── */
+        .cat-card {
+            background: var(--card);
+            border-radius: 0;
+            padding: 28px 16px 22px;
+            text-align: center;
+            margin: 8px 5px;
+            text-decoration: none;
+            color: var(--white);
+            display: block;
+            border-top: 3px solid var(--accent);
+            border-left: 1px solid rgba(255,255,255,.06);
+            border-right: 1px solid rgba(255,255,255,.06);
+            border-bottom: 1px solid rgba(255,255,255,.06);
+            transition: .2s;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            position: relative;
+            clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+        }
+        .cat-card i { color: var(--accent); font-size: 2rem; margin-bottom: 12px; display: block; transition: .2s; }
+        .cat-card:hover {
+            background: var(--red);
+            color: white;
+            border-top-color: var(--red);
+            transform: translateY(-6px);
+            box-shadow: 0 14px 40px rgba(232,0,45,.3);
+        }
+        .cat-card:hover i { color: white; transform: scale(1.25); }
+
+        /* ── REVIEW CARDS ── */
+        .review-card {
+            background: var(--card);
+            padding: 30px;
+            margin: 16px 10px;
+            border-left: 4px solid var(--accent);
+            position: relative;
+            overflow: hidden;
+            clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+        }
+        .review-card::before {
+            content: "";
+            position: absolute; top:0; right:0;
+            border-top: 16px solid var(--accent);
+            border-left: 16px solid transparent;
+        }
+        .review-card .stars { color: var(--accent); font-size: 1.1rem; margin-bottom: 12px; letter-spacing: 3px; }
+        .review-card p { color: #a0a0c0; font-style: italic; line-height: 1.7; font-size: 1rem; }
+        .review-card h6 {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            color: var(--accent);
+            margin-top: 14px;
+            font-size: .85rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        /* ── GRID ITEMS ── */
+        .grid-item {
+            background: var(--card);
+            padding: 26px 14px;
+            text-align: center; height: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border: 1px solid rgba(255,255,255,.06);
+            border-top: 2px solid rgba(245,197,24,.3);
+            text-decoration: none;
+            color: var(--white);
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: .2s;
+        }
+        .grid-item:hover {
+            background: rgba(245,197,24,.06);
+            border-top-color: var(--accent);
+            color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0,0,0,.4);
+        }
+
+        /* ── SCOREBOARD ABOUT ── */
+        .about-section {
+            background: var(--panel);
+            padding: 55px 50px;
+            border: 1px solid rgba(245,197,24,.12);
+            position: relative;
+            overflow: hidden;
+        }
+        /* Field lines background */
+        .about-section::before {
+            content: "";
+            position: absolute; inset: 0;
+            background:
+                linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+        }
+        .about-section p { color: #9090b0; line-height: 1.8; }
+        .about-section p.lead { color: #c0c0d8; font-size: 1.1rem; font-weight: 600; }
+        .about-logo-container {
+            display: flex; justify-content: center; align-items: center;
+            height: 160px;
+        }
+        .moving-logo {
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            border: 2px solid var(--accent);
+            box-shadow: 0 0 30px rgba(245,197,24,.2), 0 0 60px rgba(245,197,24,.08);
+            background: radial-gradient(circle, rgba(245,197,24,.06), var(--dark));
+            display: flex; justify-content: center; align-items: center;
+            font-size: 2.8rem; color: var(--accent);
+            position: relative;
+            transition: transform .15s linear;
+            animation: scorePulse 2s ease-in-out infinite;
+        }
+        @keyframes scorePulse {
+            0%,100%{ box-shadow: 0 0 20px rgba(245,197,24,.2); }
+            50%    { box-shadow: 0 0 50px rgba(245,197,24,.4), 0 0 100px rgba(245,197,24,.1); }
+        }
+
+        /* ── EVENT CARDS ── */
+        .event-card {
+            background: var(--card);
+            padding: 28px 16px;
+            text-align: center;
+            margin: 8px 5px;
+            border: 1px solid rgba(255,255,255,.06);
+            border-bottom: 3px solid var(--red);
+            transition: .2s;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            position: relative;
+        }
+        .event-card i { font-size: 2.2rem; margin-bottom: 12px; display: block; color: var(--grey); transition: .2s; }
+        .event-card h5 { font-size: .9rem; color: var(--white); letter-spacing: 2px; text-transform: uppercase; }
+        .event-card:hover {
+            border-bottom-color: var(--accent);
+            transform: translateY(-6px);
+            box-shadow: 0 12px 35px rgba(0,0,0,.5);
+        }
+        .event-card:hover i { color: var(--accent); transform: scale(1.2); }
+
+        /* ── NUMBER BADGE on section ── */
+        .number-badge {
+            font-family: 'Anton', sans-serif;
+            font-size: 8rem;
+            color: rgba(245,197,24,.04);
+            position: absolute;
+            top: -20px; right: 20px;
+            line-height: 1;
+            pointer-events: none;
+            user-select: none;
+            letter-spacing: -5px;
+        }
+
+        /* ── LOCATION ── */
+        .location-section {
+            background: var(--card);
+            padding: 40px;
+            border: 1px solid rgba(255,255,255,.06);
+            border-top: 3px solid var(--accent);
+        }
+        .location-section h2 {
+            font-family: 'Anton', sans-serif;
+            color: var(--white);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-size: 1.8rem;
+        }
+        .location-section i { color: var(--accent) !important; }
+        .location-section p, .location-section li { color: var(--grey); font-size: .95rem; letter-spacing: .5px; }
+
+        /* ── CONTACT ── */
+        .contact-card {
+            background: var(--panel);
+            padding: 48px;
+            border: 1px solid rgba(245,197,24,.12);
+            position: relative;
+            overflow: hidden;
+        }
+        .contact-card::before {
+            content: "";
+            position: absolute; top:0; left:0; right:0;
+            height: 3px;
+            background: linear-gradient(to right, var(--red), var(--accent));
+        }
+        .contact-card h2 {
+            font-family: 'Anton', sans-serif;
+            color: var(--white);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-size: 2.2rem;
+            transform: skewX(-3deg);
+            display: inline-block;
+        }
+        .form-label {
+            color: var(--grey);
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 700;
+            font-size: .7rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+        .form-control {
+            background: rgba(255,255,255,.04);
+            border: 1px solid rgba(255,255,255,.1);
+            border-bottom: 2px solid rgba(245,197,24,.3);
+            color: var(--white);
+            border-radius: 0;
+            padding: 12px 16px;
+            transition: .2s;
+            font-family: 'Barlow', sans-serif;
+            font-weight: 600;
+        }
+        .form-control:focus {
+            background: rgba(245,197,24,.04);
+            border-bottom-color: var(--accent);
+            box-shadow: none;
+            color: var(--white);
+        }
+        .form-control::placeholder { color: rgba(255,255,255,.2); }
+        .btn-sport {
+            font-family: 'Anton', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            padding: 16px 52px;
+            border: none;
+            background: var(--accent);
+            color: var(--black);
+            transition: .2s;
+            cursor: pointer;
+            clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+        }
+        .btn-sport:hover {
+            background: var(--red);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(232,0,45,.35);
+        }
+
+        /* ── FOOTER ── */
+        footer {
+            background: var(--black);
+            border-top: 3px solid var(--accent);
+            padding: 50px 20px 30px;
+            text-align: center;
+        }
+        footer h4 {
+            font-family: 'Anton', sans-serif;
+            color: var(--white);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-size: 1.4rem;
+            margin-bottom: 24px;
+        }
+        .social-btn {
+            width: 52px; height: 52px;
+            border: 1px solid rgba(255,255,255,.12);
+            background: rgba(255,255,255,.04);
+            color: var(--grey);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+            transition: .2s;
+            text-decoration: none;
+        }
+        .social-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--black);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(245,197,24,.3);
+        }
+        footer p { color: rgba(255,255,255,.18); font-size: .75rem; letter-spacing: 3px; text-transform: uppercase; margin-top: 24px; }
+
+        /* ── SWIPER ── */
+        .swiper-button-next, .swiper-button-prev {
+            color: var(--accent) !important;
+            background: rgba(245,197,24,.08);
+            border: 1px solid rgba(245,197,24,.2);
+            border-radius: 0;
+            width: 42px !important; height: 42px !important;
+        }
+        .swiper-button-next::after, .swiper-button-prev::after { font-size: .85rem !important; font-weight: 900 !important; }
+        .swiper-pagination-bullet { background: rgba(255,255,255,.2) !important; }
+        .swiper-pagination-bullet-active { background: var(--accent) !important; }
+
+        /* ── LIVE BADGE ── */
+        .live-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            font-size: .7rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: white;
+            background: var(--red);
+            padding: 4px 12px;
+            margin-bottom: 16px;
+        }
+        .live-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: white;
+            animation: liveBlink .8s ease-in-out infinite;
+        }
+        @keyframes liveBlink {
+            0%,100%{ opacity:1; }
+            50%{ opacity:.2; }
+        }
+
+        .main-wrap { position: relative; z-index: 5; }
+    </style>
+</head>
+<body>
+
+<!-- ══════════ NAVBAR ══════════ -->
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <img height="32px" src="https://dsjumpers.com/wp-content/uploads/2025/02/cropped-Logotipo-D%C2%B4S-Jumpers-qnohhmv0x0akjoiwicpksyn98vul3qjxppjyzgt6og.webp" alt="logo" class="me-2 rounded-circle" style="border:2px solid rgba(245,197,24,.4);">
+            ⚡ MI EMPRESA
+        </a>
+        <div class="d-flex align-items-center ms-auto me-3 order-lg-last">
+            <a class="nav-link position-relative p-2" href="#" id="cartIcon">
+                <i class="fas fa-shopping-cart fa-lg" style="color:var(--accent);"></i>
+                <span id="cartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill" style="font-size:.65rem;">0</span>
+            </a>
+        </div>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal" style="color:var(--accent);">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="menuPrincipal">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#categorias">⚽ Categorías</a></li>
+                <li class="nav-item"><a class="nav-link" href="#eventos">🏆 Eventos</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">🥇 Nosotros</a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#nosotros">⚡ Sobre Nosotros</a></li>
+                        <li><a class="dropdown-item" href="#contacto">📨 Contáctanos</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ══════════ HERO ══════════ -->
+<section class="hero-section">
+    <!-- Score ticker -->
+    <div class="score-ticker">
+        <span class="ticker-content">
+            ⚽ D'S JUMPERS 3 — 1 COMPETENCIA &nbsp;|&nbsp; 🏀 TEMPORADA 2026 EN CURSO &nbsp;|&nbsp; 🏆 CAMPEONES REGIONALES &nbsp;|&nbsp; ⚡ CREATIVIDAD EN MOVIMIENTO &nbsp;|&nbsp; 🥇 #1 EN TU CATEGORÍA &nbsp;|&nbsp; 🔥 MÁXIMO RENDIMIENTO &nbsp;|&nbsp;
+        </span>
+    </div>
+
+    <!-- Field -->
+    <div class="field-floor"></div>
+    <div class="center-circle"></div>
+
+    <!-- Stadium lights -->
+    <div class="stadium-light light-tl">
+        <div class="pole" style="height:80px;"></div>
+        <div class="head"></div>
+        <div class="beam"></div>
+    </div>
+    <div class="stadium-light light-tr">
+        <div class="pole" style="height:80px;"></div>
+        <div class="head"></div>
+        <div class="beam"></div>
+    </div>
+
+    <div class="hero-inner">
+        <div class="live-badge"><div class="live-dot"></div> LIVE</div>
+        <div class="logo-ring">
+            <img src="https://dsjumpers.com/wp-content/uploads/2025/02/cropped-Logotipo-D%C2%B4S-Jumpers-qnohhmv0x0akjoiwicpksyn98vul3qjxppjyzgt6og.webp" alt="logo">
+        </div>
+        <p class="hero-eyebrow">Temporada 2026 · Arena Sports</p>
+        <h1 class="hero-title">D'S <span>JUMPERS</span></h1>
+        <p class="hero-sub">Creatividad en Movimiento · Est. 2026</p>
+        <a href="#categorias" class="hero-btn"><span>ENTRAR AL CAMPO ⚡</span></a>
+
+        <div class="hero-stats">
+            <div class="stat-item">
+                <div class="stat-num">12+</div>
+                <div class="stat-label">Categorías</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-num">500+</div>
+                <div class="stat-label">Clientes</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-num">5⭐</div>
+                <div class="stat-label">Calificación</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hero-chevron">
+        <svg viewBox="0 0 1440 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="0,60 720,0 1440,60" fill="#080810"/>
+        </svg>
+    </div>
+</section>
+
+<!-- SPORT TAPE -->
+<div class="sport-tape">
+    <span class="tape-txt">
+        ⚡ MÁXIMO RENDIMIENTO &nbsp;/&nbsp; 🏆 CAMPEONES &nbsp;/&nbsp; ⚽ CATEGORÍAS ÉLITE &nbsp;/&nbsp; 🏀 JUEGA A LO GRANDE &nbsp;/&nbsp; 🔥 SUPERA TUS LÍMITES &nbsp;/&nbsp; 🥇 NÚMERO UNO &nbsp;/&nbsp; ⚡ EN MOVIMIENTO SIEMPRE &nbsp;/&nbsp;
+    </span>
+</div>
+
+<!-- ══════════ MAIN CONTENT ══════════ -->
+<div class="main-wrap">
+<div class="container py-5">
+
+    <!-- CATEGORÍAS -->
+    <section class="mb-5" id="categorias" style="position:relative;">
+        <div class="number-badge">01</div>
+        <div class="section-eye">— Temporada 2026 —</div>
+        <div class="text-center mb-0">
+            <span class="section-title">Categorías</span>
+        </div>
+        <div class="title-accent"></div>
+        <div class="swiper swiperCategories">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-rocket"></i>🚀 Tech</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-paint-brush"></i>🎨 Diseño</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-music"></i>🎵 Música</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-camera"></i>📸 Fotos</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-utensils"></i>🍳 Cocina</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-running"></i>🏃 Deporte</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-gamepad"></i>🎮 Juegos</a></div>
+            </div>
+            <div class="swiper-pagination mt-4"></div>
+        </div>
+    </section>
+
+    <div class="sport-divider"><span>⚡ &nbsp; MARCADOR &nbsp; ⚡</span></div>
+
+    <!-- REVIEWS -->
+    <section class="mb-5" style="position:relative;">
+        <div class="number-badge">02</div>
+        <div class="section-eye">— Opiniones del estadio —</div>
+        <div class="text-center">
+            <span class="section-title">La Tribuna Habla</span>
+        </div>
+        <div class="title-accent"></div>
+        <div class="swiper swiperReviews">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"Nivel élite en todo sentido. El servicio es tan sólido como la mejor defensa del campeonato."</p>
+                        <h6>— Juan Pérez · MVP</h6>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★☆</div>
+                        <p>"Velocidad de primer nivel. Tan rápido como el mejor sprinter en la recta final. Recomendado."</p>
+                        <h6>— Maria García · Campeona</h6>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"Encontré todo lo que buscaba. Ejecutan cada jugada con la precisión de un playbook perfecto."</p>
+                        <h6>— Carlos Ruiz · Entrenador</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+    </section>
+
+    <div class="sport-divider"><span>🏆 &nbsp; CATÁLOGO &nbsp; 🏆</span></div>
+
+    <!-- CATÁLOGO GRID -->
+    <section class="mb-5" style="position:relative;">
+        <div class="number-badge">03</div>
+        <div class="section-eye">— Todo el lineup —</div>
+        <div class="text-center">
+            <span class="section-title">Explora el Catálogo</span>
+        </div>
+        <div class="title-accent"></div>
+        <div class="row g-2">
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">💻 Tecnología</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🎨 Arte</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🎵 Música</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">📸 Fotografía</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🍽️ Gastronomía</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">⚽ Deportes</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🎮 Gaming</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">✈️ Viajes</a></div>
+        </div>
+    </section>
+
+    <div class="sport-divider"><span>⚽ &nbsp; EQUIPO &nbsp; ⚽</span></div>
+
+    <!-- ABOUT -->
+    <section class="about-section mb-5" id="nosotros" style="position:relative;">
+        <div class="number-badge">04</div>
+        <div class="section-eye">— Conócenos —</div>
+        <div class="text-center">
+            <span class="section-title">Sobre Nosotros</span>
+        </div>
+        <div class="title-accent"></div>
+        <div class="row align-items-center g-5">
+            <div class="col-md-8">
+                <p class="lead mb-4">
+                    ⚡ Somos un equipo de alto rendimiento dedicado a conectar a las personas con el contenido y los servicios que aman. Como los mejores atletas, nunca dejamos de mejorar y siempre salimos al campo con el 100%.
+                </p>
+                <p>
+                    Nuestra misión es simple: facilitar el acceso a un mundo de posibilidades, ofreciendo una plataforma donde la diversidad de intereses se encuentra con la calidad y la innovación. Jugamos en equipo y evolucionamos constantemente para superar cualquier expectativa.
+                </p>
+            </div>
+            <div class="col-md-4">
+                <div class="about-logo-container">
+                    <div id="movingLogo" class="moving-logo">
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EVENTOS -->
+    <section class="mb-5 py-4" id="eventos" style="position:relative;">
+        <div class="number-badge">05</div>
+        <div class="section-eye">— Toda la liga —</div>
+        <div class="text-center">
+            <span class="section-title">Tipos de Eventos</span>
+        </div>
+        <div class="title-accent"></div>
+        <div class="swiper swiperEvents">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-glass-cheers"></i><h5>💍 Bodas</h5></div></div>
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-birthday-cake"></i><h5>🎂 Cumpleaños</h5></div></div>
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-briefcase"></i><h5>🏢 Corporativos</h5></div></div>
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-graduation-cap"></i><h5>🎓 Graduaciones</h5></div></div>
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-music"></i><h5>🎶 Conciertos</h5></div></div>
+            </div>
+            <div class="swiper-pagination mt-4"></div>
+        </div>
+    </section>
+
+    <div class="sport-divider"><span>📍 &nbsp; SEDE &nbsp; 📍</span></div>
+
+    <!-- UBICACIÓN -->
+    <section class="location-section mb-5">
+        <div class="row align-items-center g-4">
+            <div class="col-md-5 px-4">
+                <h2 class="mb-4">🗺️ Nuestra Sede</h2>
+                <p class="mb-3">Cubrimos toda el área metropolitana. ¡Llevamos el juego hasta donde estés!</p>
+                <ul class="list-unstyled mt-3">
+                    <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> Calle Falsa 123, Ciudad Central</li>
+                    <li class="mb-2"><i class="fas fa-clock me-2"></i> Lun - Vie: 9:00 AM - 6:00 PM</li>
+                </ul>
+            </div>
+            <div class="col-md-7">
+                <div class="ratio ratio-16x9 overflow-hidden" style="border:2px solid rgba(245,197,24,.2);box-shadow:0 10px 40px rgba(0,0,0,.6);">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1422937611435!2d-73.98731968459391!3d40.75889497932681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480293%3A0x5117f70619c651b0!2sTimes%20Square!5e0!3m2!1ses!2scl!4v1625070000000!5m2!1ses!2scl" style="border:0;filter:invert(85%) hue-rotate(180deg) saturate(.5) brightness(.6);" allowfullscreen="" loading="lazy"></iframe>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="sport-divider"><span>📨 &nbsp; CONTACTO &nbsp; 📨</span></div>
+
+    <!-- CONTACTO -->
+    <section class="mb-5" id="contacto">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="contact-card">
+                    <div class="section-eye mb-1">— Únete al equipo —</div>
+                    <div class="text-center mb-0">
+                        <span class="contact-card h2 d-block text-center mb-1">Contáctanos</span>
+                    </div>
+                    <div class="title-accent"></div>
+                    <form>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Nombre</label>
+                                <input type="text" class="form-control" placeholder="Tu nombre">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Correo Electrónico</label>
+                                <input type="email" class="form-control" placeholder="email@ejemplo.com">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Asunto</label>
+                                <input type="text" class="form-control" placeholder="¿En qué podemos ayudarte?">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Mensaje</label>
+                                <textarea class="form-control" rows="4" placeholder="Escribe tu mensaje aquí..."></textarea>
+                            </div>
+                            <div class="col-12 text-center mt-4">
+                                <button type="button" class="btn-sport">ENVIAR ⚡</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+</div>
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer>
+    <h4 class="mb-4">⚡ Síguenos en nuestras redes</h4>
+    <div class="d-flex justify-content-center gap-3 flex-wrap mb-3">
+        <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-twitter"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-instagram"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-whatsapp"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-linkedin-in"></i></a>
+    </div>
+    <p>&copy; 2026 — Mi Empresa — Todos los derechos reservados</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+    new Swiper(".swiperCategories", {
+        slidesPerView:1, spaceBetween:10, loop:true,
+        autoplay:{delay:2800, disableOnInteraction:false},
+        breakpoints:{640:{slidesPerView:2},768:{slidesPerView:3},1024:{slidesPerView:5}},
+        pagination:{el:".swiper-pagination",clickable:true},
+    });
+    new Swiper(".swiperReviews", {
+        slidesPerView:1, spaceBetween:20, loop:true,
+        autoplay:{delay:5000},
+        navigation:{nextEl:".swiper-button-next",prevEl:".swiper-button-prev"},
+        breakpoints:{768:{slidesPerView:2}}
+    });
+    new Swiper(".swiperEvents", {
+        slidesPerView:1, spaceBetween:20, loop:true,
+        autoplay:{delay:3500, disableOnInteraction:false},
+        breakpoints:{640:{slidesPerView:2},1024:{slidesPerView:4}},
+        pagination:{el:".swiper-pagination",clickable:true},
+    });
+
+    const movingLogo = document.getElementById('movingLogo');
+    const aboutLogoContainer = document.querySelector('.about-logo-container');
+    if (movingLogo && aboutLogoContainer) {
+        aboutLogoContainer.addEventListener('mousemove', (e) => {
+            const r = aboutLogoContainer.getBoundingClientRect();
+            const nx = ((e.clientX - r.left) / r.width) * 2 - 1;
+            const ny = ((e.clientY - r.top)  / r.height) * 2 - 1;
+            movingLogo.style.transform = `translate(${nx*25}px,${ny*25}px)`;
+        });
+        aboutLogoContainer.addEventListener('mouseleave', () => {
+            movingLogo.style.transform = 'translate(0,0)';
+        });
+    }
+
+    let itemCount = 0;
+    const cartCountEl = document.getElementById('cartCount');
+    function agregarAlCarrito() { itemCount++; cartCountEl.innerText = itemCount; }
+</script>
+</body>
+</html>

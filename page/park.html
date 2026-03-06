@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎢 D'S Jumpers — Parque de Diversiones</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Righteous&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --night:    #0a0a1a;
+            --deep:     #0d0d2b;
+            --pink:     #ff2d78;
+            --cyan:     #00f5ff;
+            --yellow:   #ffe600;
+            --green:    #39ff14;
+            --purple:   #bf00ff;
+            --orange:   #ff6600;
+            --card-bg:  #12122a;
+            --text:     #f0f0ff;
+        }
+
+        /* ── BASE ──────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--night);
+            color: var(--text);
+            font-family: 'Nunito', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Stars background */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(1px 1px at 10% 15%, white .8, transparent 0),
+                radial-gradient(1px 1px at 25% 40%, white .6, transparent 0),
+                radial-gradient(1.5px 1.5px at 50% 10%, white .9, transparent 0),
+                radial-gradient(1px 1px at 70% 30%, white .5, transparent 0),
+                radial-gradient(1px 1px at 85% 60%, white .7, transparent 0),
+                radial-gradient(1.5px 1.5px at 30% 70%, white .6, transparent 0),
+                radial-gradient(1px 1px at 60% 80%, white .4, transparent 0),
+                radial-gradient(1px 1px at 90% 90%, white .8, transparent 0),
+                radial-gradient(1px 1px at 15% 85%, white .5, transparent 0),
+                radial-gradient(1.5px 1.5px at 45% 55%, white .7, transparent 0);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── NEON HELPERS ──────────────────────────── */
+        .neon-pink  { color: var(--pink);   text-shadow: 0 0 8px var(--pink),  0 0 20px var(--pink),  0 0 40px var(--pink);  }
+        .neon-cyan  { color: var(--cyan);   text-shadow: 0 0 8px var(--cyan),  0 0 20px var(--cyan),  0 0 40px var(--cyan);  }
+        .neon-yel   { color: var(--yellow); text-shadow: 0 0 8px var(--yellow),0 0 20px var(--yellow),0 0 40px var(--yellow); }
+        .neon-grn   { color: var(--green);  text-shadow: 0 0 8px var(--green), 0 0 20px var(--green), 0 0 40px var(--green); }
+
+        /* ── NAVBAR ────────────────────────────────── */
+        .navbar {
+            background: rgba(10,10,26,.92) !important;
+            backdrop-filter: blur(12px);
+            border-bottom: 2px solid var(--pink);
+            box-shadow: 0 2px 30px rgba(255,45,120,.25);
+            padding: 10px 0;
+        }
+        .navbar-brand {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.5rem;
+            color: var(--yellow) !important;
+            text-shadow: 0 0 10px var(--yellow), 0 0 25px rgba(255,230,0,.4);
+            letter-spacing: 1px;
+        }
+        .nav-link {
+            font-family: 'Righteous', cursive;
+            font-size: 1rem;
+            color: var(--text) !important;
+            letter-spacing: 1px;
+            transition: color .2s, text-shadow .2s;
+            padding: 6px 14px !important;
+        }
+        .nav-link:hover { color: var(--cyan) !important; text-shadow: 0 0 8px var(--cyan); }
+        .dropdown-menu {
+            background: #0d0d2b;
+            border: 1px solid var(--cyan);
+            box-shadow: 0 0 20px rgba(0,245,255,.2);
+        }
+        .dropdown-item { color: var(--text); font-family: 'Nunito', sans-serif; }
+        .dropdown-item:hover { background: rgba(0,245,255,.1); color: var(--cyan); }
+        #cartCount { background: var(--pink) !important; }
+
+        /* ── HERO ──────────────────────────────────── */
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            background: radial-gradient(ellipse at 50% 60%, #1a0533 0%, var(--night) 70%);
+        }
+
+        /* Ferris wheel silhouette (CSS only) */
+        .ferris-wheel {
+            position: absolute;
+            right: -60px;
+            bottom: -40px;
+            width: 380px;
+            height: 380px;
+            border-radius: 50%;
+            border: 6px solid rgba(255,45,120,.2);
+            animation: rotateSlow 20s linear infinite;
+            pointer-events: none;
+        }
+        .ferris-wheel::before {
+            content: "";
+            position: absolute;
+            inset: 20px;
+            border-radius: 50%;
+            border: 4px solid rgba(0,245,255,.15);
+        }
+        .ferris-wheel::after {
+            content: "";
+            position: absolute;
+            inset: 50px;
+            border-radius: 50%;
+            border: 3px solid rgba(255,230,0,.12);
+        }
+        @keyframes rotateSlow { to { transform: rotate(360deg); } }
+
+        /* Roller coaster hills */
+        .coaster-hills {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 140px;
+            pointer-events: none;
+        }
+        .coaster-hills svg { width: 100%; height: 100%; }
+
+        /* Lights string */
+        .lights-string {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            display: flex;
+            justify-content: space-around;
+            padding: 0 20px;
+            pointer-events: none;
+        }
+        .light-bulb {
+            width: 14px; height: 20px;
+            border-radius: 50% 50% 40% 40%;
+            background: var(--yellow);
+            box-shadow: 0 0 8px var(--yellow), 0 0 20px rgba(255,230,0,.6);
+            animation: blinkBulb 2s infinite;
+            position: relative;
+        }
+        .light-bulb::before {
+            content: "";
+            position: absolute;
+            top: -12px; left: 50%; transform: translateX(-50%);
+            width: 2px; height: 12px;
+            background: #444;
+        }
+        .light-bulb:nth-child(2n)   { background:var(--pink);   box-shadow:0 0 8px var(--pink),  0 0 20px rgba(255,45,120,.6);  animation-delay:.3s; }
+        .light-bulb:nth-child(3n)   { background:var(--cyan);   box-shadow:0 0 8px var(--cyan),  0 0 20px rgba(0,245,255,.6);   animation-delay:.6s; }
+        .light-bulb:nth-child(4n)   { background:var(--green);  box-shadow:0 0 8px var(--green), 0 0 20px rgba(57,255,20,.6);   animation-delay:.9s; }
+        .light-bulb:nth-child(5n)   { background:var(--purple); box-shadow:0 0 8px var(--purple),0 0 20px rgba(191,0,255,.6);   animation-delay:1.2s; }
+        @keyframes blinkBulb {
+            0%,100%{ opacity:1; } 50%{ opacity:.4; }
+        }
+
+        .hero-inner {
+            text-align: center;
+            z-index: 2;
+            padding: 80px 20px 100px;
+        }
+
+        .logo-ring {
+            width: 180px; height: 180px;
+            border-radius: 50%;
+            border: 4px solid var(--pink);
+            box-shadow: 0 0 20px var(--pink), 0 0 50px rgba(255,45,120,.3), inset 0 0 30px rgba(255,45,120,.1);
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-bottom: 32px;
+            animation: logoPulse 3s ease-in-out infinite;
+            overflow: hidden;
+            background: rgba(255,45,120,.05);
+        }
+        .logo-ring img { width: 130px; height: 130px; object-fit: contain; filter: drop-shadow(0 0 10px rgba(255,45,120,.5)); }
+        @keyframes logoPulse {
+            0%,100%{ box-shadow: 0 0 20px var(--pink), 0 0 50px rgba(255,45,120,.3); transform: scale(1); }
+            50%{ box-shadow: 0 0 40px var(--pink), 0 0 80px rgba(255,45,120,.5); transform: scale(1.04); }
+        }
+
+        .hero-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: clamp(3.5rem, 11vw, 8rem);
+            line-height: 1;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--yellow) 0%, var(--pink) 40%, var(--cyan) 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 20px rgba(255,45,120,.4));
+            animation: titleGlow 4s ease-in-out infinite alternate;
+        }
+        @keyframes titleGlow {
+            from { filter: drop-shadow(0 0 10px rgba(255,45,120,.3)); }
+            to   { filter: drop-shadow(0 0 30px rgba(0,245,255,.5)); }
+        }
+
+        .hero-sub {
+            font-family: 'Righteous', cursive;
+            font-size: 1.3rem;
+            color: var(--cyan);
+            text-shadow: 0 0 10px var(--cyan), 0 0 25px rgba(0,245,255,.4);
+            letter-spacing: 3px;
+            margin-bottom: 32px;
+        }
+
+        .hero-btn {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            padding: 14px 44px;
+            border-radius: 50px;
+            border: none;
+            background: linear-gradient(135deg, var(--pink), var(--purple));
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(255,45,120,.5), 0 0 50px rgba(191,0,255,.2);
+            transition: .25s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .hero-btn:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 0 35px rgba(255,45,120,.8), 0 0 70px rgba(191,0,255,.4);
+            color: white;
+        }
+
+        /* ── SECTION TITLE ─────────────────────────── */
+        .section-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 40px;
+            letter-spacing: 2px;
+            position: relative;
+            padding-bottom: 16px;
+        }
+        .section-title .title-line {
+            display: block;
+            width: 80px; height: 4px;
+            background: linear-gradient(to right, var(--pink), var(--cyan));
+            border-radius: 2px;
+            margin: 12px auto 0;
+            box-shadow: 0 0 10px var(--pink);
+        }
+
+        /* ── TICKET MARQUEE ────────────────────────── */
+        .ticket-tape {
+            background: linear-gradient(to right, var(--pink), var(--purple), var(--pink));
+            padding: 10px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+        }
+        .ticket-tape::before, .ticket-tape::after {
+            content: "";
+            position: absolute;
+            top: 0; bottom: 0;
+            width: 60px;
+            z-index: 1;
+        }
+        .ticket-tape::before { left:0; background: linear-gradient(to right, var(--pink), transparent); }
+        .ticket-tape::after  { right:0; background: linear-gradient(to left, var(--pink), transparent); }
+        .tape-text {
+            display: inline-block;
+            font-family: 'Righteous', cursive;
+            font-size: 1rem;
+            color: white;
+            letter-spacing: 4px;
+            animation: tapeScroll 20s linear infinite;
+            text-shadow: 0 0 6px rgba(255,255,255,.5);
+        }
+        @keyframes tapeScroll {
+            from { transform: translateX(100vw); }
+            to   { transform: translateX(-100%); }
+        }
+
+        /* ── DIVIDER ───────────────────────────────── */
+        .park-divider {
+            display: flex; align-items: center; gap: 16px; margin: 50px 0;
+        }
+        .park-divider::before, .park-divider::after {
+            content: ""; flex: 1; height: 2px;
+            background: linear-gradient(to right, transparent, var(--cyan), transparent);
+            box-shadow: 0 0 8px var(--cyan);
+        }
+        .park-divider span { font-size: 1.6rem; white-space: nowrap; }
+
+        /* ── CATEGORY CARDS ────────────────────────── */
+        .cat-card {
+            background: var(--card-bg);
+            border-radius: 18px;
+            padding: 28px 16px;
+            text-align: center;
+            margin: 8px 5px;
+            text-decoration: none;
+            color: var(--text);
+            display: block;
+            border: 1px solid rgba(0,245,255,.15);
+            transition: .25s cubic-bezier(.34,1.56,.64,1);
+            font-family: 'Righteous', cursive;
+            font-size: 1.05rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .cat-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,45,120,.08), rgba(0,245,255,.08));
+            opacity: 0;
+            transition: opacity .25s;
+        }
+        .cat-card:hover {
+            transform: translateY(-8px) scale(1.03);
+            border-color: var(--pink);
+            box-shadow: 0 0 20px rgba(255,45,120,.3), 0 10px 30px rgba(0,0,0,.5);
+            color: var(--pink);
+        }
+        .cat-card:hover::after { opacity: 1; }
+        .cat-card i { color: var(--cyan); font-size: 2rem; margin-bottom: 10px; transition: .25s; }
+        .cat-card:hover i { color: var(--pink); filter: drop-shadow(0 0 6px var(--pink)); }
+
+        /* ── REVIEW CARDS ──────────────────────────── */
+        .review-card {
+            background: var(--card-bg);
+            border-radius: 18px;
+            padding: 30px;
+            margin: 16px 10px;
+            border: 1px solid rgba(255,230,0,.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .review-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(to right, var(--pink), var(--yellow), var(--cyan));
+        }
+        .review-card .stars { color: var(--yellow); font-size: 1.2rem; margin-bottom: 12px; text-shadow: 0 0 6px var(--yellow); }
+        .review-card p { color: #c0c0dd; font-style: italic; line-height: 1.7; }
+        .review-card h6 { font-family: 'Righteous', cursive; color: var(--cyan); letter-spacing: 1px; margin-top: 12px; }
+
+        /* ── GRID ITEMS ────────────────────────────── */
+        .grid-item {
+            background: var(--card-bg);
+            border-radius: 14px;
+            padding: 26px 16px;
+            text-align: center;
+            height: 100%;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            border: 1px solid rgba(255,255,255,.07);
+            text-decoration: none;
+            color: var(--text);
+            font-family: 'Righteous', cursive;
+            font-size: 1.05rem;
+            transition: .25s;
+            position: relative;
+            overflow: hidden;
+        }
+        .grid-item::before {
+            content: "";
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(to right, var(--pink), var(--cyan));
+            transform: scaleX(0);
+            transition: transform .3s;
+        }
+        .grid-item:hover {
+            background: rgba(255,45,120,.08);
+            border-color: rgba(255,45,120,.4);
+            color: var(--pink);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(255,45,120,.2);
+        }
+        .grid-item:hover::before { transform: scaleX(1); }
+
+        /* ── ABOUT ─────────────────────────────────── */
+        .about-section {
+            background: linear-gradient(135deg, #0d0d2b 0%, #1a0030 100%);
+            border-radius: 24px;
+            padding: 50px;
+            border: 1px solid rgba(191,0,255,.3);
+            box-shadow: 0 0 40px rgba(191,0,255,.1), inset 0 0 60px rgba(191,0,255,.05);
+            position: relative;
+            overflow: hidden;
+        }
+        .about-section::before {
+            content: "";
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle at 60% 40%, rgba(191,0,255,.05) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .about-logo-container {
+            display: flex; justify-content: center; align-items: center;
+            height: 160px;
+        }
+        .moving-logo {
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(191,0,255,.3), rgba(255,45,120,.1));
+            border: 2px solid var(--purple);
+            box-shadow: 0 0 20px rgba(191,0,255,.5), 0 0 50px rgba(191,0,255,.2);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 2.8rem;
+            color: var(--purple);
+            position: relative;
+            transition: transform .15s linear;
+            animation: aboutPulse 3s ease-in-out infinite;
+        }
+        @keyframes aboutPulse {
+            0%,100%{ box-shadow:0 0 20px rgba(191,0,255,.5); }
+            50%{ box-shadow:0 0 40px rgba(191,0,255,.9), 0 0 80px rgba(191,0,255,.3); }
+        }
+
+        /* ── EVENT CARDS ───────────────────────────── */
+        .event-card {
+            background: var(--card-bg);
+            border-radius: 18px;
+            padding: 28px 16px;
+            text-align: center;
+            margin: 8px 5px;
+            border: 1px solid rgba(57,255,20,.15);
+            transition: .25s;
+            font-family: 'Righteous', cursive;
+            position: relative;
+            overflow: hidden;
+        }
+        .event-card::after {
+            content: "";
+            position: absolute; top: 0; right: 0;
+            width: 60px; height: 60px;
+            background: radial-gradient(circle at top right, rgba(57,255,20,.1), transparent 70%);
+        }
+        .event-card i { font-size: 2.2rem; margin-bottom: 12px; display: block; color: var(--green); filter: drop-shadow(0 0 6px var(--green)); transition: .25s; }
+        .event-card h5 { font-size: 1rem; color: var(--text); margin: 0; }
+        .event-card:hover {
+            border-color: var(--green);
+            box-shadow: 0 0 20px rgba(57,255,20,.2);
+            transform: translateY(-6px);
+        }
+        .event-card:hover i { transform: scale(1.2); filter: drop-shadow(0 0 12px var(--green)); }
+
+        /* ── LOCATION ──────────────────────────────── */
+        .location-section {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 40px;
+            border: 1px solid rgba(0,245,255,.15);
+        }
+        .location-section h2 {
+            font-family: 'Fredoka One', cursive;
+            color: var(--cyan);
+            text-shadow: 0 0 12px rgba(0,245,255,.4);
+            letter-spacing: 1px;
+        }
+        .location-section i { color: var(--pink) !important; }
+        .location-section p, .location-section li { color: #a0a0cc; }
+        .location-section li { font-size: 1rem; padding: 4px 0; }
+
+        /* ── CONTACT ───────────────────────────────── */
+        .contact-card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 44px;
+            border: 1px solid rgba(255,45,120,.2);
+            box-shadow: 0 0 40px rgba(255,45,120,.08);
+        }
+        .contact-card h2 {
+            font-family: 'Fredoka One', cursive;
+            color: var(--pink);
+            text-shadow: 0 0 15px rgba(255,45,120,.5);
+            letter-spacing: 1px;
+        }
+        .form-label { color: #a0a0cc; font-weight: 600; font-size: .9rem; letter-spacing: .5px; }
+        .form-control {
+            background: #0a0a1a;
+            border: 1px solid rgba(255,255,255,.1);
+            color: var(--text);
+            border-radius: 10px;
+            padding: 12px 16px;
+            transition: .25s;
+        }
+        .form-control:focus {
+            background: #0d0d22;
+            border-color: var(--pink);
+            box-shadow: 0 0 15px rgba(255,45,120,.2);
+            color: var(--text);
+        }
+        .form-control::placeholder { color: #555570; }
+        .btn-park {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.15rem;
+            letter-spacing: 2px;
+            padding: 14px 50px;
+            border-radius: 50px;
+            border: none;
+            background: linear-gradient(135deg, var(--pink), var(--purple));
+            color: white;
+            box-shadow: 0 0 25px rgba(255,45,120,.4);
+            transition: .25s;
+            cursor: pointer;
+        }
+        .btn-park:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 40px rgba(255,45,120,.7), 0 0 80px rgba(191,0,255,.3);
+        }
+
+        /* ── FOOTER ────────────────────────────────── */
+        footer {
+            background: #050510;
+            border-top: 1px solid rgba(255,45,120,.3);
+            padding: 50px 20px;
+            text-align: center;
+            position: relative;
+        }
+        footer::before {
+            content: "";
+            position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(to right, var(--pink), var(--cyan), var(--yellow), var(--green), var(--purple));
+            box-shadow: 0 0 15px var(--pink);
+        }
+        footer h4 {
+            font-family: 'Fredoka One', cursive;
+            color: var(--yellow);
+            text-shadow: 0 0 12px rgba(255,230,0,.4);
+            letter-spacing: 2px;
+        }
+        .social-btn {
+            width: 56px; height: 56px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,.15);
+            background: rgba(255,255,255,.04);
+            color: var(--text);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+            transition: .25s;
+            text-decoration: none;
+        }
+        .social-btn:nth-child(1):hover { border-color:var(--cyan);   color:var(--cyan);   box-shadow:0 0 15px rgba(0,245,255,.4); }
+        .social-btn:nth-child(2):hover { border-color:var(--pink);   color:var(--pink);   box-shadow:0 0 15px rgba(255,45,120,.4); }
+        .social-btn:nth-child(3):hover { border-color:var(--orange); color:var(--orange); box-shadow:0 0 15px rgba(255,102,0,.4); }
+        .social-btn:nth-child(4):hover { border-color:var(--green);  color:var(--green);  box-shadow:0 0 15px rgba(57,255,20,.4); }
+        .social-btn:nth-child(5):hover { border-color:var(--purple); color:var(--purple); box-shadow:0 0 15px rgba(191,0,255,.4); }
+        .social-btn:hover { transform: scale(1.15) translateY(-3px); }
+        footer p { color: #44445a; font-size: .85rem; margin-top: 20px; }
+
+        /* ── SWIPER OVERRIDES ──────────────────────── */
+        .swiper-button-next, .swiper-button-prev {
+            color: var(--cyan) !important;
+            background: rgba(0,245,255,.1);
+            border: 1px solid rgba(0,245,255,.3);
+            border-radius: 50%;
+            width: 42px !important; height: 42px !important;
+            backdrop-filter: blur(4px);
+        }
+        .swiper-button-next::after, .swiper-button-prev::after { font-size: .85rem !important; }
+        .swiper-pagination-bullet { background: rgba(255,255,255,.3) !important; }
+        .swiper-pagination-bullet-active { background: var(--pink) !important; box-shadow: 0 0 6px var(--pink); }
+
+        /* ── CONTAINER WRAPPER ─────────────────────── */
+        .main-wrap { position: relative; z-index: 1; }
+
+        /* ── SECTION BG VARIANTS ───────────────────── */
+        .section-wrap { padding: 20px 0; }
+
+        /* ── SCROLL ANIMATIONS ─────────────────────── */
+        @keyframes fadeUp {
+            from { opacity:0; transform:translateY(30px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+        .fade-up { animation: fadeUp .6s ease both; }
+        .fade-up.d1 { animation-delay:.1s; }
+        .fade-up.d2 { animation-delay:.2s; }
+        .fade-up.d3 { animation-delay:.3s; }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════ NAVBAR ═══════════════ -->
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <img height="32px" src="https://dsjumpers.com/wp-content/uploads/2025/02/cropped-Logotipo-D%C2%B4S-Jumpers-qnohhmv0x0akjoiwicpksyn98vul3qjxppjyzgt6og.webp" alt="dsjumpers" class="me-2 rounded-circle" style="border:1px solid rgba(255,230,0,.4);">
+            🎢 MI EMPRESA
+        </a>
+
+        <div class="d-flex align-items-center ms-auto me-3 order-lg-last">
+            <a class="nav-link position-relative p-2" href="#" id="cartIcon">
+                <i class="fas fa-shopping-cart fa-lg" style="color:var(--yellow);"></i>
+                <span id="cartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill" style="font-size:.65rem;">0</span>
+            </a>
+        </div>
+
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal" style="color:var(--cyan);">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="menuPrincipal">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#categorias">🎠 Categorías</a></li>
+                <li class="nav-item"><a class="nav-link" href="#eventos">🎭 Eventos</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">🎡 Nosotros</a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#nosotros">✨ Sobre Nosotros</a></li>
+                        <li><a class="dropdown-item" href="#contacto">📨 Contáctanos</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hero-section">
+    <!-- Lights string -->
+    <div class="lights-string">
+        <div class="light-bulb"></div><div class="light-bulb"></div><div class="light-bulb"></div>
+        <div class="light-bulb"></div><div class="light-bulb"></div><div class="light-bulb"></div>
+        <div class="light-bulb"></div><div class="light-bulb"></div><div class="light-bulb"></div>
+        <div class="light-bulb"></div><div class="light-bulb"></div><div class="light-bulb"></div>
+        <div class="light-bulb"></div><div class="light-bulb"></div><div class="light-bulb"></div>
+        <div class="light-bulb"></div><div class="light-bulb"></div><div class="light-bulb"></div>
+    </div>
+
+    <!-- Ferris wheel decoration -->
+    <div class="ferris-wheel"></div>
+
+    <div class="hero-inner">
+        <div class="logo-ring fade-up">
+            <img src="https://dsjumpers.com/wp-content/uploads/2025/02/cropped-Logotipo-D%C2%B4S-Jumpers-qnohhmv0x0akjoiwicpksyn98vul3qjxppjyzgt6og.webp" alt="logo">
+        </div>
+        <h1 class="hero-title fade-up d1">D'S JUMPERS</h1>
+        <p class="hero-sub fade-up d2">🎢 Creatividad en Movimiento 🎡</p>
+        <a href="#categorias" class="hero-btn fade-up d3">🎟️ ENTRAR AL PARQUE</a>
+    </div>
+
+    <!-- Ground wave -->
+    <div class="coaster-hills">
+        <svg viewBox="0 0 1440 140" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,80 C180,20 360,140 540,60 C720,-20 900,120 1080,50 C1260,-20 1440,100 1440,100 L1440,140 L0,140 Z" fill="#0a0a1a" opacity=".9"/>
+            <path d="M0,100 C200,50 400,130 600,80 C800,30 1000,110 1200,70 C1350,40 1440,90 1440,90 L1440,140 L0,140 Z" fill="#0a0a1a"/>
+        </svg>
+    </div>
+</section>
+
+<!-- Tape -->
+<div class="ticket-tape">
+    <span class="tape-text">
+        🎢 SUBIDAS ÉPICAS &nbsp;&nbsp; • &nbsp;&nbsp; 🎡 VISTAS INCREÍBLES &nbsp;&nbsp; • &nbsp;&nbsp; 🎠 DIVERSIÓN SIN LÍMITES &nbsp;&nbsp; • &nbsp;&nbsp; 🎟️ PASES DISPONIBLES &nbsp;&nbsp; • &nbsp;&nbsp; ✨ MAGIA DE NOCHE &nbsp;&nbsp; • &nbsp;&nbsp; 🎆 FUEGOS ARTIFICIALES &nbsp;&nbsp; • &nbsp;&nbsp; 🍭 ALGODÓN DE AZÚCAR &nbsp;&nbsp; •
+    </span>
+</div>
+
+<!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+<div class="main-wrap">
+<div class="container py-5">
+
+    <!-- CATEGORÍAS -->
+    <section class="section-wrap" id="categorias">
+        <h2 class="section-title neon-cyan">Categorías Destacadas <span class="title-line"></span></h2>
+        <div class="swiper swiperCategories">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-rocket"></i>🚀 Tech</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-paint-brush"></i>🎨 Diseño</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-music"></i>🎵 Música</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-camera"></i>📸 Fotos</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-utensils"></i>🍳 Cocina</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-running"></i>🏃 Deporte</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-gamepad"></i>🎮 Juegos</a></div>
+            </div>
+            <div class="swiper-pagination mt-4"></div>
+        </div>
+    </section>
+
+    <div class="park-divider"><span>🎆 🎇 🎆</span></div>
+
+    <!-- REVIEWS -->
+    <section class="section-wrap">
+        <h2 class="section-title neon-pink">Lo que dicen nuestros fans <span class="title-line"></span></h2>
+        <div class="swiper swiperReviews">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"El servicio es increíble, las categorías están muy bien organizadas. ¡Como las mejores atracciones!"</p>
+                        <h6>— Juan Pérez</h6>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★☆</div>
+                        <p>"Muy fácil de usar y la interfaz es súper rápida. ¡Una montaña rusa de emociones! Recomendado."</p>
+                        <h6>— Maria García</h6>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"Encontré exactamente lo que buscaba en segundos. ¡Como el mejor juego de la feria!"</p>
+                        <h6>— Carlos Ruiz</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+    </section>
+
+    <div class="park-divider"><span>🎠 ✦ 🎠</span></div>
+
+    <!-- CATÁLOGO GRID -->
+    <section class="section-wrap">
+        <h2 class="section-title neon-yel">Explora Todo el Catálogo <span class="title-line"></span></h2>
+        <div class="row g-3">
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">💻 Tecnología</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🎨 Arte</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🎵 Música</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">📸 Fotografía</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🍽️ Gastronomía</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">⚽ Deportes</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🎮 Gaming</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">✈️ Viajes</a></div>
+        </div>
+    </section>
+
+    <div class="park-divider"><span>🌟 💫 🌟</span></div>
+
+    <!-- SOBRE NOSOTROS -->
+    <section class="about-section mb-5" id="nosotros">
+        <h2 class="section-title" style="color:var(--purple);text-shadow:0 0 12px rgba(191,0,255,.5);">
+            Sobre Nosotros <span class="title-line" style="background:linear-gradient(to right,var(--purple),var(--pink));"></span>
+        </h2>
+        <div class="row align-items-center g-4">
+            <div class="col-md-8">
+                <p class="lead mb-4" style="color:#c0c0dd;">
+                    🎢 Somos una empresa dedicada a conectar a las personas con el contenido y los servicios que aman. Desde nuestra fundación, nos hemos esforzado por ofrecer una experiencia única — ¡tan emocionante como la primera vez que subes a la montaña rusa!
+                </p>
+                <p style="color:#8888aa;">
+                    Nuestra misión es simple: facilitar el acceso a un mundo de posibilidades, ofreciendo una plataforma donde la diversidad de intereses se encuentra con la calidad y la innovación. Creemos en el poder de la comunidad y en la constante evolución para superar las expectativas.
+                </p>
+            </div>
+            <div class="col-md-4">
+                <div class="about-logo-container">
+                    <div id="movingLogo" class="moving-logo">
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EVENTOS -->
+    <section class="section-wrap py-4" id="eventos">
+        <h2 class="section-title neon-grn">Tipos de Eventos <span class="title-line" style="background:linear-gradient(to right,var(--green),var(--cyan));box-shadow:0 0 10px var(--green);"></span></h2>
+        <div class="swiper swiperEvents">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <div class="event-card"><i class="fas fa-glass-cheers"></i><h5>💍 Bodas</h5></div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="event-card"><i class="fas fa-birthday-cake"></i><h5>🎂 Cumpleaños</h5></div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="event-card"><i class="fas fa-briefcase"></i><h5>🏢 Corporativos</h5></div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="event-card"><i class="fas fa-graduation-cap"></i><h5>🎓 Graduaciones</h5></div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="event-card"><i class="fas fa-music"></i><h5>🎶 Conciertos</h5></div>
+                </div>
+            </div>
+            <div class="swiper-pagination mt-4"></div>
+        </div>
+    </section>
+
+    <div class="park-divider"><span>📍 🗺️ 📍</span></div>
+
+    <!-- UBICACIÓN -->
+    <section class="location-section mb-5 py-4">
+        <div class="row align-items-center g-4">
+            <div class="col-md-5 px-4">
+                <h2 class="mb-4">🗺️ Nuestra Ubicación</h2>
+                <p>Cubrimos toda el área metropolitana y alrededores. ¡Ven y disfruta de la experiencia!</p>
+                <ul class="list-unstyled mt-3">
+                    <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> Calle Falsa 123, Ciudad Central</li>
+                    <li class="mb-2"><i class="fas fa-clock me-2"></i> Lun - Vie: 9:00 AM - 6:00 PM</li>
+                </ul>
+            </div>
+            <div class="col-md-7">
+                <div class="ratio ratio-16x9 rounded-3 overflow-hidden" style="border:1px solid rgba(0,245,255,.2);box-shadow:0 0 30px rgba(0,245,255,.1);">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1422937611435!2d-73.98731968459391!3d40.75889497932681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480293%3A0x5117f70619c651b0!2sTimes%20Square!5e0!3m2!1ses!2scl!4v1625070000000!5m2!1ses!2scl" style="border:0;filter:invert(90%) hue-rotate(180deg);" allowfullscreen="" loading="lazy"></iframe>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="park-divider"><span>📨 ✉️ 📨</span></div>
+
+    <!-- CONTACTO -->
+    <section class="mb-5" id="contacto">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="contact-card">
+                    <h2 class="text-center mb-4">🎟️ Contáctanos</h2>
+                    <form>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">NOMBRE</label>
+                                <input type="text" class="form-control" placeholder="Tu nombre">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">CORREO ELECTRÓNICO</label>
+                                <input type="email" class="form-control" placeholder="email@ejemplo.com">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">ASUNTO</label>
+                                <input type="text" class="form-control" placeholder="¿En qué podemos ayudarte?">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">MENSAJE</label>
+                                <textarea class="form-control" rows="4" placeholder="Escribe tu mensaje aquí..."></textarea>
+                            </div>
+                            <div class="col-12 text-center mt-3">
+                                <button type="button" class="btn-park">🎟️ ENVIAR MENSAJE</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div><!-- /container -->
+</div><!-- /main-wrap -->
+
+<!-- FOOTER -->
+<footer>
+    <h4 class="mb-4">🎡 Síguenos en nuestras redes 🎡</h4>
+    <div class="d-flex justify-content-center gap-3 flex-wrap mb-3">
+        <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-twitter"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-instagram"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-whatsapp"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-linkedin-in"></i></a>
+    </div>
+    <p>&copy; 2026 🎢 Tu Empresa. Todos los derechos reservados.</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+    new Swiper(".swiperCategories", {
+        slidesPerView:1, spaceBetween:10, loop:true,
+        autoplay:{delay:2800, disableOnInteraction:false},
+        breakpoints:{640:{slidesPerView:2},768:{slidesPerView:3},1024:{slidesPerView:5}},
+        pagination:{el:".swiper-pagination",clickable:true},
+    });
+    new Swiper(".swiperReviews", {
+        slidesPerView:1, spaceBetween:20, loop:true,
+        autoplay:{delay:5000},
+        navigation:{nextEl:".swiper-button-next",prevEl:".swiper-button-prev"},
+        breakpoints:{768:{slidesPerView:2}}
+    });
+    new Swiper(".swiperEvents", {
+        slidesPerView:1, spaceBetween:20, loop:true,
+        autoplay:{delay:3500, disableOnInteraction:false},
+        breakpoints:{640:{slidesPerView:2},1024:{slidesPerView:4}},
+        pagination:{el:".swiper-pagination",clickable:true},
+    });
+
+    const movingLogo = document.getElementById('movingLogo');
+    const aboutLogoContainer = document.querySelector('.about-logo-container');
+    if (movingLogo && aboutLogoContainer) {
+        aboutLogoContainer.addEventListener('mousemove', (e) => {
+            const r = aboutLogoContainer.getBoundingClientRect();
+            const nx = ((e.clientX - r.left) / r.width)  * 2 - 1;
+            const ny = ((e.clientY - r.top)  / r.height) * 2 - 1;
+            movingLogo.style.transform = `translate(${nx*25}px,${ny*25}px)`;
+        });
+        aboutLogoContainer.addEventListener('mouseleave', () => {
+            movingLogo.style.transform = 'translate(0,0)';
+        });
+    }
+
+    let itemCount = 0;
+    const cartCountEl = document.getElementById('cartCount');
+    function agregarAlCarrito() { itemCount++; cartCountEl.innerText = itemCount; }
+</script>
+</body>
+</html>

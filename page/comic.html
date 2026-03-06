@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💥 D'S Jumpers — ¡La Liga de Héroes!</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Permanent+Marker&family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ink:        #0a0a0a;
+            --paper:      #fdf6e3;
+            --paper2:     #f5ead0;
+            --red:        #e8001c;
+            --blue:       #0033cc;
+            --yellow:     #ffe600;
+            --sky:        #4db8ff;
+            --green:      #00aa44;
+            --orange:     #ff7700;
+            --white:      #ffffff;
+            --panel-gap:  6px;
+            --border:     4px solid var(--ink);
+            --shadow:     5px 5px 0 var(--ink);
+            --shadow-lg:  7px 7px 0 var(--ink);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        /* ── PAPER + HALFTONE BASE ── */
+        body {
+            background: var(--paper);
+            font-family: 'Comic Neue', 'Comic Sans MS', cursive;
+            color: var(--ink);
+            overflow-x: hidden;
+            /* Aged paper texture via repeating gradients */
+            background-image:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 3px,
+                    rgba(180,150,80,.03) 3px,
+                    rgba(180,150,80,.03) 4px
+                );
+        }
+
+        /* Global halftone dot pattern */
+        .halftone {
+            position: relative;
+        }
+        .halftone::after {
+            content: "";
+            position: absolute; inset: 0;
+            background-image: radial-gradient(circle, rgba(0,0,0,.08) 1.2px, transparent 1.2px);
+            background-size: 8px 8px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* ── COMIC BORDER UTILITY ── */
+        .comic-panel {
+            border: var(--border);
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            background: var(--white);
+        }
+
+        /* ── SPEED LINES ── */
+        .speed-lines {
+            position: absolute; inset: 0;
+            background: repeating-conic-gradient(
+                from 0deg at 50% 50%,
+                rgba(0,0,0,.03) 0deg,
+                rgba(0,0,0,.03) 1deg,
+                transparent 1deg,
+                transparent 3deg
+            );
+            pointer-events: none;
+        }
+
+        /* ── NAVBAR ── */
+        .navbar {
+            background: var(--red) !important;
+            border-bottom: var(--border);
+            border-bottom-width: 5px;
+            box-shadow: 0 5px 0 var(--ink);
+            padding: 0;
+            position: relative; z-index: 200;
+        }
+        /* Comic panel top border stripe */
+        .navbar::before {
+            content: "";
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 6px;
+            background: repeating-linear-gradient(
+                to right,
+                var(--yellow) 0, var(--yellow) 20px,
+                var(--ink) 20px, var(--ink) 22px
+            );
+        }
+        .navbar .container { padding-top: 6px; }
+        .navbar-brand {
+            font-family: 'Bangers', cursive;
+            font-size: 2rem;
+            color: var(--yellow) !important;
+            letter-spacing: 3px;
+            -webkit-text-stroke: 1.5px var(--ink);
+            paint-order: stroke fill;
+            text-shadow: 3px 3px 0 var(--ink);
+            padding: 8px 0;
+        }
+        .nav-link {
+            font-family: 'Bangers', cursive;
+            font-size: 1.1rem;
+            color: var(--white) !important;
+            letter-spacing: 2px;
+            -webkit-text-stroke: .5px var(--ink);
+            transition: transform .15s, color .15s;
+            padding: 8px 14px !important;
+        }
+        .nav-link:hover {
+            color: var(--yellow) !important;
+            transform: scale(1.1) rotate(-2deg);
+        }
+        .dropdown-menu {
+            background: var(--paper);
+            border: var(--border);
+            box-shadow: var(--shadow);
+            border-radius: 0;
+        }
+        .dropdown-item {
+            font-family: 'Bangers', cursive;
+            letter-spacing: 2px;
+            font-size: 1rem;
+            color: var(--ink);
+        }
+        .dropdown-item:hover { background: var(--yellow); color: var(--ink); }
+        #cartCount { background: var(--yellow) !important; color: var(--ink) !important; font-weight: 900; }
+
+        /* ══════════════════════════════════════════════
+           HERO — Full comic cover splash page
+        ══════════════════════════════════════════════ */
+        .hero-section {
+            min-height: 100vh;
+            background: var(--sky);
+            border-bottom: 5px solid var(--ink);
+            position: relative;
+            overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Ben-Day dots over hero */
+        .hero-section::before {
+            content: "";
+            position: absolute; inset: 0;
+            background-image: radial-gradient(circle, rgba(0,51,204,.15) 1.8px, transparent 1.8px);
+            background-size: 10px 10px;
+            pointer-events: none; z-index: 1;
+        }
+
+        /* City skyline silhouette bottom */
+        .city-silhouette {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 220px;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .city-silhouette svg { width: 100%; height: 100%; }
+
+        /* Action lines radiating from center */
+        .action-lines {
+            position: absolute; inset: 0;
+            background: repeating-conic-gradient(
+                from 0deg at 50% 50%,
+                rgba(255,230,0,.06) 0deg,
+                rgba(255,230,0,.06) 1.5deg,
+                transparent 1.5deg,
+                transparent 4deg
+            );
+            z-index: 1;
+        }
+
+        /* ONOMATOPOEIA floating elements */
+        .onoma {
+            position: absolute;
+            font-family: 'Bangers', cursive;
+            -webkit-text-stroke: 2px var(--ink);
+            paint-order: stroke fill;
+            text-shadow: 4px 4px 0 var(--ink);
+            z-index: 8;
+            animation: onoWobble ease-in-out infinite;
+            transform-origin: center;
+            pointer-events: none;
+            line-height: 1;
+        }
+        .o-pow  { font-size: 6rem;  color: var(--yellow); top: 8%;  left: 3%;  transform: rotate(-15deg); animation-duration: 3s; animation-delay: 0s; }
+        .o-zap  { font-size: 4.5rem;color: var(--orange); top: 12%; right: 4%; transform: rotate(12deg);  animation-duration: 4s; animation-delay: .5s; }
+        .o-bam  { font-size: 3.5rem;color: var(--red);    top: 55%; left: 2%;  transform: rotate(-8deg);  animation-duration: 3.5s;animation-delay:1s; }
+        .o-wham { font-size: 3rem;  color: var(--green);  top: 50%; right: 3%; transform: rotate(10deg);  animation-duration: 5s; animation-delay: 1.5s; }
+        @keyframes onoWobble {
+            0%,100%{ transform-origin: center; filter: none; }
+            50%    { scale: 1.08; filter: drop-shadow(0 0 8px currentColor); }
+        }
+        /* individual rotations preserved */
+        .o-pow  { animation-name: onoWobblePow; }
+        .o-zap  { animation-name: onoWobbleZap; }
+        .o-bam  { animation-name: onoWobbleBam; }
+        .o-wham { animation-name: onoWobbleWham; }
+        @keyframes onoWobblePow  { 0%,100%{transform:rotate(-15deg) scale(1);}50%{transform:rotate(-15deg) scale(1.1);} }
+        @keyframes onoWobbleZap  { 0%,100%{transform:rotate(12deg) scale(1);}  50%{transform:rotate(12deg) scale(1.09);} }
+        @keyframes onoWobbleBam  { 0%,100%{transform:rotate(-8deg) scale(1);}  50%{transform:rotate(-8deg) scale(1.08);} }
+        @keyframes onoWobbleWham { 0%,100%{transform:rotate(10deg) scale(1);}  50%{transform:rotate(10deg) scale(1.07);} }
+
+        /* Star burst behind logo */
+        .starburst {
+            position: absolute;
+            width: 340px; height: 340px;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -60%);
+            background: var(--yellow);
+            clip-path: polygon(
+                50% 0%,  57% 35%,  93% 15%,  68% 42%,
+                100% 50%, 68% 58%,  93% 85%,  57% 65%,
+                50% 100%, 43% 65%,  7% 85%,   32% 58%,
+                0% 50%,  32% 42%,   7% 15%,   43% 35%
+            );
+            z-index: 3;
+            animation: burstSpin 20s linear infinite;
+            border: none;
+        }
+        @keyframes burstSpin { to { transform: translate(-50%,-60%) rotate(360deg); } }
+
+        /* Hero content */
+        .hero-inner {
+            position: relative; z-index: 10;
+            text-align: center;
+            padding: 80px 20px 160px;
+        }
+
+        /* Logo — comic badge */
+        .logo-comic {
+            position: relative;
+            width: 185px; height: 185px;
+            border-radius: 50%;
+            background: var(--white);
+            border: 6px solid var(--ink);
+            box-shadow: var(--shadow-lg), 0 0 0 3px var(--red), 14px 14px 0 var(--ink);
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-bottom: 24px;
+            overflow: hidden;
+            animation: logoCrash .8s cubic-bezier(.34,1.56,.64,1) both;
+        }
+        .logo-comic img { width: 135px; height: 135px; object-fit: contain; }
+        @keyframes logoCrash {
+            from { opacity:0; transform: scale(0) rotate(-20deg); }
+            to   { opacity:1; transform: scale(1) rotate(0deg); }
+        }
+
+        /* CLASSIFIED / ISSUE badge */
+        .issue-badge {
+            background: var(--red);
+            color: var(--yellow);
+            font-family: 'Bangers', cursive;
+            font-size: .8rem;
+            letter-spacing: 3px;
+            padding: 4px 16px;
+            border: 2px solid var(--ink);
+            box-shadow: 2px 2px 0 var(--ink);
+            display: inline-block;
+            margin-bottom: 12px;
+            transform: rotate(-1deg);
+            -webkit-text-stroke: .3px var(--ink);
+        }
+
+        .hero-title {
+            font-family: 'Bangers', cursive;
+            font-size: clamp(4rem, 14vw, 10rem);
+            line-height: .88;
+            -webkit-text-stroke: 5px var(--ink);
+            paint-order: stroke fill;
+            color: var(--white);
+            text-shadow: 7px 7px 0 var(--ink), 10px 10px 0 var(--blue);
+            letter-spacing: 5px;
+            margin-bottom: 12px;
+            animation: titleBoom .9s .15s cubic-bezier(.16,1,.3,1) both;
+        }
+        @keyframes titleBoom {
+            from { opacity:0; transform: scale(1.3) skewX(-10deg); filter: blur(4px); }
+            to   { opacity:1; transform: scale(1) skewX(0deg);      filter: blur(0); }
+        }
+
+        .hero-sub {
+            font-family: 'Permanent Marker', cursive;
+            font-size: 1.3rem;
+            color: var(--ink);
+            background: var(--yellow);
+            display: inline-block;
+            padding: 7px 26px;
+            border: 3px solid var(--ink);
+            box-shadow: var(--shadow);
+            transform: rotate(-1.5deg);
+            margin-bottom: 28px;
+            animation: fadeSlide .6s .4s both;
+        }
+        @keyframes fadeSlide {
+            from { opacity:0; transform: rotate(-1.5deg) translateY(20px); }
+            to   { opacity:1; transform: rotate(-1.5deg) translateY(0); }
+        }
+
+        .hero-btn {
+            font-family: 'Bangers', cursive;
+            font-size: 1.8rem;
+            letter-spacing: 4px;
+            -webkit-text-stroke: 1px var(--ink);
+            paint-order: stroke fill;
+            padding: 14px 52px;
+            border: 4px solid var(--ink);
+            background: var(--red);
+            color: var(--white);
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: var(--shadow-lg);
+            transition: transform .12s, box-shadow .12s;
+            animation: fadeSlide .6s .55s both;
+            position: relative;
+            clip-path: polygon(12px 0%, calc(100% - 12px) 0%, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0% calc(100% - 12px), 0% 12px);
+        }
+        .hero-btn:hover {
+            transform: translateY(-5px) rotate(-1deg);
+            box-shadow: 10px 10px 0 var(--ink);
+            color: var(--white);
+            background: var(--blue);
+        }
+        .hero-btn:active {
+            transform: translateY(3px);
+            box-shadow: 2px 2px 0 var(--ink);
+        }
+
+        /* ── CHAPTER MARQUEE ── */
+        .chapter-tape {
+            background: var(--yellow);
+            border-top: 4px solid var(--ink);
+            border-bottom: 4px solid var(--ink);
+            padding: 8px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+        }
+        .chapter-text {
+            display: inline-block;
+            font-family: 'Bangers', cursive;
+            font-size: 1.1rem;
+            color: var(--ink);
+            letter-spacing: 5px;
+            -webkit-text-stroke: .3px var(--ink);
+            animation: tapeRoll 22s linear infinite;
+        }
+        @keyframes tapeRoll {
+            from { transform: translateX(100vw); }
+            to   { transform: translateX(-100%); }
+        }
+
+        /* ══════════════════════════════════════════════
+           COMIC PANEL LAYOUT SYSTEM
+        ══════════════════════════════════════════════ */
+        .comic-page {
+            background: var(--ink);
+            padding: var(--panel-gap);
+            display: grid;
+            gap: var(--panel-gap);
+        }
+
+        /* Section wrapper as comic page */
+        .section-page {
+            background: var(--paper);
+            border: 5px solid var(--ink);
+            box-shadow: 8px 8px 0 var(--ink);
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Panel caption box */
+        .caption-box {
+            background: var(--yellow);
+            border: 3px solid var(--ink);
+            font-family: 'Bangers', cursive;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            padding: 5px 18px;
+            display: inline-block;
+            box-shadow: 3px 3px 0 var(--ink);
+            margin-bottom: 16px;
+            transform: rotate(-0.5deg);
+        }
+
+        /* ── SECTION TITLE ── */
+        .section-title {
+            font-family: 'Bangers', cursive;
+            font-size: 3rem;
+            -webkit-text-stroke: 2.5px var(--ink);
+            paint-order: stroke fill;
+            text-shadow: 4px 4px 0 var(--ink);
+            letter-spacing: 4px;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+        .section-sub {
+            font-family: 'Permanent Marker', cursive;
+            font-size: .85rem;
+            color: var(--blue);
+            text-align: center;
+            margin-bottom: 28px;
+            letter-spacing: 1px;
+        }
+
+        /* ── DIVIDER — panel gap ── */
+        .comic-divider {
+            height: 5px;
+            background: var(--ink);
+            margin: 40px -15px;
+            position: relative;
+        }
+        .comic-divider::before {
+            content: attr(data-label);
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%,-50%);
+            background: var(--yellow);
+            border: 3px solid var(--ink);
+            font-family: 'Bangers', cursive;
+            font-size: 1rem;
+            letter-spacing: 3px;
+            padding: 4px 20px;
+            box-shadow: 3px 3px 0 var(--ink);
+            white-space: nowrap;
+        }
+
+        /* ── CAT CARDS ── */
+        .cat-card {
+            background: var(--white);
+            border: 4px solid var(--ink);
+            padding: 28px 14px 22px;
+            text-align: center;
+            margin: 8px 5px;
+            text-decoration: none;
+            color: var(--ink);
+            display: block;
+            box-shadow: var(--shadow);
+            transition: transform .12s, box-shadow .12s;
+            font-family: 'Bangers', cursive;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            position: relative;
+            /* Halftone tint on bg */
+            background-image: radial-gradient(circle, rgba(0,51,204,.06) 1px, transparent 1px);
+            background-size: 8px 8px;
+        }
+        /* Color stripe top by nth */
+        .cat-card::before {
+            content: "";
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 8px;
+        }
+        .swiper-slide:nth-child(7n+1) .cat-card::before { background: var(--red); }
+        .swiper-slide:nth-child(7n+2) .cat-card::before { background: var(--blue); }
+        .swiper-slide:nth-child(7n+3) .cat-card::before { background: var(--green); }
+        .swiper-slide:nth-child(7n+4) .cat-card::before { background: var(--orange); }
+        .swiper-slide:nth-child(7n+5) .cat-card::before { background: var(--red); }
+        .swiper-slide:nth-child(7n+6) .cat-card::before { background: var(--blue); }
+        .swiper-slide:nth-child(7n+0) .cat-card::before { background: var(--green); }
+        .cat-card i { font-size: 2.2rem; margin-bottom: 10px; display: block; transition: .2s; color: var(--blue); }
+        .cat-card:hover {
+            transform: translateY(-8px) rotate(-2deg);
+            box-shadow: 9px 9px 0 var(--ink);
+            background-color: var(--yellow);
+            color: var(--ink);
+        }
+        .cat-card:hover i { transform: scale(1.35) rotate(10deg); color: var(--red); }
+
+        /* ── SPEECH BUBBLE REVIEWS ── */
+        .review-wrap { padding-bottom: 40px; }
+        .review-card {
+            background: var(--white);
+            border: 4px solid var(--ink);
+            padding: 28px;
+            margin: 16px 10px 40px;
+            box-shadow: var(--shadow);
+            position: relative;
+            /* Halftone */
+            background-image: radial-gradient(circle, rgba(0,0,0,.05) 1px, transparent 1px);
+            background-size: 8px 8px;
+            background-color: var(--white);
+        }
+        /* Speech bubble tail */
+        .review-card::after {
+            content: "";
+            position: absolute;
+            bottom: -28px; left: 40px;
+            width: 0; height: 0;
+            border-left: 20px solid transparent;
+            border-right: 0 solid transparent;
+            border-top: 28px solid var(--ink);
+            z-index: 2;
+        }
+        .review-card::before {
+            content: "";
+            position: absolute;
+            bottom: -22px; left: 44px;
+            width: 0; height: 0;
+            border-left: 16px solid transparent;
+            border-right: 0 solid transparent;
+            border-top: 22px solid var(--white);
+            z-index: 3;
+        }
+        .review-card .stars {
+            font-size: 1.2rem; margin-bottom: 10px;
+            color: var(--yellow);
+            -webkit-text-stroke: .8px var(--ink);
+        }
+        .review-card p {
+            font-family: 'Comic Neue', 'Comic Sans MS', cursive;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--ink);
+            line-height: 1.6;
+        }
+        .review-card h6 {
+            font-family: 'Bangers', cursive;
+            letter-spacing: 3px;
+            font-size: 1rem;
+            color: var(--blue);
+            margin-top: 12px;
+            -webkit-text-stroke: .3px var(--ink);
+        }
+        /* Reviewer avatar emoji */
+        .reviewer-avatar {
+            position: absolute;
+            bottom: -50px; left: 14px;
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            border: 3px solid var(--ink);
+            background: var(--sky);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem;
+            box-shadow: 3px 3px 0 var(--ink);
+            z-index: 4;
+        }
+
+        /* ── GRID ITEMS ── */
+        .grid-item {
+            background: var(--white);
+            border: 4px solid var(--ink);
+            padding: 26px 14px;
+            text-align: center; height: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-decoration: none;
+            color: var(--ink);
+            font-family: 'Bangers', cursive;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            transition: .12s;
+            box-shadow: var(--shadow);
+            background-image: radial-gradient(circle, rgba(0,0,0,.04) 1px, transparent 1px);
+            background-size: 8px 8px;
+            background-color: var(--white);
+        }
+        .grid-item:nth-child(4n+1) { border-top-color: var(--red); }
+        .grid-item:nth-child(4n+2) { border-top-color: var(--blue); }
+        .grid-item:nth-child(4n+3) { border-top-color: var(--green); }
+        .grid-item:nth-child(4n+4) { border-top-color: var(--orange); }
+        .grid-item:hover {
+            transform: scale(1.06) rotate(1deg);
+            box-shadow: 8px 8px 0 var(--ink);
+            background-color: var(--yellow);
+            color: var(--ink);
+        }
+
+        /* ── ABOUT ── */
+        .about-section {
+            background: var(--paper2);
+            border: 5px solid var(--ink);
+            box-shadow: var(--shadow-lg);
+            padding: 50px;
+            position: relative;
+            overflow: hidden;
+            background-image: radial-gradient(circle, rgba(0,0,0,.05) 1.2px, transparent 1.2px);
+            background-size: 10px 10px;
+            background-color: var(--paper2);
+        }
+        /* Rip/torn edge top */
+        .about-section::before {
+            content: "";
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 12px;
+            background: repeating-linear-gradient(
+                to right,
+                var(--yellow) 0, var(--yellow) 30px,
+                var(--red) 30px, var(--red) 60px,
+                var(--blue) 60px, var(--blue) 90px,
+                var(--green) 90px, var(--green) 120px
+            );
+            border-bottom: 3px solid var(--ink);
+        }
+        /* Floating hero cape emoji */
+        .about-section::after {
+            content: "🦸";
+            position: absolute; bottom: 16px; right: 24px;
+            font-size: 5rem;
+            opacity: .12;
+            pointer-events: none;
+        }
+        .about-section p {
+            font-family: 'Comic Neue', cursive;
+            font-weight: 700;
+            line-height: 1.8;
+            color: #111;
+        }
+        .about-logo-container {
+            display: flex; justify-content: center; align-items: center;
+            height: 160px;
+        }
+        .moving-logo {
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            background: var(--blue);
+            border: 5px solid var(--ink);
+            box-shadow: var(--shadow-lg);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 2.8rem; color: var(--yellow);
+            position: relative;
+            transition: transform .15s linear;
+            animation: heroFloat 2.5s ease-in-out infinite;
+            /* Shield shape */
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        }
+        @keyframes heroFloat {
+            0%,100%{ transform:translateY(0) rotate(-4deg); }
+            50%    { transform:translateY(-14px) rotate(4deg); }
+        }
+
+        /* ── EVENT CARDS ── */
+        .event-card {
+            background: var(--white);
+            border: 4px solid var(--ink);
+            padding: 28px 14px;
+            text-align: center;
+            margin: 8px 5px;
+            box-shadow: var(--shadow);
+            transition: .12s;
+            font-family: 'Bangers', cursive;
+            position: relative;
+            background-image: radial-gradient(circle, rgba(0,0,0,.04) 1px, transparent 1px);
+            background-size: 8px 8px;
+            background-color: var(--white);
+        }
+        .event-card:nth-child(odd) { transform: rotate(-1deg); }
+        .event-card:nth-child(even){ transform: rotate(.8deg); }
+        .event-card i { font-size: 2.3rem; margin-bottom: 10px; display: block; color: var(--red); transition: .15s; }
+        .event-card h5 { font-size: .95rem; letter-spacing: 2px; }
+        .event-card:hover {
+            transform: rotate(0deg) translateY(-8px) scale(1.05);
+            box-shadow: 9px 9px 0 var(--ink);
+            background-color: var(--sky);
+        }
+        .event-card:hover i { transform: scale(1.3) rotate(-8deg); color: var(--ink); }
+
+        /* ── LOCATION ── */
+        .location-section {
+            background: var(--paper);
+            border: 5px solid var(--ink);
+            box-shadow: var(--shadow-lg);
+            padding: 40px;
+            background-image: radial-gradient(circle, rgba(0,0,0,.04) 1px, transparent 1px);
+            background-size: 10px 10px;
+            background-color: var(--paper);
+        }
+        .location-section h2 {
+            font-family: 'Bangers', cursive;
+            font-size: 2rem;
+            letter-spacing: 3px;
+            -webkit-text-stroke: 1.5px var(--ink);
+            color: var(--red);
+            text-shadow: 2px 2px 0 var(--ink);
+        }
+        .location-section i { color: var(--red) !important; }
+        .location-section p, .location-section li {
+            font-family: 'Comic Neue', cursive;
+            font-weight: 700;
+            color: #222;
+            font-size: .95rem;
+        }
+
+        /* ── CONTACT ── */
+        .contact-card {
+            background: var(--paper);
+            border: 5px solid var(--ink);
+            box-shadow: var(--shadow-lg);
+            padding: 48px;
+            position: relative;
+            overflow: hidden;
+            background-image: radial-gradient(circle, rgba(0,0,0,.04) 1px, transparent 1px);
+            background-size: 10px 10px;
+            background-color: var(--paper);
+        }
+        /* Action burst top-right */
+        .contact-card::after {
+            content: "💥";
+            position: absolute; top: -20px; right: -10px;
+            font-size: 5rem;
+            transform: rotate(15deg);
+            filter: drop-shadow(2px 2px 0 var(--ink));
+            animation: burstPop 2s ease-in-out infinite;
+        }
+        @keyframes burstPop {
+            0%,100%{ transform: rotate(15deg) scale(1); }
+            50%    { transform: rotate(15deg) scale(1.12); }
+        }
+        .contact-card h2 {
+            font-family: 'Bangers', cursive;
+            font-size: 2.6rem;
+            letter-spacing: 4px;
+            -webkit-text-stroke: 2px var(--ink);
+            color: var(--blue);
+            text-shadow: 4px 4px 0 var(--ink);
+        }
+        .form-label {
+            font-family: 'Bangers', cursive;
+            letter-spacing: 2px;
+            font-size: .9rem;
+            color: var(--ink);
+        }
+        .form-control {
+            background: var(--white);
+            border: 3px solid var(--ink);
+            border-radius: 0;
+            color: var(--ink);
+            padding: 12px 16px;
+            font-family: 'Comic Neue', cursive;
+            font-weight: 700;
+            box-shadow: 3px 3px 0 var(--ink);
+            transition: .15s;
+        }
+        .form-control:focus {
+            background: #fffbe0;
+            border-color: var(--ink);
+            box-shadow: 4px 4px 0 var(--ink);
+            color: var(--ink);
+            outline: none;
+        }
+        .form-control::placeholder { color: #888; }
+        .btn-hero {
+            font-family: 'Bangers', cursive;
+            font-size: 1.8rem;
+            letter-spacing: 4px;
+            -webkit-text-stroke: 1px var(--ink);
+            padding: 14px 52px;
+            border: 4px solid var(--ink);
+            background: var(--blue);
+            color: var(--white);
+            box-shadow: var(--shadow-lg);
+            transition: .12s;
+            cursor: pointer;
+            clip-path: polygon(12px 0%, calc(100% - 12px) 0%, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0% calc(100% - 12px), 0% 12px);
+        }
+        .btn-hero:hover {
+            background: var(--red);
+            transform: translateY(-5px) rotate(-1deg);
+            box-shadow: 10px 10px 0 var(--ink);
+        }
+        .btn-hero:active { transform: translateY(3px); box-shadow: 2px 2px 0 var(--ink); }
+
+        /* ── FOOTER ── */
+        footer {
+            background: var(--blue);
+            border-top: 5px solid var(--ink);
+            padding: 50px 20px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Halftone dots */
+        footer::before {
+            content: "";
+            position: absolute; inset: 0;
+            background-image: radial-gradient(circle, rgba(255,255,255,.1) 1.5px, transparent 1.5px);
+            background-size: 12px 12px;
+            pointer-events: none;
+        }
+        footer h4 {
+            font-family: 'Bangers', cursive;
+            color: var(--yellow);
+            -webkit-text-stroke: 1.5px var(--ink);
+            font-size: 2rem;
+            letter-spacing: 3px;
+            text-shadow: 3px 3px 0 var(--ink);
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .social-btn {
+            width: 56px; height: 56px;
+            border-radius: 0;
+            border: 3px solid var(--ink);
+            background: var(--yellow);
+            color: var(--ink);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+            transition: .12s;
+            text-decoration: none;
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+        .social-btn:nth-child(2) { background: var(--sky);    }
+        .social-btn:nth-child(3) { background: var(--red);    color: white; }
+        .social-btn:nth-child(4) { background: var(--green);  }
+        .social-btn:nth-child(5) { background: var(--orange); }
+        .social-btn:hover {
+            transform: scale(1.2) rotate(-8deg);
+            box-shadow: 7px 7px 0 var(--ink);
+            color: var(--ink);
+        }
+        footer p { color: rgba(255,255,255,.5); font-size: .75rem; font-family: 'Comic Neue', cursive; font-weight: 700; letter-spacing: 2px; margin-top: 24px; position: relative; }
+
+        /* ── SWIPER ── */
+        .swiper-button-next, .swiper-button-prev {
+            color: var(--ink) !important;
+            background: var(--yellow);
+            border: 3px solid var(--ink);
+            border-radius: 0;
+            width: 44px !important; height: 44px !important;
+            box-shadow: var(--shadow);
+        }
+        .swiper-button-next::after, .swiper-button-prev::after { font-size: .9rem !important; font-weight: 900 !important; }
+        .swiper-pagination-bullet { background: rgba(0,0,0,.25) !important; border: 1px solid var(--ink); border-radius: 0 !important; width: 12px !important; height: 12px !important; }
+        .swiper-pagination-bullet-active { background: var(--red) !important; }
+
+        .container { position: relative; z-index: 5; }
+    </style>
+</head>
+<body>
+
+<!-- ══════════ NAVBAR ══════════ -->
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <img height="34px" src="https://dsjumpers.com/wp-content/uploads/2025/02/cropped-Logotipo-D%C2%B4S-Jumpers-qnohhmv0x0akjoiwicpksyn98vul3qjxppjyzgt6og.webp" alt="logo" class="me-2 rounded-circle" style="border:3px solid var(--ink);box-shadow:2px 2px 0 var(--ink);">
+            💥 MI EMPRESA
+        </a>
+        <div class="d-flex align-items-center ms-auto me-3 order-lg-last">
+            <a class="nav-link position-relative p-2" href="#" id="cartIcon">
+                <i class="fas fa-shopping-cart fa-lg" style="color:var(--yellow);-webkit-text-stroke:.5px var(--ink);"></i>
+                <span id="cartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill" style="font-size:.65rem;">0</span>
+            </a>
+        </div>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal" style="color:var(--yellow);">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="menuPrincipal">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#categorias">⚡ Categorías</a></li>
+                <li class="nav-item"><a class="nav-link" href="#eventos">🦸 Eventos</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">💥 Nosotros</a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#nosotros">🦸 Sobre Nosotros</a></li>
+                        <li><a class="dropdown-item" href="#contacto">📨 Contáctanos</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ══════════ HERO ══════════ -->
+<section class="hero-section">
+    <div class="action-lines"></div>
+    <div class="starburst"></div>
+
+    <!-- Onomatopoeia -->
+    <div class="onoma o-pow">¡POW!</div>
+    <div class="onoma o-zap">⚡ZAP!</div>
+    <div class="onoma o-bam">¡BAM!</div>
+    <div class="onoma o-wham">WHAM!</div>
+
+    <!-- City skyline SVG -->
+    <div class="city-silhouette">
+        <svg viewBox="0 0 1440 220" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Building silhouettes -->
+            <g fill="#0a0a0a">
+                <rect x="0"    y="80"  width="60"  height="140"/>
+                <rect x="10"   y="40"  width="20"  height="40"/>
+                <rect x="70"   y="110" width="80"  height="110"/>
+                <rect x="90"   y="60"  width="10"  height="50"/>
+                <rect x="160"  y="50"  width="100" height="170"/>
+                <rect x="185"  y="20"  width="20"  height="30"/>
+                <rect x="190"  y="5"   width="6"   height="20"/><!-- antenna -->
+                <rect x="270"  y="90"  width="70"  height="130"/>
+                <rect x="350"  y="30"  width="90"  height="190"/>
+                <rect x="380"  y="0"   width="14"  height="35"/>
+                <rect x="450"  y="70"  width="60"  height="150"/>
+                <rect x="520"  y="100" width="50"  height="120"/>
+                <rect x="580"  y="20"  width="110" height="200"/>
+                <rect x="610"  y="0"   width="10"  height="25"/>
+                <rect x="700"  y="60"  width="80"  height="160"/>
+                <rect x="790"  y="90"  width="60"  height="130"/>
+                <rect x="860"  y="40"  width="100" height="180"/>
+                <rect x="890"  y="10"  width="16"  height="35"/>
+                <rect x="970"  y="70"  width="70"  height="150"/>
+                <rect x="1050" y="100" width="55"  height="120"/>
+                <rect x="1115" y="30"  width="95"  height="190"/>
+                <rect x="1140" y="5"   width="12"  height="28"/>
+                <rect x="1220" y="60"  width="75"  height="160"/>
+                <rect x="1305" y="85"  width="65"  height="135"/>
+                <rect x="1380" y="45"  width="60"  height="175"/>
+            </g>
+            <!-- Windows (yellow lit) -->
+            <g fill="#ffe600" opacity=".7">
+                <rect x="20"   y="95"  width="6" height="5"/>
+                <rect x="30"   y="95"  width="6" height="5"/>
+                <rect x="20"   y="108" width="6" height="5"/>
+                <rect x="170"  y="65"  width="8" height="6"/>
+                <rect x="185"  y="65"  width="8" height="6"/>
+                <rect x="200"  y="65"  width="8" height="6"/>
+                <rect x="170"  y="80"  width="8" height="6"/>
+                <rect x="200"  y="80"  width="8" height="6"/>
+                <rect x="355"  y="45"  width="10" height="7"/>
+                <rect x="370"  y="45"  width="10" height="7"/>
+                <rect x="385"  y="45"  width="10" height="7"/>
+                <rect x="355"  y="62"  width="10" height="7"/>
+                <rect x="385"  y="62"  width="10" height="7"/>
+                <rect x="590"  y="35"  width="10" height="7"/>
+                <rect x="610"  y="35"  width="10" height="7"/>
+                <rect x="630"  y="35"  width="10" height="7"/>
+                <rect x="650"  y="35"  width="10" height="7"/>
+                <rect x="590"  y="52"  width="10" height="7"/>
+                <rect x="630"  y="52"  width="10" height="7"/>
+                <rect x="865"  y="55"  width="10" height="7"/>
+                <rect x="880"  y="55"  width="10" height="7"/>
+                <rect x="895"  y="55"  width="10" height="7"/>
+                <rect x="1120" y="45"  width="10" height="7"/>
+                <rect x="1140" y="45"  width="10" height="7"/>
+                <rect x="1160" y="45"  width="10" height="7"/>
+                <rect x="1120" y="62"  width="10" height="7"/>
+                <rect x="1160" y="62"  width="10" height="7"/>
+            </g>
+            <!-- Ground -->
+            <rect x="0" y="210" width="1440" height="10" fill="#0a0a0a"/>
+        </svg>
+    </div>
+
+    <div class="hero-inner">
+        <div class="issue-badge">💥 EDICIÓN ESPECIAL · NÚMERO 1 · 2026 💥</div>
+        <div class="logo-comic">
+            <img src="https://dsjumpers.com/wp-content/uploads/2025/02/cropped-Logotipo-D%C2%B4S-Jumpers-qnohhmv0x0akjoiwicpksyn98vul3qjxppjyzgt6og.webp" alt="logo">
+        </div>
+        <h1 class="hero-title">D'S JUMPERS</h1>
+        <p class="hero-sub">✨ ¡Creatividad en Movimiento! ✨</p>
+        <a href="#categorias" class="hero-btn">¡UNIRTE A LA LIGA! 🦸</a>
+    </div>
+</section>
+
+<!-- CHAPTER TAPE -->
+<div class="chapter-tape">
+    <span class="chapter-text">
+        💥 ¡PODERES ACTIVADOS! &nbsp;★&nbsp; 🦸 HÉROES EN ACCIÓN &nbsp;★&nbsp; ⚡ SUPERVELOCIDAD &nbsp;★&nbsp; 💫 CREATIVIDAD ILIMITADA &nbsp;★&nbsp; 🔥 FUERZA INVENCIBLE &nbsp;★&nbsp; 🛸 TECNOLOGÍA DEL FUTURO &nbsp;★&nbsp; 💥 ¡ÚNETE A LA LIGA! &nbsp;★&nbsp;
+    </span>
+</div>
+
+<!-- ══════════ MAIN CONTENT ══════════ -->
+<div class="container py-5">
+
+    <!-- CATEGORÍAS -->
+    <section class="mb-5" id="categorias">
+        <div class="caption-box">📖 CAPÍTULO 1 — ESCOGE TU PODER</div>
+        <h2 class="section-title" style="color:var(--red);">Categorías Destacadas</h2>
+        <p class="section-sub">— ¡Cada héroe tiene su especialidad! —</p>
+        <div class="swiper swiperCategories">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-rocket"></i>🚀 Tech</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-paint-brush"></i>🎨 Diseño</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-music"></i>🎵 Música</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-camera"></i>📸 Fotos</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-utensils"></i>🍳 Cocina</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-running"></i>🏃 Deporte</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-gamepad"></i>🎮 Juegos</a></div>
+            </div>
+            <div class="swiper-pagination mt-4"></div>
+        </div>
+    </section>
+
+    <div class="comic-divider" data-label="⚡ LA GENTE HABLA ⚡"></div>
+
+    <!-- REVIEWS -->
+    <section class="mb-5">
+        <div class="caption-box">📖 CAPÍTULO 2 — TESTIMONIOS HEROICOS</div>
+        <h2 class="section-title" style="color:var(--blue);">¡La Tribuna del Héroe!</h2>
+        <p class="section-sub">— Ciudadanos que ya fueron salvados —</p>
+        <div class="swiper swiperReviews">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide review-wrap">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"¡El servicio tiene SÚPER PODERES! Todo llegó más rápido que un rayo. ¡INCREÍBLE!"</p>
+                        <h6>— Juan Pérez · CIUDADANO RESCATADO</h6>
+                    </div>
+                    <div class="reviewer-avatar">🦸‍♂️</div>
+                </div>
+                <div class="swiper-slide review-wrap">
+                    <div class="review-card">
+                        <div class="stars">★★★★☆</div>
+                        <p>"¡Más poderoso que cualquier villano! La interfaz me atrapó como una telaraña. ¡WOW!"</p>
+                        <h6>— Maria García · HEROÍNA LOCAL</h6>
+                    </div>
+                    <div class="reviewer-avatar">🦸‍♀️</div>
+                </div>
+                <div class="swiper-slide review-wrap">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"¡Encontré todo en segundos! Tienen el poder de la omnisciencia. ¡RECOMENDADO!"</p>
+                        <h6>— Carlos Ruiz · VIGILANTE NOCTURNO</h6>
+                    </div>
+                    <div class="reviewer-avatar">🦹‍♂️</div>
+                </div>
+            </div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+    </section>
+
+    <div class="comic-divider" data-label="💥 CATÁLOGO DE PODERES 💥"></div>
+
+    <!-- CATÁLOGO GRID -->
+    <section class="mb-5">
+        <div class="caption-box">📖 CAPÍTULO 3 — EL UNIVERSO COMPLETO</div>
+        <h2 class="section-title" style="color:var(--green);">Explora el Catálogo</h2>
+        <p class="section-sub">— ¡Un universo de posibilidades! —</p>
+        <div class="row g-2">
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">💻 Tecnología</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🎨 Arte</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🎵 Música</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">📸 Fotografía</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🍽️ Gastronomía</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">⚽ Deportes</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🎮 Gaming</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">✈️ Viajes</a></div>
+        </div>
+    </section>
+
+    <div class="comic-divider" data-label="🦸 ORIGEN DEL HÉROE 🦸"></div>
+
+    <!-- ABOUT -->
+    <section class="about-section mb-5" id="nosotros">
+        <div class="caption-box" style="margin-top:12px;">📖 CAPÍTULO 4 — NUESTROS ORÍGENES</div>
+        <h2 class="section-title" style="color:var(--orange);">¡Sobre Nosotros!</h2>
+        <p class="section-sub">— ¿Cómo nació la Liga? —</p>
+        <div class="row align-items-center g-5">
+            <div class="col-md-8">
+                <p class="lead mb-4" style="font-size:1.1rem;">
+                    💥 ¡Somos la Liga de Héroes del mundo digital! Una empresa dedicada a conectar a las personas con el contenido y los servicios que aman. Como todo gran superhéroe, nacimos de un evento que cambió el mundo — y nunca dejamos de luchar por el bien.
+                </p>
+                <p>
+                    Nuestra misión es simple: ¡facilitar el acceso a un universo de posibilidades! Ofrecemos una plataforma donde la diversidad de poderes — perdón, intereses — se encuentra con la calidad y la innovación. ¡Juntos somos más fuertes!
+                </p>
+            </div>
+            <div class="col-md-4">
+                <div class="about-logo-container">
+                    <div id="movingLogo" class="moving-logo">
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EVENTOS -->
+    <section class="mb-5 py-4" id="eventos">
+        <div class="caption-box">📖 CAPÍTULO 5 — MISIONES DISPONIBLES</div>
+        <h2 class="section-title" style="color:var(--blue);">Tipos de Eventos</h2>
+        <p class="section-sub">— ¡Cada misión es épica! —</p>
+        <div class="swiper swiperEvents">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-glass-cheers"></i><h5>💍 Bodas</h5></div></div>
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-birthday-cake"></i><h5>🎂 Cumpleaños</h5></div></div>
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-briefcase"></i><h5>🏢 Corporativos</h5></div></div>
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-graduation-cap"></i><h5>🎓 Graduaciones</h5></div></div>
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-music"></i><h5>🎶 Conciertos</h5></div></div>
+            </div>
+            <div class="swiper-pagination mt-4"></div>
+        </div>
+    </section>
+
+    <div class="comic-divider" data-label="📍 BASE DE OPERACIONES 📍"></div>
+
+    <!-- UBICACIÓN -->
+    <section class="location-section mb-5">
+        <div class="row align-items-center g-4">
+            <div class="col-md-5 px-4">
+                <h2 class="mb-4">🗺️ La Base Secreta</h2>
+                <p class="mb-3">¡Cubrimos toda el área metropolitana! ¡La Liga llega hasta donde el peligro la llame!</p>
+                <ul class="list-unstyled mt-3">
+                    <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> Calle Falsa 123, Ciudad Central</li>
+                    <li class="mb-2"><i class="fas fa-clock me-2"></i> Lun - Vie: 9:00 AM - 6:00 PM</li>
+                </ul>
+            </div>
+            <div class="col-md-7">
+                <div class="ratio ratio-16x9 overflow-hidden" style="border:4px solid var(--ink);box-shadow:var(--shadow-lg);">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1422937611435!2d-73.98731968459391!3d40.75889497932681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480293%3A0x5117f70619c651b0!2sTimes%20Square!5e0!3m2!1ses!2scl!4v1625070000000!5m2!1ses!2scl" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="comic-divider" data-label="💬 ENVÍA TU SEÑAL 💬"></div>
+
+    <!-- CONTACTO -->
+    <section class="mb-5" id="contacto">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="contact-card">
+                    <div class="caption-box" style="margin-top:8px;">📖 CAPÍTULO 6 — LLAMA A LA LIGA</div>
+                    <h2 class="text-center mt-2 mb-1">¡Contáctanos!</h2>
+                    <p class="section-sub mb-4">— ¡El cuartel general siempre responde! —</p>
+                    <form>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">🦸 Nombre</label>
+                                <input type="text" class="form-control" placeholder="Tu nombre, héroe">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">📡 Correo Electrónico</label>
+                                <input type="email" class="form-control" placeholder="señal@héroe.com">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">💥 Asunto de la Misión</label>
+                                <input type="text" class="form-control" placeholder="¿En qué podemos ayudarte?">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">💬 Mensaje Encriptado</label>
+                                <textarea class="form-control" rows="4" placeholder="Escribe tu mensaje aquí..."></textarea>
+                            </div>
+                            <div class="col-12 text-center mt-3">
+                                <button type="button" class="btn-hero">¡ENVIAR SEÑAL! ⚡</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer>
+    <h4 class="mb-4">💥 ¡Síguenos en redes! 💥</h4>
+    <div class="d-flex justify-content-center gap-3 flex-wrap mb-3" style="position:relative;">
+        <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-twitter"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-instagram"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-whatsapp"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-linkedin-in"></i></a>
+    </div>
+    <p>&copy; 2026 — La Liga de Héroes · Todos los derechos reservados</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+    new Swiper(".swiperCategories", {
+        slidesPerView:1, spaceBetween:10, loop:true,
+        autoplay:{delay:2800, disableOnInteraction:false},
+        breakpoints:{640:{slidesPerView:2},768:{slidesPerView:3},1024:{slidesPerView:5}},
+        pagination:{el:".swiper-pagination",clickable:true},
+    });
+    new Swiper(".swiperReviews", {
+        slidesPerView:1, spaceBetween:20, loop:true,
+        autoplay:{delay:5000},
+        navigation:{nextEl:".swiper-button-next",prevEl:".swiper-button-prev"},
+        breakpoints:{768:{slidesPerView:2}}
+    });
+    new Swiper(".swiperEvents", {
+        slidesPerView:1, spaceBetween:20, loop:true,
+        autoplay:{delay:3500, disableOnInteraction:false},
+        breakpoints:{640:{slidesPerView:2},1024:{slidesPerView:4}},
+        pagination:{el:".swiper-pagination",clickable:true},
+    });
+
+    const movingLogo = document.getElementById('movingLogo');
+    const aboutLogoContainer = document.querySelector('.about-logo-container');
+    if (movingLogo && aboutLogoContainer) {
+        aboutLogoContainer.addEventListener('mousemove', (e) => {
+            const r = aboutLogoContainer.getBoundingClientRect();
+            const nx = ((e.clientX - r.left) / r.width)  * 2 - 1;
+            const ny = ((e.clientY - r.top)  / r.height) * 2 - 1;
+            movingLogo.style.transform = `translate(${nx*25}px,${ny*25}px)`;
+        });
+        aboutLogoContainer.addEventListener('mouseleave', () => {
+            movingLogo.style.transform = 'translate(0,0)';
+        });
+    }
+
+    let itemCount = 0;
+    const cartCountEl = document.getElementById('cartCount');
+    function agregarAlCarrito() { itemCount++; cartCountEl.innerText = itemCount; }
+</script>
+</body>
+</html>

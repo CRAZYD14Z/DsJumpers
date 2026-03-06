@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌿 D'S Jumpers — ¡La Selva Loca!</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Lilita+One&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --outline:  #1a1a1a;
+            --bg:       #d4f5a0;
+            --green1:   #4caf20;
+            --green2:   #2d8a00;
+            --green3:   #7dd944;
+            --yellow:   #ffe033;
+            --orange:   #ff7a00;
+            --red:      #ff3333;
+            --blue:     #33aaff;
+            --purple:   #aa44ff;
+            --pink:     #ff55aa;
+            --brown:    #8b4513;
+            --white:    #ffffff;
+            --card-bg:  #ffffff;
+            --shadow:   4px 4px 0 var(--outline);
+            --shadow-lg:6px 6px 0 var(--outline);
+            --shadow-xl:8px 8px 0 var(--outline);
+            --stroke:   3px solid var(--outline);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--bg);
+            font-family: 'Nunito', sans-serif;
+            color: var(--outline);
+            overflow-x: hidden;
+            /* Halftone dot pattern */
+            background-image:
+                radial-gradient(circle, rgba(0,0,0,.06) 1.5px, transparent 1.5px);
+            background-size: 20px 20px;
+        }
+
+        /* ── CARTOON OUTLINE UTILITY ─────────────────── */
+        .outlined {
+            -webkit-text-stroke: 3px var(--outline);
+            paint-order: stroke fill;
+        }
+
+        /* ── NAVBAR ──────────────────────────────────── */
+        .navbar {
+            background: var(--yellow) !important;
+            border-bottom: var(--stroke);
+            border-bottom-width: 4px;
+            box-shadow: 0 4px 0 var(--outline);
+            padding: 10px 0;
+            position: relative; z-index: 100;
+        }
+        .navbar-brand {
+            font-family: 'Bangers', cursive;
+            font-size: 1.8rem;
+            color: var(--outline) !important;
+            letter-spacing: 2px;
+            -webkit-text-stroke: 1px var(--outline);
+        }
+        .nav-link {
+            font-family: 'Lilita One', cursive;
+            font-size: 1rem;
+            color: var(--outline) !important;
+            letter-spacing: 1px;
+            transition: color .15s, transform .15s;
+            padding: 6px 14px !important;
+        }
+        .nav-link:hover { color: var(--red) !important; transform: scale(1.08) rotate(-2deg); display: inline-block; }
+        .dropdown-menu {
+            background: var(--white);
+            border: var(--stroke);
+            border-width: 3px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+        .dropdown-item { font-family: 'Lilita One', cursive; color: var(--outline); }
+        .dropdown-item:hover { background: var(--yellow); color: var(--outline); }
+        #cartCount { background: var(--red) !important; }
+
+        /* ══════════════════════════════════════════════
+           HERO
+        ══════════════════════════════════════════════ */
+        .hero-section {
+            min-height: 100vh;
+            background: linear-gradient(180deg, #87edff 0%, #c5f5ff 40%, #a8e85c 40%, var(--bg) 100%);
+            position: relative;
+            overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Sky clouds — cartoon blobs */
+        .cloud-cartoon {
+            position: absolute;
+            background: white;
+            border-radius: 50px;
+            border: 3px solid var(--outline);
+            box-shadow: 3px 3px 0 var(--outline);
+        }
+        .cloud-cartoon::before, .cloud-cartoon::after {
+            content: "";
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            border: 3px solid var(--outline);
+        }
+        .c1 { width:180px; height:55px; top:6%; left:4%;  animation: cloudBop 4s ease-in-out infinite; }
+        .c1::before { width:75px; height:75px; top:-40px; left:20px; }
+        .c1::after  { width:55px; height:55px; top:-28px; left:80px; }
+        .c2 { width:140px; height:44px; top:12%; right:8%; animation: cloudBop 5.5s ease-in-out infinite reverse; }
+        .c2::before { width:60px; height:60px; top:-32px; left:15px; }
+        .c2::after  { width:44px; height:44px; top:-22px; left:65px; }
+        .c3 { width:220px; height:65px; top:3%; left:40%; animation: cloudBop 6s 1s ease-in-out infinite; }
+        .c3::before { width:90px; height:90px; top:-48px; left:25px; }
+        .c3::after  { width:66px; height:66px; top:-34px; left:100px; }
+        @keyframes cloudBop {
+            0%,100%{ transform:translateY(0) translateX(0); }
+            50%    { transform:translateY(-10px) translateX(5px); }
+        }
+
+        /* Sun cartoon */
+        .sun-cartoon {
+            position: absolute;
+            top: 5%; right: 10%;
+            width: 90px; height: 90px;
+            background: var(--yellow);
+            border-radius: 50%;
+            border: 4px solid var(--outline);
+            box-shadow: 4px 4px 0 var(--outline);
+            z-index: 2;
+            animation: sunWiggle 3s ease-in-out infinite;
+        }
+        /* Sun rays */
+        .sun-cartoon::before {
+            content: "";
+            position: absolute;
+            inset: -18px;
+            border-radius: 50%;
+            background: conic-gradient(
+                var(--yellow) 0deg 20deg, transparent 20deg 45deg,
+                var(--yellow) 45deg 65deg, transparent 65deg 90deg,
+                var(--yellow) 90deg 110deg, transparent 110deg 135deg,
+                var(--yellow) 135deg 155deg, transparent 155deg 180deg,
+                var(--yellow) 180deg 200deg, transparent 200deg 225deg,
+                var(--yellow) 225deg 245deg, transparent 245deg 270deg,
+                var(--yellow) 270deg 290deg, transparent 290deg 315deg,
+                var(--yellow) 315deg 335deg, transparent 335deg 360deg
+            );
+            z-index: -1;
+            animation: sunSpin 8s linear infinite;
+        }
+        /* Sun face */
+        .sun-cartoon::after {
+            content: "😄";
+            position: absolute;
+            inset: 0; display: flex; align-items: center; justify-content: center;
+            font-size: 2.8rem;
+            line-height: 1;
+            padding-top: 4px;
+        }
+        @keyframes sunWiggle {
+            0%,100%{ transform: rotate(-5deg) scale(1); }
+            50%    { transform: rotate(5deg) scale(1.05); }
+        }
+        @keyframes sunSpin { to { transform: rotate(360deg); } }
+
+        /* Cartoon trees — foreground */
+        .tree-group { position: absolute; bottom: 0; display: flex; align-items: flex-end; gap: 0; z-index: 5; }
+        .tree-group.left  { left: -20px; }
+        .tree-group.right { right: -20px; transform: scaleX(-1); }
+        .ctree {
+            position: relative;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .ctree-top {
+            background: var(--green1);
+            border-radius: 50% 50% 40% 40%;
+            border: 4px solid var(--outline);
+            box-shadow: 4px 4px 0 var(--outline);
+            position: relative;
+        }
+        .ctree-trunk {
+            background: var(--brown);
+            border: 4px solid var(--outline);
+            box-shadow: 3px 3px 0 var(--outline);
+            border-radius: 4px;
+        }
+
+        /* Bushes */
+        .bush { position:absolute; bottom:0; border-radius:50% 50% 40% 40%; border:3px solid var(--outline); box-shadow:3px 3px 0 var(--outline); }
+
+        /* Ground stripe */
+        .hero-ground-strip {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 80px;
+            background: var(--green2);
+            border-top: 4px solid var(--outline);
+            z-index: 4;
+        }
+        .hero-ground-strip::before {
+            content: "";
+            position: absolute;
+            top: -16px; left: 0; right: 0;
+            height: 16px;
+            background: var(--green3);
+            border-top: 3px solid var(--outline);
+        }
+
+        /* Cartoon animals peeking */
+        .animal-peek {
+            position: absolute;
+            font-size: 3.5rem;
+            bottom: 55px;
+            animation: peekBounce 2s ease-in-out infinite;
+            z-index: 6;
+            filter: drop-shadow(2px 2px 0 rgba(0,0,0,.3));
+        }
+        .peek-monkey  { left: 18%; animation-delay: 0s; }
+        .peek-parrot  { left: 38%; animation-delay: .6s; font-size: 3rem; bottom: 65px; }
+        .peek-tiger   { right: 22%; animation-delay: 1.1s; }
+        .peek-frog    { left: 55%; animation-delay: .3s; font-size: 2.8rem; }
+        @keyframes peekBounce {
+            0%,100%{ transform: translateY(0) rotate(-4deg); }
+            50%    { transform: translateY(-14px) rotate(4deg); }
+        }
+
+        /* Hero inner */
+        .hero-inner {
+            position: relative; z-index: 10;
+            text-align: center;
+            padding: 80px 20px 140px;
+        }
+
+        /* Logo badge — cartoon style */
+        .logo-cartoon {
+            width: 180px; height: 180px;
+            border-radius: 50%;
+            background: var(--yellow);
+            border: 6px solid var(--outline);
+            box-shadow: var(--shadow-xl), 0 0 0 3px var(--orange), 12px 12px 0 var(--outline);
+            display: inline-flex; align-items: center; justify-content: center;
+            overflow: hidden;
+            margin-bottom: 28px;
+            animation: logoBounce 1.8s ease-in-out infinite;
+            position: relative;
+        }
+        .logo-cartoon img { width:130px; height:130px; object-fit:contain; }
+        @keyframes logoBounce {
+            0%,100%{ transform: scaleY(1) translateY(0); }
+            40%    { transform: scaleY(1.08) translateY(-18px); }
+            60%    { transform: scaleY(.95) translateY(-14px); }
+            80%    { transform: scaleY(1.03) translateY(-4px); }
+        }
+
+        /* Speed lines behind logo */
+        .speed-lines {
+            position: absolute;
+            inset: -30px;
+            border-radius: 50%;
+            background: conic-gradient(
+                rgba(255,224,51,.4) 0deg 10deg, transparent 10deg 30deg,
+                rgba(255,224,51,.3) 30deg 40deg, transparent 40deg 60deg,
+                rgba(255,224,51,.4) 60deg 70deg, transparent 70deg 90deg,
+                rgba(255,224,51,.3) 90deg 100deg, transparent 100deg 120deg,
+                rgba(255,224,51,.4) 120deg 130deg, transparent 130deg 150deg,
+                rgba(255,224,51,.3) 150deg 160deg, transparent 160deg 180deg,
+                rgba(255,224,51,.4) 180deg 190deg, transparent 190deg 210deg,
+                rgba(255,224,51,.3) 210deg 220deg, transparent 220deg 240deg,
+                rgba(255,224,51,.4) 240deg 250deg, transparent 250deg 270deg,
+                rgba(255,224,51,.3) 270deg 280deg, transparent 280deg 300deg,
+                rgba(255,224,51,.4) 300deg 310deg, transparent 310deg 330deg,
+                rgba(255,224,51,.3) 330deg 340deg, transparent 340deg 360deg
+            );
+            z-index: -1;
+            animation: speedSpin 3s linear infinite;
+        }
+        @keyframes speedSpin { to { transform: rotate(360deg); } }
+
+        .hero-title {
+            font-family: 'Bangers', cursive;
+            font-size: clamp(4rem, 13vw, 9rem);
+            line-height: .9;
+            color: var(--green1);
+            -webkit-text-stroke: 5px var(--outline);
+            paint-order: stroke fill;
+            text-shadow: 8px 8px 0 var(--outline);
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+            animation: titleWobble 3s ease-in-out infinite;
+        }
+        @keyframes titleWobble {
+            0%,100%{ transform: rotate(-1deg) scale(1); }
+            50%    { transform: rotate(1deg) scale(1.02); }
+        }
+
+        .hero-sub {
+            font-family: 'Lilita One', cursive;
+            font-size: 1.4rem;
+            color: var(--white);
+            background: var(--red);
+            display: inline-block;
+            padding: 8px 28px;
+            border-radius: 50px;
+            border: 3px solid var(--outline);
+            box-shadow: var(--shadow);
+            letter-spacing: 1px;
+            margin-bottom: 28px;
+            transform: rotate(-1.5deg);
+        }
+
+        .hero-btn {
+            font-family: 'Bangers', cursive;
+            font-size: 1.6rem;
+            letter-spacing: 3px;
+            padding: 16px 52px;
+            border-radius: 50px;
+            border: 4px solid var(--outline);
+            background: var(--orange);
+            color: var(--white);
+            -webkit-text-stroke: 1px var(--outline);
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: var(--shadow-xl);
+            transition: transform .15s, box-shadow .15s;
+            transform: rotate(1deg);
+        }
+        .hero-btn:hover {
+            transform: rotate(1deg) translateY(-4px);
+            box-shadow: 10px 10px 0 var(--outline);
+            color: var(--white);
+        }
+        .hero-btn:active {
+            transform: rotate(1deg) translateY(4px);
+            box-shadow: 2px 2px 0 var(--outline);
+        }
+
+        /* POW / ZAP comic badges */
+        .comic-badge {
+            position: absolute;
+            font-family: 'Bangers', cursive;
+            background: var(--yellow);
+            border: 3px solid var(--outline);
+            box-shadow: var(--shadow);
+            padding: 8px 14px;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            z-index: 12;
+            animation: badgePop 2s ease-in-out infinite;
+            transform-origin: center;
+        }
+        /* Star-burst shape */
+        .badge-burst {
+            clip-path: polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+            padding: 18px 12px;
+            border-radius: 0;
+        }
+        .b-wow  { top: 15%; left: 8%;  animation-delay: 0s;   background: var(--yellow); color: var(--red); }
+        .b-zap  { top: 20%; right: 6%; animation-delay: .8s;  background: var(--orange); color: var(--white); }
+        .b-boom { top: 60%; left: 5%;  animation-delay: 1.5s; background: var(--pink);   color: var(--white); display:none; }
+        @keyframes badgePop {
+            0%,100%{ transform: scale(1) rotate(-5deg); }
+            50%    { transform: scale(1.15) rotate(5deg); }
+        }
+
+        /* ── MARQUEE TAPE ────────────────────────────── */
+        .cartoon-tape {
+            background: var(--red);
+            border-top: 4px solid var(--outline);
+            border-bottom: 4px solid var(--outline);
+            padding: 10px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+            z-index: 10;
+        }
+        .tape-txt {
+            display: inline-block;
+            font-family: 'Bangers', cursive;
+            font-size: 1.2rem;
+            color: var(--yellow);
+            letter-spacing: 4px;
+            -webkit-text-stroke: .5px var(--outline);
+            animation: tapeRoll 18s linear infinite;
+        }
+        @keyframes tapeRoll {
+            from { transform: translateX(100vw); }
+            to   { transform: translateX(-100%); }
+        }
+
+        /* ── SECTION TITLE ───────────────────────────── */
+        .section-title {
+            font-family: 'Bangers', cursive;
+            font-size: 2.8rem;
+            text-align: center;
+            margin-bottom: 8px;
+            letter-spacing: 3px;
+            -webkit-text-stroke: 2px var(--outline);
+            paint-order: stroke fill;
+        }
+        .section-sub {
+            font-family: 'Lilita One', cursive;
+            font-size: .9rem;
+            text-align: center;
+            margin-bottom: 34px;
+            color: var(--green2);
+            letter-spacing: 2px;
+        }
+
+        /* ── DIVIDER ─────────────────────────────────── */
+        .toon-divider {
+            display: flex; align-items: center; gap: 12px;
+            margin: 52px 0;
+        }
+        .toon-divider::before, .toon-divider::after {
+            content: ""; flex: 1; height: 4px;
+            background: repeating-linear-gradient(
+                to right,
+                var(--outline) 0, var(--outline) 8px,
+                transparent 8px, transparent 16px
+            );
+        }
+        .toon-divider span { font-size: 1.8rem; white-space: nowrap; }
+
+        /* ── SECTION BG PANELS ───────────────────────── */
+        .panel {
+            background: white;
+            border: 4px solid var(--outline);
+            border-radius: 20px;
+            box-shadow: var(--shadow-xl);
+            padding: 40px 30px;
+            margin-bottom: 0;
+            position: relative;
+        }
+        .panel-green { background: #e8ffcc; }
+        .panel-yellow { background: #fff9cc; }
+        .panel-blue { background: #ccedff; }
+
+        /* ── CAT CARDS ───────────────────────────────── */
+        .cat-card {
+            background: white;
+            border-radius: 18px;
+            padding: 28px 16px 22px;
+            text-align: center;
+            margin: 8px 5px;
+            text-decoration: none;
+            color: var(--outline);
+            display: block;
+            border: 4px solid var(--outline);
+            box-shadow: var(--shadow-lg);
+            transition: transform .15s, box-shadow .15s;
+            font-family: 'Lilita One', cursive;
+            font-size: 1.05rem;
+            letter-spacing: .5px;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(160deg, #f0ffe0, white);
+        }
+        .cat-card i { color: var(--green1); font-size: 2.2rem; margin-bottom: 10px; display: block; transition: .2s; }
+        .cat-card:hover {
+            transform: translateY(-8px) rotate(-2deg);
+            box-shadow: 10px 10px 0 var(--outline);
+            background: var(--yellow);
+            color: var(--outline);
+        }
+        .cat-card:hover i { transform: scale(1.3) rotate(15deg); color: var(--red); }
+        /* Corner leaf deco */
+        .cat-card::after {
+            content: "🍃";
+            position: absolute; top: 6px; right: 8px;
+            font-size: 1.1rem; opacity: .5;
+            transition: .2s;
+        }
+        .cat-card:hover::after { opacity: 1; transform: rotate(30deg) scale(1.2); }
+
+        /* ── REVIEW CARDS ────────────────────────────── */
+        .review-card {
+            background: white;
+            border-radius: 20px;
+            padding: 28px;
+            margin: 16px 10px;
+            border: 4px solid var(--outline);
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+        /* Comic speech bubble tail */
+        .review-card::after {
+            content: "";
+            position: absolute;
+            bottom: -24px; left: 30px;
+            width: 0; height: 0;
+            border-left: 16px solid transparent;
+            border-right: 0px solid transparent;
+            border-top: 24px solid var(--outline);
+        }
+        .review-card::before {
+            content: "";
+            position: absolute;
+            bottom: -20px; left: 33px;
+            width: 0; height: 0;
+            border-left: 13px solid transparent;
+            border-right: 0px solid transparent;
+            border-top: 20px solid white;
+            z-index: 1;
+        }
+        .review-card .stars { color: var(--orange); font-size: 1.3rem; margin-bottom: 10px; -webkit-text-stroke: .5px var(--outline); }
+        .review-card p { color: #333; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 1rem; line-height: 1.6; }
+        .review-card h6 { font-family: 'Bangers', cursive; color: var(--green2); margin-top: 14px; font-size: 1.1rem; letter-spacing: 2px; }
+
+        /* ── GRID ITEMS ──────────────────────────────── */
+        .grid-item {
+            background: white;
+            border-radius: 16px;
+            padding: 26px 14px;
+            text-align: center; height: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border: 4px solid var(--outline);
+            text-decoration: none;
+            color: var(--outline);
+            font-family: 'Lilita One', cursive;
+            font-size: 1.05rem;
+            transition: .15s;
+            box-shadow: var(--shadow);
+        }
+        .grid-item:nth-child(4n+1) { background: #ffe8f0; }
+        .grid-item:nth-child(4n+2) { background: #e8fff0; }
+        .grid-item:nth-child(4n+3) { background: #fff8e0; }
+        .grid-item:nth-child(4n+4) { background: #e8f4ff; }
+        .grid-item:hover {
+            transform: translateY(-6px) scale(1.05) rotate(1deg);
+            box-shadow: 8px 8px 0 var(--outline);
+            color: var(--red);
+        }
+
+        /* ── ABOUT ───────────────────────────────────── */
+        .about-section {
+            background: #fffbe0;
+            border-radius: 24px;
+            padding: 50px;
+            border: 4px solid var(--outline);
+            box-shadow: var(--shadow-xl);
+            position: relative;
+        }
+        .about-section::before {
+            content: "🦜";
+            position: absolute;
+            top: -30px; right: 30px;
+            font-size: 4rem;
+            filter: drop-shadow(2px 2px 0 rgba(0,0,0,.3));
+            animation: birdHop 2s ease-in-out infinite;
+        }
+        @keyframes birdHop {
+            0%,100%{ transform: translateY(0) rotate(-10deg); }
+            50%    { transform: translateY(-10px) rotate(10deg); }
+        }
+        .about-section p { color: #2a2a2a; font-weight: 800; font-size: 1.05rem; line-height: 1.8; }
+        .about-section p.lead { font-size: 1.15rem; }
+        .about-logo-container {
+            display: flex; justify-content: center; align-items: center;
+            height: 160px;
+        }
+        .moving-logo {
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            background: var(--green3);
+            border: 4px solid var(--outline);
+            box-shadow: var(--shadow-lg);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 3rem;
+            color: var(--white);
+            position: relative;
+            transition: transform .15s linear;
+            animation: logoSpin 4s ease-in-out infinite;
+        }
+        @keyframes logoSpin {
+            0%,100%{ transform: scale(1) rotate(0deg); }
+            25%    { transform: scale(1.08) rotate(8deg); }
+            75%    { transform: scale(.96) rotate(-8deg); }
+        }
+
+        /* ── EVENT CARDS ─────────────────────────────── */
+        .event-card {
+            background: white;
+            border-radius: 20px;
+            padding: 28px 16px;
+            text-align: center;
+            margin: 8px 5px;
+            border: 4px solid var(--outline);
+            box-shadow: var(--shadow-lg);
+            transition: .15s;
+            font-family: 'Lilita One', cursive;
+            position: relative;
+            overflow: hidden;
+        }
+        .event-card:nth-child(odd)  { background: #e8ffcc; transform: rotate(-1deg); }
+        .event-card:nth-child(even) { background: #ccf0ff; transform: rotate(1deg);  }
+        .event-card i { font-size: 2.5rem; margin-bottom: 10px; display: block; color: var(--orange); transition: .2s; }
+        .event-card h5 { font-size: 1rem; color: var(--outline); letter-spacing: .5px; }
+        .event-card:hover {
+            transform: rotate(0deg) translateY(-10px) scale(1.06);
+            box-shadow: 10px 10px 0 var(--outline);
+            background: var(--yellow);
+        }
+        .event-card:hover i { transform: scale(1.3); color: var(--red); }
+
+        /* ── LOCATION ────────────────────────────────── */
+        .location-section {
+            background: #e0f8ff;
+            border-radius: 24px;
+            padding: 40px;
+            border: 4px solid var(--outline);
+            box-shadow: var(--shadow-xl);
+            position: relative;
+        }
+        .location-section h2 {
+            font-family: 'Bangers', cursive;
+            font-size: 2.2rem;
+            letter-spacing: 2px;
+            -webkit-text-stroke: 1.5px var(--outline);
+            color: var(--blue);
+        }
+        .location-section i { color: var(--red) !important; }
+        .location-section p, .location-section li {
+            color: #333;
+            font-weight: 800;
+            font-size: .95rem;
+        }
+
+        /* ── CONTACT ─────────────────────────────────── */
+        .contact-card {
+            background: white;
+            border-radius: 24px;
+            padding: 44px;
+            border: 4px solid var(--outline);
+            box-shadow: var(--shadow-xl);
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(160deg, #fffbe0, white);
+        }
+        .contact-card::before {
+            content: "🐒";
+            position: absolute; top: -20px; left: 20px;
+            font-size: 3.5rem;
+            filter: drop-shadow(2px 2px 0 rgba(0,0,0,.25));
+            animation: monkeySwing 2.5s ease-in-out infinite;
+            transform-origin: top center;
+        }
+        @keyframes monkeySwing {
+            0%,100%{ transform: rotate(-15deg); }
+            50%    { transform: rotate(15deg);  }
+        }
+        .contact-card h2 {
+            font-family: 'Bangers', cursive;
+            font-size: 2.4rem;
+            letter-spacing: 3px;
+            -webkit-text-stroke: 2px var(--outline);
+            color: var(--green1);
+        }
+        .form-label { color: var(--outline); font-weight: 900; font-size: .85rem; letter-spacing: 1px; text-transform: uppercase; }
+        .form-control {
+            background: #f5fff0;
+            border: 3px solid var(--outline);
+            color: var(--outline);
+            border-radius: 12px;
+            padding: 12px 16px;
+            transition: .2s;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            box-shadow: 3px 3px 0 var(--outline);
+        }
+        .form-control:focus {
+            background: var(--yellow);
+            border-color: var(--outline);
+            box-shadow: 4px 4px 0 var(--outline);
+            color: var(--outline);
+            outline: none;
+        }
+        .form-control::placeholder { color: #999; }
+        .btn-toon {
+            font-family: 'Bangers', cursive;
+            font-size: 1.6rem;
+            letter-spacing: 3px;
+            padding: 14px 52px;
+            border-radius: 50px;
+            border: 4px solid var(--outline);
+            background: var(--green1);
+            color: var(--white);
+            -webkit-text-stroke: 1px var(--outline);
+            box-shadow: var(--shadow-xl);
+            transition: .15s;
+            cursor: pointer;
+        }
+        .btn-toon:hover {
+            transform: translateY(-5px) rotate(-2deg);
+            box-shadow: 10px 10px 0 var(--outline);
+            background: var(--orange);
+        }
+        .btn-toon:active { transform: translateY(3px); box-shadow: 2px 2px 0 var(--outline); }
+
+        /* ── FOOTER ──────────────────────────────────── */
+        footer {
+            background: var(--green2);
+            border-top: 5px solid var(--outline);
+            padding: 50px 20px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        footer::before {
+            content: "🌿🌴🍃🦋🌺🌿🌴🍃🦋🌺🌿🌴🍃🦋🌺🌿🌴🍃🦋🌺🌿🌴🍃🦋🌺";
+            display: block;
+            font-size: 1.3rem;
+            letter-spacing: 4px;
+            padding-bottom: 16px;
+        }
+        footer h4 {
+            font-family: 'Bangers', cursive;
+            color: var(--yellow);
+            -webkit-text-stroke: 1.5px var(--outline);
+            font-size: 1.8rem;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+        }
+        .social-btn {
+            width: 58px; height: 58px;
+            border-radius: 50%;
+            border: 4px solid var(--outline);
+            background: var(--yellow);
+            color: var(--outline);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1.15rem;
+            transition: .15s;
+            text-decoration: none;
+            box-shadow: var(--shadow);
+        }
+        .social-btn:nth-child(1) { background: var(--blue);   }
+        .social-btn:nth-child(2) { background: var(--sky, #33aaff); background: #55ccff; }
+        .social-btn:nth-child(3) { background: var(--pink);   }
+        .social-btn:nth-child(4) { background: var(--green3); }
+        .social-btn:nth-child(5) { background: var(--purple); color: white; }
+        .social-btn:hover {
+            transform: scale(1.2) rotate(-8deg);
+            box-shadow: 6px 6px 0 var(--outline);
+            color: white;
+        }
+        footer p { color: rgba(255,255,255,.5); font-size: .8rem; font-weight: 800; letter-spacing: 2px; margin-top: 20px; }
+
+        /* ── SWIPER ──────────────────────────────────── */
+        .swiper-button-next, .swiper-button-prev {
+            color: var(--outline) !important;
+            background: var(--yellow);
+            border: 3px solid var(--outline);
+            border-radius: 50%;
+            width: 44px !important; height: 44px !important;
+            box-shadow: var(--shadow);
+        }
+        .swiper-button-next::after, .swiper-button-prev::after { font-size: .9rem !important; font-weight: 900 !important; }
+        .swiper-pagination-bullet { background: rgba(0,0,0,.2) !important; }
+        .swiper-pagination-bullet-active { background: var(--red) !important; }
+
+        /* ── WIGGLE HOVER UTIL ───────────────────────── */
+        a:hover, button:hover { transition: transform .15s; }
+    </style>
+</head>
+<body>
+
+<!-- ══════════ NAVBAR ══════════ -->
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <img height="34px" src="https://dsjumpers.com/wp-content/uploads/2025/02/cropped-Logotipo-D%C2%B4S-Jumpers-qnohhmv0x0akjoiwicpksyn98vul3qjxppjyzgt6og.webp" alt="logo" class="me-2 rounded-circle" style="border:3px solid var(--outline);box-shadow:2px 2px 0 var(--outline);">
+            🌿 MI EMPRESA
+        </a>
+        <div class="d-flex align-items-center ms-auto me-3 order-lg-last">
+            <a class="nav-link position-relative p-2" href="#" id="cartIcon">
+                <i class="fas fa-shopping-cart fa-lg" style="color:var(--red);"></i>
+                <span id="cartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill" style="font-size:.65rem;">0</span>
+            </a>
+        </div>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="menuPrincipal">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#categorias">🌴 Categorías</a></li>
+                <li class="nav-item"><a class="nav-link" href="#eventos">🐆 Eventos</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">🦜 Nosotros</a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#nosotros">🌿 Sobre Nosotros</a></li>
+                        <li><a class="dropdown-item" href="#contacto">📨 Contáctanos</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ══════════ HERO ══════════ -->
+<section class="hero-section">
+    <!-- Sky + Clouds -->
+    <div class="cloud-cartoon c1"></div>
+    <div class="cloud-cartoon c2"></div>
+    <div class="cloud-cartoon c3"></div>
+    <div class="sun-cartoon"></div>
+
+    <!-- Comic badges -->
+    <div class="comic-badge badge-burst b-wow">¡WOW!</div>
+    <div class="comic-badge badge-burst b-zap">¡ZAP!</div>
+
+    <!-- Cartoon trees left -->
+    <div class="tree-group left" style="z-index:5;">
+        <!-- Big tree -->
+        <div class="ctree" style="margin-right:-10px;">
+            <div class="ctree-top" style="width:130px;height:150px;background:var(--green1);margin-bottom:-4px;"></div>
+            <div class="ctree-top" style="width:110px;height:130px;background:var(--green2);margin-top:-30px;margin-bottom:-4px;"></div>
+            <div class="ctree-top" style="width:90px;height:110px;background:var(--green3);margin-top:-30px;margin-bottom:-4px;"></div>
+            <div class="ctree-trunk" style="width:28px;height:80px;"></div>
+        </div>
+        <!-- Small tree -->
+        <div class="ctree">
+            <div class="ctree-top" style="width:90px;height:100px;background:var(--green2);margin-bottom:-4px;"></div>
+            <div class="ctree-top" style="width:70px;height:80px;background:var(--green1);margin-top:-20px;margin-bottom:-4px;"></div>
+            <div class="ctree-trunk" style="width:20px;height:60px;"></div>
+        </div>
+    </div>
+
+    <!-- Cartoon trees right -->
+    <div class="tree-group right" style="z-index:5;">
+        <div class="ctree" style="margin-right:-10px;">
+            <div class="ctree-top" style="width:120px;height:140px;background:var(--green3);margin-bottom:-4px;"></div>
+            <div class="ctree-top" style="width:100px;height:120px;background:var(--green1);margin-top:-25px;margin-bottom:-4px;"></div>
+            <div class="ctree-top" style="width:80px;height:100px;background:var(--green2);margin-top:-25px;margin-bottom:-4px;"></div>
+            <div class="ctree-trunk" style="width:25px;height:70px;"></div>
+        </div>
+        <div class="ctree">
+            <div class="ctree-top" style="width:100px;height:110px;background:var(--green1);margin-bottom:-4px;"></div>
+            <div class="ctree-top" style="width:78px;height:90px;background:var(--green3);margin-top:-22px;margin-bottom:-4px;"></div>
+            <div class="ctree-trunk" style="width:22px;height:65px;"></div>
+        </div>
+    </div>
+
+    <!-- Animals peeking from ground -->
+    <div class="animal-peek peek-monkey">🐒</div>
+    <div class="animal-peek peek-parrot">🦜</div>
+    <div class="animal-peek peek-tiger">🐯</div>
+    <div class="animal-peek peek-frog">🐸</div>
+
+    <!-- Ground -->
+    <div class="hero-ground-strip"></div>
+
+    <div class="hero-inner">
+        <div style="position:relative; display:inline-block; margin-bottom:28px;">
+            <div class="speed-lines"></div>
+            <div class="logo-cartoon">
+                <img src="https://dsjumpers.com/wp-content/uploads/2025/02/cropped-Logotipo-D%C2%B4S-Jumpers-qnohhmv0x0akjoiwicpksyn98vul3qjxppjyzgt6og.webp" alt="logo">
+            </div>
+        </div>
+        <h1 class="hero-title">D'S JUMPERS</h1>
+        <p class="hero-sub">🌿 ¡CREATIVIDAD EN MOVIMIENTO! 🌿</p>
+        <a href="#categorias" class="hero-btn">¡EXPLORAR AHORA!</a>
+    </div>
+</section>
+
+<!-- CARTOON TAPE -->
+<div class="cartoon-tape">
+    <span class="tape-txt">
+        🌿 ¡SELVA LOCA! &nbsp;★&nbsp; 🐒 MONOS SALVAJES &nbsp;★&nbsp; 🦜 LOROS PARLANCHINES &nbsp;★&nbsp; 🐆 TIGRES RUGIENTES &nbsp;★&nbsp; 🌺 FLORES LOCAS &nbsp;★&nbsp; 🍌 BANANAS VOLADORAS &nbsp;★&nbsp; 🐸 RANAS SALTARINAS &nbsp;★&nbsp; 🌿 ¡AVENTURA TOTAL! &nbsp;★&nbsp;
+    </span>
+</div>
+
+<!-- ══════════ MAIN CONTENT ══════════ -->
+<div class="container py-5" style="position:relative;z-index:5;">
+
+    <!-- CATEGORÍAS -->
+    <section class="mb-5" id="categorias">
+        <h2 class="section-title" style="color:var(--green1);">¡Categorías Destacadas!</h2>
+        <p class="section-sub">— ¡elige tu aventura! —</p>
+        <div class="swiper swiperCategories">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-rocket"></i>🚀 Tech</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-paint-brush"></i>🎨 Diseño</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-music"></i>🎵 Música</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-camera"></i>📸 Fotos</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-utensils"></i>🍳 Cocina</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-running"></i>🏃 Deporte</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-gamepad"></i>🎮 Juegos</a></div>
+            </div>
+            <div class="swiper-pagination mt-4"></div>
+        </div>
+    </section>
+
+    <div class="toon-divider"><span>🌺 ★ 🌺</span></div>
+
+    <!-- REVIEWS -->
+    <section class="mb-5 panel panel-yellow">
+        <h2 class="section-title" style="color:var(--orange);">¡Lo que dicen!</h2>
+        <p class="section-sub">— opiniones de la jungla —</p>
+        <div class="swiper swiperReviews">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide" style="padding-bottom:30px;">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"¡El servicio es INCREÍBLE! Como saltar de liana en liana sin caerte. ¡GUAU!"</p>
+                        <h6>— Juan Pérez 🐒</h6>
+                    </div>
+                </div>
+                <div class="swiper-slide" style="padding-bottom:30px;">
+                    <div class="review-card">
+                        <div class="stars">★★★★☆</div>
+                        <p>"¡Súper rápido y fácil! Como si un loro te leyera todo en voz alta. ¡RECOMENDADO!"</p>
+                        <h6>— Maria García 🦜</h6>
+                    </div>
+                </div>
+                <div class="swiper-slide" style="padding-bottom:30px;">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"¡Encontré TODO lo que buscaba! Tan emocionante como rugir como un tigre. ¡WOW!"</p>
+                        <h6>— Carlos Ruiz 🐆</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+    </section>
+
+    <div class="toon-divider"><span>🐸 ★ 🐸</span></div>
+
+    <!-- CATÁLOGO GRID -->
+    <section class="mb-5">
+        <h2 class="section-title" style="color:var(--purple);">¡Todo el Catálogo!</h2>
+        <p class="section-sub">— ¡explora cada rincón! —</p>
+        <div class="row g-3">
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">💻 Tecnología</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🎨 Arte</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🎵 Música</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">📸 Fotografía</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🍽️ Gastronomía</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">⚽ Deportes</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🎮 Gaming</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">✈️ Viajes</a></div>
+        </div>
+    </section>
+
+    <div class="toon-divider"><span>🌴 ★ 🌴</span></div>
+
+    <!-- ABOUT -->
+    <section class="about-section mb-5" id="nosotros">
+        <h2 class="section-title" style="color:var(--green2);">¡Sobre Nosotros!</h2>
+        <p class="section-sub">— ¡somos los más locos! —</p>
+        <div class="row align-items-center g-5">
+            <div class="col-md-8">
+                <p class="lead mb-4">
+                    🌿 ¡Somos una empresa SÚPER dedicada a conectar a las personas con el contenido y los servicios que aman! Desde nuestra fundación, nos hemos esforzado por ofrecer una experiencia única e irrepetible — ¡tan emocionante como correr por la selva!
+                </p>
+                <p>
+                    Nuestra misión es simple: ¡facilitar el acceso a un mundo de posibilidades! Ofrecemos una plataforma donde la diversidad de intereses se encuentra con la calidad y la innovación. ¡Creemos en el poder de la comunidad y en nunca dejar de crecer!
+                </p>
+            </div>
+            <div class="col-md-4">
+                <div class="about-logo-container">
+                    <div id="movingLogo" class="moving-logo">
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EVENTOS -->
+    <section class="mb-5 py-4" id="eventos">
+        <h2 class="section-title" style="color:var(--red);">¡Tipos de Eventos!</h2>
+        <p class="section-sub">— ¡para cada ocasión salvaje! —</p>
+        <div class="swiper swiperEvents">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-glass-cheers"></i><h5>💍 Bodas</h5></div></div>
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-birthday-cake"></i><h5>🎂 Cumpleaños</h5></div></div>
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-briefcase"></i><h5>🏢 Corporativos</h5></div></div>
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-graduation-cap"></i><h5>🎓 Graduaciones</h5></div></div>
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-music"></i><h5>🎶 Conciertos</h5></div></div>
+            </div>
+            <div class="swiper-pagination mt-4"></div>
+        </div>
+    </section>
+
+    <div class="toon-divider"><span>🦋 ★ 🦋</span></div>
+
+    <!-- UBICACIÓN -->
+    <section class="location-section mb-5">
+        <div class="row align-items-center g-4">
+            <div class="col-md-5 px-4">
+                <h2 class="mb-4">🗺️ ¡Nuestra Ubicación!</h2>
+                <p class="mb-3">¡Cubrimos toda el área metropolitana y alrededores! ¡Nos adentramos hasta donde estés!</p>
+                <ul class="list-unstyled mt-3">
+                    <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> Calle Falsa 123, Ciudad Central</li>
+                    <li class="mb-2"><i class="fas fa-clock me-2"></i> Lun - Vie: 9:00 AM - 6:00 PM</li>
+                </ul>
+            </div>
+            <div class="col-md-7">
+                <div class="ratio ratio-16x9 overflow-hidden" style="border-radius:16px;border:4px solid var(--outline);box-shadow:var(--shadow-xl);">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1422937611435!2d-73.98731968459391!3d40.75889497932681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480293%3A0x5117f70619c651b0!2sTimes%20Square!5e0!3m2!1ses!2scl!4v1625070000000!5m2!1ses!2scl" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="toon-divider"><span>🌺 ★ 🌺</span></div>
+
+    <!-- CONTACTO -->
+    <section class="mb-5" id="contacto">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="contact-card">
+                    <h2 class="text-center mb-1" style="padding-top:20px;">¡Contáctanos!</h2>
+                    <p class="section-sub mb-4">— ¡mándanos un mensaje! —</p>
+                    <form>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">🌿 Nombre</label>
+                                <input type="text" class="form-control" placeholder="Tu nombre">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">📧 Correo</label>
+                                <input type="email" class="form-control" placeholder="email@ejemplo.com">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">🦜 Asunto</label>
+                                <input type="text" class="form-control" placeholder="¿En qué podemos ayudarte?">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">💬 Mensaje</label>
+                                <textarea class="form-control" rows="4" placeholder="Escribe tu mensaje aquí..."></textarea>
+                            </div>
+                            <div class="col-12 text-center mt-3">
+                                <button type="button" class="btn-toon">¡ENVIAR! 🚀</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer>
+    <h4 class="mb-4">🌿 ¡Síguenos en redes! 🌿</h4>
+    <div class="d-flex justify-content-center gap-3 flex-wrap mb-3">
+        <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-twitter"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-instagram"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-whatsapp"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-linkedin-in"></i></a>
+    </div>
+    <p>&copy; 2026 — Mi Empresa — Todos los derechos reservados</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+    new Swiper(".swiperCategories", {
+        slidesPerView:1, spaceBetween:10, loop:true,
+        autoplay:{delay:2800, disableOnInteraction:false},
+        breakpoints:{640:{slidesPerView:2},768:{slidesPerView:3},1024:{slidesPerView:5}},
+        pagination:{el:".swiper-pagination",clickable:true},
+    });
+    new Swiper(".swiperReviews", {
+        slidesPerView:1, spaceBetween:20, loop:true,
+        autoplay:{delay:5000},
+        navigation:{nextEl:".swiper-button-next",prevEl:".swiper-button-prev"},
+        breakpoints:{768:{slidesPerView:2}}
+    });
+    new Swiper(".swiperEvents", {
+        slidesPerView:1, spaceBetween:20, loop:true,
+        autoplay:{delay:3500, disableOnInteraction:false},
+        breakpoints:{640:{slidesPerView:2},1024:{slidesPerView:4}},
+        pagination:{el:".swiper-pagination",clickable:true},
+    });
+
+    const movingLogo = document.getElementById('movingLogo');
+    const aboutLogoContainer = document.querySelector('.about-logo-container');
+    if (movingLogo && aboutLogoContainer) {
+        aboutLogoContainer.addEventListener('mousemove', (e) => {
+            const r = aboutLogoContainer.getBoundingClientRect();
+            const nx = ((e.clientX - r.left) / r.width)  * 2 - 1;
+            const ny = ((e.clientY - r.top)  / r.height) * 2 - 1;
+            movingLogo.style.transform = `translate(${nx*25}px,${ny*25}px)`;
+        });
+        aboutLogoContainer.addEventListener('mouseleave', () => {
+            movingLogo.style.transform = 'translate(0,0)';
+        });
+    }
+
+    let itemCount = 0;
+    const cartCountEl = document.getElementById('cartCount');
+    function agregarAlCarrito() { itemCount++; cartCountEl.innerText = itemCount; }
+</script>
+</body>
+</html>

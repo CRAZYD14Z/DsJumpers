@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌊 D'S Jumpers — Parque Acuático</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Baloo+2:wght@400;600;700;800&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ocean:      #006994;
+            --lagoon:     #00b4d8;
+            --sky:        #90e0ef;
+            --foam:       #caf0f8;
+            --sand:       #ffdda1;
+            --sun:        #ffb703;
+            --coral:      #ff6b6b;
+            --lime:       #06d6a0;
+            --deep:       #023e8a;
+            --white:      #ffffff;
+            --text-dark:  #0a3040;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--foam);
+            font-family: 'Quicksand', sans-serif;
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+        /* ── WATER RIPPLE CURSOR ── */
+        body { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Ctext y='22' font-size='22'%3E💧%3C/text%3E%3C/svg%3E") 14 14, auto; }
+
+        /* ══════════════════════════════════════
+           NAVBAR
+        ══════════════════════════════════════ */
+        .navbar {
+            background: linear-gradient(90deg, var(--deep) 0%, var(--ocean) 100%) !important;
+            border-bottom: 3px solid var(--lagoon);
+            box-shadow: 0 4px 20px rgba(0,105,148,.4);
+            padding: 8px 0;
+        }
+        .navbar-brand {
+            font-family: 'Pacifico', cursive;
+            font-size: 1.4rem;
+            color: var(--sand) !important;
+            text-shadow: 0 2px 6px rgba(0,0,0,.3);
+            letter-spacing: 1px;
+        }
+        .nav-link {
+            font-family: 'Baloo 2', cursive;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--foam) !important;
+            transition: color .2s;
+            padding: 6px 14px !important;
+        }
+        .nav-link:hover { color: var(--sun) !important; }
+        .dropdown-menu {
+            background: var(--deep);
+            border: 1px solid rgba(0,180,216,.3);
+            border-radius: 12px;
+        }
+        .dropdown-item { color: var(--foam); font-family: 'Quicksand', sans-serif; font-weight: 600; }
+        .dropdown-item:hover { background: rgba(0,180,216,.2); color: var(--sun); }
+        #cartCount { background: var(--coral) !important; }
+
+        /* ══════════════════════════════════════
+           HERO
+        ══════════════════════════════════════ */
+        .hero-section {
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Sky gradient */
+            background: linear-gradient(
+                180deg,
+                #87ceeb 0%,
+                #b8e8f7 35%,
+                #d4f1f9 55%,
+                #006994 55%,
+                #004e74 100%
+            );
+        }
+
+        /* Sun */
+        .sun {
+            position: absolute;
+            top: 5%;
+            right: 12%;
+            width: 110px; height: 110px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #fff9c4 30%, var(--sun) 70%);
+            box-shadow:
+                0 0 0 20px rgba(255,183,3,.12),
+                0 0 0 40px rgba(255,183,3,.07),
+                0 0 0 70px rgba(255,183,3,.04);
+            animation: sunPulse 5s ease-in-out infinite;
+            z-index: 1;
+        }
+        @keyframes sunPulse {
+            0%,100%{ box-shadow: 0 0 0 20px rgba(255,183,3,.12), 0 0 0 40px rgba(255,183,3,.07), 0 0 0 70px rgba(255,183,3,.04); }
+            50%    { box-shadow: 0 0 0 30px rgba(255,183,3,.18), 0 0 0 60px rgba(255,183,3,.1),  0 0 0 100px rgba(255,183,3,.05); }
+        }
+
+        /* Clouds */
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 50px;
+            opacity: .85;
+            z-index: 1;
+        }
+        .cloud::before, .cloud::after {
+            content: "";
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+        }
+        .cloud-1 { width:120px; height:35px; top:8%;  left:5%;  animation: cloudDrift 30s linear infinite; }
+        .cloud-1::before { width:55px; height:55px; top:-28px; left:20px; }
+        .cloud-1::after  { width:40px; height:40px; top:-20px; left:55px; }
+        .cloud-2 { width:90px;  height:28px; top:14%; left:40%; animation: cloudDrift 45s linear infinite; opacity:.7; }
+        .cloud-2::before { width:40px; height:40px; top:-22px; left:15px; }
+        .cloud-2::after  { width:30px; height:30px; top:-15px; left:42px; }
+        .cloud-3 { width:150px; height:40px; top:5%;  left:60%; animation: cloudDrift 38s 10s linear infinite; }
+        .cloud-3::before { width:65px; height:65px; top:-32px; left:25px; }
+        .cloud-3::after  { width:50px; height:50px; top:-25px; left:70px; }
+        @keyframes cloudDrift {
+            from { transform: translateX(-200px); }
+            to   { transform: translateX(110vw); }
+        }
+
+        /* Water body */
+        .water-body {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 48%;
+            background: linear-gradient(180deg, #0096c7 0%, #005f87 60%, #003d5c 100%);
+            z-index: 2;
+        }
+
+        /* Animated wave layers */
+        .wave { position: absolute; top: -2px; left: 0; width: 200%; height: 60px; z-index: 3; }
+        .wave svg { width: 50%; height: 100%; display: inline-block; }
+        .wave-1 { animation: waveDrift 8s linear infinite; }
+        .wave-2 { animation: waveDrift 12s 2s linear infinite reverse; opacity: .6; }
+        .wave-3 { animation: waveDrift 16s 4s linear infinite; opacity: .4; top: 8px; }
+        @keyframes waveDrift {
+            from { transform: translateX(0); }
+            to   { transform: translateX(-50%); }
+        }
+
+        /* Bubbles */
+        .bubbles { position: absolute; inset: 0; pointer-events: none; z-index: 4; overflow: hidden; }
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255,255,255,.25);
+            border: 1px solid rgba(255,255,255,.4);
+            animation: bubbleRise linear infinite;
+            bottom: -20px;
+        }
+        .bubble:nth-child(1)  { width:8px;  height:8px;  left:5%;  animation-duration:6s;  animation-delay:0s;  }
+        .bubble:nth-child(2)  { width:12px; height:12px; left:15%; animation-duration:8s;  animation-delay:1s;  }
+        .bubble:nth-child(3)  { width:6px;  height:6px;  left:28%; animation-duration:5s;  animation-delay:2s;  }
+        .bubble:nth-child(4)  { width:10px; height:10px; left:42%; animation-duration:9s;  animation-delay:.5s; }
+        .bubble:nth-child(5)  { width:7px;  height:7px;  left:58%; animation-duration:7s;  animation-delay:3s;  }
+        .bubble:nth-child(6)  { width:14px; height:14px; left:70%; animation-duration:10s; animation-delay:1.5s;}
+        .bubble:nth-child(7)  { width:9px;  height:9px;  left:82%; animation-duration:6s;  animation-delay:4s;  }
+        .bubble:nth-child(8)  { width:5px;  height:5px;  left:92%; animation-duration:8s;  animation-delay:2.5s;}
+        @keyframes bubbleRise {
+            0%   { transform: translateY(0) translateX(0);   opacity:.8; }
+            50%  { transform: translateY(-40%) translateX(8px); }
+            100% { transform: translateY(-90%) translateX(-5px); opacity:0; }
+        }
+
+        /* Palm trees */
+        .palm { position: absolute; bottom: 42%; z-index: 5; }
+        .palm-left  { left: 2%; }
+        .palm-right { right: 2%; transform: scaleX(-1); }
+        .palm svg { width: 90px; height: 150px; }
+
+        /* Hero content */
+        .hero-inner {
+            position: relative; z-index: 10;
+            text-align: center;
+            padding: 90px 20px 160px;
+        }
+
+        .logo-float {
+            width: 170px; height: 170px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255,255,255,.9), rgba(202,240,248,.8));
+            backdrop-filter: blur(10px);
+            border: 4px solid white;
+            box-shadow: 0 10px 40px rgba(0,105,148,.35), 0 0 0 8px rgba(255,255,255,.2);
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-bottom: 28px;
+            animation: logoFloat 4s ease-in-out infinite;
+            overflow: hidden;
+        }
+        .logo-float img { width: 125px; height: 125px; object-fit: contain; }
+        @keyframes logoFloat {
+            0%,100%{ transform: translateY(0) rotate(-2deg); }
+            50%    { transform: translateY(-18px) rotate(2deg); }
+        }
+
+        .hero-title {
+            font-family: 'Pacifico', cursive;
+            font-size: clamp(3rem, 10vw, 7rem);
+            color: white;
+            text-shadow: 0 4px 20px rgba(0,60,100,.5), 0 2px 0 rgba(0,100,150,.6);
+            line-height: 1.1;
+            margin-bottom: 12px;
+            animation: titleDrop .9s cubic-bezier(.34,1.56,.64,1) both;
+        }
+        @keyframes titleDrop {
+            from { opacity:0; transform: translateY(-40px) scale(.8); }
+            to   { opacity:1; transform: translateY(0) scale(1); }
+        }
+
+        .hero-sub {
+            font-family: 'Baloo 2', cursive;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--sand);
+            text-shadow: 0 2px 8px rgba(0,0,0,.3);
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+            animation: fadeUp .7s .3s both;
+        }
+
+        .hero-btn {
+            font-family: 'Baloo 2', cursive;
+            font-weight: 800;
+            font-size: 1.1rem;
+            letter-spacing: 1.5px;
+            padding: 14px 42px;
+            border-radius: 50px;
+            border: none;
+            background: linear-gradient(135deg, var(--coral), #ff8c42);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(255,107,107,.5), 0 2px 0 rgba(0,0,0,.2);
+            text-decoration: none;
+            display: inline-block;
+            transition: .25s;
+            animation: fadeUp .7s .5s both;
+        }
+        .hero-btn:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 12px 30px rgba(255,107,107,.6);
+            color: white;
+        }
+
+        @keyframes fadeUp {
+            from { opacity:0; transform: translateY(20px); }
+            to   { opacity:1; transform: translateY(0); }
+        }
+
+        /* ══════════════════════════════════════
+           WAVE TAPE MARQUEE
+        ══════════════════════════════════════ */
+        .wave-tape {
+            background: linear-gradient(90deg, var(--lagoon), var(--ocean), var(--lagoon));
+            padding: 10px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+        }
+        .wave-tape::before, .wave-tape::after {
+            content: "";
+            position: absolute; top:0; bottom:0; width:80px; z-index:1;
+        }
+        .wave-tape::before { left:0; background:linear-gradient(to right, var(--lagoon), transparent); }
+        .wave-tape::after  { right:0; background:linear-gradient(to left, var(--lagoon), transparent); }
+        .tape-text {
+            display: inline-block;
+            font-family: 'Baloo 2', cursive;
+            font-weight: 700;
+            font-size: 1rem;
+            color: white;
+            letter-spacing: 3px;
+            animation: tapeScroll 22s linear infinite;
+            text-shadow: 0 1px 4px rgba(0,0,0,.2);
+        }
+        @keyframes tapeScroll {
+            from { transform: translateX(100vw); }
+            to   { transform: translateX(-100%); }
+        }
+
+        /* ══════════════════════════════════════
+           SECTION TITLES
+        ══════════════════════════════════════ */
+        .section-title {
+            font-family: 'Pacifico', cursive;
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 40px;
+            color: var(--ocean);
+            position: relative;
+            padding-bottom: 16px;
+        }
+        .section-title::after {
+            content: "";
+            display: block;
+            width: 70px; height: 4px;
+            background: linear-gradient(to right, var(--lagoon), var(--coral));
+            border-radius: 2px;
+            margin: 12px auto 0;
+        }
+
+        /* ══════════════════════════════════════
+           DIVIDER
+        ══════════════════════════════════════ */
+        .aqua-divider {
+            display: flex; align-items: center; gap: 14px;
+            margin: 52px 0;
+        }
+        .aqua-divider::before, .aqua-divider::after {
+            content: ""; flex: 1; height: 2px;
+            background: linear-gradient(to right, transparent, var(--lagoon), transparent);
+        }
+        .aqua-divider span { font-size: 1.6rem; white-space: nowrap; }
+
+        /* ══════════════════════════════════════
+           CATEGORY CARDS
+        ══════════════════════════════════════ */
+        .cat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 28px 16px 22px;
+            text-align: center;
+            margin: 8px 5px;
+            text-decoration: none;
+            color: var(--ocean);
+            display: block;
+            border: 2px solid var(--foam);
+            box-shadow: 0 6px 20px rgba(0,105,148,.1);
+            transition: .25s cubic-bezier(.34,1.56,.64,1);
+            font-family: 'Baloo 2', cursive;
+            font-weight: 700;
+            font-size: 1.05rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .cat-card::before {
+            content: "";
+            position: absolute; bottom:0; left:0; right:0;
+            height: 5px;
+            background: linear-gradient(to right, var(--lagoon), var(--lime));
+            transform: scaleX(0);
+            transition: transform .3s;
+        }
+        .cat-card:hover {
+            transform: translateY(-8px) scale(1.03);
+            border-color: var(--lagoon);
+            box-shadow: 0 14px 35px rgba(0,105,148,.2);
+            color: var(--deep);
+        }
+        .cat-card:hover::before { transform: scaleX(1); }
+        .cat-card i { color: var(--lagoon); font-size: 2rem; margin-bottom: 10px; display: block; transition: .25s; }
+        .cat-card:hover i { color: var(--ocean); transform: scale(1.2) rotate(-5deg); }
+
+        /* ══════════════════════════════════════
+           REVIEW CARDS
+        ══════════════════════════════════════ */
+        .review-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin: 16px 10px;
+            box-shadow: 0 8px 30px rgba(0,105,148,.1);
+            border-top: 4px solid var(--lagoon);
+            position: relative;
+            overflow: hidden;
+        }
+        .review-card::after {
+            content: "❝";
+            position: absolute;
+            bottom: -10px; right: 16px;
+            font-size: 6rem;
+            color: var(--foam);
+            line-height: 1;
+            font-family: Georgia, serif;
+        }
+        .review-card .stars { color: var(--sun); font-size: 1.2rem; margin-bottom: 10px; }
+        .review-card p { color: #3a5f70; font-style: italic; line-height: 1.7; }
+        .review-card h6 { font-family: 'Baloo 2', cursive; font-weight: 700; color: var(--ocean); margin-top: 12px; }
+
+        /* ══════════════════════════════════════
+           GRID ITEMS
+        ══════════════════════════════════════ */
+        .grid-item {
+            background: white;
+            border-radius: 16px;
+            padding: 26px 14px;
+            text-align: center;
+            height: 100%;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            border: 2px solid var(--foam);
+            text-decoration: none;
+            color: var(--ocean);
+            font-family: 'Baloo 2', cursive;
+            font-weight: 700;
+            font-size: 1.05rem;
+            transition: .25s;
+            box-shadow: 0 4px 14px rgba(0,105,148,.08);
+        }
+        .grid-item:hover {
+            background: linear-gradient(135deg, var(--lagoon), var(--ocean));
+            color: white;
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 12px 30px rgba(0,105,148,.3);
+            border-color: transparent;
+        }
+
+        /* ══════════════════════════════════════
+           ABOUT
+        ══════════════════════════════════════ */
+        .about-section {
+            background: linear-gradient(135deg, var(--ocean) 0%, var(--deep) 100%);
+            border-radius: 28px;
+            padding: 50px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,62,100,.3);
+        }
+        /* Underwater light rays */
+        .about-section::before {
+            content: "";
+            position: absolute; inset: 0;
+            background:
+                linear-gradient(15deg, transparent 60%, rgba(255,255,255,.04) 61%, transparent 62%),
+                linear-gradient(30deg, transparent 55%, rgba(255,255,255,.03) 56%, transparent 57%),
+                linear-gradient(-10deg, transparent 58%, rgba(255,255,255,.04) 59%, transparent 60%);
+            pointer-events: none;
+        }
+        /* Wave top edge */
+        .about-section::after {
+            content: "";
+            position: absolute;
+            top: -1px; left: 0; right: 0;
+            height: 30px;
+            background: var(--foam);
+            clip-path: ellipse(55% 100% at 50% 0%);
+        }
+        .about-section .section-title { color: var(--sand); }
+        .about-section .section-title::after { background: linear-gradient(to right, var(--sun), var(--coral)); }
+        .about-section p { color: rgba(202,240,248,.85); }
+        .about-logo-container {
+            display: flex; justify-content: center; align-items: center;
+            height: 160px;
+        }
+        .moving-logo {
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(144,224,239,.3), rgba(0,100,148,.2));
+            border: 3px solid rgba(255,255,255,.4);
+            box-shadow: 0 0 30px rgba(144,224,239,.4), 0 8px 20px rgba(0,0,0,.3);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 3rem;
+            color: var(--foam);
+            position: relative;
+            transition: transform .15s linear;
+            animation: movingFloat 3s ease-in-out infinite;
+        }
+        @keyframes movingFloat {
+            0%,100%{ transform: translateY(0); }
+            50%    { transform: translateY(-12px); }
+        }
+
+        /* ══════════════════════════════════════
+           EVENT CARDS
+        ══════════════════════════════════════ */
+        .event-card {
+            background: white;
+            border-radius: 20px;
+            padding: 28px 16px;
+            text-align: center;
+            margin: 8px 5px;
+            border: 2px solid var(--foam);
+            box-shadow: 0 6px 20px rgba(0,105,148,.1);
+            transition: .25s;
+            font-family: 'Baloo 2', cursive;
+            font-weight: 700;
+            position: relative;
+            overflow: hidden;
+        }
+        .event-card::before {
+            content: "";
+            position: absolute; top:0; left:0; right:0;
+            height: 5px;
+            background: linear-gradient(to right, var(--lagoon), var(--lime));
+        }
+        .event-card i { font-size: 2.3rem; margin-bottom: 10px; display: block; color: var(--lagoon); transition: .3s; }
+        .event-card h5 { font-size: 1rem; color: var(--ocean); }
+        .event-card:hover {
+            transform: translateY(-7px);
+            border-color: var(--lagoon);
+            box-shadow: 0 14px 35px rgba(0,105,148,.2);
+        }
+        .event-card:hover i { transform: scale(1.3) rotate(-8deg); color: var(--coral); }
+
+        /* ══════════════════════════════════════
+           LOCATION
+        ══════════════════════════════════════ */
+        .location-section {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,105,148,.1);
+            border: 2px solid var(--foam);
+        }
+        .location-section h2 {
+            font-family: 'Pacifico', cursive;
+            color: var(--ocean);
+            letter-spacing: 1px;
+        }
+        .location-section i { color: var(--coral) !important; }
+        .location-section p, .location-section li { color: #3a5f70; }
+
+        /* ══════════════════════════════════════
+           CONTACT
+        ══════════════════════════════════════ */
+        .contact-card {
+            background: white;
+            border-radius: 24px;
+            padding: 44px;
+            box-shadow: 0 15px 50px rgba(0,105,148,.12);
+            border: 2px solid var(--foam);
+            position: relative;
+            overflow: hidden;
+        }
+        .contact-card::before {
+            content: "";
+            position: absolute; top:0; left:0; right:0;
+            height: 6px;
+            background: linear-gradient(to right, var(--lagoon), var(--lime), var(--coral));
+        }
+        .contact-card h2 {
+            font-family: 'Pacifico', cursive;
+            color: var(--ocean);
+            letter-spacing: 1px;
+        }
+        .form-label { color: var(--ocean); font-weight: 700; font-size: .9rem; letter-spacing: .5px; }
+        .form-control {
+            background: var(--foam);
+            border: 2px solid var(--sky);
+            color: var(--text-dark);
+            border-radius: 12px;
+            padding: 12px 16px;
+            transition: .25s;
+            font-family: 'Quicksand', sans-serif;
+        }
+        .form-control:focus {
+            background: white;
+            border-color: var(--lagoon);
+            box-shadow: 0 0 0 4px rgba(0,180,216,.12);
+            color: var(--text-dark);
+        }
+        .form-control::placeholder { color: #8ab5c2; }
+        .btn-aqua {
+            font-family: 'Baloo 2', cursive;
+            font-weight: 800;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            padding: 14px 50px;
+            border-radius: 50px;
+            border: none;
+            background: linear-gradient(135deg, var(--lagoon), var(--ocean));
+            color: white;
+            box-shadow: 0 6px 20px rgba(0,105,148,.35);
+            transition: .25s;
+            cursor: pointer;
+        }
+        .btn-aqua:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 35px rgba(0,105,148,.5);
+            background: linear-gradient(135deg, var(--ocean), var(--deep));
+        }
+
+        /* ══════════════════════════════════════
+           FOOTER
+        ══════════════════════════════════════ */
+        footer {
+            background: linear-gradient(180deg, var(--deep) 0%, #011627 100%);
+            padding: 50px 20px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .footer-wave {
+            position: absolute;
+            top: -2px; left: 0;
+            width: 200%; height: 50px;
+        }
+        .footer-wave svg { width: 50%; height: 100%; display: inline-block; }
+        .footer-wave { animation: waveDrift 10s linear infinite; }
+        footer h4 {
+            font-family: 'Pacifico', cursive;
+            color: var(--sand);
+            letter-spacing: 1px;
+            margin-top: 20px;
+            text-shadow: 0 2px 8px rgba(0,0,0,.3);
+        }
+        .social-btn {
+            width: 54px; height: 54px;
+            border-radius: 50%;
+            border: 2px solid rgba(144,224,239,.3);
+            background: rgba(0,180,216,.1);
+            color: var(--sky);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+            transition: .25s;
+            text-decoration: none;
+        }
+        .social-btn:hover {
+            background: var(--lagoon);
+            border-color: var(--lagoon);
+            color: white;
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 8px 20px rgba(0,180,216,.4);
+        }
+        footer p { color: rgba(144,224,239,.4); font-size: .85rem; margin-top: 20px; }
+
+        /* ══════════════════════════════════════
+           SWIPER
+        ══════════════════════════════════════ */
+        .swiper-button-next, .swiper-button-prev {
+            color: var(--ocean) !important;
+            background: white;
+            border-radius: 50%;
+            width: 42px !important; height: 42px !important;
+            box-shadow: 0 4px 12px rgba(0,105,148,.2);
+        }
+        .swiper-button-next::after, .swiper-button-prev::after { font-size: .85rem !important; }
+        .swiper-pagination-bullet { background: rgba(0,105,148,.3) !important; }
+        .swiper-pagination-bullet-active { background: var(--lagoon) !important; }
+
+        /* ══════════════════════════════════════
+           POOL TILES BG (section accent)
+        ══════════════════════════════════════ */
+        .pool-bg {
+            background-color: var(--foam);
+            background-image:
+                linear-gradient(rgba(0,180,216,.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,180,216,.06) 1px, transparent 1px);
+            background-size: 40px 40px;
+            border-radius: 28px;
+            padding: 40px 30px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ══════════ NAVBAR ══════════ -->
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <img height="32px" src="https://dsjumpers.com/wp-content/uploads/2025/02/cropped-Logotipo-D%C2%B4S-Jumpers-qnohhmv0x0akjoiwicpksyn98vul3qjxppjyzgt6og.webp" alt="logo" class="me-2 rounded-circle" style="border:2px solid rgba(255,221,161,.4);">
+            🌊 MI EMPRESA
+        </a>
+        <div class="d-flex align-items-center ms-auto me-3 order-lg-last">
+            <a class="nav-link position-relative p-2" href="#" id="cartIcon">
+                <i class="fas fa-shopping-cart fa-lg" style="color:var(--sand);"></i>
+                <span id="cartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill" style="font-size:.65rem;">0</span>
+            </a>
+        </div>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal" style="color:var(--sky);">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="menuPrincipal">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#categorias">🎠 Categorías</a></li>
+                <li class="nav-item"><a class="nav-link" href="#eventos">🎭 Eventos</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">🐚 Nosotros</a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#nosotros">🌊 Sobre Nosotros</a></li>
+                        <li><a class="dropdown-item" href="#contacto">📨 Contáctanos</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ══════════ HERO ══════════ -->
+<section class="hero-section">
+    <!-- Sky elements -->
+    <div class="sun"></div>
+    <div class="cloud cloud-1"></div>
+    <div class="cloud cloud-2"></div>
+    <div class="cloud cloud-3"></div>
+
+    <!-- Palm trees (SVG) -->
+    <div class="palm palm-left">
+        <svg viewBox="0 0 90 160" xmlns="http://www.w3.org/2000/svg">
+            <rect x="40" y="60" width="8" height="100" rx="4" fill="#5d4037"/>
+            <ellipse cx="44" cy="65" rx="35" ry="14" fill="#2e7d32" transform="rotate(-20 44 65)"/>
+            <ellipse cx="44" cy="60" rx="30" ry="12" fill="#388e3c" transform="rotate(15 44 60)"/>
+            <ellipse cx="44" cy="55" rx="28" ry="11" fill="#43a047" transform="rotate(-30 44 55)"/>
+            <circle cx="44" cy="60" r="6" fill="#f57f17"/>
+        </svg>
+    </div>
+    <div class="palm palm-right">
+        <svg viewBox="0 0 90 160" xmlns="http://www.w3.org/2000/svg">
+            <rect x="40" y="60" width="8" height="100" rx="4" fill="#5d4037"/>
+            <ellipse cx="44" cy="65" rx="35" ry="14" fill="#2e7d32" transform="rotate(-20 44 65)"/>
+            <ellipse cx="44" cy="60" rx="30" ry="12" fill="#388e3c" transform="rotate(15 44 60)"/>
+            <ellipse cx="44" cy="55" rx="28" ry="11" fill="#43a047" transform="rotate(-30 44 55)"/>
+            <circle cx="44" cy="60" r="6" fill="#f57f17"/>
+        </svg>
+    </div>
+
+    <!-- Water -->
+    <div class="water-body">
+        <div class="wave wave-1">
+            <svg viewBox="0 0 800 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0,30 C100,5 200,55 300,30 C400,5 500,55 600,30 C700,5 800,40 800,30 L800,0 L0,0 Z" fill="#87ceeb" opacity=".6"/>
+            </svg><svg viewBox="0 0 800 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0,30 C100,5 200,55 300,30 C400,5 500,55 600,30 C700,5 800,40 800,30 L800,0 L0,0 Z" fill="#87ceeb" opacity=".6"/>
+            </svg>
+        </div>
+        <div class="wave wave-2">
+            <svg viewBox="0 0 800 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0,25 C150,55 250,5 400,25 C550,45 650,10 800,25 L800,0 L0,0 Z" fill="rgba(144,224,239,.4)"/>
+            </svg><svg viewBox="0 0 800 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0,25 C150,55 250,5 400,25 C550,45 650,10 800,25 L800,0 L0,0 Z" fill="rgba(144,224,239,.4)"/>
+            </svg>
+        </div>
+        <div class="wave wave-3">
+            <svg viewBox="0 0 800 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0,35 C200,10 300,50 500,25 C650,5 750,45 800,35 L800,0 L0,0 Z" fill="rgba(0,180,216,.2)"/>
+            </svg><svg viewBox="0 0 800 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0,35 C200,10 300,50 500,25 C650,5 750,45 800,35 L800,0 L0,0 Z" fill="rgba(0,180,216,.2)"/>
+            </svg>
+        </div>
+        <div class="bubbles">
+            <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+            <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+            <div class="bubble"></div><div class="bubble"></div>
+        </div>
+    </div>
+
+    <div class="hero-inner">
+        <div class="logo-float">
+            <img src="https://dsjumpers.com/wp-content/uploads/2025/02/cropped-Logotipo-D%C2%B4S-Jumpers-qnohhmv0x0akjoiwicpksyn98vul3qjxppjyzgt6og.webp" alt="logo">
+        </div>
+        <h1 class="hero-title">D'S Jumpers</h1>
+        <p class="hero-sub">🌊 Creatividad en Movimiento 🏄</p>
+        <a href="#categorias" class="hero-btn">🎟️ ¡ENTRA AL AGUA!</a>
+    </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="wave-tape">
+    <span class="tape-text">
+        🌊 TOBOGANES ÉPICOS &nbsp;•&nbsp; 🏊 PISCINAS GIGANTES &nbsp;•&nbsp; 🏄 OLA PERFECTA &nbsp;•&nbsp; 🐠 MUNDO SUBMARINO &nbsp;•&nbsp; 🌺 AMBIENTE TROPICAL &nbsp;•&nbsp; 🍹 REFRESCOS HELADOS &nbsp;•&nbsp; 🎟️ PASES DISPONIBLES &nbsp;•&nbsp; ☀️ DIVERSIÓN BAJO EL SOL &nbsp;•&nbsp;
+    </span>
+</div>
+
+<!-- ══════════ MAIN CONTENT ══════════ -->
+<div class="container py-5">
+
+    <!-- CATEGORÍAS -->
+    <section class="mb-5" id="categorias">
+        <h2 class="section-title">Categorías Destacadas</h2>
+        <div class="swiper swiperCategories">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-rocket"></i>🚀 Tech</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-paint-brush"></i>🎨 Diseño</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-music"></i>🎵 Música</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-camera"></i>📸 Fotos</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-utensils"></i>🍳 Cocina</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-running"></i>🏃 Deporte</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-gamepad"></i>🎮 Juegos</a></div>
+            </div>
+            <div class="swiper-pagination mt-4"></div>
+        </div>
+    </section>
+
+    <div class="aqua-divider"><span>🐚 🐠 🐚</span></div>
+
+    <!-- REVIEWS -->
+    <section class="mb-5">
+        <h2 class="section-title">Lo que dicen nuestros nadadores</h2>
+        <div class="swiper swiperReviews">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"El servicio es increíble. Cada detalle brilla como el agua bajo el sol de verano."</p>
+                        <h6>— Juan Pérez</h6>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★☆</div>
+                        <p>"Muy fácil de usar y la interfaz es súper rápida. ¡Me sumergí completamente! Recomendado."</p>
+                        <h6>— Maria García</h6>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"Encontré exactamente lo que buscaba. ¡Como ese tobogán perfecto que siempre has querido!"</p>
+                        <h6>— Carlos Ruiz</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+    </section>
+
+    <div class="aqua-divider"><span>🌊 ☀️ 🌊</span></div>
+
+    <!-- CATÁLOGO GRID -->
+    <section class="pool-bg mb-5">
+        <h2 class="section-title">Explora Todo el Catálogo</h2>
+        <div class="row g-3">
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">💻 Tecnología</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🎨 Arte</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🎵 Música</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">📸 Fotografía</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🍽️ Gastronomía</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">⚽ Deportes</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🎮 Gaming</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">✈️ Viajes</a></div>
+        </div>
+    </section>
+
+    <div class="aqua-divider"><span>🏄 🌺 🏄</span></div>
+
+    <!-- ABOUT -->
+    <section class="about-section mb-5" id="nosotros">
+        <h2 class="section-title">Sobre Nosotros</h2>
+        <div class="row align-items-center g-4">
+            <div class="col-md-8">
+                <p class="lead mb-4">
+                    🌊 Somos una empresa dedicada a conectar a las personas con el contenido y los servicios que aman. Desde nuestra fundación, nos hemos esforzado por ofrecer una experiencia tan refrescante y emocionante como el primer clavado al agua en un día de verano.
+                </p>
+                <p>
+                    Nuestra misión es simple: facilitar el acceso a un mundo de posibilidades, ofreciendo una plataforma donde la diversidad de intereses se encuentra con la calidad y la innovación. Creemos en el poder de la comunidad y en la constante evolución para superar las expectativas.
+                </p>
+            </div>
+            <div class="col-md-4">
+                <div class="about-logo-container">
+                    <div id="movingLogo" class="moving-logo">
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EVENTOS -->
+    <section class="mb-5 py-4" id="eventos">
+        <h2 class="section-title">Tipos de Eventos</h2>
+        <div class="swiper swiperEvents">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <div class="event-card"><i class="fas fa-glass-cheers"></i><h5>💍 Bodas</h5></div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="event-card"><i class="fas fa-birthday-cake"></i><h5>🎂 Cumpleaños</h5></div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="event-card"><i class="fas fa-briefcase"></i><h5>🏢 Corporativos</h5></div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="event-card"><i class="fas fa-graduation-cap"></i><h5>🎓 Graduaciones</h5></div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="event-card"><i class="fas fa-music"></i><h5>🎶 Conciertos</h5></div>
+                </div>
+            </div>
+            <div class="swiper-pagination mt-4"></div>
+        </div>
+    </section>
+
+    <div class="aqua-divider"><span>📍 🗺️ 📍</span></div>
+
+    <!-- UBICACIÓN -->
+    <section class="location-section mb-5">
+        <div class="row align-items-center g-4">
+            <div class="col-md-5 px-4">
+                <h2 class="mb-4">🗺️ Nuestra Ubicación</h2>
+                <p>Cubrimos toda el área metropolitana y alrededores. ¡Ven a refrescarte con nosotros!</p>
+                <ul class="list-unstyled mt-3">
+                    <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> Calle Falsa 123, Ciudad Central</li>
+                    <li class="mb-2"><i class="fas fa-clock me-2"></i> Lun - Vie: 9:00 AM - 6:00 PM</li>
+                </ul>
+            </div>
+            <div class="col-md-7">
+                <div class="ratio ratio-16x9 rounded-4 overflow-hidden" style="border:3px solid var(--sky); box-shadow:0 10px 30px rgba(0,105,148,.15);">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1422937611435!2d-73.98731968459391!3d40.75889497932681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480293%3A0x5117f70619c651b0!2sTimes%20Square!5e0!3m2!1ses!2scl!4v1625070000000!5m2!1ses!2scl" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="aqua-divider"><span>📨 🐠 📨</span></div>
+
+    <!-- CONTACTO -->
+    <section class="mb-5" id="contacto">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="contact-card">
+                    <h2 class="text-center mb-4">🎟️ Contáctanos</h2>
+                    <form>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">NOMBRE</label>
+                                <input type="text" class="form-control" placeholder="Tu nombre">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">CORREO ELECTRÓNICO</label>
+                                <input type="email" class="form-control" placeholder="email@ejemplo.com">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">ASUNTO</label>
+                                <input type="text" class="form-control" placeholder="¿En qué podemos ayudarte?">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">MENSAJE</label>
+                                <textarea class="form-control" rows="4" placeholder="Escribe tu mensaje aquí..."></textarea>
+                            </div>
+                            <div class="col-12 text-center mt-3">
+                                <button type="button" class="btn-aqua">🌊 ENVIAR MENSAJE</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div><!-- /container -->
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer>
+    <div class="footer-wave">
+        <svg viewBox="0 0 800 50" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,25 C150,5 250,45 400,20 C550,-5 650,40 800,20 L800,0 L0,0 Z" fill="var(--foam)" opacity=".08"/>
+        </svg><svg viewBox="0 0 800 50" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,25 C150,5 250,45 400,20 C550,-5 650,40 800,20 L800,0 L0,0 Z" fill="var(--foam)" opacity=".08"/>
+        </svg>
+    </div>
+    <h4 class="mb-4 pt-4">🌊 Síguenos en nuestras redes 🌊</h4>
+    <div class="d-flex justify-content-center gap-3 flex-wrap mb-3">
+        <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-twitter"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-instagram"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-whatsapp"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-linkedin-in"></i></a>
+    </div>
+    <p>&copy; 2026 🐠 Tu Empresa. Todos los derechos reservados.</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+    new Swiper(".swiperCategories", {
+        slidesPerView:1, spaceBetween:10, loop:true,
+        autoplay:{delay:2800, disableOnInteraction:false},
+        breakpoints:{640:{slidesPerView:2},768:{slidesPerView:3},1024:{slidesPerView:5}},
+        pagination:{el:".swiper-pagination",clickable:true},
+    });
+    new Swiper(".swiperReviews", {
+        slidesPerView:1, spaceBetween:20, loop:true,
+        autoplay:{delay:5000},
+        navigation:{nextEl:".swiper-button-next",prevEl:".swiper-button-prev"},
+        breakpoints:{768:{slidesPerView:2}}
+    });
+    new Swiper(".swiperEvents", {
+        slidesPerView:1, spaceBetween:20, loop:true,
+        autoplay:{delay:3500, disableOnInteraction:false},
+        breakpoints:{640:{slidesPerView:2},1024:{slidesPerView:4}},
+        pagination:{el:".swiper-pagination",clickable:true},
+    });
+
+    const movingLogo = document.getElementById('movingLogo');
+    const aboutLogoContainer = document.querySelector('.about-logo-container');
+    if (movingLogo && aboutLogoContainer) {
+        aboutLogoContainer.addEventListener('mousemove', (e) => {
+            const r = aboutLogoContainer.getBoundingClientRect();
+            const nx = ((e.clientX - r.left) / r.width)  * 2 - 1;
+            const ny = ((e.clientY - r.top)  / r.height) * 2 - 1;
+            movingLogo.style.transform = `translate(${nx*25}px,${ny*25}px)`;
+        });
+        aboutLogoContainer.addEventListener('mouseleave', () => {
+            movingLogo.style.transform = 'translate(0,0)';
+        });
+    }
+
+    let itemCount = 0;
+    const cartCountEl = document.getElementById('cartCount');
+    function agregarAlCarrito() { itemCount++; cartCountEl.innerText = itemCount; }
+</script>
+</body>
+</html>

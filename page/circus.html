@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎪 D'S Jumpers — ¡El Gran Espectáculo!</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Luckiest+Guy&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --red:       #E8192C;
+            --gold:      #FFD700;
+            --cream:     #FFF8E7;
+            --navy:      #1A1A5E;
+            --teal:      #00B4D8;
+            --orange:    #FF6B2B;
+            --purple:    #7B2FBE;
+            --stripe-w:  60px;
+        }
+
+        /* ─── BASE ─────────────────────────────────────── */
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            background-color: var(--cream);
+            font-family: 'Nunito', sans-serif;
+            overflow-x: hidden;
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ctext y='20' font-size='20'%3E⭐%3C/text%3E%3C/svg%3E") 12 12, auto;
+        }
+
+        /* ─── STRIPE PATTERN (reusable) ────────────────── */
+        .stripe-bg {
+            background: repeating-linear-gradient(
+                -45deg,
+                var(--red) 0px,
+                var(--red) var(--stripe-w),
+                var(--cream) var(--stripe-w),
+                var(--cream) calc(var(--stripe-w) * 2)
+            );
+        }
+
+        /* ─── TYPOGRAPHY ───────────────────────────────── */
+        .circus-title {
+            font-family: 'Luckiest Guy', cursive;
+            letter-spacing: 3px;
+            text-shadow: 4px 4px 0 var(--navy), 6px 6px 0 rgba(0,0,0,.15);
+        }
+        .section-title {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 2.2rem;
+            color: var(--navy);
+            text-align: center;
+            margin-bottom: 40px;
+            letter-spacing: 2px;
+            text-shadow: 3px 3px 0 var(--gold);
+            position: relative;
+        }
+        .section-title::before,
+        .section-title::after {
+            content: "✦";
+            color: var(--red);
+            margin: 0 12px;
+            font-size: 1.4rem;
+            vertical-align: middle;
+        }
+
+        /* ─── NAVBAR ───────────────────────────────────── */
+        .navbar {
+            background: var(--navy) !important;
+            border-bottom: 5px solid var(--gold);
+            padding: 10px 0;
+        }
+        .navbar-brand {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1.5rem;
+            color: var(--gold) !important;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 0 var(--red);
+        }
+        .nav-link {
+            font-family: 'Boogaloo', cursive;
+            font-size: 1.1rem;
+            color: var(--cream) !important;
+            letter-spacing: 1px;
+            transition: color .2s;
+        }
+        .nav-link:hover { color: var(--gold) !important; }
+        .dropdown-menu {
+            background: var(--navy);
+            border: 2px solid var(--gold);
+            border-radius: 0;
+        }
+        .dropdown-item { color: var(--cream); font-family: 'Boogaloo', cursive; }
+        .dropdown-item:hover { background: var(--red); color: var(--gold); }
+        #cartCount { background: var(--red) !important; }
+
+        /* ─── HERO ─────────────────────────────────────── */
+        .hero-logo-section {
+            min-height: 90vh;
+            background:
+                radial-gradient(ellipse at 50% 100%, var(--navy) 0%, transparent 60%),
+                repeating-linear-gradient(
+                    -45deg,
+                    var(--red)   0px,    var(--red)   50px,
+                    var(--cream) 50px,   var(--cream) 100px
+                );
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Festoon lights top */
+        .hero-logo-section::before {
+            content: "💡💡💡💡💡💡💡💡💡💡💡💡💡💡💡💡💡💡💡💡";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            text-align: center;
+            font-size: 1.6rem;
+            padding: 6px;
+            background: var(--navy);
+            letter-spacing: 4px;
+            border-bottom: 4px solid var(--gold);
+        }
+        .hero-logo-section::after {
+            content: "🎪 ¡BIENVENIDO AL GRAN ESPECTÁCULO! 🎪";
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            text-align: center;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1rem;
+            color: var(--cream);
+            background: var(--red);
+            padding: 8px;
+            letter-spacing: 4px;
+            border-top: 4px solid var(--gold);
+        }
+
+        .hero-inner {
+            text-align: center;
+            z-index: 2;
+            padding: 80px 20px 60px;
+        }
+
+        /* Logo badge */
+        .logo-badge {
+            width: 200px; height: 200px;
+            border-radius: 50%;
+            background: var(--gold);
+            border: 8px solid var(--navy);
+            box-shadow: 0 0 0 4px var(--red), 0 20px 50px rgba(0,0,0,.4);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-bottom: 30px;
+            animation: logoSpin 6s ease-in-out infinite, logoBounce 2.5s ease-in-out infinite;
+        }
+        .logo-badge img { width: 150px; height: 150px; object-fit: contain; }
+
+        @keyframes logoSpin {
+            0%,100%{ transform: rotate(-8deg) scale(1); }
+            50%{ transform: rotate(8deg) scale(1.08); }
+        }
+        @keyframes logoBounce {
+            0%,100%{ margin-top: 0; }
+            50%{ margin-top: -20px; }
+        }
+
+        .hero-title {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: clamp(3rem,10vw,7rem);
+            color: var(--gold);
+            text-shadow: 5px 5px 0 var(--navy), 8px 8px 0 var(--red);
+            line-height: 1;
+            margin-bottom: 16px;
+            animation: titlePop 1s cubic-bezier(.34,1.56,.64,1) both;
+        }
+        @keyframes titlePop {
+            from{ opacity:0; transform:scale(.5) rotate(-6deg); }
+            to{ opacity:1; transform:scale(1) rotate(0deg); }
+        }
+
+        .hero-sub {
+            font-family: 'Boogaloo', cursive;
+            font-size: 1.6rem;
+            color: var(--cream);
+            background: var(--navy);
+            display: inline-block;
+            padding: 6px 24px;
+            border-radius: 30px;
+            border: 3px solid var(--gold);
+            letter-spacing: 2px;
+            animation: fadeSlide .8s .4s both;
+        }
+        @keyframes fadeSlide {
+            from{ opacity:0; transform:translateY(20px); }
+            to{ opacity:1; transform:translateY(0); }
+        }
+
+        /* ─── DIVIDERS ─────────────────────────────────── */
+        .circus-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 50px 0;
+        }
+        .circus-divider::before,
+        .circus-divider::after {
+            content: "";
+            flex: 1;
+            height: 4px;
+            background: repeating-linear-gradient(to right, var(--red) 0, var(--red) 12px, var(--gold) 12px, var(--gold) 24px);
+            border-radius: 4px;
+        }
+        .circus-divider span {
+            font-size: 1.8rem;
+            white-space: nowrap;
+        }
+
+        /* ─── CAT CARDS ────────────────────────────────── */
+        .cat-card {
+            background: var(--cream);
+            border-radius: 16px;
+            padding: 28px 18px;
+            text-align: center;
+            border: 3px solid var(--navy);
+            margin: 10px 5px;
+            text-decoration: none;
+            color: var(--navy);
+            display: block;
+            transition: transform .25s, box-shadow .25s, background .25s, color .25s;
+            box-shadow: 4px 4px 0 var(--navy);
+            font-family: 'Boogaloo', cursive;
+            font-size: 1.2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .cat-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 8px;
+            background: repeating-linear-gradient(to right, var(--red) 0, var(--red) 10px, var(--gold) 10px, var(--gold) 20px);
+        }
+        .cat-card:hover {
+            transform: translateY(-6px) rotate(-1deg);
+            background: var(--red);
+            color: var(--gold);
+            box-shadow: 6px 6px 0 var(--navy);
+        }
+        .cat-card i { color: var(--red); }
+        .cat-card:hover i { color: var(--gold); }
+
+        /* ─── REVIEW CARDS ─────────────────────────────── */
+        .review-card {
+            background: var(--navy);
+            border-radius: 16px;
+            padding: 32px;
+            margin: 20px 10px;
+            border: 3px solid var(--gold);
+            box-shadow: 6px 6px 0 var(--red);
+            position: relative;
+            overflow: hidden;
+            color: var(--cream);
+        }
+        .review-card::after {
+            content: "❝";
+            position: absolute;
+            bottom: -20px; right: 20px;
+            font-size: 8rem;
+            opacity: .08;
+            color: var(--gold);
+            line-height: 1;
+            font-family: Georgia, serif;
+        }
+        .review-card .stars { color: var(--gold); font-size: 1.3rem; margin-bottom: 12px; }
+        .review-card p { font-style: italic; color: var(--cream); }
+        .review-card h6 {
+            font-family: 'Boogaloo', cursive;
+            color: var(--gold);
+            font-size: 1rem;
+            letter-spacing: 1px;
+        }
+
+        /* ─── GRID ITEMS ───────────────────────────────── */
+        .grid-item {
+            background: var(--cream);
+            border-radius: 12px;
+            padding: 28px 16px;
+            text-align: center;
+            transition: .25s;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid var(--navy);
+            text-decoration: none;
+            color: var(--navy);
+            font-family: 'Boogaloo', cursive;
+            font-size: 1.2rem;
+            box-shadow: 4px 4px 0 var(--orange);
+        }
+        .grid-item:hover {
+            background: var(--orange);
+            color: white;
+            transform: scale(1.05) rotate(1deg);
+            box-shadow: 6px 6px 0 var(--navy);
+        }
+
+        /* ─── ABOUT ────────────────────────────────────── */
+        .about-section {
+            background: var(--navy);
+            border-radius: 20px;
+            padding: 50px;
+            border: 4px solid var(--gold);
+            box-shadow: 8px 8px 0 var(--red);
+            position: relative;
+            overflow: hidden;
+        }
+        .about-section::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 12px;
+            background: repeating-linear-gradient(to right, var(--red) 0,var(--red) 20px, var(--gold) 20px, var(--gold) 40px, var(--teal) 40px, var(--teal) 60px);
+        }
+        .about-section .section-title { color: var(--gold); text-shadow: 3px 3px 0 var(--red); }
+        .about-section .section-title::before,
+        .about-section .section-title::after { color: var(--teal); }
+        .about-section p { color: var(--cream); }
+
+        .about-logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 160px;
+        }
+        .moving-logo {
+            width: 120px; height: 120px;
+            background: var(--gold);
+            border-radius: 50%;
+            border: 5px solid var(--red);
+            box-shadow: 0 0 0 4px var(--cream);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            color: var(--navy);
+            position: relative;
+            transition: transform .15s linear;
+            animation: spinStar 4s linear infinite;
+        }
+        @keyframes spinStar {
+            from{ rotate: 0deg; }
+            to{ rotate: 360deg; }
+        }
+
+        /* ─── EVENTOS ──────────────────────────────────── */
+        .event-card {
+            background: var(--cream);
+            border-radius: 16px;
+            padding: 30px 18px;
+            text-align: center;
+            border: 3px solid var(--navy);
+            margin: 10px 5px;
+            box-shadow: 4px 4px 0 var(--purple);
+            transition: .25s;
+            font-family: 'Boogaloo', cursive;
+        }
+        .event-card:hover {
+            transform: translateY(-6px);
+            background: var(--purple);
+            color: white;
+            box-shadow: 6px 6px 0 var(--navy);
+        }
+        .event-card i { color: var(--purple); font-size: 2.5rem; margin-bottom: 12px; }
+        .event-card:hover i { color: var(--gold); }
+        .event-card h5 { font-size: 1.2rem; margin: 0; }
+
+        /* ─── MAP ──────────────────────────────────────── */
+        .location-section {
+            background: var(--cream);
+            border-radius: 20px;
+            padding: 40px;
+            border: 3px solid var(--navy);
+            box-shadow: 6px 6px 0 var(--teal);
+        }
+        .location-section h2 {
+            font-family: 'Luckiest Guy', cursive;
+            color: var(--navy);
+            text-shadow: 2px 2px 0 var(--teal);
+            letter-spacing: 2px;
+        }
+        .location-section i { color: var(--red) !important; }
+
+        /* ─── CONTACT ──────────────────────────────────── */
+        .contact-card {
+            background: var(--cream);
+            border-radius: 20px;
+            padding: 40px;
+            border: 4px solid var(--navy);
+            box-shadow: 8px 8px 0 var(--gold);
+        }
+        .contact-card h2 {
+            font-family: 'Luckiest Guy', cursive;
+            color: var(--red);
+            text-shadow: 3px 3px 0 var(--navy);
+            letter-spacing: 2px;
+        }
+        .form-control, .form-label {
+            font-family: 'Nunito', sans-serif;
+        }
+        .form-control {
+            border: 2px solid var(--navy);
+            border-radius: 10px;
+            background: white;
+        }
+        .form-control:focus {
+            border-color: var(--red);
+            box-shadow: 3px 3px 0 var(--gold);
+        }
+        .btn-circus {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            background: var(--red);
+            color: var(--gold);
+            border: 3px solid var(--navy);
+            border-radius: 50px;
+            padding: 12px 48px;
+            box-shadow: 4px 4px 0 var(--navy);
+            transition: .2s;
+            text-shadow: 1px 1px 0 rgba(0,0,0,.3);
+        }
+        .btn-circus:hover {
+            transform: translateY(-3px);
+            box-shadow: 6px 6px 0 var(--navy);
+            background: var(--navy);
+            color: var(--gold);
+        }
+
+        /* ─── FOOTER ───────────────────────────────────── */
+        footer {
+            background: var(--navy);
+            border-top: 6px solid var(--gold);
+            padding: 50px 20px;
+            text-align: center;
+        }
+        footer h4 {
+            font-family: 'Luckiest Guy', cursive;
+            color: var(--gold);
+            letter-spacing: 3px;
+            text-shadow: 2px 2px 0 var(--red);
+        }
+        .social-btn {
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            border: 3px solid var(--gold);
+            background: transparent;
+            color: var(--gold);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: .2s;
+            text-decoration: none;
+        }
+        .social-btn:hover {
+            background: var(--gold);
+            color: var(--navy);
+            transform: scale(1.15) rotate(10deg);
+        }
+        footer p { color: #aaa; font-size: 0.85rem; }
+
+        /* ─── TICKET BANNER ────────────────────────────── */
+        .ticket-banner {
+            background: var(--gold);
+            border-top: 4px dashed var(--navy);
+            border-bottom: 4px dashed var(--navy);
+            padding: 14px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            margin-bottom: 10px;
+        }
+        .ticket-text {
+            display: inline-block;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1.1rem;
+            color: var(--navy);
+            letter-spacing: 4px;
+            animation: marquee 18s linear infinite;
+            padding-right: 80px;
+        }
+        @keyframes marquee {
+            from{ transform: translateX(100vw); }
+            to{ transform: translateX(-100%); }
+        }
+
+        /* ─── SWIPER OVERRIDES ─────────────────────────── */
+        .swiper-button-next, .swiper-button-prev {
+            color: var(--gold) !important;
+            background: var(--navy);
+            border-radius: 50%;
+            width: 42px !important; height: 42px !important;
+            border: 2px solid var(--gold);
+        }
+        .swiper-button-next::after, .swiper-button-prev::after { font-size: .9rem !important; }
+        .swiper-pagination-bullet { background: var(--navy) !important; }
+        .swiper-pagination-bullet-active { background: var(--red) !important; }
+
+        /* ─── STARS FLOATING ───────────────────────────── */
+        @keyframes floatStar {
+            0%{ transform:translateY(0) rotate(0deg); opacity:.6; }
+            100%{ transform:translateY(-120vh) rotate(720deg); opacity:0; }
+        }
+        .floating-star {
+            position:fixed; pointer-events:none; font-size:1.2rem; z-index:0;
+            animation:floatStar linear infinite;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Floating decorative stars -->
+<div class="floating-star" style="left:5%;  animation-duration:12s; animation-delay:0s;  bottom:-10%;">⭐</div>
+<div class="floating-star" style="left:20%; animation-duration:9s;  animation-delay:3s;  bottom:-10%;">✨</div>
+<div class="floating-star" style="left:40%; animation-duration:14s; animation-delay:1s;  bottom:-10%;">🌟</div>
+<div class="floating-star" style="left:60%; animation-duration:11s; animation-delay:5s;  bottom:-10%;">⭐</div>
+<div class="floating-star" style="left:80%; animation-duration:8s;  animation-delay:2s;  bottom:-10%;">✨</div>
+<div class="floating-star" style="left:90%; animation-duration:13s; animation-delay:7s;  bottom:-10%;">🌟</div>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg sticky-top shadow">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="#">
+            <img height="34px" src="https://dsjumpers.com/wp-content/uploads/2025/02/cropped-Logotipo-D%C2%B4S-Jumpers-qnohhmv0x0akjoiwicpksyn98vul3qjxppjyzgt6og.webp" alt="dsjumpers" class="me-2 rounded-circle" style="border:2px solid var(--gold);">
+            🎪 MI EMPRESA
+        </a>
+
+        <div class="d-flex align-items-center ms-auto me-3 order-lg-last">
+            <a class="nav-link position-relative p-2" href="#" id="cartIcon" style="color: var(--gold);">
+                <i class="fas fa-shopping-cart fa-lg"></i>
+                <span id="cartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill" style="font-size:.65rem; background:var(--red);">0</span>
+            </a>
+        </div>
+
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal" style="color:var(--gold);">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="menuPrincipal">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#categorias">🎨 Categorías</a></li>
+                <li class="nav-item"><a class="nav-link" href="#eventos">🎭 Eventos</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="dropNosotros" data-bs-toggle="dropdown">🎪 Nosotros</a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                        <li><a class="dropdown-item" href="#nosotros">🌟 Sobre Nosotros</a></li>
+                        <li><a class="dropdown-item" href="#contacto">📨 Contáctanos</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero-logo-section">
+    <div class="hero-inner">
+        <div class="logo-badge">
+            <img src="https://dsjumpers.com/wp-content/uploads/2025/02/cropped-Logotipo-D%C2%B4S-Jumpers-qnohhmv0x0akjoiwicpksyn98vul3qjxppjyzgt6og.webp" alt="logo">
+        </div>
+        <h1 class="hero-title">D'S JUMPERS</h1>
+        <p class="hero-sub">🎪 Creatividad en Movimiento 🎪</p>
+    </div>
+</section>
+
+<!-- MARQUEE TICKET -->
+<div class="ticket-banner">
+    <span class="ticket-text">
+        🎟️ CATEGORÍAS ESPECIALES &nbsp;&nbsp;&nbsp; ✦ &nbsp;&nbsp;&nbsp; EVENTOS INCREÍBLES &nbsp;&nbsp;&nbsp; ✦ &nbsp;&nbsp;&nbsp; REVIEWS REALES &nbsp;&nbsp;&nbsp; ✦ &nbsp;&nbsp;&nbsp; 🎠 VIVE LA EXPERIENCIA &nbsp;&nbsp;&nbsp; ✦ &nbsp;&nbsp;&nbsp; ¡ENTRA AL CIRCO MÁGICO! &nbsp;&nbsp;&nbsp; ✦ &nbsp;&nbsp;&nbsp; 🎪 TODO UN ESPECTÁCULO &nbsp;&nbsp;&nbsp; ✦
+    </span>
+</div>
+
+<div class="container py-5">
+
+    <!-- ── CATEGORÍAS CARRUSEL ── -->
+    <section class="mb-5" id="categorias">
+        <h2 class="section-title">Categorías Destacadas</h2>
+        <div class="swiper swiperCategories">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-rocket fa-2x mb-2"></i><br>🚀 Tech</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-paint-brush fa-2x mb-2"></i><br>🎨 Diseño</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-music fa-2x mb-2"></i><br>🎵 Música</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-camera fa-2x mb-2"></i><br>📸 Fotos</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-utensils fa-2x mb-2"></i><br>🍳 Cocina</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-running fa-2x mb-2"></i><br>🏃 Deporte</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-gamepad fa-2x mb-2"></i><br>🎮 Juegos</a></div>
+            </div>
+            <div class="swiper-pagination mt-4"></div>
+        </div>
+    </section>
+
+    <div class="circus-divider"><span>🎡 🎠 🎡</span></div>
+
+    <!-- ── REVIEWS ── -->
+    <section class="mb-5">
+        <h2 class="section-title">Lo que dicen nuestros fans</h2>
+        <div class="swiper swiperReviews">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"El servicio es increíble, las categorías están muy bien organizadas. ¡Como magia de circo!"</p>
+                        <h6>🎩 — Juan Pérez</h6>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★☆</div>
+                        <p>"Muy fácil de usar y la interfaz es súper rápida. ¡Todo un espectáculo! Totalmente recomendado."</p>
+                        <h6>🌟 — Maria García</h6>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"Encontré exactamente lo que buscaba en segundos. ¡Como adivinar el número que pensé!"</p>
+                        <h6>🎭 — Carlos Ruiz</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+    </section>
+
+    <div class="circus-divider"><span>🎪 ✦ 🎪</span></div>
+
+    <!-- ── CATÁLOGO GRID ── -->
+    <section class="mb-5">
+        <h2 class="section-title">Explora Todo el Catálogo</h2>
+        <div class="row g-4">
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">💻 Tecnología</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🎨 Arte</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🎵 Música</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">📸 Fotografía</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🍽️ Gastronomía</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">⚽ Deportes</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🎮 Gaming</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">✈️ Viajes</a></div>
+        </div>
+    </section>
+
+    <div class="circus-divider"><span>🌟 🎟️ 🌟</span></div>
+
+    <!-- ── SOBRE NOSOTROS ── -->
+    <section class="about-section mb-5" id="nosotros">
+        <h2 class="section-title">Sobre Nosotros</h2>
+        <div class="row align-items-center g-4">
+            <div class="col-md-8">
+                <p class="lead mb-4">
+                    🎪 Somos una empresa dedicada a conectar a las personas con el contenido y los servicios que aman. Desde nuestra fundación, nos hemos esforzado por ofrecer una experiencia única, intuitiva y enriquecedora — ¡digna de un gran espectáculo!
+                </p>
+                <p>
+                    Nuestra misión es simple: facilitar el acceso a un mundo de posibilidades, ofreciendo una plataforma donde la diversidad de intereses se encuentra con la calidad y la innovación. Creemos en el poder de la comunidad y en la constante evolución para superar las expectativas.
+                </p>
+            </div>
+            <div class="col-md-4">
+                <div class="about-logo-container">
+                    <div id="movingLogo" class="moving-logo">
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── EVENTOS ── -->
+    <section class="mb-5 py-4" id="eventos">
+        <h2 class="section-title">Tipos de Eventos</h2>
+        <div class="swiper swiperEvents">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <div class="event-card">
+                        <i class="fas fa-glass-cheers"></i>
+                        <h5>💍 Bodas</h5>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="event-card">
+                        <i class="fas fa-birthday-cake"></i>
+                        <h5>🎂 Cumpleaños</h5>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="event-card">
+                        <i class="fas fa-briefcase"></i>
+                        <h5>🏢 Corporativos</h5>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="event-card">
+                        <i class="fas fa-graduation-cap"></i>
+                        <h5>🎓 Graduaciones</h5>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="event-card">
+                        <i class="fas fa-music"></i>
+                        <h5>🎶 Conciertos</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-pagination mt-4"></div>
+        </div>
+    </section>
+
+    <div class="circus-divider"><span>📍 🗺️ 📍</span></div>
+
+    <!-- ── UBICACIÓN ── -->
+    <section class="location-section mb-5 py-5">
+        <div class="row align-items-center g-4">
+            <div class="col-md-5 px-4">
+                <h2 class="fw-bold mb-4">🗺️ Nuestra Ubicación</h2>
+                <p class="text-muted">Cubrimos toda el área metropolitana y alrededores. ¡Ven a visitarnos y te recibiremos con fanfarria!</p>
+                <ul class="list-unstyled mt-3">
+                    <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> Calle Falsa 123, Ciudad Central</li>
+                    <li class="mb-2"><i class="fas fa-clock me-2"></i> Lun - Vie: 9:00 AM - 6:00 PM</li>
+                </ul>
+            </div>
+            <div class="col-md-7">
+                <div class="ratio ratio-16x9 rounded-3 overflow-hidden" style="border:4px solid var(--navy); box-shadow:6px 6px 0 var(--red);">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1422937611435!2d-73.98731968459391!3d40.75889497932681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480293%3A0x5117f70619c651b0!2sTimes%20Square!5e0!3m2!1ses!2scl!4v1625070000000!5m2!1ses!2scl" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="circus-divider"><span>📨 ✉️ 📨</span></div>
+
+    <!-- ── CONTACTO ── -->
+    <section class="mb-5" id="contacto">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="contact-card">
+                    <h2 class="text-center mb-4">🎟️ Contáctanos</h2>
+                    <form>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">🎩 Nombre</label>
+                                <input type="text" class="form-control" placeholder="Tu nombre">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">📧 Correo Electrónico</label>
+                                <input type="email" class="form-control" placeholder="email@ejemplo.com">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold">🎪 Asunto</label>
+                                <input type="text" class="form-control" placeholder="¿En qué podemos ayudarte?">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold">💬 Mensaje</label>
+                                <textarea class="form-control" rows="4" placeholder="Escribe tu mensaje aquí..."></textarea>
+                            </div>
+                            <div class="col-12 text-center mt-4">
+                                <button type="button" class="btn-circus">🎟️ ENVIAR MENSAJE</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div><!-- /container -->
+
+<!-- FOOTER -->
+<footer>
+    <h4 class="mb-4">🎪 Síguenos en nuestras redes 🎪</h4>
+    <div class="d-flex justify-content-center gap-3 flex-wrap mb-4">
+        <a href="#" class="social-btn" title="Facebook"><i class="fab fa-facebook-f fa-lg"></i></a>
+        <a href="#" class="social-btn" title="Twitter"><i class="fab fa-twitter fa-lg"></i></a>
+        <a href="#" class="social-btn" title="Instagram"><i class="fab fa-instagram fa-lg"></i></a>
+        <a href="#" class="social-btn" title="WhatsApp"><i class="fab fa-whatsapp fa-lg"></i></a>
+        <a href="#" class="social-btn" title="LinkedIn"><i class="fab fa-linkedin-in fa-lg"></i></a>
+    </div>
+    <p class="mt-2 text-muted small">&copy; 2026 🎠 Tu Empresa. Todos los derechos reservados. 🎠</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+    new Swiper(".swiperCategories", {
+        slidesPerView: 1, spaceBetween: 10, loop: true,
+        autoplay: { delay: 2800, disableOnInteraction: false },
+        breakpoints: { 640:{slidesPerView:2}, 768:{slidesPerView:3}, 1024:{slidesPerView:5} },
+        pagination: { el: ".swiper-pagination", clickable: true },
+    });
+
+    new Swiper(".swiperReviews", {
+        slidesPerView: 1, spaceBetween: 20, loop: true,
+        autoplay: { delay: 5000 },
+        navigation: { nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" },
+        breakpoints: { 768:{ slidesPerView:2 } }
+    });
+
+    new Swiper(".swiperEvents", {
+        slidesPerView: 1, spaceBetween: 20, loop: true,
+        autoplay: { delay: 3500, disableOnInteraction: false },
+        breakpoints: { 640:{slidesPerView:2}, 1024:{slidesPerView:4} },
+        pagination: { el: ".swiper-pagination", clickable: true },
+    });
+
+    // Moving logo (mouse-follow)
+    const movingLogo = document.getElementById('movingLogo');
+    const aboutLogoContainer = document.querySelector('.about-logo-container');
+    if (movingLogo && aboutLogoContainer) {
+        aboutLogoContainer.addEventListener('mousemove', (e) => {
+            const r = aboutLogoContainer.getBoundingClientRect();
+            const nx = ((e.clientX - r.left) / r.width)  * 2 - 1;
+            const ny = ((e.clientY - r.top)  / r.height) * 2 - 1;
+            movingLogo.style.transform = `translate(${nx*25}px, ${ny*25}px)`;
+        });
+        aboutLogoContainer.addEventListener('mouseleave', () => {
+            movingLogo.style.transform = 'translate(0px,0px)';
+        });
+    }
+
+    // Cart counter
+    let itemCount = 0;
+    const cartCountElement = document.getElementById('cartCount');
+    function agregarAlCarrito() {
+        itemCount++;
+        cartCountElement.innerText = itemCount;
+    }
+</script>
+</body>
+</html>
