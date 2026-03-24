@@ -12,7 +12,7 @@ RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 # Debe coincidir con la URL del subdirectorio donde está tu API.
 # localhost/juls/api/
 #RewriteBase /DsJumpers/api-web/
-RewriteBase /api/ 
+RewriteBase /api-web/ 
 
 # 3. Reglas de Reescritura
 
