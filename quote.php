@@ -301,12 +301,18 @@ const FHFp = FHF.split(' ')
 
     if ($lead_details) {
         foreach ($lead_details as $lead_detail) {
-            $query = "select * FROM products WHERE Id = ". $lead_detail['IdProduct'];
+            if ($lead_detail['IdProductRel'] > 0 )
+                $query = "select * FROM products WHERE Id = ". $lead_detail['IdProductRel'];
+            else
+                $query = "select * FROM products WHERE Id = ". $lead_detail['IdProduct'];
             $stmt = $db->prepare($query);
             $stmt->execute();
             $product = $stmt->fetch(PDO::FETCH_ASSOC);  
             
-            $query = "SELECT *  from products_images WHERE Product = ". $lead_detail['IdProduct']." ORDER BY Orden LIMIT 1";
+            if ($lead_detail['IdProductRel'] > 0 )
+                $query = "SELECT *  from products_images WHERE Product = ". $lead_detail['IdProductRel']." ORDER BY Orden LIMIT 1";
+            else
+                $query = "SELECT *  from products_images WHERE Product = ". $lead_detail['IdProduct']." ORDER BY Orden LIMIT 1";
             $stmt = $db->prepare($query);
             $stmt->execute();
             $Images = $stmt->fetch(PDO::FETCH_ASSOC);     

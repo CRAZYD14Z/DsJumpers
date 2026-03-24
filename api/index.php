@@ -17,8 +17,13 @@ use \Firebase\JWT\JWT;
 use \Firebase\JWT\Key;
 use \Firebase\JWT\ExpiredException;
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
 // Incluye las funciones de manejo (simuladas)
+include_once 'functions.php'; 
 include_once 'handlers.php'; 
+
 
 // ----------------------------------------------------
 // 2. CONFIGURACIÓN DE ENCABEZADOS (HEADERS)
@@ -110,6 +115,10 @@ if (isset($_SERVER['HTTP_ID5']))
 //print_r($IDS);
 //die();
 switch ($resource) {
+    case 'discounts':
+        
+        handle_generic_crud($resource,$db, $method, $id, $data);
+        break;    
     case 'clientes':
         
         handle_generic_crud($resource,$db, $method, $id, $data);
@@ -296,7 +305,9 @@ switch ($resource) {
     case 'get_packing_list':
         get_packing_list($resource,$db, $method, $id, $data);
         break;        
-
+    case 'sendmail':
+        sendmail($resource,$db, $method, $id, $data);
+    break;
     default:
         // Manejar rutas no definidas
         http_response_code(404);

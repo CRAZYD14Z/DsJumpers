@@ -2,8 +2,10 @@
 ob_start();
 session_start(); 
 // Incluye la clase de conexión a la BD
+require 'vendor/autoload.php';
 include_once 'config/config.php';     
 include_once 'config/database.php'; 
+include_once 'api/functions.php'; 
 $database = new Database();
 $db = $database->getConnection();
 $lang ='es';
@@ -72,13 +74,97 @@ $lang ='es';
         die();
     }    
 
+    $sql = "SELECT * FROM account ";
+    $stmt = $db->prepare($sql);
+    //$stmt->bindValue(":name", $data->Product); 
+    $stmt->execute();
+    $account = $stmt->fetch(PDO::FETCH_ASSOC);                
 
-        $query = "select * FROM lead WHERE Id = ?";
-        $stmt = $db->prepare($query);
-        $stmt->bindParam(1, $cotizacion['IdQuote']);
-        $stmt->execute();
-        $lead = $stmt->fetch(PDO::FETCH_ASSOC);   
+    //RECUPERAR PLANTILLA
+    $sql = "SELECT Nombre, Template FROM document_center WHERE Tipo = 'email' AND IdTemplate = '8' AND Idioma = 'es'";
+    $stmt = $db->prepare($sql);
+    //$stmt->bindValue(":name", $data->Product); 
+    $stmt->execute();
+    $Template = $stmt->fetch(PDO::FETCH_ASSOC);    
 
+
+    //RECUPERAR Lead
+    $sql = "SELECT * FROM lead WHERE Id = :id";
+    $stmt = $db->prepare($sql);
+    $stmt->bindValue(":id", $cotizacion['IdQuote']); 
+    $stmt->execute();
+    $lead = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    //RECUPERAR Customer
+    $sql = "SELECT * FROM customers WHERE Id = :id";
+    $stmt = $db->prepare($sql);
+    $stmt->bindValue(":id", $lead['Customer']); 
+    $stmt->execute();
+    $customer = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    //RECUPERAR venue
+    $sql = "SELECT * FROM venues WHERE Id = :id";
+    $stmt = $db->prepare($sql);
+    $stmt->bindValue(":id", $lead['Venue']); 
+    $stmt->execute();
+    $venue = $stmt->fetch(PDO::FETCH_ASSOC);       
+
+
+    $header = "MIME-Version: 1.0\r\n";
+    $header .= "Content-Type: text/html; charset=UTF-8\r\n";
+    $header .= $Template['Nombre']."\r\n";            
+                // Incluimos el teléfono en el cuerpo del correo
+    $cuerpo = "<html>".$Template['Template']."</html>";
+
+    $valores = [
+        'company_logo'      => $account['Logo'],
+        'company_name' => $account['NombreCompania'],
+        'ctfirstname'  => $customer['Nombres'],
+        'leadid'       => $lead['Folio'],
+        'total'  => $lead['Total'],
+        'apayment'  => $lead['DepositAmount'],
+        'balancedue'  => $lead['Balance'],
+        'link_to_accept'  => '',
+        'eventstreet' => $venue['Direccion'],
+        'eventcity'    => $venue['Ciudad'],
+        'startdate'  => $lead['StartDateTime'],
+        'company_name'  => $account['NombreCompania'],
+        'company_phone'  => $account['TelefonoOficina'],
+        'company_city'  => $account['Ciudad'],
+
+    ];       
+
+    $cuerpo = generarHtmlCotizacion($cuerpo, $valores);
+
+    $datosConexion = [
+        'host'             => $account['ServidorS'],
+        'username'         => $account['UsuarioS'],
+        'password'         => $account['PasswordS'],
+        'port'             => $account['PortS'],
+        'encryption'       => '',
+        'nombre_remitente' => $account['NombreCompania']
+    ];
+    $archivos = [];
+
+    $resultado = enviarEmail(
+        $datosConexion, 
+        $customer['Correo'], 
+        $header,
+        $cuerpo,
+        $archivos,
+        $cotizacion['Contrato'],
+        $cotizacion['UUID'].".PDF"
+    );    
+
+    // Supongamos que estas son tus variables con los datos de la DB
+    $pdfContenido = $cotizacion['Contrato']; // El binario del PDF
+    $pdfNombre = $cotizacion['UUID'].".PDF";   // El nombre original (ej: "contrato_45.pdf")
+
+    // Convertimos a Base64
+    $base64 = base64_encode($pdfContenido);
+
+    // Creamos el Data URI
+    $pdfDataUri = "data:application/pdf;base64," . $base64;
 
 ?>
 
@@ -115,7 +201,13 @@ $lang ='es';
             </div>
 
             <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-                <button class="btn btn-primary btn-lg px-4 gap-3">Descargar PDF</button>
+
+<a href="<?php echo $pdfDataUri; ?>" 
+   download="<?php echo $pdfNombre; ?>" 
+   class="btn btn-primary btn-lg px-4 gap-3">
+   Descargar PDF
+</a>            
+
                 <a href="<?php echo URL_BASE;?>" class="btn btn-outline-secondary btn-lg px-4">Volver al Inicio</a>
             </div>
             

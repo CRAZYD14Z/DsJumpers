@@ -1,9 +1,9 @@
 <!-- SECCION VENUES -->
-    <b>VENUE</b>
+<b><?php echo Trd(50)?></b>
 <form id="venues">    
     <div class="row">
         <div class='col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8 col-xxl-8'>
-            <label for="Venue" class="form-label">Venue Name</label>
+            <label for="Venue" class="form-label"><?php echo Trd(51)?></label>
             <input type="hidden" id="IdVenue" name="IdVenue" >
             <select class="form-select select-auto" id="Venue" name="Venue"  onchange="">
                 <option></option>
@@ -11,13 +11,13 @@
             
         </div>
         <div class='col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 col-xxl-4'>
-            <label for="EventName" class="form-label">Event Name</label>
+            <label for="EventName" class="form-label"><?php echo Trd(52)?></label>
             <input type="text" class="form-control" id="EventName" name="EventName" value = "<?php  echo !empty($lead['EventName']) ? $lead['EventName'] : '';?>" onchange="aplicar_autosave();" >
         </div>        
     </div>
     <div class="row">
         <div class='col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8 col-xxl-8'>
-            <label for="EventStreet" class="form-label">Street</label>
+            <label for="EventStreet" class="form-label"><?php echo Trd(53)?></label>
             <div class="input-group input-group-sm">
                 <input type="text" class="form-control" id= "EventStreet" name="EventStreet" placeholder="">
                 <span class="input-group-text bg-light" style="cursor: pointer;"><i class="fa-solid fa-map-location-dot" onclick="abrirRutaGoogleMaps()"></i></span>
@@ -25,7 +25,7 @@
             </div>  
         </div>
         <div class='col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 col-xxl-4'>
-            <label for="Surface" class="form-label">Surface</label>
+            <label for="Surface" class="form-label"><?php echo Trd(54)?></label>
             <input type="hidden" id="IdSurface" name="IdSurface" >
             <select class="form-select" id="Surface" name="Surface"  onchange="aplicar_autosave();">
                 <option></option> 
@@ -47,9 +47,9 @@
     <div class="row">
 
         <div class='col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-xxl-3'>
-            <label for="Country" class="form-label">Country</label>
+            <label for="Country" class="form-label"><?php echo Trd(55)?></label>
             <select class="form-select" id="EventCountry" name="EventCountry">
-                <option>Selecciona un pais...</option> 
+                <option><?php echo Trd(56)?></option> 
                     <?php
                         $query = "select Codigo,Pais FROM pais WHERE Idioma = 'es' ORDER BY Pais";
                         $stmt = $db->prepare($query);
@@ -64,9 +64,9 @@
             </select>
         </div>
         <div class='col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-xxl-3'>
-            <label for="State" class="form-label">State</label>
+            <label for="State" class="form-label"><?php echo Trd(57)?></label>
             <select class="form-select" id="EventState" name="EventState">
-                <option value="">Selecciona un estado...</option> 
+                <option value=""><?php echo Trd(58)?></option> 
 
                     <?php
                         $query = "select Id,Estado,CodigoPais FROM   estados_pais  WHERE Idioma = 'es' ORDER BY CodigoPais,Estado";
@@ -83,17 +83,17 @@
         </div>    
 
         <div class='col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 col-xxl-4'>
-            <label for="EventCity" class="form-label">City</label>
+            <label for="EventCity" class="form-label"><?php echo Trd(59)?></label>
             <input type="text" class="form-control" id="EventCity" name="EventCity" placeholder=""> 
         </div>    
         <div class='col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-xxl-2'>
-            <label for="EventZip" class="form-label">Event Zip</label>
+            <label for="EventZip" class="form-label"><?php echo Trd(60)?></label>
             <input type="text" class="form-control" id="EventZip" name="EventZip" placeholder="00000"> 
         </div>        
     </div>     
     <div class="row">        
         <div class='col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 col-xxl-4'>
-            <label for="DeliveryType" class="form-label">Delivery type</label>
+            <label for="DeliveryType" class="form-label"><?php echo Trd(61)?></label>
             <input type="hidden" id="IdDeliveryType" name="IdDeliveryType" >
             <select class="form-select " id="DeliveryType" name="DeliveryType"  onchange="aplicar_autosave();">
                 <option></option> 
@@ -105,7 +105,7 @@
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" value="" id="Blacklisted" name="BlackListed">
                 <label class="form-check-label" for="BlackListed">
-                Blacklisted
+                <?php echo Trd(62)?>
                 </label>
             </div>        
         </div>        
@@ -115,12 +115,12 @@
             <ul class="nav nav-tabs" id="myTab" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="nota1-tab" data-bs-toggle="tab" data-bs-target="#nota1" type="button" role="tab">
-                        Nota 1
+                        <?php echo Trd(63)?>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="nota2-tab" data-bs-toggle="tab" data-bs-target="#nota2" type="button" role="tab">
-                        Nota 2
+                        <?php echo Trd(64)?>
                     </button>
                 </li>
             </ul>

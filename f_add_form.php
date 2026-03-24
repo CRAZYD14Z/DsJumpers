@@ -192,6 +192,7 @@ function armar_formulario_add($tabla,$etiqueta,$idioma){
 
                             if ($columnExists) {
                                     $query ="SELECT $CampoValor,$CampoDescripcion FROM $TablaDts WHERE Idioma = '$idioma' $Filtro ";
+                                    echo "QRY Idioma $query";
                             }
                             else{
                                 $query ="SELECT $CampoValor,$CampoDescripcion FROM $TablaDts WHERE 1 = 1  $Filtro ";

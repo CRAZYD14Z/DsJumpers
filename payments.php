@@ -6,7 +6,26 @@ include_once 'config/config.php';
 include_once 'config/database.php'; 
 $database = new Database();
 $db = $database->getConnection();
-    include_once 'head.php';
+
+$Idioma = $_SESSION['Idioma'];
+$query = "select Traduccion FROM  programas_traduccion where Programa = 'payments' AND Idioma = ? ORDER BY Id";            
+$stmt = $db->prepare($query);
+$stmt->bindValue(1, $Idioma);
+$stmt->execute();
+$resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$Traducciones[]='';
+if ($resultados) {
+    foreach ($resultados as $registro) {
+        $Traducciones[]=$registro['Traduccion'];
+    }
+}    
+function Trd($Id){
+    global $Traducciones;
+    return $Traducciones[$Id];
+}
+
+
+include_once 'head.php';
 ?>
 
     <style>
@@ -75,7 +94,7 @@ $db = $database->getConnection();
 ?>
 <div class="container-fluid px-3">
 <?php
-    $PayPlatform ='SQUARE';
+    $PayPlatform ='OPAY';
     if ($PayPlatform == 'OPAY')
         $URLGenerate_Link = 'ajax_generar_link.php';
     else
@@ -120,15 +139,21 @@ $db = $database->getConnection();
 <div class="container py-5">
     <div class="row mb-4 align-items-center">
         <div class="col">
-            <h2 class="fw-bold">Folio: <span class="text-primary">#<?php echo $lead['Folio']; ?></span></h2>
+            <h2 class="fw-bold"><?php echo Trd(1)?> <span class="text-primary">#<?php echo $lead['Folio']; ?></span></h2>
         </div>
         <div class="col text-end">
             <?php if ($saldoPendiente > 0): ?>
                 <button class="btn btn-success btn-lg shadow-sm" id="btnPagar">
-                    <i class="bi bi-credit-card-2-back"></i> Pagar Diferencia ($<?php echo number_format($saldoPendiente, 2); ?>)
+                    <i class="bi bi-credit-card-2-back"></i> <?php echo Trd(2)?>  ($<?php echo number_format($saldoPendiente, 2); ?>)
                 </button>
+                <br>
+                <br>
+                <button class="btn btn-warning btn-lg shadow-sm" onclick=" mostrarModalPagoEfectivo(<?php echo $saldoPendiente;?>,'')" >
+                    <i class="bi bi-credit-card-2-back"></i> <?php echo Trd(43)?>  ($<?php echo number_format($saldoPendiente, 2); ?>)
+                </button>                
+
             <?php else: ?>
-                <span class="badge bg-success fs-6"><i class="bi bi-check-circle"></i> TOTALMENTE PAGADO</span>
+                <span class="badge bg-success fs-6"><i class="bi bi-check-circle"></i> <?php echo Trd(3)?> </span>
             <?php endif; ?>
         </div>
     </div>
@@ -136,16 +161,16 @@ $db = $database->getConnection();
     <div class="row g-4">
         <div class="col-md-4">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-header fw-bold">DATOS DEL CLIENTE</div>
+                <div class="card-header fw-bold"><?php echo Trd(4)?></div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <p class="label-custom mb-0">Tipo:</p>
+                        <p class="label-custom mb-0"><?php echo Trd(5)?></p>
                         <p class="value-custom fw-bold text-info">
-                            <?php echo $lead['Organization'] > 0 ? 'ORGANIZACIÓN' : 'PARTICULAR'; ?>
+                            <?php echo $lead['Organization'] > 0 ? Trd(6) : Trd(7); ?>
                         </p>
                     </div>
                     <div class="mb-3">
-                        <p class="label-custom mb-0">Nombre / Razón Social:</p>
+                        <p class="label-custom mb-0"> <?php echo Trd(8)?></p>
                         <p class="value-custom">
                             <?php 
                                 echo $lead['Organization'] > 0 
@@ -155,7 +180,7 @@ $db = $database->getConnection();
                         </p>
                     </div>
                     <hr>
-                    <p class="label-custom mb-0">Evento en:</p>
+                    <p class="label-custom mb-0"><?php echo Trd(9)?> </p>
                     <p class="value-custom mb-1"><i class="bi bi-geo-alt"></i> <?php echo $lead['Venue']; ?></p>
                     <small class="text-muted"><?php echo $lead['Ciudad'] . ", " . $lead['Estado']; ?></small>
                 </div>
@@ -164,24 +189,24 @@ $db = $database->getConnection();
 
         <div class="col-md-8">
             <div class="card-header fw-bold d-flex justify-content-between align-items-center">
-                HISTORIAL DE PAGOS
-                <span class="badge bg-primary"><?php echo count($payments); ?> registros</span>
+                <?php echo Trd(10)?>
+                <span class="badge bg-primary"><?php echo count($payments); ?> <?php echo Trd(11)?> </span>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0 table-mobile-responsive">
                         <thead class="table-light">
                             <tr>
-                                <th class="ps-4">Folio Pago</th>
-                                <th>Fecha</th>
-                                <th>Plataforma</th>
-                                <th>Transacción</th>
-                                <th class="text-end pe-4">Monto</th>
+                                <th class="ps-4"><?php echo Trd(12)?></th>
+                                <th><?php echo Trd(13)?></th>
+                                <th><?php echo Trd(14)?></th>
+                                <th><?php echo Trd(15)?></th>
+                                <th class="text-end pe-4"><?php echo Trd(16)?></th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (empty($payments)): ?>
-                                <tr><td colspan="5" class="text-center py-4">No se han registrado pagos aún.</td></tr>
+                                <tr><td colspan="5" class="text-center py-4"><?php echo Trd(17)?></td></tr>
                             <?php else: ?>
                                 <?php foreach ($payments as $p): ?>
                                 <tr>
@@ -196,17 +221,17 @@ $db = $database->getConnection();
                         </tbody>
                         <tfoot class="table-light fw-bold">
                             <tr>
-                                <td colspan="4" class="text-end d-none d-md-table-cell">TOTAL COTIZADO:</td>
-                                <td class="text-end pe-4 fs-6"><span class="d-md-none">TOTAL COTIZADO: </span>$<?php echo number_format($lead['Total'], 2); ?></td>
+                                <td colspan="4" class="text-end d-none d-md-table-cell"><?php echo Trd(18)?></td>
+                                <td class="text-end pe-4 fs-6"><span class="d-md-none"><?php echo Trd(19)?> </span>$<?php echo number_format($lead['Total'], 2); ?></td>
                             </tr>
                             <tr class="text-success">
-                                <td colspan="4" class="text-end d-none d-md-table-cell">TOTAL PAGADO:</td>
-                                <td class="text-end pe-4 fs-6"><span class="d-md-none">TOTAL PAGADO: </span>$<?php echo number_format($totalPagado, 2); ?></td>
+                                <td colspan="4" class="text-end d-none d-md-table-cell"><?php echo Trd(20)?></td>
+                                <td class="text-end pe-4 fs-6"><span class="d-md-none"><?php echo Trd(21)?></span>$<?php echo number_format($totalPagado, 2); ?></td>
                             </tr>
                             <?php if($saldoPendiente > 0): ?>
                             <tr class="text-danger border-top border-danger">
-                                <td colspan="4" class="text-end d-none d-md-table-cell">RESTANTE POR PAGAR:</td>
-                                <td class="text-end pe-4 fs-5"><span class="d-md-none">SALDO RESTANTE: </span>$<?php echo number_format($saldoPendiente, 2); ?></td>
+                                <td colspan="4" class="text-end d-none d-md-table-cell"><?php echo Trd(22)?></td>
+                                <td class="text-end pe-4 fs-5"><span class="d-md-none"><?php echo Trd(23)?> </span>$<?php echo number_format($saldoPendiente, 2); ?></td>
                             </tr>
                             <?php endif; ?>
                         </tfoot>
@@ -215,40 +240,147 @@ $db = $database->getConnection();
             </div>
         </div>
     </div>
-
-
-
 </div>
 
 <div class="modal fade" id="modalPago" tabindex="-1" aria-labelledby="modalPagoLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
             <div class="modal-header bg-success text-white">
-                <h5 class="modal-title" id="modalPagoLabel"><i class="bi bi-send-check"></i> Link de Pago Generado</h5>
+                <h5 class="modal-title" id="modalPagoLabel"><i class="bi bi-send-check"></i> <?php echo Trd(24)?></h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center p-4">
                 <div id="loadingPago">
                     <div class="spinner-border text-success" role="status"></div>
-                    <p class="mt-2">Generando link seguro con Openpay...</p>
+                    <p class="mt-2"><?php echo Trd(25)?></p>
                 </div>
 
                 <div id="pagoContent" style="display:none;">
-                    <p class="text-muted">Se ha generado un link para liquidar el saldo de:</p>
+                    <p class="text-muted"><?php echo Trd(26)?></p>
                     <h2 class="fw-bold text-dark mb-4" id="montoModal">$0.00</h2>
                     
                     <div class="input-group mb-3">
                         <input type="text" id="urlPagoInput" class="form-control" readonly>
                         <button class="btn btn-outline-primary" type="button" id="btnCopiar">
-                            <i class="bi bi-clipboard"></i> Copiar
+                            <i class="bi bi-clipboard"></i> <?php echo Trd(27)?>
                         </button>
                     </div>
 
                     <div class="d-grid gap-2">
                         <a href="#" id="btnWhatsApp" target="_blank" class="btn btn-success btn-lg">
-                            <i class="bi bi-whatsapp"></i> Enviar por WhatsApp
+                            <i class="bi bi-whatsapp"></i><?php echo Trd(28)?> 
                         </a>
-                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal"><?php echo Trd(29)?></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalPagoEfectivo" tabindex="-1" aria-labelledby="modalPagoEfectivoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="modalPagoEfectivoLabel"><i class="bi bi-cash-stack"></i> <?php echo Trd(30)?></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="loadingPagoEfectivo" class="text-center">
+                    <div class="spinner-border text-info" role="status"></div>
+                    <p class="mt-2"><?php echo Trd(31)?></p>
+                </div>
+
+                <div id="pagoEfectivoContent" style="display:none;">
+                    <!-- Monto a pagar -->
+                    <div class="text-center mb-4">
+                        <p class="text-muted"><?php echo Trd(32)?></p>
+                        <h2 class="fw-bold text-dark" id="montoEfectivoModal">$0.00</h2>
+                    </div>
+
+                    <!-- Opciones de pago -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100 border-success">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-cash display-4 text-success"></i>
+                                    <h5 class="card-title mt-2"><?php echo Trd(33)?></h5>
+                                    <p class="card-text small text-muted"><?php echo Trd(34)?></p>
+
+                                    <button type="button" class="btn btn-outline-secondary flex-fill" id="btnConfirmarPago" >
+                                        <i class="bi bi-check-circle"></i> <?php echo Trd(40)?>
+                                    </button>                                    
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card h-100 border-primary">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-bank display-4 text-primary"></i>
+                                    <h5 class="card-title mt-2"><?php echo Trd(36)?></h5>
+                                    <p class="card-text small text-muted"><?php echo Trd(37)?></p>
+                                    
+                                    <!-- Datos bancarios (se llenarán dinámicamente) -->
+                                    <div id="datosBancarios" class="mt-3">
+                                        <!-- Banco -->
+                                        <div class="input-group input-group-sm mb-2">
+                                            <span class="input-group-text bg-light"><i class="bi bi-bank2"></i></span>
+                                            <input type="text" id="bancoInfo" class="form-control form-control-sm" readonly value="Banco Ejemplo">
+                                        </div>
+                                        
+                                        <!-- Tipo de cuenta -->
+                                        <div class="input-group input-group-sm mb-2">
+                                            <span class="input-group-text bg-light"><i class="bi bi-card-text"></i></span>
+                                            <input type="text" id="tipoCuentaInfo" class="form-control form-control-sm" readonly value="Cuenta Corriente">
+                                        </div>
+                                        
+                                        <!-- Número de cuenta -->
+                                        <div class="input-group input-group-sm mb-2">
+                                            <span class="input-group-text bg-light"><i class="bi bi-upc-scan"></i></span>
+                                            <input type="text" id="numeroCuentaInfo" class="form-control form-control-sm" readonly value="1234-5678-9012-3456">
+                                            <button class="btn btn-outline-secondary btn-sm" type="button" id="btnCopiarCuenta" title="Copiar número de cuenta">
+                                                <i class="bi bi-clipboard"></i>
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Titular -->
+                                        <div class="input-group input-group-sm mb-2">
+                                            <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                                            <input type="text" id="titularInfo" class="form-control form-control-sm" readonly value="Nombre del Titular">
+                                        </div>
+                                        
+                                        <!-- CI/RUC -->
+                                        <div class="input-group input-group-sm mb-2">
+                                            <span class="input-group-text bg-light"><i class="bi bi-card-heading"></i></span>
+                                            <input type="text" id="documentoInfo" class="form-control form-control-sm" readonly value="12345678-9">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Instrucciones adicionales -->
+                    <div class="alert alert-warning border-0 bg-light mb-4">
+                        <div class="d-flex">
+                            <div class="me-3">
+                                <i class="bi bi-exclamation-triangle-fill text-warning fs-4"></i>
+                            </div>
+                            <div class="small">
+                                <strong><?php echo Trd(38)?></strong><br>
+                                <?php echo Trd(39)?>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    
+                    <div class="text-center mt-3">
+                        <button type="button" class="btn btn-link text-muted small" data-bs-dismiss="modal">
+                            <?php echo Trd(29)?>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -258,6 +390,7 @@ $db = $database->getConnection();
 
 
 <script>
+    
 $('#btnPagar').on('click', function() {
     const idLead = <?php echo $lead['Id']; ?>;
     const saldo = <?php echo $saldoPendiente; ?>;
@@ -283,7 +416,7 @@ $('#btnPagar').on('click', function() {
                 $('#urlPagoInput').val(url);
                 
                 // Configurar botón WhatsApp
-                const msj = encodeURIComponent("Hola, este es el link para liquidar el saldo de tu evento: " + url);
+                const msj = encodeURIComponent("<?php echo Trd(42)?> " + url);
                 $('#btnWhatsApp').attr('href', 'https://wa.me/?text=' + msj);
                 
                 $('#loadingPago').hide();
@@ -312,6 +445,101 @@ $('#btnCopiar').on('click', function() {
         $(this).html('<i class="bi bi-clipboard"></i> Copiar').removeClass('btn-primary').addClass('btn-outline-primary');
     }, 2000);
 });
+
+
+
+// Función para mostrar el modal de pago en efectivo/transferencia
+function mostrarModalPagoEfectivo(monto, datosBancarios = null) {
+    const modal = new bootstrap.Modal(document.getElementById('modalPagoEfectivo'));
+    
+    // Mostrar loading
+    document.getElementById('loadingPagoEfectivo').style.display = 'block';
+    document.getElementById('pagoEfectivoContent').style.display = 'none';
+    
+    modal.show();
+    
+    // Simular carga de datos
+    setTimeout(() => {
+        // Actualizar monto
+        document.getElementById('montoEfectivoModal').textContent = 
+            new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(monto);
+        
+        // Si se proporcionan datos bancarios, actualizarlos
+        if (datosBancarios) {
+            document.getElementById('bancoInfo').value = datosBancarios.banco || 'Banco Ejemplo';
+            document.getElementById('tipoCuentaInfo').value = datosBancarios.tipoCuenta || 'Cuenta Corriente';
+            document.getElementById('numeroCuentaInfo').value = datosBancarios.numeroCuenta || '1234-5678-9012-3456';
+            document.getElementById('titularInfo').value = datosBancarios.titular || 'Nombre del Titular';
+            document.getElementById('documentoInfo').value = datosBancarios.documento || '12345678-9';
+        }
+        
+        // Ocultar loading y mostrar contenido
+        document.getElementById('loadingPagoEfectivo').style.display = 'none';
+        document.getElementById('pagoEfectivoContent').style.display = 'block';
+    }, 1000);
+}
+
+// Función para copiar número de cuenta
+document.getElementById('btnCopiarCuenta').addEventListener('click', function() {
+    const numeroCuenta = document.getElementById('numeroCuentaInfo');
+    numeroCuenta.select();
+    document.execCommand('copy');
+    
+    // Feedback visual
+    const btn = this;
+    const iconoOriginal = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check-lg"></i>';
+    setTimeout(() => {
+        btn.innerHTML = iconoOriginal;
+    }, 2000);
+});
+
+
+
+// Función para confirmar pago
+document.getElementById('btnConfirmarPago').addEventListener('click', function() {
+    // Aquí puedes agregar la lógica cuando el usuario confirma que realizará el pago
+    //console.log('Usuario confirmó que realizará el pago');
+    // Puedes enviar un email, guardar en BD, etc.
+
+    document.getElementById('loadingPagoEfectivo').style.display = 'block';
+    document.getElementById('pagoEfectivoContent').style.display = 'none';    
+
+    const idLead = <?php echo $lead['Id']; ?>;
+    const saldo = <?php echo $saldoPendiente; ?>;
+
+    // Petición AJAX
+    $.ajax({
+        url: 'cash.php',
+        method: 'POST',
+        data: { idLead: idLead, monto: saldo },
+        dataType: 'json',
+        success: function(response) {
+            if(response.success) {
+
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);            
+
+                
+            } else {
+                //alert('Error: ' + response.error);
+                //modalPago.hide();
+                document.getElementById('loadingPagoEfectivo').style.display = 'none';
+                document.getElementById('pagoEfectivoContent').style.display = 'block';                
+            }
+        },
+        error: function() {
+            //alert('Error de conexión con el servidor.');
+            //modalPago.hide();
+            document.getElementById('loadingPagoEfectivo').style.display = 'none';
+            document.getElementById('pagoEfectivoContent').style.display = 'block';            
+        }
+    });    
+
+});
+
+
 </script>
 </body>
 </html>

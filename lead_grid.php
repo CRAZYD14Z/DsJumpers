@@ -2,12 +2,12 @@
     
 <button class="btn-pestaña-minimal d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#filtersOffcanvas">
     <i class="fa-solid fa-sliders"></i>
-    <span>FILTROS</span>
+    <span><?php echo Trd(1)?></span>
 </button>
 
     <div class="d-none d-md-block py-2">
         <button class="btn btn-sm btn-outline-dark" onclick="toggleDesktopFilters()">
-            <i class="fa-solid fa-columns"></i> Mostrar/Ocultar Filtros
+            <i class="fa-solid fa-columns"></i> <?php echo Trd(2)?>
         </button>
     </div>
 
@@ -15,17 +15,17 @@
         <div class="offcanvas-md offcanvas-start col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-xxl-3" tabindex="-1" id="filtersOffcanvas">
             
             <div class="offcanvas-header d-md-none">
-                <h5 class="offcanvas-title">Filtros de Búsqueda</h5>
+                <h5 class="offcanvas-title"><?php echo Trd(3)?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#filtersOffcanvas"></button>
             </div>
 
             <div class="offcanvas-body flex-column" id="filters">
-                <label for="category" class="form-label">Categoria:</label>
+                <label for="category" class="form-label"><?php echo Trd(4)?></label>
 
                 <div class="mb-3" id="RangeEvent" name="RangeEvent">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                        <label class="form-label fw-bold mb-0" style="font-size: 0.85rem;">Rango del Evento:</label>
-                        <button type="button" class="btn btn-link p-0 text-decoration-none text-danger" style="font-size: 0.75rem;" onclick="resetRange()">Limpiar</button>
+                        <label class="form-label fw-bold mb-0" style="font-size: 0.85rem;"><?php echo Trd(5)?></label>
+                        <button type="button" class="btn btn-link p-0 text-decoration-none text-danger" style="font-size: 0.75rem;" onclick="resetRange()"><?php echo Trd(6)?></button>
                     </div>
                     
                     <div class="input-group input-group-sm mb-1">
@@ -50,7 +50,7 @@
                 <div class="scroll-container" id="Categories" name="Categories">
                     <table class="table table-custom-cat table-hover">
                         <thead>
-                            <tr><th scope="col">Categorias</th></tr>
+                            <tr><th scope="col"><?php echo Trd(7)?></th></tr>
                         </thead>
                         <tbody id="Categories_List" name="Categories_List">
                             <?php
@@ -85,9 +85,9 @@
                     <table class="table table-custom-prd table-hover">
                         <thead>
                             <tr>
-                                <th scope="col">Items</th>
-                                <th scope="col">Avail</th>
-                                <th scope="col">Price</th>
+                                <th scope="col"><?php echo Trd(8)?></th>
+                                <th scope="col"><?php echo Trd(9)?></th>
+                                <th scope="col"><?php echo Trd(10)?></th>
                             </tr>
                         </thead>
                         <tbody id="Category_Products_List" name="Category_Products_List">
@@ -99,9 +99,9 @@
                     <table class="table table-custom-sprd table-hover">
                         <thead>
                             <tr>
-                                <th scope="col">Items</th>
-                                <th scope="col">Avail</th>
-                                <th scope="col">Price</th>
+                                <th scope="col"><?php echo Trd(8)?></th>
+                                <th scope="col"><?php echo Trd(9)?></th>
+                                <th scope="col"><?php echo Trd(10)?></th>
                             </tr>
                         </thead>
                         <tbody id="Products_Elements_List" name="Products_Elements_List">
@@ -116,13 +116,13 @@
             <div class="scroll-container">
                 <div class="container mt-4">
                     <div class="row d-none d-md-flex pb-2 border-bottom fw-bold">
-                        <div class="col-md-3">Nombre</div>
+                        <div class="col-md-3"><?php echo Trd(11)?></div>
                         <div class="col-md-1 text-center"></div>
-                        <div class="col-md-1">Disp.</div>
-                        <div class="col-md-1">Cant.</div>
-                        <div class="col-md-2">Desc.</div>
-                        <div class="col-md-1 text-center">Imp.</div>
-                        <div class="col-md-2">Precio</div>
+                        <div class="col-md-1"><?php echo Trd(12)?></div>
+                        <div class="col-md-1"><?php echo Trd(13)?></div>
+                        <div class="col-md-2"><?php echo Trd(14)?></div>
+                        <div class="col-md-1 text-center"><?php echo Trd(15)?></div>
+                        <div class="col-md-2"><?php echo Trd(16)?></div>
                         <div class="col-md-1 text-center"></div>
                     </div>
                     <div id="lead_detail">
@@ -141,7 +141,7 @@
         <div class='col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6 col-xxl-6'>
             <div class="row">
                 <div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 col-xxl-12'>
-                    <label for="Referal" class="form-label">Referal</label>
+                    <label for="Referal" class="form-label"><?php echo Trd(17)?></label>
                     <select class="form-select select-auto" id="Referal" name="Referal">
                         <option></option>
                     </select>                    
@@ -149,7 +149,7 @@
             </div>
             <div class="row">
                 <div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 col-xxl-12'>
-                    <label for="Tags" class="form-label">Tags</label>
+                    <label for="Tags" class="form-label"><?php echo Trd(18)?></label>
                     <input type="text" class="form-control" id="Tags" name="Tags" placeholder="Tags">
                 </div>    
             </div>            
@@ -162,7 +162,7 @@
                         <tbody>
                             <tr>
                                 <td >
-                                    Item Totals
+                                    <?php echo Trd(19)?>
                                 </td>
                                 <td ></td>
                                 <td colspan="2" >
@@ -178,7 +178,7 @@
                                     <div class="icon-inputs">
                                         <div class="icon-input-group">
                                             <i class="fa-solid fa-scale-balanced"></i>
-                                            <input type="number" value="0"  id="Scale" class="numbers-only">  Lbs
+                                            <input type="number" value="0"  id="Scale" class="numbers-only">  <?php echo Trd(20)?>
                                         </div>
                                         <div class="icon-input-group">
                                             <i class="fa-solid fa-plug-circle-bolt"></i>
@@ -269,9 +269,9 @@
                             <tr id="tr_discount">
                                 <td >
                                     <select class="form-select" id="DiscountType" name="DiscountType">
-                                            <option value="">Discount</option>
-                                            <option value="Fee"> Fee</option>
-                                            <option value="Cupon"> Cupon</option>
+                                            <option value=""><?php echo Trd(21)?></option>
+                                            <option value="Fee"> <?php echo Trd(22)?></option>
+                                            <option value="Cupon"> <?php echo Trd(23)?></option>
                                     </select>
                                 </td>
                                 <td >
@@ -285,7 +285,7 @@
 
                             <tr>
                                 <td >
-                                    Subtotal
+                                    <?php echo Trd(24)?>
                                 </td>
                                 <td ></td>
                                 <td  colspan="2">
@@ -298,9 +298,9 @@
                             
                             <tr>
                                 <td  colspan="2">
-                                    Sales Tax    
+                                    <?php echo Trd(25)?>    
                                     <input class="form-check-input" type="checkbox" id="Tax" name="Tax" onchange="recalculate_totals()" readonly>
-                                    Excempt
+                                    <?php echo Trd(26)?>
                                 </td>
                                 <td  colspan="2">
                                     <div class="input-group input-group-sm" style= "display: none;" id="Excempt" >
@@ -321,7 +321,7 @@
 
                             <tr>
                                 <td >
-                                    Total
+                                    <?php echo Trd(27)?>
                                 </td>
                                 <td ></td>
                                 <td  colspan="2">
@@ -333,7 +333,7 @@
                             </tr>
                             <tr>
                                 <td >
-                                    Required Deposit
+                                    <?php echo Trd(28)?>
                                 </td>
                                 <td ></td>
                                 <td  colspan="2">
@@ -346,7 +346,7 @@
                             </tr>
                             <tr>
                                 <td >
-                                    Balance Due
+                                    <?php echo Trd(29)?>
                                 </td>
                                 <td ></td>
                                 <td  colspan="2">
@@ -413,7 +413,7 @@ document.getElementById('fechahorainicio').addEventListener('change', function()
 
     // 1. Validar que no sea pasado (por si lo escriben manualmente)
     if (inicioSeleccionado < ahora) {
-        alert("No puedes seleccionar una fecha u hora del pasado.");
+        alert("<?php echo Trd(30)?>");
         this.value = formatDateForInput(ahora); // Reset al momento actual
         return;
     }
@@ -437,14 +437,14 @@ document.getElementById('fechahorafin').addEventListener('change', function() {
 
         // 1. Validar que no sea pasado
         if (finSeleccionado < ahora) {
-            alert("La fecha de fin no puede ser en el pasado.");
+            alert("<?php echo Trd(31)?>");
             this.value = inicioVal ? inicioVal : formatDateForInput(ahora);
             return;
         }
 
         // 2. Validar que no sea anterior al inicio
         if (inicioVal && finSeleccionado < new Date(inicioVal)) {
-            alert("La fecha de fin no puede ser anterior al inicio.");
+            alert("<?php echo Trd(32)?>");
             this.value = inicioVal;
         }
     }

@@ -3,14 +3,13 @@
     ob_start();
     session_start(); 
     // Incluye la clase de conexión a la BD
+    include_once 'valid_login.php';    
     include_once 'config/config.php';     
     include_once 'config/database.php'; 
     $database = new Database();
     $db = $database->getConnection();
     
-    
-    $Idioma = 'es';
-    $_SESSION['Idioma'] = $Idioma;
+    $Idioma = $_SESSION['Idioma'];
     
     $query = "select Traduccion FROM  programas_traduccion where Programa = 'documentcenter' AND Idioma = ? ORDER BY Id";
     $stmt = $db->prepare($query);
@@ -89,6 +88,28 @@
 
 
 <script>
+
+
+
+    $('.lang-option').on('click', function(e) {
+        e.preventDefault();
+
+        $.ajax({
+            url: 'cambiar_idioma.php',
+            type: 'POST',
+            data: { lang: $(this).data('lang') },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    // Recargamos para que el servidor lea la nueva sesión de idioma
+                    location.reload(); 
+                }
+            }
+        });
+        
+    });
+
+
 </script>
 </body>
 </html>

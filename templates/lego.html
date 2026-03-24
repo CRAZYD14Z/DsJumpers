@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🟥 D'S Jumpers — ¡Construye Tu Mundo!</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --lego-red:     #e3000b;
+            --lego-yellow:  #f5c400;
+            --lego-blue:    #006cb7;
+            --lego-green:   #00843d;
+            --lego-orange:  #f07800;
+            --lego-white:   #ffffff;
+            --lego-lt-grey: #e8e8e8;
+            --lego-dk:      #1a1a1a;
+            --stud-r:       rgba(0,0,0,.13);
+            --stud-shine:   rgba(255,255,255,.55);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            color: var(--lego-dk);
+            overflow-x: hidden;
+            /* baseplate grid */
+            background: #4a7c3f;
+            background-image:
+                radial-gradient(circle, rgba(0,0,0,.18) 3px, transparent 3px);
+            background-size: 32px 32px;
+        }
+
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           LEGO BRICK MIXIN — every "brick"
+           has a top face (lighter), side
+           shadow (darker), and studs on top.
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        .brick {
+            position: relative;
+            border-radius: 6px;
+        }
+        /* 3-D side shadow */
+        .brick::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            box-shadow:
+                inset 0 -6px 0 rgba(0,0,0,.22),
+                inset 0  3px 0 rgba(255,255,255,.30);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* ── STUD ROW GENERATOR ────────────────────────
+           We use a ::before pseudo to paint a row of
+           studs across the top of any element with the
+           .studs class. Stud count is faked with a
+           repeating radial-gradient.
+        ─────────────────────────────────────────────── */
+        .studs::before {
+            content: "";
+            position: absolute;
+            top: -14px; left: 10px; right: 10px;
+            height: 14px;
+            background:
+                repeating-radial-gradient(
+                    circle at center,
+                    rgba(255,255,255,.55) 0px,
+                    rgba(255,255,255,.55) 5px,
+                    rgba(0,0,0,.12) 5px,
+                    rgba(0,0,0,.12) 7px,
+                    transparent 7px,
+                    transparent 32px
+                );
+            background-size: 32px 14px;
+            background-position: 6px 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* Stud circles rendered in CSS on top-face */
+        .stud-row {
+            display: flex;
+            gap: 8px;
+            padding: 0;
+            margin-bottom: 0;
+            position: absolute;
+            top: -18px;
+            left: 14px;
+            z-index: 4;
+            pointer-events: none;
+        }
+        .stud {
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            background: inherit;
+            border: none;
+            box-shadow:
+                0 -2px 0 rgba(255,255,255,.5),
+                0  2px 4px rgba(0,0,0,.25),
+                inset 0 2px 0 rgba(255,255,255,.4);
+            flex-shrink: 0;
+        }
+
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           NAVBAR — bright red brick bar
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        .navbar {
+            background: var(--lego-red) !important;
+            padding: 0 !important;
+            position: relative;
+            z-index: 200;
+            box-shadow:
+                0 6px 0 #9a0007,
+                0 12px 20px rgba(0,0,0,.3);
+        }
+        /* Stud row on top of navbar */
+        .navbar::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 14px;
+            background:
+                repeating-radial-gradient(
+                    circle at center,
+                    rgba(255,255,255,.4) 0, rgba(255,255,255,.4) 5px,
+                    rgba(0,0,0,.15) 5px, rgba(0,0,0,.15) 7px,
+                    transparent 7px, transparent 32px
+                );
+            background-size: 32px 14px;
+            background-position: 8px 0;
+            pointer-events: none;
+        }
+        /* Sheen on face */
+        .navbar::after {
+            content: "";
+            position: absolute; inset: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,.18) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .navbar .container { padding-top: 14px; padding-bottom: 4px; }
+        .navbar-brand {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.7rem;
+            color: var(--lego-yellow) !important;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 0 rgba(0,0,0,.25);
+        }
+        .nav-link {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1rem;
+            color: white !important;
+            letter-spacing: 1px;
+            transition: .15s;
+            padding: 8px 14px !important;
+            border-radius: 6px;
+        }
+        .nav-link:hover {
+            background: rgba(0,0,0,.15);
+            color: var(--lego-yellow) !important;
+            transform: translateY(-2px);
+        }
+        .dropdown-menu {
+            background: var(--lego-yellow);
+            border: 3px solid var(--lego-dk);
+            border-radius: 8px;
+            box-shadow: 5px 5px 0 rgba(0,0,0,.2);
+        }
+        .dropdown-item {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            color: var(--lego-dk);
+            border-radius: 4px;
+        }
+        .dropdown-item:hover { background: var(--lego-red); color: white; }
+        #cartCount { background: var(--lego-yellow) !important; color: var(--lego-dk) !important; font-weight: 900; }
+
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           HERO — Giant yellow LEGO brick
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        .hero-section {
+            min-height: 100vh;
+            background: var(--lego-yellow);
+            position: relative;
+            overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow:
+                inset 0 -10px 0 rgba(0,0,0,.18),
+                inset 0  5px 0 rgba(255,255,255,.25);
+        }
+        /* Top stud row */
+        .hero-studs {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 36px;
+            background:
+                repeating-radial-gradient(
+                    circle at center,
+                    rgba(255,255,255,.45) 0, rgba(255,255,255,.45) 8px,
+                    rgba(0,0,0,.12) 8px, rgba(0,0,0,.12) 11px,
+                    transparent 11px, transparent 64px
+                );
+            background-size: 64px 36px;
+            background-position: 10px 6px;
+            z-index: 2;
+        }
+
+        /* Scattered LEGO bricks in background */
+        .bg-brick {
+            position: absolute;
+            border-radius: 5px;
+            opacity: .35;
+            box-shadow: inset 0 -4px 0 rgba(0,0,0,.2), inset 0 2px 0 rgba(255,255,255,.3);
+        }
+        .bg-brick::after {
+            content: "";
+            position: absolute; top: -10px; left: 8px;
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            background: inherit;
+            box-shadow: 0 -2px 0 rgba(255,255,255,.4), 0 2px 4px rgba(0,0,0,.25);
+        }
+        .bb1 { width:80px;  height:38px; background:var(--lego-red);   top:8%;  left:3%;  transform:rotate(-12deg); }
+        .bb2 { width:110px; height:38px; background:var(--lego-blue);  top:15%; right:5%; transform:rotate(8deg);  }
+        .bb3 { width:60px;  height:38px; background:var(--lego-green); top:65%; left:6%;  transform:rotate(15deg); }
+        .bb4 { width:90px;  height:38px; background:var(--lego-orange);top:72%; right:4%; transform:rotate(-6deg); }
+        .bb5 { width:70px;  height:38px; background:var(--lego-red);   top:40%; left:2%;  transform:rotate(20deg); }
+        .bb6 { width:100px; height:38px; background:var(--lego-blue);  top:50%; right:2%; transform:rotate(-15deg);}
+        .bb7 { width:55px;  height:38px; background:var(--lego-green); top:28%; left:12%; transform:rotate(5deg);  }
+        .bb8 { width:120px; height:38px; background:var(--lego-orange);top:80%; left:35%; transform:rotate(-8deg); }
+
+        /* Hero inner */
+        .hero-inner {
+            position: relative; z-index: 10;
+            text-align: center;
+            padding: 80px 20px 60px;
+        }
+
+        /* Logo — yellow LEGO stud style */
+        .logo-stud {
+            position: relative;
+            width: 190px; height: 190px;
+            border-radius: 50%;
+            background: var(--lego-red);
+            box-shadow:
+                0 -8px 0 rgba(255,255,255,.4),
+                0  8px 0 rgba(0,0,0,.25),
+                0 10px 30px rgba(0,0,0,.3);
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-bottom: 36px;
+            overflow: hidden;
+            animation: studBounce 2s cubic-bezier(.36,.07,.19,.97) infinite;
+        }
+        /* Sheen */
+        .logo-stud::before {
+            content: "";
+            position: absolute;
+            top: 8px; left: 15px; right: 15px;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,.35) 0%, transparent 100%);
+            border-radius: 50% 50% 0 0;
+            z-index: 1;
+        }
+        .logo-stud img { width:135px; height:135px; object-fit:contain; position:relative; z-index:2; }
+        @keyframes studBounce {
+            0%,100%{ transform: translateY(0) scaleY(1); }
+            30%    { transform: translateY(-22px) scaleY(1.04); }
+            50%    { transform: translateY(-22px) scaleY(1.04); }
+            70%    { transform: translateY(-4px) scaleY(.97); }
+            85%    { transform: translateY(0) scaleY(1); }
+        }
+
+        .hero-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: clamp(3.5rem, 12vw, 8.5rem);
+            line-height: .92;
+            color: var(--lego-red);
+            text-shadow:
+                4px 4px 0 rgba(0,0,0,.2),
+                6px 6px 0 rgba(163,0,7,.4);
+            letter-spacing: 3px;
+            margin-bottom: 12px;
+            animation: brickDrop .8s cubic-bezier(.34,1.56,.64,1) both;
+        }
+        @keyframes brickDrop {
+            from { opacity:0; transform: translateY(-60px) rotate(-5deg); }
+            to   { opacity:1; transform: translateY(0) rotate(0deg); }
+        }
+
+        .hero-sub {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.4rem;
+            color: var(--lego-dk);
+            background: var(--lego-blue);
+            color: white;
+            display: inline-block;
+            padding: 8px 32px;
+            border-radius: 50px;
+            box-shadow: 0 5px 0 #004a80, 0 8px 15px rgba(0,0,0,.2);
+            letter-spacing: 1px;
+            margin-bottom: 30px;
+            animation: slideUp .6s .3s both;
+        }
+
+        .hero-btn {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            padding: 16px 52px;
+            border-radius: 50px;
+            border: none;
+            background: var(--lego-green);
+            color: white;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 7px 0 #005a28, 0 12px 20px rgba(0,0,0,.2);
+            transition: transform .12s, box-shadow .12s;
+            animation: slideUp .6s .5s both;
+            text-shadow: 0 1px 3px rgba(0,0,0,.2);
+        }
+        .hero-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 11px 0 #005a28, 0 18px 28px rgba(0,0,0,.25);
+            color: white;
+        }
+        .hero-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #005a28, 0 4px 8px rgba(0,0,0,.2);
+        }
+
+        @keyframes slideUp {
+            from { opacity:0; transform: translateY(24px); }
+            to   { opacity:1; transform: translateY(0); }
+        }
+
+        /* Baseplate floor */
+        .hero-floor {
+            position: absolute;
+            bottom: -2px; left: 0; right: 0;
+            height: 60px;
+            z-index: 3;
+        }
+        .hero-floor svg { width:100%; height:100%; display:block; }
+
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           MARQUEE
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        .lego-tape {
+            background: var(--lego-red);
+            box-shadow: 0 5px 0 #9a0007;
+            padding: 10px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+            z-index: 5;
+        }
+        .tape-txt {
+            display: inline-block;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.1rem;
+            color: var(--lego-yellow);
+            letter-spacing: 4px;
+            text-shadow: 1px 1px 0 rgba(0,0,0,.2);
+            animation: tapeRoll 20s linear infinite;
+        }
+        @keyframes tapeRoll {
+            from { transform: translateX(100vw); }
+            to   { transform: translateX(-100%); }
+        }
+
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           SECTION BRICKS (color blocks)
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        .section-brick {
+            padding: 50px 0 40px;
+            position: relative;
+            margin-bottom: 28px;
+        }
+        /* Bottom edge of each brick */
+        .section-brick::after {
+            content: "";
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 8px;
+            background: rgba(0,0,0,.15);
+        }
+        /* Stud row across top */
+        .section-studs {
+            position: absolute;
+            top: -14px; left: 0; right: 0;
+            height: 14px;
+            background:
+                repeating-radial-gradient(
+                    circle at center,
+                    rgba(255,255,255,.5) 0, rgba(255,255,255,.5) 5px,
+                    rgba(0,0,0,.15) 5px, rgba(0,0,0,.15) 7px,
+                    transparent 7px, transparent 32px
+                );
+            background-size: 32px 14px;
+            background-position: 8px 0;
+            z-index: 2;
+        }
+
+        .brick-red    { background: var(--lego-red);    box-shadow: inset 0 -8px 0 #9a0007,  inset 0 3px 0 rgba(255,255,255,.2); }
+        .brick-blue   { background: var(--lego-blue);   box-shadow: inset 0 -8px 0 #004a80,  inset 0 3px 0 rgba(255,255,255,.2); }
+        .brick-yellow { background: var(--lego-yellow); box-shadow: inset 0 -8px 0 #c09a00,  inset 0 3px 0 rgba(255,255,255,.3); }
+        .brick-green  { background: var(--lego-green);  box-shadow: inset 0 -8px 0 #005a28,  inset 0 3px 0 rgba(255,255,255,.2); }
+        .brick-orange { background: var(--lego-orange); box-shadow: inset 0 -8px 0 #c05000,  inset 0 3px 0 rgba(255,255,255,.2); }
+        .brick-white  { background: var(--lego-white);  box-shadow: inset 0 -8px 0 #c0c0c0,  inset 0 3px 0 rgba(255,255,255,.6); }
+        .brick-lgrey  { background: var(--lego-lt-grey);box-shadow: inset 0 -8px 0 #a0a0a0,  inset 0 3px 0 rgba(255,255,255,.5); }
+
+        /* ── SECTION TITLE ── */
+        .section-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2.6rem;
+            letter-spacing: 2px;
+            text-align: center;
+            margin-bottom: 6px;
+            text-shadow: 2px 2px 0 rgba(0,0,0,.15);
+        }
+        .section-sub {
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            font-size: .85rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 32px;
+            opacity: .7;
+        }
+
+        /* ── DIVIDER ── */
+        .lego-divider {
+            display: flex; align-items: center; gap: 10px;
+            margin: 20px 0 32px;
+        }
+        .lego-divider::before, .lego-divider::after {
+            content: ""; flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(0,0,0,.1);
+        }
+        .lego-divider span {
+            display: flex; gap: 6px;
+        }
+        .mini-stud {
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            box-shadow: 0 -2px 0 rgba(255,255,255,.5), 0 2px 4px rgba(0,0,0,.25);
+        }
+
+        /* ── CAT CARDS ── */
+        .cat-card {
+            display: block;
+            text-decoration: none;
+            color: var(--lego-dk);
+            margin: 10px 5px;
+            border-radius: 10px;
+            padding: 32px 14px 24px;
+            text-align: center;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            position: relative;
+            transition: transform .15s, box-shadow .15s;
+            /* Top stud mini row */
+        }
+        .cat-card .card-studs {
+            position: absolute;
+            top: -13px; left: 14px;
+            display: flex; gap: 6px;
+            z-index: 3;
+        }
+        .cat-card .card-studs .stud {
+            width: 20px; height: 20px;
+        }
+        /* Sheen */
+        .cat-card::after {
+            content: "";
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 40%;
+            border-radius: 10px 10px 0 0;
+            background: linear-gradient(180deg, rgba(255,255,255,.3) 0%, transparent 100%);
+            pointer-events: none;
+        }
+        .swiper-slide:nth-child(7n+1) .cat-card { background:var(--lego-red);    color:white; box-shadow: 0 7px 0 #9a0007; }
+        .swiper-slide:nth-child(7n+2) .cat-card { background:var(--lego-blue);   color:white; box-shadow: 0 7px 0 #004a80; }
+        .swiper-slide:nth-child(7n+3) .cat-card { background:var(--lego-green);  color:white; box-shadow: 0 7px 0 #005a28; }
+        .swiper-slide:nth-child(7n+4) .cat-card { background:var(--lego-orange); color:white; box-shadow: 0 7px 0 #c05000; }
+        .swiper-slide:nth-child(7n+5) .cat-card { background:var(--lego-yellow); color:var(--lego-dk); box-shadow: 0 7px 0 #c09a00; }
+        .swiper-slide:nth-child(7n+6) .cat-card { background:var(--lego-red);    color:white; box-shadow: 0 7px 0 #9a0007; }
+        .swiper-slide:nth-child(7n+0) .cat-card { background:var(--lego-blue);   color:white; box-shadow: 0 7px 0 #004a80; }
+        .cat-card i { font-size: 2.2rem; margin-bottom: 10px; display: block; filter: drop-shadow(0 2px 2px rgba(0,0,0,.2)); transition: .2s; }
+        .cat-card:hover {
+            transform: translateY(-8px);
+            color: inherit;
+        }
+        .swiper-slide:nth-child(7n+1) .cat-card:hover { box-shadow: 0 15px 0 #9a0007; }
+        .swiper-slide:nth-child(7n+2) .cat-card:hover { box-shadow: 0 15px 0 #004a80; }
+        .swiper-slide:nth-child(7n+3) .cat-card:hover { box-shadow: 0 15px 0 #005a28; }
+        .swiper-slide:nth-child(7n+4) .cat-card:hover { box-shadow: 0 15px 0 #c05000; }
+        .swiper-slide:nth-child(7n+5) .cat-card:hover { box-shadow: 0 15px 0 #c09a00; }
+        .cat-card:hover i { transform: scale(1.25) rotate(-5deg); }
+
+        /* ── REVIEW CARDS ── */
+        .review-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin: 20px 10px 10px;
+            box-shadow: 0 7px 0 #c0c0c0, 0 10px 24px rgba(0,0,0,.1);
+            position: relative;
+            overflow: visible;
+        }
+        .review-card .card-studs {
+            position: absolute;
+            top: -13px; left: 18px;
+            display: flex; gap: 6px;
+            z-index: 3;
+        }
+        .review-card .card-studs .stud {
+            width: 20px; height: 20px;
+            background: white;
+        }
+        /* Sheen */
+        .review-card::after {
+            content: "";
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 35%;
+            border-radius: 10px 10px 0 0;
+            background: linear-gradient(180deg, rgba(255,255,255,.5) 0%, transparent 100%);
+            pointer-events: none; z-index: 1;
+        }
+        .review-card .stars { font-size: 1.2rem; margin-bottom: 10px; }
+        .review-card p { font-weight: 800; font-size: 1rem; line-height: 1.7; color: #333; }
+        .review-card h6 { font-family: 'Fredoka One', cursive; font-size: 1rem; letter-spacing: 1px; margin-top: 12px; }
+
+        /* ── GRID ITEMS ── */
+        .grid-item {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-decoration: none;
+            color: white;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.05rem;
+            letter-spacing: 1px;
+            padding: 26px 14px;
+            height: 100%;
+            border-radius: 10px;
+            position: relative;
+            transition: transform .15s, box-shadow .15s;
+            overflow: visible;
+        }
+        .grid-item::after {
+            content: "";
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 40%;
+            border-radius: 10px 10px 0 0;
+            background: linear-gradient(180deg, rgba(255,255,255,.28) 0%, transparent 100%);
+            pointer-events: none;
+        }
+        .row .col:nth-child(8n+1) .grid-item { background:var(--lego-red);    box-shadow: 0 6px 0 #9a0007; }
+        .row .col:nth-child(8n+2) .grid-item { background:var(--lego-blue);   box-shadow: 0 6px 0 #004a80; }
+        .row .col:nth-child(8n+3) .grid-item { background:var(--lego-green);  box-shadow: 0 6px 0 #005a28; }
+        .row .col:nth-child(8n+4) .grid-item { background:var(--lego-orange); box-shadow: 0 6px 0 #c05000; }
+        .row .col:nth-child(8n+5) .grid-item { background:var(--lego-yellow); box-shadow: 0 6px 0 #c09a00; color:var(--lego-dk); }
+        .row .col:nth-child(8n+6) .grid-item { background:var(--lego-red);    box-shadow: 0 6px 0 #9a0007; }
+        .row .col:nth-child(8n+7) .grid-item { background:var(--lego-blue);   box-shadow: 0 6px 0 #004a80; }
+        .row .col:nth-child(8n+0) .grid-item { background:var(--lego-green);  box-shadow: 0 6px 0 #005a28; }
+        .grid-item:hover {
+            transform: translateY(-7px);
+        }
+        .row .col:nth-child(8n+1) .grid-item:hover { box-shadow: 0 13px 0 #9a0007; }
+        .row .col:nth-child(8n+2) .grid-item:hover { box-shadow: 0 13px 0 #004a80; }
+        .row .col:nth-child(8n+3) .grid-item:hover { box-shadow: 0 13px 0 #005a28; }
+        .row .col:nth-child(8n+4) .grid-item:hover { box-shadow: 0 13px 0 #c05000; }
+        .row .col:nth-child(8n+5) .grid-item:hover { box-shadow: 0 13px 0 #c09a00; color:var(--lego-dk); }
+        .row .col:nth-child(8n+6) .grid-item:hover { box-shadow: 0 13px 0 #9a0007; }
+        .row .col:nth-child(8n+7) .grid-item:hover { box-shadow: 0 13px 0 #004a80; }
+        .row .col:nth-child(8n+0) .grid-item:hover { box-shadow: 0 13px 0 #005a28; }
+
+        /* ── ABOUT ── */
+        .about-inner {
+            background: var(--lego-white);
+            border-radius: 14px;
+            padding: 44px 44px 40px;
+            box-shadow: 0 8px 0 #c0c0c0, 0 14px 30px rgba(0,0,0,.1);
+            position: relative;
+            overflow: visible;
+        }
+        .about-inner::after {
+            content: "";
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 40%;
+            border-radius: 14px 14px 0 0;
+            background: linear-gradient(180deg, rgba(255,255,255,.5) 0%, transparent 100%);
+            pointer-events: none;
+        }
+        .about-studs {
+            position: absolute;
+            top: -14px; left: 18px;
+            display: flex; gap: 8px; z-index: 3;
+        }
+        .about-studs .stud { width: 22px; height: 22px; background: white; }
+        .about-inner p { font-weight: 800; color: #2a2a2a; line-height: 1.8; font-size: 1rem; }
+        .about-inner p.lead { font-size: 1.1rem; }
+        .about-logo-container {
+            display: flex; justify-content: center; align-items: center;
+            height: 160px;
+        }
+        .moving-logo {
+            width: 115px; height: 115px;
+            border-radius: 50%;
+            background: var(--lego-blue);
+            box-shadow: 0 8px 0 #004a80, 0 10px 20px rgba(0,0,0,.2);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 2.8rem; color: white;
+            position: relative;
+            transition: transform .15s linear;
+            animation: studdedFloat 2.5s ease-in-out infinite;
+        }
+        .moving-logo::before {
+            content: "";
+            position: absolute; top: 6px; left: 12px; right: 12px;
+            height: 40%;
+            border-radius: 50% 50% 0 0;
+            background: linear-gradient(180deg, rgba(255,255,255,.35) 0%, transparent 100%);
+            z-index: 1;
+        }
+        @keyframes studdedFloat {
+            0%,100%{ transform: translateY(0); box-shadow: 0 8px 0 #004a80; }
+            50%    { transform: translateY(-12px); box-shadow: 0 20px 0 #004a80; }
+        }
+
+        /* ── EVENT CARDS ── */
+        .event-card {
+            background: var(--lego-yellow);
+            border-radius: 10px;
+            padding: 28px 14px;
+            text-align: center;
+            margin: 16px 5px 6px;
+            box-shadow: 0 7px 0 #c09a00;
+            transition: transform .15s, box-shadow .15s;
+            font-family: 'Fredoka One', cursive;
+            position: relative;
+            color: var(--lego-dk);
+            overflow: visible;
+        }
+        .event-card .card-studs {
+            position: absolute;
+            top: -12px; left: 14px;
+            display: flex; gap: 6px; z-index: 3;
+        }
+        .event-card .card-studs .stud { width: 18px; height: 18px; background: var(--lego-yellow); }
+        .event-card::after {
+            content: "";
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 40%;
+            border-radius: 10px 10px 0 0;
+            background: linear-gradient(180deg, rgba(255,255,255,.3) 0%, transparent 100%);
+            pointer-events: none;
+        }
+        .event-card:nth-child(2n)   { background: var(--lego-orange); box-shadow: 0 7px 0 #c05000; color: white; }
+        .event-card:nth-child(2n) .card-studs .stud { background: var(--lego-orange); }
+        .event-card i { font-size: 2.3rem; margin-bottom: 10px; display: block; transition: .2s; color: var(--lego-dk); }
+        .event-card:nth-child(2n) i { color: white; }
+        .event-card h5 { font-size: 1rem; letter-spacing: .5px; }
+        .event-card:hover { transform: translateY(-8px); }
+        .event-card:nth-child(odd):hover  { box-shadow: 0 15px 0 #c09a00; }
+        .event-card:nth-child(even):hover { box-shadow: 0 15px 0 #c05000; }
+        .event-card:hover i { transform: scale(1.25); }
+
+        /* ── LOCATION ── */
+        .location-inner {
+            background: var(--lego-blue);
+            border-radius: 14px;
+            padding: 40px;
+            box-shadow: 0 8px 0 #004a80, 0 14px 30px rgba(0,0,0,.15);
+            position: relative;
+            overflow: visible;
+        }
+        .location-inner::after {
+            content: "";
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 40%;
+            border-radius: 14px 14px 0 0;
+            background: linear-gradient(180deg, rgba(255,255,255,.25) 0%, transparent 100%);
+            pointer-events: none;
+        }
+        .loc-studs {
+            position: absolute; top: -14px; left: 18px;
+            display: flex; gap: 8px; z-index: 3;
+        }
+        .loc-studs .stud { width: 22px; height: 22px; background: var(--lego-blue); }
+        .location-inner h2 { font-family: 'Fredoka One', cursive; color: var(--lego-yellow); letter-spacing: 2px; font-size: 2rem; }
+        .location-inner i { color: var(--lego-yellow) !important; }
+        .location-inner p, .location-inner li { color: rgba(255,255,255,.85); font-weight: 800; }
+
+        /* ── CONTACT ── */
+        .contact-inner {
+            background: var(--lego-red);
+            border-radius: 14px;
+            padding: 48px;
+            box-shadow: 0 8px 0 #9a0007, 0 14px 30px rgba(0,0,0,.15);
+            position: relative;
+            overflow: visible;
+        }
+        .contact-inner::after {
+            content: "";
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 40%;
+            border-radius: 14px 14px 0 0;
+            background: linear-gradient(180deg, rgba(255,255,255,.22) 0%, transparent 100%);
+            pointer-events: none;
+        }
+        .cont-studs {
+            position: absolute; top: -14px; left: 18px;
+            display: flex; gap: 8px; z-index: 3;
+        }
+        .cont-studs .stud { width: 22px; height: 22px; background: var(--lego-red); }
+        .contact-inner h2 { font-family: 'Fredoka One', cursive; color: var(--lego-yellow); font-size: 2.4rem; letter-spacing: 2px; }
+        .form-label { color: rgba(255,255,255,.9); font-weight: 800; font-size: .85rem; letter-spacing: 1px; }
+        .form-control {
+            background: rgba(255,255,255,.92);
+            border: none;
+            border-radius: 10px;
+            color: var(--lego-dk);
+            padding: 13px 16px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            box-shadow: 0 4px 0 rgba(0,0,0,.15);
+            transition: .15s;
+        }
+        .form-control:focus {
+            background: white;
+            box-shadow: 0 5px 0 rgba(0,0,0,.2);
+            color: var(--lego-dk);
+            outline: none;
+        }
+        .form-control::placeholder { color: #999; }
+        .btn-lego {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+            padding: 14px 52px;
+            border-radius: 50px;
+            border: none;
+            background: var(--lego-yellow);
+            color: var(--lego-dk);
+            cursor: pointer;
+            box-shadow: 0 6px 0 #c09a00;
+            transition: transform .12s, box-shadow .12s;
+            text-shadow: 0 1px 0 rgba(255,255,255,.3);
+        }
+        .btn-lego:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 11px 0 #c09a00;
+        }
+        .btn-lego:active { transform: translateY(3px); box-shadow: 0 2px 0 #c09a00; }
+
+        /* ── FOOTER ── */
+        footer {
+            background: var(--lego-dk);
+            padding: 50px 20px 30px;
+            text-align: center;
+            position: relative;
+            box-shadow: inset 0 8px 0 rgba(255,255,255,.05);
+        }
+        /* Stud pattern top */
+        footer::before {
+            content: "";
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 18px;
+            background:
+                repeating-radial-gradient(
+                    circle at center,
+                    rgba(255,255,255,.12) 0, rgba(255,255,255,.12) 6px,
+                    rgba(0,0,0,.2) 6px, rgba(0,0,0,.2) 8px,
+                    transparent 8px, transparent 40px
+                );
+            background-size: 40px 18px;
+            background-position: 10px 4px;
+        }
+        footer h4 { font-family: 'Fredoka One', cursive; color: var(--lego-yellow); font-size: 1.6rem; letter-spacing: 2px; margin-bottom: 20px; margin-top: 8px; }
+        .social-btn {
+            width: 54px; height: 54px;
+            border-radius: 50%;
+            border: none;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+            transition: transform .15s, box-shadow .15s;
+            text-decoration: none;
+            color: white;
+            position: relative;
+        }
+        .social-btn::before {
+            content: "";
+            position: absolute; top: 4px; left: 8px; right: 8px;
+            height: 40%;
+            border-radius: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,.3) 0%, transparent 100%);
+        }
+        .social-btn:nth-child(1) { background: var(--lego-blue);  box-shadow: 0 5px 0 #004a80; }
+        .social-btn:nth-child(2) { background: #1d9bf0;           box-shadow: 0 5px 0 #0d6fa0; }
+        .social-btn:nth-child(3) { background: var(--lego-red);   box-shadow: 0 5px 0 #9a0007; }
+        .social-btn:nth-child(4) { background: var(--lego-green); box-shadow: 0 5px 0 #005a28; }
+        .social-btn:nth-child(5) { background: var(--lego-blue);  box-shadow: 0 5px 0 #004a80; }
+        .social-btn:hover { transform: translateY(-6px) rotate(-5deg); color: white; }
+        .social-btn:nth-child(1):hover { box-shadow: 0 11px 0 #004a80; }
+        .social-btn:nth-child(2):hover { box-shadow: 0 11px 0 #0d6fa0; }
+        .social-btn:nth-child(3):hover { box-shadow: 0 11px 0 #9a0007; }
+        .social-btn:nth-child(4):hover { box-shadow: 0 11px 0 #005a28; }
+        .social-btn:nth-child(5):hover { box-shadow: 0 11px 0 #004a80; }
+        footer p { color: rgba(255,255,255,.25); font-size: .8rem; font-weight: 800; letter-spacing: 2px; margin-top: 24px; }
+
+        /* ── SWIPER ── */
+        .swiper-button-next, .swiper-button-prev {
+            color: white !important;
+            background: var(--lego-blue);
+            border-radius: 50%;
+            width: 44px !important; height: 44px !important;
+            box-shadow: 0 5px 0 #004a80;
+        }
+        .swiper-button-next::after, .swiper-button-prev::after { font-size: .9rem !important; font-weight: 900 !important; }
+        .swiper-pagination-bullet { background: rgba(0,0,0,.2) !important; width: 12px !important; height: 12px !important; border-radius: 50% !important; }
+        .swiper-pagination-bullet-active { background: var(--lego-red) !important; }
+    </style>
+</head>
+<body>
+
+<!-- ══════════ NAVBAR ══════════ -->
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <img height="32px" src="https://dsjumpers.com/wp-content/uploads/2025/02/cropped-Logotipo-D%C2%B4S-Jumpers-qnohhmv0x0akjoiwicpksyn98vul3qjxppjyzgt6og.webp" alt="logo" class="me-2 rounded-circle" style="border:3px solid rgba(255,255,255,.3);">
+            🟥 MI EMPRESA
+        </a>
+        <div class="d-flex align-items-center ms-auto me-3 order-lg-last">
+            <a class="nav-link position-relative p-2" href="#" id="cartIcon">
+                <i class="fas fa-shopping-cart fa-lg" style="color:var(--lego-yellow);"></i>
+                <span id="cartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill" style="font-size:.65rem;">0</span>
+            </a>
+        </div>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal" style="color:var(--lego-yellow);">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="menuPrincipal">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#categorias">🟦 Categorías</a></li>
+                <li class="nav-item"><a class="nav-link" href="#eventos">🟩 Eventos</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">🟨 Nosotros</a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#nosotros">🟥 Sobre Nosotros</a></li>
+                        <li><a class="dropdown-item" href="#contacto">📨 Contáctanos</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ══════════ HERO ══════════ -->
+<section class="hero-section">
+    <div class="hero-studs"></div>
+
+    <!-- Scattered bg bricks -->
+    <div class="bg-brick bb1"></div><div class="bg-brick bb2"></div>
+    <div class="bg-brick bb3"></div><div class="bg-brick bb4"></div>
+    <div class="bg-brick bb5"></div><div class="bg-brick bb6"></div>
+    <div class="bg-brick bb7"></div><div class="bg-brick bb8"></div>
+
+    <div class="hero-inner">
+        <div class="logo-stud">
+            <img src="https://dsjumpers.com/wp-content/uploads/2025/02/cropped-Logotipo-D%C2%B4S-Jumpers-qnohhmv0x0akjoiwicpksyn98vul3qjxppjyzgt6og.webp" alt="logo">
+        </div>
+        <h1 class="hero-title">D'S JUMPERS</h1>
+        <p class="hero-sub">🧱 ¡Creatividad en Movimiento!</p>
+        <a href="#categorias" class="hero-btn">🟢 ¡CONSTRUIR AHORA!</a>
+    </div>
+
+    <div class="hero-floor">
+        <svg viewBox="0 0 1440 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="1440" height="20" y="40" fill="#2d5a28"/>
+            <rect width="1440" height="40" y="20" fill="#4a7c3f"/>
+            <!-- baseplate studs row 1 -->
+            <g fill="rgba(255,255,255,.15)">
+                <circle cx="16"  cy="30" r="6"/><circle cx="48"  cy="30" r="6"/><circle cx="80"  cy="30" r="6"/>
+                <circle cx="112" cy="30" r="6"/><circle cx="144" cy="30" r="6"/><circle cx="176" cy="30" r="6"/>
+                <circle cx="208" cy="30" r="6"/><circle cx="240" cy="30" r="6"/><circle cx="272" cy="30" r="6"/>
+                <circle cx="304" cy="30" r="6"/><circle cx="336" cy="30" r="6"/><circle cx="368" cy="30" r="6"/>
+                <circle cx="400" cy="30" r="6"/><circle cx="432" cy="30" r="6"/><circle cx="464" cy="30" r="6"/>
+                <circle cx="496" cy="30" r="6"/><circle cx="528" cy="30" r="6"/><circle cx="560" cy="30" r="6"/>
+                <circle cx="592" cy="30" r="6"/><circle cx="624" cy="30" r="6"/><circle cx="656" cy="30" r="6"/>
+                <circle cx="688" cy="30" r="6"/><circle cx="720" cy="30" r="6"/><circle cx="752" cy="30" r="6"/>
+                <circle cx="784" cy="30" r="6"/><circle cx="816" cy="30" r="6"/><circle cx="848" cy="30" r="6"/>
+                <circle cx="880" cy="30" r="6"/><circle cx="912" cy="30" r="6"/><circle cx="944" cy="30" r="6"/>
+                <circle cx="976" cy="30" r="6"/><circle cx="1008" cy="30" r="6"/><circle cx="1040" cy="30" r="6"/>
+                <circle cx="1072" cy="30" r="6"/><circle cx="1104" cy="30" r="6"/><circle cx="1136" cy="30" r="6"/>
+                <circle cx="1168" cy="30" r="6"/><circle cx="1200" cy="30" r="6"/><circle cx="1232" cy="30" r="6"/>
+                <circle cx="1264" cy="30" r="6"/><circle cx="1296" cy="30" r="6"/><circle cx="1328" cy="30" r="6"/>
+                <circle cx="1360" cy="30" r="6"/><circle cx="1392" cy="30" r="6"/><circle cx="1424" cy="30" r="6"/>
+            </g>
+        </svg>
+    </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="lego-tape">
+    <span class="tape-txt">
+        🧱 ¡CONSTRUYE TU MUNDO! &nbsp;◆&nbsp; 🟥 BLOQUES SIN LÍMITES &nbsp;◆&nbsp; 🟦 CREATIVIDAD INFINITA &nbsp;◆&nbsp; 🟩 PIEZA A PIEZA &nbsp;◆&nbsp; 🟨 TODO ENCAJA PERFECTO &nbsp;◆&nbsp; 🟧 IMAGINA Y CONSTRUYE &nbsp;◆&nbsp; 🧱 ¡LA AVENTURA EMPIEZA! &nbsp;◆&nbsp;
+    </span>
+</div>
+
+<!-- ══════════ MAIN CONTENT ══════════ -->
+<div class="container py-5" style="position:relative;z-index:5;">
+
+    <!-- CATEGORÍAS -->
+    <section class="mb-5 section-brick brick-blue" id="categorias">
+        <div class="section-studs"></div>
+        <div class="container">
+            <h2 class="section-title" style="color:var(--lego-yellow);">🟦 Categorías</h2>
+            <p class="section-sub" style="color:rgba(255,255,255,.75);">— ¡elige tu bloque favorito! —</p>
+            <div class="swiper swiperCategories">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide">
+                        <a href="#" class="cat-card">
+                            <div class="card-studs"><div class="stud"></div><div class="stud"></div><div class="stud"></div></div>
+                            <i class="fas fa-rocket"></i>🚀 Tech
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a href="#" class="cat-card">
+                            <div class="card-studs"><div class="stud"></div><div class="stud"></div><div class="stud"></div></div>
+                            <i class="fas fa-paint-brush"></i>🎨 Diseño
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a href="#" class="cat-card">
+                            <div class="card-studs"><div class="stud"></div><div class="stud"></div><div class="stud"></div></div>
+                            <i class="fas fa-music"></i>🎵 Música
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a href="#" class="cat-card">
+                            <div class="card-studs"><div class="stud"></div><div class="stud"></div><div class="stud"></div></div>
+                            <i class="fas fa-camera"></i>📸 Fotos
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a href="#" class="cat-card">
+                            <div class="card-studs"><div class="stud"></div><div class="stud"></div><div class="stud"></div></div>
+                            <i class="fas fa-utensils"></i>🍳 Cocina
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a href="#" class="cat-card">
+                            <div class="card-studs"><div class="stud"></div><div class="stud"></div><div class="stud"></div></div>
+                            <i class="fas fa-running"></i>🏃 Deporte
+                        </a>
+                    </div>
+                    <div class="swiper-slide">
+                        <a href="#" class="cat-card">
+                            <div class="card-studs"><div class="stud"></div><div class="stud"></div><div class="stud"></div></div>
+                            <i class="fas fa-gamepad"></i>🎮 Juegos
+                        </a>
+                    </div>
+                </div>
+                <div class="swiper-pagination mt-4"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- DIVIDER -->
+    <div class="lego-divider">
+        <span>
+            <div class="mini-stud" style="background:var(--lego-red);"></div>
+            <div class="mini-stud" style="background:var(--lego-yellow);"></div>
+            <div class="mini-stud" style="background:var(--lego-blue);"></div>
+            <div class="mini-stud" style="background:var(--lego-green);"></div>
+            <div class="mini-stud" style="background:var(--lego-orange);"></div>
+        </span>
+    </div>
+
+    <!-- REVIEWS -->
+    <section class="mb-5 section-brick brick-green">
+        <div class="section-studs"></div>
+        <div class="container">
+            <h2 class="section-title" style="color:var(--lego-yellow);">🟩 ¡Lo que dicen!</h2>
+            <p class="section-sub" style="color:rgba(255,255,255,.75);">— opiniones de nuestros constructores —</p>
+            <div class="swiper swiperReviews">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide" style="padding-bottom:10px;">
+                        <div class="review-card">
+                            <div class="card-studs"><div class="stud"></div><div class="stud"></div><div class="stud"></div><div class="stud"></div></div>
+                            <div class="stars" style="color:var(--lego-yellow);">★★★★★</div>
+                            <p>"¡El servicio es increíble! Todo encaja a la perfección, pieza por pieza. ¡PERFECTO!"</p>
+                            <h6 style="color:var(--lego-red);">— Juan Pérez 🧱</h6>
+                        </div>
+                    </div>
+                    <div class="swiper-slide" style="padding-bottom:10px;">
+                        <div class="review-card">
+                            <div class="card-studs"><div class="stud"></div><div class="stud"></div><div class="stud"></div><div class="stud"></div></div>
+                            <div class="stars" style="color:var(--lego-yellow);">★★★★☆</div>
+                            <p>"¡Súper fácil de armar! Como seguir las instrucciones de un set especial. ¡Me encantó!"</p>
+                            <h6 style="color:var(--lego-blue);">— Maria García 🟦</h6>
+                        </div>
+                    </div>
+                    <div class="swiper-slide" style="padding-bottom:10px;">
+                        <div class="review-card">
+                            <div class="card-studs"><div class="stud"></div><div class="stud"></div><div class="stud"></div><div class="stud"></div></div>
+                            <div class="stars" style="color:var(--lego-yellow);">★★★★★</div>
+                            <p>"¡Todo encaja perfecto! Construí exactamente lo que necesitaba. ¡Recomendadísimo!"</p>
+                            <h6 style="color:var(--lego-green);">— Carlos Ruiz 🟩</h6>
+                        </div>
+                    </div>
+                </div>
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- DIVIDER -->
+    <div class="lego-divider">
+        <span>
+            <div class="mini-stud" style="background:var(--lego-orange);"></div>
+            <div class="mini-stud" style="background:var(--lego-blue);"></div>
+            <div class="mini-stud" style="background:var(--lego-red);"></div>
+            <div class="mini-stud" style="background:var(--lego-yellow);"></div>
+            <div class="mini-stud" style="background:var(--lego-green);"></div>
+        </span>
+    </div>
+
+    <!-- CATÁLOGO GRID -->
+    <section class="mb-5 section-brick brick-orange">
+        <div class="section-studs"></div>
+        <div class="container">
+            <h2 class="section-title" style="color:var(--lego-yellow);">🟧 Catálogo Completo</h2>
+            <p class="section-sub" style="color:rgba(255,255,255,.75);">— ¡todos los bloques disponibles! —</p>
+            <div class="row g-3">
+                <div class="col-6 col-md-4 col-lg-3 col"><a href="#" class="grid-item">💻 Tecnología</a></div>
+                <div class="col-6 col-md-4 col-lg-3 col"><a href="#" class="grid-item">🎨 Arte</a></div>
+                <div class="col-6 col-md-4 col-lg-3 col"><a href="#" class="grid-item">🎵 Música</a></div>
+                <div class="col-6 col-md-4 col-lg-3 col"><a href="#" class="grid-item">📸 Fotografía</a></div>
+                <div class="col-6 col-md-4 col-lg-3 col"><a href="#" class="grid-item">🍽️ Gastronomía</a></div>
+                <div class="col-6 col-md-4 col-lg-3 col"><a href="#" class="grid-item">⚽ Deportes</a></div>
+                <div class="col-6 col-md-4 col-lg-3 col"><a href="#" class="grid-item">🎮 Gaming</a></div>
+                <div class="col-6 col-md-4 col-lg-3 col"><a href="#" class="grid-item">✈️ Viajes</a></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- DIVIDER -->
+    <div class="lego-divider">
+        <span>
+            <div class="mini-stud" style="background:var(--lego-blue);"></div>
+            <div class="mini-stud" style="background:var(--lego-green);"></div>
+            <div class="mini-stud" style="background:var(--lego-yellow);"></div>
+            <div class="mini-stud" style="background:var(--lego-red);"></div>
+            <div class="mini-stud" style="background:var(--lego-orange);"></div>
+        </span>
+    </div>
+
+    <!-- ABOUT -->
+    <section class="mb-5" id="nosotros">
+        <div class="about-inner">
+            <div class="about-studs">
+                <div class="stud"></div><div class="stud"></div>
+                <div class="stud"></div><div class="stud"></div><div class="stud"></div>
+            </div>
+            <h2 class="section-title" style="color:var(--lego-red);">🟥 Sobre Nosotros</h2>
+            <p class="section-sub" style="color:var(--lego-blue);">— ¡conoce a los constructores! —</p>
+            <div class="row align-items-center g-5">
+                <div class="col-md-8">
+                    <p class="lead mb-4">
+                        🧱 ¡Somos una empresa increíble dedicada a conectar personas con el contenido y servicios que aman! Igual que los mejores sets de construcción, combinamos cada pieza con precisión para crear algo verdaderamente especial.
+                    </p>
+                    <p>
+                        Nuestra misión es simple: facilitar el acceso a un mundo de posibilidades. Construimos una plataforma donde la diversidad de intereses se une con calidad e innovación. ¡Pieza a pieza, bloque a bloque, construimos sueños!
+                    </p>
+                </div>
+                <div class="col-md-4">
+                    <div class="about-logo-container">
+                        <div id="movingLogo" class="moving-logo">
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EVENTOS -->
+    <section class="mb-5 py-4 section-brick brick-red" id="eventos">
+        <div class="section-studs"></div>
+        <div class="container">
+            <h2 class="section-title" style="color:var(--lego-yellow);">🟥 Tipos de Eventos</h2>
+            <p class="section-sub" style="color:rgba(255,255,255,.75);">— ¡para cada construcción especial! —</p>
+            <div class="swiper swiperEvents">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide">
+                        <div class="event-card">
+                            <div class="card-studs"><div class="stud"></div><div class="stud"></div></div>
+                            <i class="fas fa-glass-cheers"></i><h5>💍 Bodas</h5>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="event-card">
+                            <div class="card-studs"><div class="stud"></div><div class="stud"></div></div>
+                            <i class="fas fa-birthday-cake"></i><h5>🎂 Cumpleaños</h5>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="event-card">
+                            <div class="card-studs"><div class="stud"></div><div class="stud"></div></div>
+                            <i class="fas fa-briefcase"></i><h5>🏢 Corporativos</h5>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="event-card">
+                            <div class="card-studs"><div class="stud"></div><div class="stud"></div></div>
+                            <i class="fas fa-graduation-cap"></i><h5>🎓 Graduaciones</h5>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="event-card">
+                            <div class="card-studs"><div class="stud"></div><div class="stud"></div></div>
+                            <i class="fas fa-music"></i><h5>🎶 Conciertos</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="swiper-pagination mt-4"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- DIVIDER -->
+    <div class="lego-divider">
+        <span>
+            <div class="mini-stud" style="background:var(--lego-red);"></div>
+            <div class="mini-stud" style="background:var(--lego-orange);"></div>
+            <div class="mini-stud" style="background:var(--lego-yellow);"></div>
+            <div class="mini-stud" style="background:var(--lego-green);"></div>
+            <div class="mini-stud" style="background:var(--lego-blue);"></div>
+        </span>
+    </div>
+
+    <!-- UBICACIÓN -->
+    <section class="mb-5">
+        <div class="location-inner">
+            <div class="loc-studs">
+                <div class="stud"></div><div class="stud"></div>
+                <div class="stud"></div><div class="stud"></div><div class="stud"></div>
+            </div>
+            <div class="row align-items-center g-4">
+                <div class="col-md-5 px-4">
+                    <h2 class="mb-4">🗺️ Nuestra Base</h2>
+                    <p class="mb-3">¡Cubrimos toda el área metropolitana! ¡Llevamos los bloques hasta donde estés!</p>
+                    <ul class="list-unstyled mt-3">
+                        <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> Calle Falsa 123, Ciudad Central</li>
+                        <li class="mb-2"><i class="fas fa-clock me-2"></i> Lun - Vie: 9:00 AM - 6:00 PM</li>
+                    </ul>
+                </div>
+                <div class="col-md-7">
+                    <div class="ratio ratio-16x9 overflow-hidden" style="border-radius:12px;border:4px solid rgba(255,255,255,.3);box-shadow:0 8px 0 rgba(0,0,0,.2);">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1422937611435!2d-73.98731968459391!3d40.75889497932681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480293%3A0x5117f70619c651b0!2sTimes%20Square!5e0!3m2!1ses!2scl!4v1625070000000!5m2!1ses!2scl" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACTO -->
+    <section class="mb-5" id="contacto">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="contact-inner">
+                    <div class="cont-studs">
+                        <div class="stud"></div><div class="stud"></div>
+                        <div class="stud"></div><div class="stud"></div><div class="stud"></div>
+                    </div>
+                    <h2 class="text-center mb-1 mt-2">🟥 ¡Contáctanos!</h2>
+                    <p class="section-sub mb-4" style="color:rgba(255,255,255,.8);">— ¡construyamos algo juntos! —</p>
+                    <form>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">🧱 NOMBRE</label>
+                                <input type="text" class="form-control" placeholder="Tu nombre">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">📧 CORREO</label>
+                                <input type="email" class="form-control" placeholder="email@ejemplo.com">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">🟦 ASUNTO</label>
+                                <input type="text" class="form-control" placeholder="¿En qué podemos ayudarte?">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">💬 MENSAJE</label>
+                                <textarea class="form-control" rows="4" placeholder="Escribe tu mensaje aquí..."></textarea>
+                            </div>
+                            <div class="col-12 text-center mt-3">
+                                <button type="button" class="btn-lego">🧱 ¡ENVIAR!</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer>
+    <h4 class="mb-4">🧱 ¡Síguenos en redes!</h4>
+    <div class="d-flex justify-content-center gap-3 flex-wrap mb-3">
+        <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-twitter"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-instagram"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-whatsapp"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-linkedin-in"></i></a>
+    </div>
+    <p>&copy; 2026 — Mi Empresa — Todos los derechos reservados</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+    new Swiper(".swiperCategories", {
+        slidesPerView:1, spaceBetween:10, loop:true,
+        autoplay:{delay:2800, disableOnInteraction:false},
+        breakpoints:{640:{slidesPerView:2},768:{slidesPerView:3},1024:{slidesPerView:5}},
+        pagination:{el:".swiper-pagination",clickable:true},
+    });
+    new Swiper(".swiperReviews", {
+        slidesPerView:1, spaceBetween:20, loop:true,
+        autoplay:{delay:5000},
+        navigation:{nextEl:".swiper-button-next",prevEl:".swiper-button-prev"},
+        breakpoints:{768:{slidesPerView:2}}
+    });
+    new Swiper(".swiperEvents", {
+        slidesPerView:1, spaceBetween:20, loop:true,
+        autoplay:{delay:3500, disableOnInteraction:false},
+        breakpoints:{640:{slidesPerView:2},1024:{slidesPerView:4}},
+        pagination:{el:".swiper-pagination",clickable:true},
+    });
+
+    const movingLogo = document.getElementById('movingLogo');
+    const aboutLogoContainer = document.querySelector('.about-logo-container');
+    if (movingLogo && aboutLogoContainer) {
+        aboutLogoContainer.addEventListener('mousemove', (e) => {
+            const r = aboutLogoContainer.getBoundingClientRect();
+            const nx = ((e.clientX - r.left) / r.width) * 2 - 1;
+            const ny = ((e.clientY - r.top)  / r.height) * 2 - 1;
+            movingLogo.style.transform = `translate(${nx*25}px,${ny*25}px)`;
+        });
+        aboutLogoContainer.addEventListener('mouseleave', () => {
+            movingLogo.style.transform = 'translate(0,0)';
+        });
+    }
+
+    let itemCount = 0;
+    const cartCountEl = document.getElementById('cartCount');
+    function agregarAlCarrito() { itemCount++; cartCountEl.innerText = itemCount; }
+</script>
+</body>
+</html>

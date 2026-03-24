@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎃 D'S Jumpers · HALLOWEEN INFANTIL 👻</title>
+
+    <!-- Bootstrap, Swiper, Fonts -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Fuentes divertidas infantiles pero con aire halloween -->
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Gaegu:wght@400;700&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* 🎃🦇 PALETA HALLOWEEN INFANTIL 🦇🎃 */
+        :root {
+            --pumpkin:      #ff8c42;    /* calabaza */
+            --soft-orange:  #ffb347;    /* naranja suave */
+            --spooky-purple:#8a4fff;    /* morado fantasía */
+            --light-purple: #c68eff;    /* morado claro */
+            --night-sky:    #1f1a5c;    /* cielo nocturno */
+            --moon-glow:    #faf0c7;    /* luz de luna */
+            --candy-corn:   #fceda7;    /* maíz dulce */
+            --ghost-white:  #f8f0ff;    /* fondo fantasmita */
+            --bat-black:    #2b1b2b;    /* murciélago */
+            --spider-web:   #dcd0ff;    /* telaraña */
+            --text-dark:    #321c3c;    /* color cuento de miedo */
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--night-sky);
+            font-family: 'Quicksand', sans-serif;
+            color: var(--moon-glow);
+            overflow-x: hidden;
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ctext y='22' font-size='24' fill='%23ff8c42'%3E🎃%3C/text%3E%3C/svg%3E") 15 15, auto;
+        }
+
+        /* 🌙 FONDO DE ESTRELLITAS Y MURCIÉLAGOS 🌙 */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(1px 1px at 15% 20%, #fffacd 2px, transparent 2px),
+                radial-gradient(1px 1px at 82% 35%, #fffacd 2px, transparent 2px),
+                radial-gradient(2px 2px at 43% 70%, #fffacd 3px, transparent 3px),
+                radial-gradient(1px 1px at 91% 58%, #fffacd 2px, transparent 2px),
+                radial-gradient(2px 2px at 6% 80%, #fffacd 2px, transparent 2px),
+                repeating-linear-gradient(45deg, #ffffff08 0px, #ffffff08 15px, transparent 15px, transparent 30px);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* 👻 NAVBAR CON FANTASMAS 👻 */
+        .navbar {
+            background: linear-gradient(90deg, #2f2260, #573e8a) !important;
+            border-bottom: 4px solid var(--pumpkin);
+            box-shadow: 0 6px 0 #7f4f9e, 0 10px 20px #22003377;
+            padding: 12px 0;
+        }
+        .navbar-brand {
+            font-family: 'Creepster', cursive;
+            font-size: 1.8rem;
+            color: var(--soft-orange) !important;
+            text-shadow: 4px 4px 0 #632e4b, 6px 6px 0 #1e1122;
+            letter-spacing: 2px;
+        }
+        .navbar-brand img { border: 3px solid #fbb35e; box-shadow: 0 0 0 2px #28172e; }
+        .nav-link {
+            font-family: 'Gaegu', cursive;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #fbe396 !important;
+            text-shadow: 2px 2px 0 #8b4f7c;
+        }
+        .nav-link:hover { color: var(--pumpkin) !important; transform: translateY(-2px); }
+        .dropdown-menu {
+            background: #4b2b5c;
+            border: 3px solid #f9b83c;
+            border-radius: 20px;
+        }
+        .dropdown-item { font-family: 'Gaegu', cursive; color: #fde3a7; font-size: 1.2rem; }
+        .dropdown-item:hover { background: #c565a0; color: #fff8c7; }
+
+        #cartCount { background: #f26b6b !important; border: 2px solid #feda7a; color: #2b031b; }
+
+        /* 🎃 HERO DE HALLOWEEN INFANTIL 🎃 */
+        .hero-section {
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, #1d1842 0%, #372a5e 40%, #603f6b 100%);
+        }
+
+        /* luna sonriente */
+        .moon {
+            position: absolute;
+            top: 6%;
+            right: 10%;
+            width: 100px;
+            height: 100px;
+            background: #fff9cf;
+            border-radius: 50%;
+            box-shadow: 0 0 0 12px #fffde6, 0 0 0 24px #ffffff50;
+            animation: moonGlow 4s ease-in-out infinite;
+        }
+        .moon-face {
+            position: relative;
+            top: 30px; left: 22px;
+            font-size: 3rem;
+            line-height: 1;
+        }
+        @keyframes moonGlow { 0%,100%{ box-shadow: 0 0 0 12px #fffbdb, 0 0 0 28px #ffffff40; } 50%{ box-shadow: 0 0 0 18px #fffbb0, 0 0 0 35px #ffffff70; } }
+
+        /* nubes de Halloween (con forma de fantasma) */
+        .ghost-cloud {
+            position: absolute;
+            background: #eae2fc;
+            border-radius: 100px;
+            opacity: 0.8;
+            border: 2px solid #faf0c7;
+        }
+        .ghost-cloud::before, .ghost-cloud::after {
+            content: "☁️👻";
+            position: absolute;
+            font-size: 2rem;
+        }
+        .ghost-cloud-1 { width: 160px; height: 60px; top: 12%; left: 5%; }
+        .ghost-cloud-1::before { content: "👻"; top: -30px; left: 20px; font-size: 3.5rem; transform: rotate(-5deg); }
+        .ghost-cloud-2 { width: 200px; height: 70px; top: 25%; left: 70%; }
+
+        /* calabazas voladoras */
+        .floating-pumpkin {
+            position: absolute;
+            bottom: 15%;
+            left: 3%;
+            font-size: 6rem;
+            filter: drop-shadow(0 0 12px #ffb27a);
+            animation: floatPumpkin 5s ease-in-out infinite;
+        }
+        .floating-ghost {
+            position: absolute;
+            top: 20%;
+            right: 5%;
+            font-size: 5rem;
+            filter: drop-shadow(0 8px 10px white);
+            animation: floatGhost 7s infinite;
+        }
+        @keyframes floatPumpkin { 0%,100%{ transform: translateY(0) rotate(0deg); } 50%{ transform: translateY(-20px) rotate(6deg); } }
+        @keyframes floatGhost { 0%,100%{ transform: translateX(0) scale(1); } 50%{ transform: translateX(-20px) scale(1.05); } }
+
+        /* telarañas */
+        .web {
+            position: absolute;
+            color: #ffffff80;
+            font-size: 5rem;
+            top: 50%; left: 85%;
+            transform: rotate(20deg);
+        }
+
+        .hero-inner {
+            position: relative; z-index: 20;
+            text-align: center;
+            padding: 70px 20px 120px;
+        }
+
+        .halloween-logo {
+            width: 160px; height: 160px;
+            background: #f3a64b;
+            border-radius: 50%;
+            border: 8px solid #fada7a;
+            box-shadow: 0 0 0 10px #b45f2b, 0 20px 30px #311f2b;
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-bottom: 25px;
+            animation: logoSpooky 2.5s infinite;
+        }
+        .halloween-logo img { width: 130px; height: 130px; border-radius: 50%; border: 3px solid #ffeeb5; }
+        @keyframes logoSpooky { 0%,100%{ transform: scale(1); } 50%{ transform: scale(1.03); box-shadow: 0 0 0 15px #fea443; } }
+
+        .hero-title {
+            font-family: 'Creepster', cursive;
+            font-size: clamp(3.5rem, 12vw, 7rem);
+            color: #fbc85f;
+            text-shadow: 8px 8px 0 #6f2e6f, 12px 12px 0 #2b1c2b;
+            line-height: 1.1;
+            letter-spacing: 4px;
+        }
+        .hero-sub {
+            font-family: 'Gaegu', cursive;
+            font-size: 1.9rem;
+            background: #572c5c;
+            color: #fedd9e;
+            display: inline-block;
+            padding: 10px 35px;
+            border-radius: 40px;
+            border: 3px solid #ffa45e;
+            box-shadow: 0 6px 0 #722e6e;
+            backdrop-filter: blur(2px);
+        }
+        .hero-btn {
+            font-family: 'Gaegu', cursive;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: #f47c3a;
+            color: #391a39;
+            padding: 14px 55px;
+            border-radius: 40px;
+            border: 4px solid #ffdd7b;
+            box-shadow: 0 8px 0 #aa3d2c, 0 12px 25px #f68e5f;
+            display: inline-block;
+            margin-top: 25px;
+            text-decoration: none;
+        }
+        .hero-btn:hover { transform: translateY(-4px); background: #ff9755; box-shadow: 0 12px 0 #aa3d2c; }
+
+        /* CINTA HALLOWEEN */
+        .halloween-tape {
+            background: #43254e;
+            border-top: 4px solid #f3a13b;
+            border-bottom: 4px solid #f3a13b;
+            padding: 12px 0;
+            overflow: hidden;
+        }
+        .tape-spooky {
+            font-family: 'Gaegu', cursive;
+            font-size: 1.3rem;
+            color: #fff1bb;
+            display: inline-block;
+            white-space: nowrap;
+            animation: scrollSpooky 20s linear infinite;
+            text-shadow: 3px 3px 0 #942f6a;
+        }
+        @keyframes scrollSpooky { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
+
+        /* TÍTULOS DE SECCIÓN */
+        .section-title {
+            font-family: 'Creepster', cursive;
+            font-size: 2.8rem;
+            color: #ffb95a;
+            text-align: center;
+            margin-bottom: 40px;
+            text-shadow: 5px 5px 0 #64275a, 8px 8px 0 #1d1420;
+        }
+        .section-title::after {
+            content: "👻 🎃 🦇";
+            display: block;
+            font-size: 2.5rem;
+            letter-spacing: 12px;
+        }
+
+        /* CATEGORÍAS CALABAZA */
+        .cat-card {
+            background: #6e3f6e;
+            border: 5px solid #f7b55a;
+            border-radius: 30px;
+            padding: 30px 12px;
+            box-shadow: 0 8px 0 #903d70, 0 16px 25px #47224b;
+            font-family: 'Gaegu', cursive;
+            font-size: 1.4rem;
+            color: #fffad3;
+            text-align: center;
+            display: block;
+            text-decoration: none;
+        }
+        .cat-card i { font-size: 2.8rem; color: #fdc55e; margin-bottom: 12px; }
+        .cat-card:hover { transform: translateY(-8px); background: #874d87; border-color: #ffc857; }
+
+        /* REVIEWS FANTASMA */
+        .review-card {
+            background: #4d2e55;
+            border: 6px solid #f6ad5b;
+            border-radius: 40px;
+            padding: 35px;
+            box-shadow: 0 8px 0 #b05e9b;
+            color: #fceeb5;
+            font-family: 'Gaegu', cursive;
+            font-size: 1.5rem;
+        }
+        .review-card .stars { color: #facc6f; font-size: 2rem; }
+
+        /* GRID ÍTEMS (dulces) */
+        .grid-item {
+            background: #78467c;
+            border: 5px solid #fda44d;
+            border-radius: 25px;
+            padding: 25px 8px;
+            font-family: 'Gaegu', cursive;
+            font-size: 1.3rem;
+            color: #ffecbb;
+            box-shadow: 0 7px 0 #963c78;
+            display: block;
+            text-decoration: none;
+            text-align: center;
+        }
+        .grid-item:hover { background: #9e5aa3; transform: scale(1.02); }
+
+        /* ABOUT HALLOWEEN */
+        .about-section {
+            background: #40274a;
+            border-radius: 50px;
+            border: 8px solid #f79b4a;
+            padding: 50px;
+            box-shadow: inset 0 -10px 0 #813e70;
+            color: #fdf0cf;
+        }
+        .about-section .section-title { color: #ffc480; }
+        .moving-logo {
+            background: #fa9f48;
+            border-radius: 50%;
+            width: 140px; height: 140px;
+            display: flex; align-items: center; justify-content: center;
+            border: 8px solid #ffecb0;
+            font-size: 4rem;
+            color: #3f223f;
+            box-shadow: 0 0 0 8px #bd6bad;
+        }
+
+        /* EVENTOS MISTERIOSOS */
+        .event-card {
+            background: #5d3b68;
+            border: 6px solid #feb161;
+            border-radius: 40px;
+            padding: 30px 5px;
+            font-family: 'Gaegu', cursive;
+            color: #fdeabb;
+            box-shadow: 0 8px 0 #b0467a;
+            text-align: center;
+        }
+        .event-card i { font-size: 3rem; color: #fec55e; }
+
+        /* MAPA NOCTURNO */
+        .location-section {
+            background: #342642;
+            border: 8px solid #fb9f58;
+            border-radius: 40px;
+            padding: 35px;
+            color: #ffeac2;
+        }
+
+        /* CONTACTO EMBRUJADO */
+        .contact-card {
+            background: #5b3f60;
+            border: 8px solid #fdac5a;
+            border-radius: 45px;
+            padding: 45px;
+        }
+        .form-control {
+            background: #fdefcb;
+            border: 4px solid #fb974b;
+            font-family: 'Gaegu', cursive;
+            font-size: 1.3rem;
+            color: #2b0f2b;
+        }
+        .btn-aqua {
+            background: #f79b4a;
+            border: none;
+            font-family: 'Gaegu', cursive;
+            font-size: 1.8rem;
+            padding: 14px 40px;
+            border-radius: 60px;
+            border: 4px solid #ffe49b;
+            color: #302030;
+            box-shadow: 0 8px 0 #b55139;
+        }
+        .btn-aqua:hover { background: #ffb569; transform: translateY(-4px); box-shadow: 0 12px 0 #b55139; }
+
+        /* FOOTER TELARAÑA */
+        footer {
+            background: #23172b;
+            border-top: 8px solid #fa9e47;
+            padding: 50px 0 20px;
+        }
+        .social-btn {
+            background: #af6bb0;
+            border-radius: 50%;
+            width: 65px; height: 65px;
+            display: inline-flex; align-items: center; justify-content: center;
+            border: 4px solid #ffc779;
+            color: #ffecb3;
+            font-size: 2.2rem;
+            box-shadow: 0 6px 0 #732e68;
+        }
+        .social-btn:hover { background: #d183d1; transform: translateY(-4px); }
+
+        .pool-bg {
+            background-color: #482d4e;
+            background-image: radial-gradient(#ffb764 1.5px, transparent 1.5px);
+            background-size: 35px 35px;
+            border-radius: 50px;
+            padding: 40px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR EMBRUJADA -->
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="#"><img src="https://dsjumpers.com/wp-content/uploads/2025/02/cropped-Logotipo-D%C2%B4S-Jumpers-qnohhmv0x0akjoiwicpksyn98vul3qjxppjyzgt6og.webp" width="40" height="40" class="me-2 rounded-circle"> D'S JUMPERS</a>
+        <div class="d-flex align-items-center ms-auto me-3 order-lg-last">
+            <a class="nav-link position-relative p-2" href="#" id="cartIcon">
+                <i class="fas fa-candy-cane fa-xl" style="color:#ffcf87;"></i>
+                <span id="cartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill">0</span>
+            </a>
+        </div>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal">
+            <span class="navbar-toggler-icon" style="filter: invert(0.7);"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="menuPrincipal">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#categorias">🎃 CATEGORÍAS</a></li>
+                <li class="nav-item"><a class="nav-link" href="#eventos">👻 EVENTOS</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">🦇 NOSOTROS</a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#nosotros">🏚️ SOBRE LA CASA</a></li>
+                        <li><a class="dropdown-item" href="#contacto">📬 CONTACTO</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- HERO HALLOWEEN INFANTIL -->
+<section class="hero-section">
+    <div class="moon"><span class="moon-face">😊</span></div>
+    <div class="ghost-cloud ghost-cloud-1"></div>
+    <div class="ghost-cloud ghost-cloud-2"></div>
+    <div class="floating-pumpkin">🎃</div>
+    <div class="floating-ghost">👻</div>
+    <div class="web">🕸️</div>
+
+    <div class="hero-inner">
+        <div class="halloween-logo mx-auto">
+            <img src="https://dsjumpers.com/wp-content/uploads/2025/02/cropped-Logotipo-D%C2%B4S-Jumpers-qnohhmv0x0akjoiwicpksyn98vul3qjxppjyzgt6og.webp" alt="logo">
+        </div>
+        <h1 class="hero-title">HALLOWEEN FELIZ</h1>
+        <p class="hero-sub">🎃 D'S JUMPERS · TRUCO O TRATO 🍬</p>
+        <a href="#categorias" class="hero-btn">🌟 ¡EMPEZAR AVENTURA! 🌟</a>
+    </div>
+</section>
+
+<!-- CINTA HALLOWEEN -->
+<div class="halloween-tape">
+    <span class="tape-spooky">
+        👻 FANTASMAS AMIGOS &nbsp;·&nbsp; 🎃 CALABAZAS DULCES &nbsp;·&nbsp; 🦇 MURCIÉLAGOS BEBÉ &nbsp;·&nbsp; 🕷️ ARAÑITAS &nbsp;·&nbsp; 🍬 CARAMELOS &nbsp;·&nbsp; 🍭 GOLOSINAS &nbsp;·&nbsp; 
+    </span>
+</div>
+
+<div class="container py-5">
+
+    <!-- CATEGORÍAS HALLOWEEN -->
+    <section id="categorias" class="mb-5">
+        <h2 class="section-title">Disfraces y Dulces</h2>
+        <div class="swiper swiperCategories">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-pumpkin"></i>CALABAZAS</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-ghost"></i>FANTASMAS</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-crow"></i>MURCIÉLAGOS</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-candy-cane"></i>CARAMELOS</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-skull"></i>ESQUELETOS</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-hat-wizard"></i>BRUJAS</a></div>
+            </div>
+            <div class="swiper-pagination mt-3"></div>
+        </div>
+    </section>
+
+    <div class="text-center display-4">🕷️🍬🕷️</div>
+
+    <!-- RESEÑAS FANTASMAGÓRICAS -->
+    <section class="mb-5">
+        <h2 class="section-title">Qué dice la pandilla</h2>
+        <div class="swiper swiperReviews">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide"><div class="review-card"><div class="stars">★★★★★</div>"Me encantó la fiesta de disfraces, mi hija fue de gatita."<br>— Lupita</div></div>
+                <div class="swiper-slide"><div class="review-card"><div class="stars">★★★★☆</div>"Los fantasmas no dan miedo, ¡son chistosos!"<br>— Carlitos (6 años)</div></div>
+                <div class="swiper-slide"><div class="review-card"><div class="stars">★★★★★</div>"Las calabazas tienen caritas felices."<br>— Sofía</div></div>
+            </div>
+            <div class="swiper-button-next"></div><div class="swiper-button-prev"></div>
+        </div>
+    </section>
+
+    <!-- CATÁLOGO GRID HALLOWEEN -->
+    <section class="pool-bg mb-5">
+        <h2 class="section-title">Golosinas Encantadas</h2>
+        <div class="row g-3">
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🍬 CHUPETINES</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🍫 CHOCOLATES</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🍭 PALETAS</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🧛 CAPAS</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🧹 ESCOBAS</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🎩 SOMBREROS</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🕷️ ARAÑAS</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🦇 MURCIÉLAGOS</a></div>
+        </div>
+    </section>
+
+    <!-- ABOUT HALLOWEEN -->
+    <section class="about-section mb-5" id="nosotros">
+        <h2 class="section-title">La casita del terror feliz</h2>
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <p style="font-size:1.7rem;">Somos un grupo de duendes y fantasmas que adoran Halloween. Creamos esta web para que los niños disfruten sin miedo, con colores cálidos y muchos caramelos virtuales. 🍬</p>
+            </div>
+            <div class="col-md-4">
+                <div class="about-logo-container" id="aboutLogoContainer">
+                    <div id="movingLogo" class="moving-logo">
+                        <i class="fas fa-cat"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EVENTOS ESPELUZNANTES INFANTILES -->
+    <section id="eventos" class="mb-5">
+        <h2 class="section-title">Fiestas terroríficas</h2>
+        <div class="swiper swiperEvents">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-pumpkin"></i><h5>NOCHE DE CALABAZAS</h5></div></div>
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-ghost"></i><h5>CONCURSO DE DISFRACES</h5></div></div>
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-crow"></i><h5>CUENTOS DE MIEDO</h5></div></div>
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-candy-cane"></i><h5>TRUCO O TRATO</h5></div></div>
+            </div>
+            <div class="swiper-pagination"></div>
+        </div>
+    </section>
+
+    <!-- UBICACIÓN EMBRUJADA -->
+    <section class="location-section mb-5">
+        <div class="row">
+            <div class="col-md-5">
+                <h2 style="font-family: 'Creepster';">📍 BOSQUE SOMBRÍO</h2>
+                <p>Calle de las Calabazas 13, Ciudad Halloween</p>
+                <p>Abierto 31 de octubre todo el día 🌕</p>
+            </div>
+            <div class="col-md-7">
+                <div class="ratio ratio-16x9" style="border: 6px solid #fe9f4b; border-radius: 30px;">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1422937611435!2d-73.98731968459391!3d40.75889497932681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480293%3A0x5117f70619c651b0!2sTimes%20Square!5e0!3m2!1ses!2scl!4v1625070000000!5m2!1ses!2scl" style="border:0;"></iframe>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACTO (BRUJAS) -->
+    <section id="contacto" class="mb-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="contact-card">
+                    <h2 class="text-center" style="font-family: 'Creepster';">📮 ESCRIBE A LAS BRUJAS</h2>
+                    <form>
+                        <div class="row g-3">
+                            <div class="col-md-6"><label class="form-label">Nombre embrujado</label><input class="form-control" placeholder="Ej: Brujita Lola"></div>
+                            <div class="col-md-6"><label class="form-label">Email espeluznante</label><input class="form-control" placeholder="hola@halloween.com"></div>
+                            <div class="col-12"><label class="form-label">Asunto</label><input class="form-control" placeholder="¿Truco o trato?"></div>
+                            <div class="col-12"><label class="form-label">Mensaje</label><textarea class="form-control" rows="4" placeholder="Cuéntanos tu disfraz..."></textarea></div>
+                            <div class="col-12 text-center"><button type="button" class="btn-aqua">👻 ENVIAR</button></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- FOOTER DE MIEDO DIVERTIDO -->
+<footer>
+    <h4 class="text-center mb-4" style="font-family: 'Creepster';">🎃 SÍGUENOS 🎃</h4>
+    <div class="d-flex justify-content-center gap-3 flex-wrap">
+        <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-instagram"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-tiktok"></i></a>
+        <a href="#" class="social-btn"><i class="fas fa-skull"></i></a>
+    </div>
+    <p class="text-center mt-4" style="color:#ebd6b0;">© 2026 D'S Jumpers · Hecho con caramelos</p>
+</footer>
+
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+    new Swiper(".swiperCategories", { slidesPerView:1, spaceBetween:10, loop:true, autoplay:{delay:2800}, breakpoints:{640:{slidesPerView:2},768:{slidesPerView:3},1024:{slidesPerView:5}}, pagination:{el:".swiper-pagination",clickable:true} });
+    new Swiper(".swiperReviews", { slidesPerView:1, spaceBetween:20, loop:true, autoplay:{delay:5000}, navigation:{nextEl:".swiper-button-next",prevEl:".swiper-button-prev"}, breakpoints:{768:{slidesPerView:2}} });
+    new Swiper(".swiperEvents", { slidesPerView:1, spaceBetween:20, loop:true, autoplay:{delay:3500}, breakpoints:{640:{slidesPerView:2},1024:{slidesPerView:4}}, pagination:{el:".swiper-pagination",clickable:true} });
+
+    const movingLogo = document.getElementById('movingLogo');
+    const container = document.getElementById('aboutLogoContainer');
+    if (movingLogo && container) {
+        container.addEventListener('mousemove', (e) => {
+            const rect = container.getBoundingClientRect();
+            const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+            movingLogo.style.transform = `translate(${nx*20}px, ${ny*20}px)`;
+        });
+        container.addEventListener('mouseleave', () => movingLogo.style.transform = 'translate(0,0)');
+    }
+
+    let cartCount = 0;
+    document.getElementById('cartIcon').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('cartCount').innerText = ++cartCount;
+    });
+</script>
+</body>
+</html>

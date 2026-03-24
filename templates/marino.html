@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐠 D'S Jumpers — ¡El Gran Acuario!</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800;900&family=Bubblegum+Sans&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ink:      #1a1a2e;
+            --deep:     #0a1628;
+            --ocean:    #0d3b6e;
+            --mid:      #1565a8;
+            --surface:  #2196f3;
+            --turq:     #00bcd4;
+            --foam:     #b2ebf2;
+            --coral:    #ff5252;
+            --coral2:   #ff8a65;
+            --sand:     #f5deb3;
+            --yellow:   #ffd600;
+            --purple:   #ab47bc;
+            --green:    #43a047;
+            --pink:     #ec407a;
+            --white:    #ffffff;
+            --outline:  3px solid var(--ink);
+            --shadow:   4px 4px 0 var(--ink);
+            --shadow-lg:6px 6px 0 var(--ink);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            color: var(--white);
+            overflow-x: hidden;
+            background: var(--deep);
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Ctext y='22' font-size='20'%3E🐟%3C/text%3E%3C/svg%3E") 14 14, auto;
+        }
+
+        /* ════════════════════════════════
+           GLOBAL BUBBLE ANIMATION
+        ════════════════════════════════ */
+        .bubble-wrap {
+            position: fixed; inset: 0;
+            pointer-events: none; z-index: 0;
+            overflow: hidden;
+        }
+        .bbl {
+            position: absolute;
+            bottom: -40px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,.35);
+            background: radial-gradient(circle at 35% 35%, rgba(255,255,255,.45), rgba(255,255,255,.05));
+            animation: bblRise linear infinite;
+        }
+        .bbl:nth-child(1)  { width:10px; height:10px; left:5%;   animation-duration:7s;  animation-delay:0s;   }
+        .bbl:nth-child(2)  { width:16px; height:16px; left:12%;  animation-duration:10s; animation-delay:1.5s; }
+        .bbl:nth-child(3)  { width:8px;  height:8px;  left:22%;  animation-duration:6s;  animation-delay:3s;   }
+        .bbl:nth-child(4)  { width:20px; height:20px; left:35%;  animation-duration:12s; animation-delay:.5s;  }
+        .bbl:nth-child(5)  { width:12px; height:12px; left:48%;  animation-duration:8s;  animation-delay:2s;   }
+        .bbl:nth-child(6)  { width:18px; height:18px; left:60%;  animation-duration:11s; animation-delay:4s;   }
+        .bbl:nth-child(7)  { width:9px;  height:9px;  left:72%;  animation-duration:7s;  animation-delay:1s;   }
+        .bbl:nth-child(8)  { width:14px; height:14px; left:82%;  animation-duration:9s;  animation-delay:2.5s; }
+        .bbl:nth-child(9)  { width:22px; height:22px; left:90%;  animation-duration:13s; animation-delay:.8s;  }
+        .bbl:nth-child(10) { width:11px; height:11px; left:95%;  animation-duration:8s;  animation-delay:3.5s; }
+        @keyframes bblRise {
+            0%   { transform:translateY(0) translateX(0);   opacity:0; }
+            10%  { opacity:1; }
+            80%  { opacity:.7; }
+            100% { transform:translateY(-110vh) translateX(20px); opacity:0; }
+        }
+
+        /* ════════════════════════════════
+           NAVBAR
+        ════════════════════════════════ */
+        .navbar {
+            background: var(--ocean) !important;
+            border-bottom: 4px solid var(--ink);
+            box-shadow: 0 4px 0 var(--ink), 0 8px 20px rgba(0,0,0,.4);
+            padding: 8px 0;
+            position: relative; z-index: 200;
+        }
+        /* Wave bottom */
+        .navbar::after {
+            content: "";
+            position: absolute;
+            bottom: -14px; left: 0; right: 0; height: 14px;
+            background: var(--ocean);
+            clip-path: path('M0,0 C120,14 240,0 360,8 C480,16 600,0 720,8 C840,16 960,0 1080,8 C1200,16 1320,4 1440,8 L1440,14 L0,14 Z');
+            z-index: -1;
+        }
+        .navbar-brand {
+            font-family: 'Baloo 2', cursive;
+            font-weight: 900;
+            font-size: 1.6rem;
+            color: var(--yellow) !important;
+            text-shadow: 2px 2px 0 var(--ink);
+            letter-spacing: 1px;
+        }
+        .nav-link {
+            font-family: 'Bubblegum Sans', cursive;
+            font-size: 1.05rem;
+            color: var(--foam) !important;
+            letter-spacing: .5px;
+            transition: .15s;
+            padding: 6px 14px !important;
+            border-radius: 20px;
+        }
+        .nav-link:hover { color: var(--yellow) !important; background: rgba(255,255,255,.1); transform: scale(1.08); }
+        .dropdown-menu {
+            background: var(--mid);
+            border: 3px solid var(--ink);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+        }
+        .dropdown-item { font-family: 'Bubblegum Sans', cursive; color: var(--foam); border-radius: 10px; }
+        .dropdown-item:hover { background: rgba(255,255,255,.15); color: var(--yellow); }
+        #cartCount { background: var(--coral) !important; }
+
+        /* ════════════════════════════════
+           HERO — deep ocean tank
+        ════════════════════════════════ */
+        .hero-section {
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(180deg,
+                #041020 0%,
+                #071830 15%,
+                #0d2a50 40%,
+                #0d3b6e 65%,
+                #1565a8 85%,
+                #1976d2 100%
+            );
+        }
+
+        /* Light caustics — rippling light patterns */
+        .caustics {
+            position: absolute; inset: 0;
+            background:
+                radial-gradient(ellipse 200px 80px at 20% 30%, rgba(33,150,243,.08), transparent),
+                radial-gradient(ellipse 150px 60px at 70% 20%, rgba(0,188,212,.07), transparent),
+                radial-gradient(ellipse 180px 70px at 50% 50%, rgba(33,150,243,.05), transparent);
+            animation: causticShift 8s ease-in-out infinite alternate;
+            pointer-events: none; z-index: 1;
+        }
+        @keyframes causticShift {
+            from { transform: translateX(-3%) scaleX(1.02); opacity:.6; }
+            to   { transform: translateX(3%)  scaleX(.98);  opacity:1; }
+        }
+
+        /* Surface light ripples */
+        .surface-light {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 120px;
+            background: linear-gradient(180deg, rgba(100,200,255,.12) 0%, transparent 100%);
+            animation: surfaceWave 4s ease-in-out infinite alternate;
+            pointer-events: none; z-index: 1;
+        }
+        @keyframes surfaceWave {
+            from { opacity:.5; transform: scaleX(1.01); }
+            to   { opacity:1;  transform: scaleX(.99);  }
+        }
+
+        /* ── ANIMATED FISH (CSS SVG) ────────────── */
+        .fish {
+            position: absolute;
+            z-index: 4;
+            pointer-events: none;
+            animation: fishSwim linear infinite;
+        }
+        .fish svg { display: block; }
+
+        /* Each fish gets unique path + timing */
+        .fish-1  { bottom:30%; animation-duration:18s; animation-delay:0s;   width:80px; }
+        .fish-2  { bottom:55%; animation-duration:22s; animation-delay:4s;   width:55px; transform:scaleX(-1); }
+        .fish-3  { bottom:20%; animation-duration:15s; animation-delay:8s;   width:65px; }
+        .fish-4  { bottom:45%; animation-duration:25s; animation-delay:2s;   width:45px; transform:scaleX(-1); }
+        .fish-5  { bottom:68%; animation-duration:20s; animation-delay:11s;  width:70px; }
+        .fish-6  { bottom:38%; animation-duration:30s; animation-delay:6s;   width:40px; transform:scaleX(-1); }
+
+        @keyframes fishSwim {
+            0%   { left: -150px; }
+            100% { left: 110%;   }
+        }
+        /* Wiggle body */
+        .fish svg { animation: fishWiggle 0.5s ease-in-out infinite alternate; transform-origin: right center; }
+        @keyframes fishWiggle {
+            from { transform: rotate(-3deg); }
+            to   { transform: rotate(3deg); }
+        }
+
+        /* ── SEAWEED ── */
+        .seaweed-row {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            display: flex; align-items: flex-end;
+            justify-content: space-around;
+            z-index: 5; pointer-events: none;
+            padding: 0 20px;
+        }
+        .seaweed {
+            display: flex; flex-direction: column-reverse; align-items: center;
+            animation: seaweedSway ease-in-out infinite alternate;
+            transform-origin: bottom center;
+        }
+        .sw-seg {
+            width: 18px; height: 28px;
+            background: var(--green);
+            border-radius: 50% 0 50% 50%;
+            border: 2px solid var(--ink);
+            margin-bottom: -4px;
+        }
+        .sw-seg:nth-child(even) {
+            border-radius: 0 50% 50% 50%;
+            background: #2e7d32;
+            transform: scaleX(-1);
+        }
+        .seaweed:nth-child(odd)  { animation-duration: 3s; animation-delay: 0s;  }
+        .seaweed:nth-child(even) { animation-duration: 4s; animation-delay: .8s; }
+        .seaweed:nth-child(3n)   { animation-duration: 2.5s; animation-delay: 1.5s; }
+        @keyframes seaweedSway {
+            from { transform: rotate(-12deg); }
+            to   { transform: rotate(12deg); }
+        }
+
+        /* ── CORAL REEF FLOOR ── */
+        .reef-floor {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 120px;
+            z-index: 3; pointer-events: none;
+        }
+        .reef-floor svg { width: 100%; height: 100%; display: block; }
+
+        /* ── JELLYFISH ── */
+        .jellyfish {
+            position: absolute;
+            z-index: 4;
+            pointer-events: none;
+            animation: jellyFloat ease-in-out infinite;
+        }
+        .jelly-1 { top:10%; right:8%;  animation-duration:5s;  animation-delay:0s;   width:60px; }
+        .jelly-2 { top:25%; left:6%;   animation-duration:7s;  animation-delay:2s;   width:45px; }
+        .jelly-3 { top:50%; right:15%; animation-duration:6s;  animation-delay:1s;   width:50px; }
+        @keyframes jellyFloat {
+            0%,100%{ transform:translateY(0); }
+            50%    { transform:translateY(-20px); }
+        }
+
+        /* ── STARFISH / SHELLS at bottom ── */
+        .sea-deco {
+            position: absolute;
+            bottom: 100px;
+            z-index: 5;
+            font-size: 2rem;
+            filter: drop-shadow(2px 2px 0 var(--ink));
+            animation: decoBob 3s ease-in-out infinite;
+        }
+        .sd1 { left:5%;  animation-delay:0s;   }
+        .sd2 { left:25%; animation-delay:1s;   font-size:1.5rem; }
+        .sd3 { right:20%;animation-delay:2s;   }
+        .sd4 { right:5%; animation-delay:.5s;  font-size:1.8rem; }
+        @keyframes decoBob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-6px);} }
+
+        /* Hero content */
+        .hero-inner {
+            position: relative; z-index: 10;
+            text-align: center;
+            padding: 80px 20px 180px;
+        }
+
+        /* Logo — porthole style */
+        .logo-porthole {
+            position: relative;
+            width: 190px; height: 190px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, rgba(100,200,255,.3), rgba(0,30,80,.7));
+            border: 6px solid var(--ink);
+            box-shadow:
+                0 0 0 4px rgba(255,255,255,.2),
+                0 0 0 8px var(--ink),
+                var(--shadow-lg),
+                inset 0 -6px 20px rgba(0,0,0,.3);
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-bottom: 28px;
+            overflow: hidden;
+            animation: portholeGlow 3s ease-in-out infinite;
+        }
+        /* Porthole shine */
+        .logo-porthole::before {
+            content: "";
+            position: absolute;
+            top: 12px; left: 20px; right: 20px;
+            height: 35%;
+            background: linear-gradient(180deg, rgba(255,255,255,.3), transparent);
+            border-radius: 50%;
+            z-index: 1;
+        }
+        /* Bubbles inside porthole */
+        .logo-porthole::after {
+            content: "🫧🫧";
+            position: absolute;
+            bottom: 18px; right: 18px;
+            font-size: 1rem;
+            animation: microBubble 2s ease-in-out infinite;
+        }
+        .logo-porthole img { width: 130px; height: 130px; object-fit: contain; position: relative; z-index: 2; }
+        @keyframes portholeGlow {
+            0%,100%{ box-shadow: 0 0 0 4px rgba(255,255,255,.2), 0 0 0 8px var(--ink), var(--shadow-lg); }
+            50%    { box-shadow: 0 0 0 4px rgba(0,188,212,.4), 0 0 0 8px var(--ink), var(--shadow-lg), 0 0 40px rgba(0,188,212,.2); }
+        }
+        @keyframes microBubble {
+            0%,100%{ transform:translateY(0); opacity:1; }
+            50%    { transform:translateY(-8px); opacity:.5; }
+        }
+
+        .hero-title {
+            font-family: 'Baloo 2', cursive;
+            font-weight: 900;
+            font-size: clamp(3.2rem, 11vw, 8rem);
+            line-height: .9;
+            color: var(--yellow);
+            text-shadow:
+                4px 4px 0 var(--ink),
+                -1px -1px 0 var(--ink),
+                1px -1px 0 var(--ink),
+                -1px 1px 0 var(--ink);
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            animation: titleSplash .9s cubic-bezier(.34,1.56,.64,1) both;
+        }
+        @keyframes titleSplash {
+            from { opacity:0; transform:scale(.5) rotate(-8deg); }
+            to   { opacity:1; transform:scale(1) rotate(0deg); }
+        }
+
+        .hero-sub {
+            font-family: 'Bubblegum Sans', cursive;
+            font-size: 1.4rem;
+            color: var(--ink);
+            background: var(--turq);
+            display: inline-block;
+            padding: 8px 30px;
+            border-radius: 50px;
+            border: 3px solid var(--ink);
+            box-shadow: var(--shadow);
+            margin-bottom: 28px;
+            animation: fadeSlide .7s .35s both;
+        }
+        @keyframes fadeSlide { from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);} }
+
+        .hero-btn {
+            font-family: 'Baloo 2', cursive;
+            font-weight: 900;
+            font-size: 1.4rem;
+            letter-spacing: 1px;
+            padding: 15px 52px;
+            border-radius: 50px;
+            border: 4px solid var(--ink);
+            background: var(--coral);
+            color: white;
+            text-shadow: 1px 1px 0 rgba(0,0,0,.25);
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: var(--shadow-lg);
+            transition: transform .15s, box-shadow .15s;
+            animation: fadeSlide .7s .5s both;
+        }
+        .hero-btn:hover { transform:translateY(-6px) rotate(-1deg); box-shadow:8px 8px 0 var(--ink); color:white; }
+        .hero-btn:active { transform:translateY(3px); box-shadow:2px 2px 0 var(--ink); }
+
+        /* ════════════════════════════════
+           MARQUEE
+        ════════════════════════════════ */
+        .ocean-tape {
+            background: var(--turq);
+            border-top: 4px solid var(--ink);
+            border-bottom: 4px solid var(--ink);
+            box-shadow: 0 4px 0 var(--ink);
+            padding: 9px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative; z-index: 10;
+        }
+        .tape-txt {
+            display: inline-block;
+            font-family: 'Baloo 2', cursive;
+            font-weight: 800;
+            font-size: 1rem;
+            color: var(--ink);
+            letter-spacing: 3px;
+            animation: tapeRoll 22s linear infinite;
+        }
+        @keyframes tapeRoll { from{transform:translateX(100vw);}to{transform:translateX(-100%);} }
+
+        /* ════════════════════════════════
+           SECTION BG LEVELS
+        ════════════════════════════════ */
+        .ocean-section {
+            position: relative;
+            padding: 55px 0 45px;
+        }
+        .depth-1 { background: linear-gradient(180deg, #0d3b6e, #1565a8); }
+        .depth-2 { background: linear-gradient(180deg, #0a2a55, #0d3b6e); }
+        .depth-3 { background: linear-gradient(180deg, #071830, #0a2a55); }
+        /* Wave top edge */
+        .ocean-section::before {
+            content: "";
+            position: absolute; top: -1px; left: 0; right: 0; height: 18px;
+            background: inherit;
+            clip-path: ellipse(52% 100% at 50% 0%);
+        }
+
+        /* ── SECTION TITLE ── */
+        .section-title {
+            font-family: 'Baloo 2', cursive;
+            font-weight: 900;
+            font-size: 2.5rem;
+            text-align: center;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+            text-shadow: 3px 3px 0 rgba(0,0,0,.3);
+        }
+        .section-sub {
+            font-family: 'Bubblegum Sans', cursive;
+            font-size: .9rem;
+            letter-spacing: 3px;
+            text-align: center;
+            margin-bottom: 32px;
+            opacity: .75;
+        }
+
+        /* ── CARTOON FISH DIVIDER ── */
+        .fish-divider {
+            display: flex; align-items: center; gap: 12px;
+            margin: 48px 0;
+            position: relative;
+        }
+        .fish-divider::before, .fish-divider::after {
+            content: ""; flex: 1; height: 3px;
+            background: repeating-linear-gradient(
+                to right,
+                rgba(255,255,255,.2) 0, rgba(255,255,255,.2) 10px,
+                transparent 10px, transparent 20px
+            );
+        }
+        .fish-divider span { font-size: 1.6rem; white-space: nowrap; }
+
+        /* ── CAT CARDS ── */
+        .cat-card {
+            display: block;
+            text-decoration: none;
+            color: var(--ink);
+            margin: 12px 5px;
+            border-radius: 20px;
+            padding: 30px 14px 22px;
+            text-align: center;
+            font-family: 'Bubblegum Sans', cursive;
+            font-size: 1.1rem;
+            letter-spacing: .5px;
+            border: 4px solid var(--ink);
+            box-shadow: var(--shadow-lg);
+            transition: transform .15s, box-shadow .15s;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Bubble deco corner */
+        .cat-card::after {
+            content: "🫧";
+            position: absolute; top: 6px; right: 10px;
+            font-size: 1.2rem; opacity: .5; transition: .2s;
+        }
+        /* Sheen */
+        .cat-card::before {
+            content: "";
+            position: absolute; top: 0; left: 0; right: 0; height: 40%;
+            background: linear-gradient(180deg, rgba(255,255,255,.25), transparent);
+            border-radius: 16px 16px 0 0;
+            pointer-events: none;
+        }
+        .swiper-slide:nth-child(7n+1) .cat-card { background: #ff8a65; } /* coral orange */
+        .swiper-slide:nth-child(7n+2) .cat-card { background: #42a5f5; } /* ocean blue */
+        .swiper-slide:nth-child(7n+3) .cat-card { background: #66bb6a; } /* seaweed green */
+        .swiper-slide:nth-child(7n+4) .cat-card { background: #ffd54f; } /* sun yellow */
+        .swiper-slide:nth-child(7n+5) .cat-card { background: #ce93d8; } /* purple */
+        .swiper-slide:nth-child(7n+6) .cat-card { background: #f48fb1; } /* pink */
+        .swiper-slide:nth-child(7n+0) .cat-card { background: #80cbc4; } /* teal */
+        .cat-card i { font-size: 2.2rem; margin-bottom: 10px; display: block; transition: .2s; filter: drop-shadow(1px 1px 0 rgba(0,0,0,.2)); }
+        .cat-card:hover {
+            transform: translateY(-10px) rotate(-2deg);
+            box-shadow: 8px 8px 0 var(--ink);
+            color: var(--ink);
+        }
+        .cat-card:hover::after { opacity:1; transform:scale(1.3) rotate(10deg); }
+        .cat-card:hover i { transform:scale(1.3) rotate(-8deg); }
+
+        /* ── REVIEW CARDS ── */
+        .review-card {
+            background: rgba(255,255,255,.95);
+            border-radius: 22px;
+            padding: 28px;
+            margin: 14px 10px;
+            border: 4px solid var(--ink);
+            box-shadow: var(--shadow-lg);
+            color: var(--ink);
+            position: relative;
+            overflow: hidden;
+        }
+        /* Water line inside card */
+        .review-card::after {
+            content: "";
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 6px;
+            background: linear-gradient(to right, var(--turq), var(--surface), var(--turq));
+            border-top: 2px solid var(--ink);
+        }
+        .review-card .stars { color: var(--yellow); font-size: 1.2rem; margin-bottom: 10px; -webkit-text-stroke: .5px var(--ink); }
+        .review-card p { font-weight: 800; font-size: 1rem; line-height: 1.7; }
+        .review-card h6 { font-family: 'Bubblegum Sans', cursive; color: var(--surface); margin-top: 12px; font-size: 1rem; letter-spacing: 1px; }
+
+        /* ── GRID ITEMS ── */
+        .grid-item {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-decoration: none;
+            color: var(--ink);
+            font-family: 'Bubblegum Sans', cursive;
+            font-size: 1.05rem;
+            letter-spacing: .5px;
+            padding: 26px 14px;
+            height: 100%;
+            border-radius: 18px;
+            border: 4px solid var(--ink);
+            box-shadow: var(--shadow);
+            transition: .15s;
+            position: relative;
+            overflow: hidden;
+        }
+        .grid-item::before {
+            content: "";
+            position: absolute; top: 0; left: 0; right: 0; height: 40%;
+            background: linear-gradient(180deg, rgba(255,255,255,.25), transparent);
+            border-radius: 14px 14px 0 0;
+            pointer-events: none;
+        }
+        .row .col:nth-child(8n+1) .grid-item { background: #ffab91; }
+        .row .col:nth-child(8n+2) .grid-item { background: #81d4fa; }
+        .row .col:nth-child(8n+3) .grid-item { background: #a5d6a7; }
+        .row .col:nth-child(8n+4) .grid-item { background: #fff176; }
+        .row .col:nth-child(8n+5) .grid-item { background: #ce93d8; }
+        .row .col:nth-child(8n+6) .grid-item { background: #f48fb1; }
+        .row .col:nth-child(8n+7) .grid-item { background: #80cbc4; }
+        .row .col:nth-child(8n+0) .grid-item { background: #ffcc80; }
+        .grid-item:hover {
+            transform: translateY(-7px) scale(1.04) rotate(1deg);
+            box-shadow: 7px 7px 0 var(--ink);
+            color: var(--ink);
+        }
+
+        /* ── ABOUT ── */
+        .about-tank {
+            background: rgba(13,59,110,.7);
+            border: 4px solid var(--ink);
+            border-radius: 24px;
+            padding: 50px;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(4px);
+        }
+        /* Tank glass reflection */
+        .about-tank::before {
+            content: "";
+            position: absolute; top: 0; left: 0; bottom: 0;
+            width: 14px;
+            background: linear-gradient(180deg, rgba(255,255,255,.15), rgba(255,255,255,.04));
+            border-radius: 24px 0 0 24px;
+        }
+        /* Floating fish emoji in bg */
+        .about-tank::after {
+            content: "🐠 🐟 🐡";
+            position: absolute; bottom: 20px; right: 20px;
+            font-size: 3rem; opacity: .1;
+            letter-spacing: 6px;
+            animation: floatEmoji 4s ease-in-out infinite;
+        }
+        @keyframes floatEmoji { 0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);} }
+        .about-tank p { color: rgba(255,255,255,.88); font-weight: 800; line-height: 1.8; }
+        .about-tank p.lead { color: var(--foam); font-size: 1.1rem; }
+        .about-logo-container {
+            display: flex; justify-content: center; align-items: center;
+            height: 160px;
+        }
+        .moving-logo {
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, rgba(100,200,255,.5), var(--ocean));
+            border: 4px solid var(--ink);
+            box-shadow: var(--shadow-lg), 0 0 20px rgba(0,188,212,.3);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 2.8rem;
+            position: relative;
+            transition: transform .15s linear;
+            animation: fishBob 2.5s ease-in-out infinite;
+        }
+        @keyframes fishBob { 0%,100%{transform:translateY(0) rotate(-4deg);}50%{transform:translateY(-14px) rotate(4deg);} }
+
+        /* ── EVENT CARDS ── */
+        .event-card {
+            background: rgba(21,101,168,.8);
+            border-radius: 20px;
+            padding: 28px 14px;
+            text-align: center;
+            margin: 10px 5px;
+            border: 4px solid var(--ink);
+            box-shadow: var(--shadow);
+            transition: .15s;
+            font-family: 'Bubblegum Sans', cursive;
+            position: relative;
+            overflow: hidden;
+        }
+        .event-card::before {
+            content: "";
+            position: absolute; top: 0; left: 0; right: 0; height: 40%;
+            background: linear-gradient(180deg, rgba(255,255,255,.15), transparent);
+            pointer-events: none;
+        }
+        .event-card i { font-size: 2.3rem; margin-bottom: 10px; display: block; transition: .2s; color: var(--yellow); }
+        .event-card h5 { font-size: 1rem; color: var(--foam); letter-spacing: .5px; }
+        .event-card:nth-child(odd)  { background: rgba(0,150,136,.7); }
+        .event-card:nth-child(even) { background: rgba(21,101,168,.8); }
+        .event-card:hover {
+            transform: translateY(-8px) scale(1.04);
+            box-shadow: var(--shadow-lg);
+        }
+        .event-card:hover i { transform: scale(1.3) rotate(-8deg); color: white; }
+
+        /* ── LOCATION ── */
+        .location-tank {
+            background: rgba(13,59,110,.8);
+            border: 4px solid var(--ink);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+        .location-tank::before {
+            content: "";
+            position: absolute; top: 0; left: 0; bottom: 0;
+            width: 12px;
+            background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.03));
+            border-radius: 24px 0 0 24px;
+        }
+        .location-tank h2 { font-family: 'Baloo 2', cursive; font-weight: 900; color: var(--yellow); font-size: 2rem; text-shadow: 2px 2px 0 rgba(0,0,0,.3); }
+        .location-tank i { color: var(--coral) !important; }
+        .location-tank p, .location-tank li { color: rgba(255,255,255,.82); font-weight: 800; }
+
+        /* ── CONTACT ── */
+        .contact-tank {
+            background: rgba(10,42,85,.9);
+            border: 4px solid var(--ink);
+            border-radius: 24px;
+            padding: 48px;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+        .contact-tank::before {
+            content: "";
+            position: absolute; top: 0; left: 0; right: 0; height: 5px;
+            background: linear-gradient(to right, var(--turq), var(--surface), var(--coral), var(--turq));
+        }
+        .contact-tank::after {
+            content: "🐙";
+            position: absolute; top: -15px; right: 30px;
+            font-size: 4rem;
+            filter: drop-shadow(2px 2px 0 rgba(0,0,0,.3));
+            animation: octopusBob 2s ease-in-out infinite;
+        }
+        @keyframes octopusBob { 0%,100%{transform:translateY(0) rotate(-5deg);}50%{transform:translateY(-10px) rotate(5deg);} }
+        .contact-tank h2 { font-family: 'Baloo 2', cursive; font-weight: 900; color: var(--yellow); font-size: 2.4rem; text-shadow: 3px 3px 0 rgba(0,0,0,.4); }
+        .form-label { color: var(--turq); font-weight: 900; font-size: .8rem; letter-spacing: 2px; text-transform: uppercase; }
+        .form-control {
+            background: rgba(255,255,255,.1);
+            border: 3px solid rgba(255,255,255,.2);
+            border-radius: 14px;
+            color: white;
+            padding: 12px 16px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            transition: .2s;
+        }
+        .form-control:focus {
+            background: rgba(255,255,255,.15);
+            border-color: var(--turq);
+            box-shadow: 0 0 0 3px rgba(0,188,212,.2);
+            color: white;
+        }
+        .form-control::placeholder { color: rgba(255,255,255,.3); }
+        .btn-aqua {
+            font-family: 'Baloo 2', cursive;
+            font-weight: 900;
+            font-size: 1.3rem;
+            letter-spacing: 1px;
+            padding: 14px 52px;
+            border-radius: 50px;
+            border: 4px solid var(--ink);
+            background: var(--turq);
+            color: var(--ink);
+            box-shadow: var(--shadow-lg);
+            transition: .15s;
+            cursor: pointer;
+        }
+        .btn-aqua:hover { transform:translateY(-5px) rotate(-1deg); box-shadow:8px 8px 0 var(--ink); background:#00acc1; }
+        .btn-aqua:active { transform:translateY(3px); box-shadow:2px 2px 0 var(--ink); }
+
+        /* ── FOOTER ── */
+        footer {
+            background: var(--deep);
+            border-top: 4px solid var(--ink);
+            padding: 50px 20px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        footer::before {
+            content: "🐚 🦀 🐚 🦀 🐚 🦀 🐚 🦀 🐚 🦀 🐚 🦀 🐚 🦀 🐚 🦀 🐚";
+            display: block; font-size: 1.1rem; letter-spacing: 6px;
+            padding-bottom: 16px; opacity: .4;
+        }
+        footer h4 { font-family: 'Baloo 2', cursive; font-weight: 900; color: var(--yellow); letter-spacing: 2px; margin-bottom: 20px; text-shadow: 2px 2px 0 rgba(0,0,0,.3); }
+        .social-btn {
+            width: 54px; height: 54px;
+            border-radius: 50%;
+            border: 4px solid var(--ink);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+            transition: .15s;
+            text-decoration: none;
+            color: var(--ink);
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+        .social-btn::before {
+            content: "";
+            position: absolute; top: 5px; left: 8px; right: 8px; height: 38%;
+            border-radius: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,.35), transparent);
+        }
+        .social-btn:nth-child(1) { background: #42a5f5; }
+        .social-btn:nth-child(2) { background: #80cbc4; }
+        .social-btn:nth-child(3) { background: var(--coral); color: white; }
+        .social-btn:nth-child(4) { background: #66bb6a; }
+        .social-btn:nth-child(5) { background: #7986cb; color: white; }
+        .social-btn:hover { transform:scale(1.2) rotate(-8deg); color: inherit; }
+        footer p { color: rgba(255,255,255,.2); font-size: .8rem; font-weight: 800; letter-spacing: 2px; margin-top: 20px; }
+
+        /* ── SWIPER ── */
+        .swiper-button-next, .swiper-button-prev {
+            color: var(--ink) !important;
+            background: var(--turq);
+            border: 3px solid var(--ink);
+            border-radius: 50%;
+            width: 44px !important; height: 44px !important;
+            box-shadow: var(--shadow);
+        }
+        .swiper-button-next::after, .swiper-button-prev::after { font-size: .9rem !important; font-weight: 900 !important; }
+        .swiper-pagination-bullet { background: rgba(255,255,255,.3) !important; }
+        .swiper-pagination-bullet-active { background: var(--coral) !important; }
+        .container { position: relative; z-index: 5; }
+    </style>
+</head>
+<body>
+
+<!-- Global bubbles -->
+<div class="bubble-wrap">
+    <div class="bbl"></div><div class="bbl"></div><div class="bbl"></div>
+    <div class="bbl"></div><div class="bbl"></div><div class="bbl"></div>
+    <div class="bbl"></div><div class="bbl"></div><div class="bbl"></div><div class="bbl"></div>
+</div>
+
+<!-- ══════════ NAVBAR ══════════ -->
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <img height="32px" src="https://dsjumpers.com/wp-content/uploads/2025/02/cropped-Logotipo-D%C2%B4S-Jumpers-qnohhmv0x0akjoiwicpksyn98vul3qjxppjyzgt6og.webp" alt="logo" class="me-2 rounded-circle" style="border:3px solid var(--turq);">
+            🐠 MI EMPRESA
+        </a>
+        <div class="d-flex align-items-center ms-auto me-3 order-lg-last">
+            <a class="nav-link position-relative p-2" href="#" id="cartIcon">
+                <i class="fas fa-shopping-cart fa-lg" style="color:var(--yellow);"></i>
+                <span id="cartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill" style="font-size:.65rem;">0</span>
+            </a>
+        </div>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal" style="color:var(--turq);">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="menuPrincipal">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#categorias">🐡 Categorías</a></li>
+                <li class="nav-item"><a class="nav-link" href="#eventos">🦑 Eventos</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">🐚 Nosotros</a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#nosotros">🐠 Sobre Nosotros</a></li>
+                        <li><a class="dropdown-item" href="#contacto">📨 Contáctanos</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ══════════ HERO ══════════ -->
+<section class="hero-section">
+    <div class="caustics"></div>
+    <div class="surface-light"></div>
+
+    <!-- Jellyfish -->
+    <div class="jellyfish jelly-1">
+        <svg viewBox="0 0 60 80" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="30" cy="28" rx="26" ry="24" fill="#ce93d8" stroke="#1a1a2e" stroke-width="3"/>
+            <ellipse cx="30" cy="22" rx="18" ry="10" fill="rgba(255,255,255,.25)"/>
+            <path d="M12,50 Q10,65 14,75" stroke="#ce93d8" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path d="M20,52 Q17,68 21,78" stroke="#ab47bc" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M30,53 Q30,70 30,80" stroke="#ce93d8" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path d="M40,52 Q43,68 39,78" stroke="#ab47bc" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M48,50 Q50,65 46,75" stroke="#ce93d8" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <circle cx="22" cy="28" r="4" fill="#1a1a2e"/>
+            <circle cx="38" cy="28" r="4" fill="#1a1a2e"/>
+            <circle cx="23" cy="27" r="1.5" fill="white"/>
+            <circle cx="39" cy="27" r="1.5" fill="white"/>
+        </svg>
+    </div>
+    <div class="jellyfish jelly-2">
+        <svg viewBox="0 0 50 65" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="25" cy="22" rx="21" ry="19" fill="#80cbc4" stroke="#1a1a2e" stroke-width="3"/>
+            <ellipse cx="25" cy="17" rx="13" ry="8" fill="rgba(255,255,255,.2)"/>
+            <path d="M10,40 Q8,53 12,62" stroke="#80cbc4" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path d="M19,42 Q17,56 20,64" stroke="#4db6ac" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M25,43 Q25,58 25,65" stroke="#80cbc4" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path d="M31,42 Q33,56 30,64" stroke="#4db6ac" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M40,40 Q42,53 38,62" stroke="#80cbc4" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <circle cx="18" cy="22" r="3.5" fill="#1a1a2e"/>
+            <circle cx="32" cy="22" r="3.5" fill="#1a1a2e"/>
+            <circle cx="19" cy="21" r="1.2" fill="white"/>
+            <circle cx="33" cy="21" r="1.2" fill="white"/>
+        </svg>
+    </div>
+    <div class="jellyfish jelly-3">
+        <svg viewBox="0 0 55 72" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="27" cy="24" rx="23" ry="21" fill="#f48fb1" stroke="#1a1a2e" stroke-width="3"/>
+            <ellipse cx="27" cy="18" rx="15" ry="9" fill="rgba(255,255,255,.22)"/>
+            <path d="M11,44 Q9,58 13,68" stroke="#f48fb1" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path d="M20,46 Q18,61 22,70" stroke="#ec407a" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M27,47 Q27,63 27,72" stroke="#f48fb1" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path d="M34,46 Q36,61 32,70" stroke="#ec407a" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M43,44 Q45,58 41,68" stroke="#f48fb1" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <circle cx="20" cy="24" r="4" fill="#1a1a2e"/>
+            <circle cx="34" cy="24" r="4" fill="#1a1a2e"/>
+            <circle cx="21" cy="23" r="1.4" fill="white"/>
+            <circle cx="35" cy="23" r="1.4" fill="white"/>
+        </svg>
+    </div>
+
+    <!-- Fish swimming across -->
+    <!-- CLOWNFISH -->
+    <div class="fish fish-1">
+        <svg viewBox="0 0 90 55" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="45" cy="28" rx="36" ry="22" fill="#ff7043" stroke="#1a1a2e" stroke-width="3"/>
+            <!-- White stripes -->
+            <rect x="18" y="8" width="10" height="40" rx="5" fill="white" stroke="#1a1a2e" stroke-width="2"/>
+            <rect x="44" y="12" width="8" height="32" rx="4" fill="white" stroke="#1a1a2e" stroke-width="1.5"/>
+            <!-- Eye -->
+            <circle cx="68" cy="22" r="7" fill="white" stroke="#1a1a2e" stroke-width="2"/>
+            <circle cx="69" cy="22" r="4" fill="#1a1a2e"/>
+            <circle cx="70" cy="20" r="1.5" fill="white"/>
+            <!-- Mouth -->
+            <path d="M76,30 Q80,35 76,38" stroke="#1a1a2e" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <!-- Tail -->
+            <path d="M8,10 L0,28 L8,46" fill="#ff7043" stroke="#1a1a2e" stroke-width="2.5"/>
+            <!-- Fins -->
+            <ellipse cx="45" cy="8"  rx="14" ry="8" fill="#ff5722" stroke="#1a1a2e" stroke-width="2" transform="rotate(-10 45 8)"/>
+            <ellipse cx="35" cy="44" rx="10" ry="6" fill="#ff5722" stroke="#1a1a2e" stroke-width="2"/>
+        </svg>
+    </div>
+
+    <!-- BLUE TANG (Dory style) -->
+    <div class="fish fish-2">
+        <svg viewBox="0 0 80 50" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="40" cy="26" rx="32" ry="19" fill="#1976d2" stroke="#1a1a2e" stroke-width="3"/>
+            <!-- yellow stripe -->
+            <ellipse cx="40" cy="42" rx="28" ry="6" fill="#ffd600" stroke="#1a1a2e" stroke-width="2"/>
+            <!-- Eye -->
+            <circle cx="60" cy="20" r="7" fill="white" stroke="#1a1a2e" stroke-width="2"/>
+            <circle cx="61" cy="20" r="4" fill="#1a1a2e"/>
+            <circle cx="62" cy="18" r="1.5" fill="white"/>
+            <!-- Mouth -->
+            <path d="M68,27 Q73,32 68,35" stroke="#1a1a2e" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <!-- Tail -->
+            <path d="M7,10 L0,26 L7,42" fill="#1976d2" stroke="#1a1a2e" stroke-width="2.5"/>
+            <ellipse cx="38" cy="9"  rx="12" ry="7" fill="#42a5f5" stroke="#1a1a2e" stroke-width="2"/>
+        </svg>
+    </div>
+
+    <!-- YELLOW FISH -->
+    <div class="fish fish-3">
+        <svg viewBox="0 0 75 48" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="38" cy="25" rx="30" ry="18" fill="#ffd600" stroke="#1a1a2e" stroke-width="3"/>
+            <!-- Eye -->
+            <circle cx="57" cy="20" r="6" fill="white" stroke="#1a1a2e" stroke-width="2"/>
+            <circle cx="58" cy="20" r="3.5" fill="#1a1a2e"/>
+            <circle cx="59" cy="18" r="1.2" fill="white"/>
+            <path d="M63,27 Q67,31 63,34" stroke="#1a1a2e" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <!-- Tail -->
+            <path d="M7,10 L0,25 L7,40" fill="#ffd600" stroke="#1a1a2e" stroke-width="2.5"/>
+            <ellipse cx="36" cy="9"  rx="11" ry="7" fill="#ffca28" stroke="#1a1a2e" stroke-width="2"/>
+            <ellipse cx="30" cy="40" rx="8"  ry="5" fill="#ffca28" stroke="#1a1a2e" stroke-width="1.5"/>
+            <!-- stripe -->
+            <path d="M28,10 Q26,25 28,40" stroke="rgba(0,0,0,.2)" stroke-width="5" fill="none"/>
+        </svg>
+    </div>
+
+    <!-- Small fish -->
+    <div class="fish fish-4">
+        <svg viewBox="0 0 60 38" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="30" cy="20" rx="24" ry="14" fill="#66bb6a" stroke="#1a1a2e" stroke-width="2.5"/>
+            <circle cx="45" cy="16" r="5" fill="white" stroke="#1a1a2e" stroke-width="2"/>
+            <circle cx="46" cy="16" r="3" fill="#1a1a2e"/>
+            <circle cx="47" cy="14" r="1" fill="white"/>
+            <path d="M6,8 L0,20 L6,32" fill="#66bb6a" stroke="#1a1a2e" stroke-width="2"/>
+        </svg>
+    </div>
+
+    <!-- Purple fish -->
+    <div class="fish fish-5">
+        <svg viewBox="0 0 82 52" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="42" cy="27" rx="33" ry="20" fill="#ab47bc" stroke="#1a1a2e" stroke-width="3"/>
+            <circle cx="62" cy="21" r="7" fill="white" stroke="#1a1a2e" stroke-width="2"/>
+            <circle cx="63" cy="21" r="4" fill="#1a1a2e"/>
+            <circle cx="64" cy="19" r="1.5" fill="white"/>
+            <path d="M69,28 Q74,33 69,36" stroke="#1a1a2e" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M8,10 L0,27 L8,44" fill="#ab47bc" stroke="#1a1a2e" stroke-width="2.5"/>
+            <ellipse cx="40" cy="9"  rx="13" ry="8" fill="#9c27b0" stroke="#1a1a2e" stroke-width="2"/>
+        </svg>
+    </div>
+
+    <!-- Tiny fish -->
+    <div class="fish fish-6">
+        <svg viewBox="0 0 55 35" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="28" cy="18" rx="22" ry="13" fill="#ff8a65" stroke="#1a1a2e" stroke-width="2.5"/>
+            <circle cx="42" cy="14" r="5" fill="white" stroke="#1a1a2e" stroke-width="2"/>
+            <circle cx="43" cy="14" r="3" fill="#1a1a2e"/>
+            <circle cx="44" cy="12" r="1" fill="white"/>
+            <path d="M5,7 L0,18 L5,30" fill="#ff8a65" stroke="#1a1a2e" stroke-width="2"/>
+        </svg>
+    </div>
+
+    <!-- Sea decorations -->
+    <div class="sea-deco sd1">⭐</div>
+    <div class="sea-deco sd2">🐚</div>
+    <div class="sea-deco sd3">🦀</div>
+    <div class="sea-deco sd4">⭐</div>
+
+    <!-- Seaweed -->
+    <div class="seaweed-row">
+        <div class="seaweed" style="height:80px;">
+            <div class="sw-seg"></div><div class="sw-seg"></div><div class="sw-seg"></div>
+        </div>
+        <div class="seaweed" style="height:110px;">
+            <div class="sw-seg"></div><div class="sw-seg"></div><div class="sw-seg"></div><div class="sw-seg"></div>
+        </div>
+        <div class="seaweed" style="height:65px;">
+            <div class="sw-seg"></div><div class="sw-seg"></div>
+        </div>
+        <div class="seaweed" style="height:95px;">
+            <div class="sw-seg"></div><div class="sw-seg"></div><div class="sw-seg"></div>
+        </div>
+        <div class="seaweed" style="height:75px;">
+            <div class="sw-seg"></div><div class="sw-seg"></div><div class="sw-seg"></div>
+        </div>
+        <div class="seaweed" style="height:120px;">
+            <div class="sw-seg"></div><div class="sw-seg"></div><div class="sw-seg"></div><div class="sw-seg"></div>
+        </div>
+        <div class="seaweed" style="height:60px;">
+            <div class="sw-seg"></div><div class="sw-seg"></div>
+        </div>
+        <div class="seaweed" style="height:100px;">
+            <div class="sw-seg"></div><div class="sw-seg"></div><div class="sw-seg"></div>
+        </div>
+        <div class="seaweed" style="height:85px;">
+            <div class="sw-seg"></div><div class="sw-seg"></div><div class="sw-seg"></div>
+        </div>
+    </div>
+
+    <!-- Coral reef floor SVG -->
+    <div class="reef-floor">
+        <svg viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- sand base -->
+            <rect x="0" y="80" width="1440" height="40" fill="#c4a35a"/>
+            <rect x="0" y="75" width="1440" height="8" fill="#d4b06a" opacity=".5"/>
+            <!-- coral shapes -->
+            <g stroke="#1a1a2e" stroke-width="2.5">
+                <!-- red coral -->
+                <path d="M60,78 L60,50 M55,65 L60,58 M65,60 L60,55" stroke="#ff5252" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="60" cy="48" r="8" fill="#ff5252"/>
+                <circle cx="52" cy="63" r="6" fill="#ff5252"/>
+                <circle cx="68" cy="58" r="6" fill="#ff7043"/>
+                <!-- orange coral cluster -->
+                <path d="M180,78 L180,42" stroke="#ff7043" stroke-width="4" stroke-linecap="round"/>
+                <path d="M172,58 L180,48 M188,54 L180,44" stroke="#ff7043" stroke-width="3.5" stroke-linecap="round"/>
+                <circle cx="180" cy="40" r="10" fill="#ff7043"/>
+                <circle cx="170" cy="56" r="7" fill="#ff5722"/>
+                <circle cx="190" cy="52" r="7" fill="#ff8a65"/>
+                <!-- pink fan coral -->
+                <path d="M340,78 L340,35" stroke="#f06292" stroke-width="3" stroke-linecap="round"/>
+                <ellipse cx="340" cy="30" rx="28" ry="18" fill="#f48fb1" stroke="#1a1a2e" stroke-width="2" opacity=".85"/>
+                <path d="M315,40 Q340,20 365,40" fill="none" stroke="#ec407a" stroke-width="2" opacity=".5"/>
+                <path d="M320,48 Q340,28 360,48" fill="none" stroke="#ec407a" stroke-width="1.5" opacity=".4"/>
+                <!-- purple brain coral -->
+                <ellipse cx="510" cy="68" rx="35" ry="20" fill="#ce93d8" stroke="#1a1a2e" stroke-width="2.5"/>
+                <path d="M480,68 Q495,55 510,68 Q525,81 540,68" fill="none" stroke="#9c27b0" stroke-width="2" opacity=".5"/>
+                <path d="M482,74 Q497,61 510,74" fill="none" stroke="#9c27b0" stroke-width="1.5" opacity=".4"/>
+                <!-- anemone -->
+                <ellipse cx="660" cy="74" rx="20" ry="12" fill="#ff8a65"/>
+                <path d="M645,72 L638,55 M652,70 L650,48 M660,70 L660,45 M668,70 L670,48 M675,72 L682,55" stroke="#ff7043" stroke-width="3" stroke-linecap="round"/>
+                <!-- teal coral -->
+                <path d="M800,78 L800,40" stroke="#26c6da" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="800" cy="38" r="10" fill="#26c6da"/>
+                <path d="M790,55 L783,42 M810,50 L817,40" stroke="#26c6da" stroke-width="3.5" stroke-linecap="round"/>
+                <circle cx="782" cy="40" r="7" fill="#00bcd4"/>
+                <circle cx="818" cy="38" r="7" fill="#00bcd4"/>
+                <!-- yellow sponge -->
+                <rect x="950" y="52" width="30" height="26" rx="6" fill="#ffd600" stroke="#1a1a2e" stroke-width="2.5"/>
+                <circle cx="958" cy="60" r="3" fill="rgba(0,0,0,.15)"/>
+                <circle cx="968" cy="64" r="3" fill="rgba(0,0,0,.15)"/>
+                <circle cx="974" cy="57" r="2.5" fill="rgba(0,0,0,.15)"/>
+                <!-- red tube coral -->
+                <path d="M1100,78 L1100,45 M1090,78 L1090,55 M1110,78 L1110,50" stroke="#ef9a9a" stroke-width="8" stroke-linecap="round"/>
+                <!-- green coral -->
+                <path d="M1260,78 L1260,48" stroke="#66bb6a" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="1260" cy="46" r="9" fill="#66bb6a"/>
+                <path d="M1250,62 L1244,50 M1270,58 L1276,48" stroke="#66bb6a" stroke-width="3" stroke-linecap="round"/>
+                <circle cx="1243" cy="48" r="6" fill="#43a047"/>
+                <circle cx="1277" cy="46" r="6" fill="#43a047"/>
+            </g>
+            <!-- pebbles -->
+            <g fill="#c4a35a" stroke="#1a1a2e" stroke-width="1.5">
+                <ellipse cx="120" cy="80" rx="12" ry="6"/><ellipse cx="260" cy="82" rx="9" ry="5"/>
+                <ellipse cx="450" cy="80" rx="14" ry="7"/><ellipse cx="720" cy="82" rx="10" ry="5"/>
+                <ellipse cx="880" cy="80" rx="12" ry="6"/><ellipse cx="1050" cy="81" rx="8" ry="4"/>
+                <ellipse cx="1180" cy="80" rx="13" ry="6"/><ellipse cx="1380" cy="82" rx="11" ry="5"/>
+            </g>
+        </svg>
+    </div>
+
+    <div class="hero-inner">
+        <div class="logo-porthole">
+            <img src="https://dsjumpers.com/wp-content/uploads/2025/02/cropped-Logotipo-D%C2%B4S-Jumpers-qnohhmv0x0akjoiwicpksyn98vul3qjxppjyzgt6og.webp" alt="logo">
+        </div>
+        <h1 class="hero-title">D'S JUMPERS</h1>
+        <p class="hero-sub">🐠 ¡Creatividad en Movimiento! 🌊</p>
+        <a href="#categorias" class="hero-btn">🐡 ¡EXPLORAR EL OCÉANO!</a>
+    </div>
+</section>
+
+<!-- OCEAN TAPE -->
+<div class="ocean-tape">
+    <span class="tape-txt">
+        🐠 ¡PECES INCREÍBLES! &nbsp;•&nbsp; 🦈 TIBURONES AMIGABLES &nbsp;•&nbsp; 🐙 PULPOS CREATIVOS &nbsp;•&nbsp; 🦑 CALAMARES VELOCES &nbsp;•&nbsp; 🐡 MUNDOS SUBMARINOS &nbsp;•&nbsp; 🦀 CANGREJOS BAILADORES &nbsp;•&nbsp; 🐚 CONCHAS MÁGICAS &nbsp;•&nbsp; 🌊 ¡SUMERGE EN LA AVENTURA! &nbsp;•&nbsp;
+    </span>
+</div>
+
+<!-- ══════════ MAIN CONTENT ══════════ -->
+<div class="container py-5">
+
+    <!-- CATEGORÍAS -->
+    <section class="ocean-section depth-1 mb-5 rounded-4 p-4" id="categorias">
+        <h2 class="section-title">🐡 Categorías Destacadas</h2>
+        <p class="section-sub">— ¡elige tu pez favorito! —</p>
+        <div class="swiper swiperCategories">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-rocket"></i>🚀 Tech</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-paint-brush"></i>🎨 Diseño</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-music"></i>🎵 Música</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-camera"></i>📸 Fotos</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-utensils"></i>🍳 Cocina</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-running"></i>🏃 Deporte</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-gamepad"></i>🎮 Juegos</a></div>
+            </div>
+            <div class="swiper-pagination mt-4"></div>
+        </div>
+    </section>
+
+    <div class="fish-divider"><span>🐠 🫧 🐟 🫧 🐡</span></div>
+
+    <!-- REVIEWS -->
+    <section class="ocean-section depth-2 mb-5 rounded-4 p-4">
+        <h2 class="section-title">🦀 ¡Lo que dicen!</h2>
+        <p class="section-sub">— voces del fondo del mar —</p>
+        <div class="swiper swiperReviews">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"¡El servicio nada perfecto! Tan fluido como una corriente marina. ¡INCREÍBLE!"</p>
+                        <h6>— Juan Pérez 🐠</h6>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★☆</div>
+                        <p>"¡Me sumergí completamente! La experiencia fue tan refrescante como el océano. ¡WOW!"</p>
+                        <h6>— Maria García 🐡</h6>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"¡Encontré todo en segundos! Navegar por el catálogo es como explorar un arrecife. ¡BRAVO!"</p>
+                        <h6>— Carlos Ruiz 🦈</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+    </section>
+
+    <div class="fish-divider"><span>🌿 🐚 🌊 🐚 🌿</span></div>
+
+    <!-- CATÁLOGO GRID -->
+    <section class="ocean-section depth-1 mb-5 rounded-4 p-4">
+        <h2 class="section-title">🐙 Explora el Catálogo</h2>
+        <p class="section-sub">— ¡un mundo de posibilidades! —</p>
+        <div class="row g-3">
+            <div class="col-6 col-md-4 col-lg-3 col"><a href="#" class="grid-item">💻 Tecnología</a></div>
+            <div class="col-6 col-md-4 col-lg-3 col"><a href="#" class="grid-item">🎨 Arte</a></div>
+            <div class="col-6 col-md-4 col-lg-3 col"><a href="#" class="grid-item">🎵 Música</a></div>
+            <div class="col-6 col-md-4 col-lg-3 col"><a href="#" class="grid-item">📸 Fotografía</a></div>
+            <div class="col-6 col-md-4 col-lg-3 col"><a href="#" class="grid-item">🍽️ Gastronomía</a></div>
+            <div class="col-6 col-md-4 col-lg-3 col"><a href="#" class="grid-item">⚽ Deportes</a></div>
+            <div class="col-6 col-md-4 col-lg-3 col"><a href="#" class="grid-item">🎮 Gaming</a></div>
+            <div class="col-6 col-md-4 col-lg-3 col"><a href="#" class="grid-item">✈️ Viajes</a></div>
+        </div>
+    </section>
+
+    <div class="fish-divider"><span>🦑 🫧 🐠 🫧 🦑</span></div>
+
+    <!-- ABOUT -->
+    <section class="mb-5" id="nosotros">
+        <div class="about-tank">
+            <h2 class="section-title">🦈 Sobre Nosotros</h2>
+            <p class="section-sub" style="color:var(--turq);">— conoce a la tripulación —</p>
+            <div class="row align-items-center g-5">
+                <div class="col-md-8">
+                    <p class="lead mb-4">
+                        🐠 ¡Somos un equipo de criaturas marinas apasionadas! Una empresa dedicada a conectar a las personas con el contenido y los servicios que aman. Como el océano mismo — vasto, lleno de vida y siempre en movimiento.
+                    </p>
+                    <p>
+                        Nuestra misión es simple: ¡facilitar el acceso a un mundo de posibilidades! Construimos una plataforma donde la diversidad de intereses se sumerge con la calidad y la innovación. ¡Juntos navegamos hacia el horizonte!
+                    </p>
+                </div>
+                <div class="col-md-4">
+                    <div class="about-logo-container">
+                        <div id="movingLogo" class="moving-logo">
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EVENTOS -->
+    <section class="ocean-section depth-3 mb-5 rounded-4 p-4" id="eventos">
+        <h2 class="section-title">🦑 Tipos de Eventos</h2>
+        <p class="section-sub">— ¡cada evento es un tesoro! —</p>
+        <div class="swiper swiperEvents">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-glass-cheers"></i><h5>💍 Bodas</h5></div></div>
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-birthday-cake"></i><h5>🎂 Cumpleaños</h5></div></div>
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-briefcase"></i><h5>🏢 Corporativos</h5></div></div>
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-graduation-cap"></i><h5>🎓 Graduaciones</h5></div></div>
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-music"></i><h5>🎶 Conciertos</h5></div></div>
+            </div>
+            <div class="swiper-pagination mt-4"></div>
+        </div>
+    </section>
+
+    <div class="fish-divider"><span>📍 🐚 🗺️ 🐚 📍</span></div>
+
+    <!-- UBICACIÓN -->
+    <section class="mb-5">
+        <div class="location-tank">
+            <div class="row align-items-center g-4">
+                <div class="col-md-5 px-4">
+                    <h2 class="mb-4">🗺️ Nuestra Ubicación</h2>
+                    <p class="mb-3">¡Cubrimos toda el área metropolitana! ¡Nadamos hasta donde estés!</p>
+                    <ul class="list-unstyled mt-3">
+                        <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> Calle Falsa 123, Ciudad Central</li>
+                        <li class="mb-2"><i class="fas fa-clock me-2"></i> Lun - Vie: 9:00 AM - 6:00 PM</li>
+                    </ul>
+                </div>
+                <div class="col-md-7">
+                    <div class="ratio ratio-16x9 overflow-hidden" style="border-radius:16px;border:4px solid var(--ink);box-shadow:var(--shadow-lg);">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1422937611435!2d-73.98731968459391!3d40.75889497932681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480293%3A0x5117f70619c651b0!2sTimes%20Square!5e0!3m2!1ses!2scl!4v1625070000000!5m2!1ses!2scl" style="border:0;filter:hue-rotate(190deg) saturate(.7) brightness(.65);" allowfullscreen="" loading="lazy"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="fish-divider"><span>📨 🫧 💌 🫧 📨</span></div>
+
+    <!-- CONTACTO -->
+    <section class="mb-5" id="contacto">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="contact-tank">
+                    <h2 class="text-center mb-1 mt-3">🐙 ¡Contáctanos!</h2>
+                    <p class="section-sub mb-4" style="color:var(--turq);">— envíanos un mensaje burbuja —</p>
+                    <form>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">🐠 NOMBRE</label>
+                                <input type="text" class="form-control" placeholder="Tu nombre">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">📡 CORREO</label>
+                                <input type="email" class="form-control" placeholder="email@ejemplo.com">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">🦈 ASUNTO</label>
+                                <input type="text" class="form-control" placeholder="¿En qué podemos ayudarte?">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">🫧 MENSAJE</label>
+                                <textarea class="form-control" rows="4" placeholder="Escribe tu mensaje aquí..."></textarea>
+                            </div>
+                            <div class="col-12 text-center mt-3">
+                                <button type="button" class="btn-aqua">🌊 ¡ENVIAR! 🐠</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer>
+    <h4 class="mb-4">🐠 ¡Síguenos en redes! 🌊</h4>
+    <div class="d-flex justify-content-center gap-3 flex-wrap mb-3">
+        <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-twitter"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-instagram"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-whatsapp"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-linkedin-in"></i></a>
+    </div>
+    <p>&copy; 2026 — El Gran Acuario · Todos los derechos reservados</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+    new Swiper(".swiperCategories", {
+        slidesPerView:1, spaceBetween:10, loop:true,
+        autoplay:{delay:2800, disableOnInteraction:false},
+        breakpoints:{640:{slidesPerView:2},768:{slidesPerView:3},1024:{slidesPerView:5}},
+        pagination:{el:".swiper-pagination",clickable:true},
+    });
+    new Swiper(".swiperReviews", {
+        slidesPerView:1, spaceBetween:20, loop:true,
+        autoplay:{delay:5000},
+        navigation:{nextEl:".swiper-button-next",prevEl:".swiper-button-prev"},
+        breakpoints:{768:{slidesPerView:2}}
+    });
+    new Swiper(".swiperEvents", {
+        slidesPerView:1, spaceBetween:20, loop:true,
+        autoplay:{delay:3500, disableOnInteraction:false},
+        breakpoints:{640:{slidesPerView:2},1024:{slidesPerView:4}},
+        pagination:{el:".swiper-pagination",clickable:true},
+    });
+
+    const movingLogo = document.getElementById('movingLogo');
+    const aboutLogoContainer = document.querySelector('.about-logo-container');
+    if (movingLogo && aboutLogoContainer) {
+        aboutLogoContainer.addEventListener('mousemove', (e) => {
+            const r = aboutLogoContainer.getBoundingClientRect();
+            const nx = ((e.clientX - r.left) / r.width)  * 2 - 1;
+            const ny = ((e.clientY - r.top)  / r.height) * 2 - 1;
+            movingLogo.style.transform = `translate(${nx*25}px,${ny*25}px)`;
+        });
+        aboutLogoContainer.addEventListener('mouseleave', () => {
+            movingLogo.style.transform = 'translate(0,0)';
+        });
+    }
+
+    let itemCount = 0;
+    const cartCountEl = document.getElementById('cartCount');
+    function agregarAlCarrito() { itemCount++; cartCountEl.innerText = itemCount; }
+</script>
+</body>
+</html>

@@ -6,10 +6,11 @@ include_once 'config/config.php';
 include_once 'config/database.php'; 
 $database = new Database();
 $db = $database->getConnection();
-$lang ='es';
+$Idioma = $_SESSION['Idioma'];
+
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo $lang;?>">
+<html lang="<?php echo $Idioma;?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -74,7 +75,7 @@ $lang ='es';
     }
 
     $PayPlatform ='OPAY';
-    $PayPlatform ='SQUARE';
+    //$PayPlatform ='SQUARE';
 
     $token = $_GET['Id']; // El UUID de la URL
     $ahora = date("Y-m-d H:i:s");
@@ -160,7 +161,7 @@ $lang ='es';
                                 <p class="mb-2 text-muted small">
                                     <i class="bi bi-file-earmark-pdf"></i> Documento legal listo para revisión.
                                 </p>
-                                <a href="<?php echo $token?>.pdf" class="btn btn-outline-primary btn-sm" download>
+                                <a href="<?php echo $_GET['base']."/".$token?>.pdf" class="btn btn-outline-primary btn-sm" download>
                                     <i class="bi bi-download"></i> Descargar PDF
                                 </a>
                             </div>
@@ -454,7 +455,7 @@ $lang ='es';
 
 <script>
     $(document).ready(function() {
-    const url = '<?php echo $token;?>.pdf'; // Ruta de tu PDF
+    const url = '<?php echo $_GET['base']."/".$token?>.pdf'; // Ruta de tu PDF
 
     const pdfjsLib = window['pdfjs-dist/build/pdf'] || window.pdfjsLib;
 

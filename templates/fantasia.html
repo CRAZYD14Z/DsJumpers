@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ D'S JUMPERS · Reino Mágico ✨</title>
+
+    <!-- Bootstrap, Swiper, Fonts igual que original pero con aroma encantado -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Baloo+2:wght@400;600;700;800&family=Quicksand:wght@400;600;700&family=Rubik+Bubbles&display=swap" rel="stylesheet">
+
+    <style>
+        /* 🌈✨ PALETA DE FANTASÍA INFANTIL ✨🌈 */
+        :root {
+            --stardust:     #f9e9d2;    /* polvo de hadas */
+            --dragon-lime:  #b0e57c;    /* verde dragón bebé */
+            --fairy-pink:   #ffb7c5;    /* ala de hada */
+            --unicorn-lav:  #d9b8ff;    /* melena de unicornio */
+            --magic-gold:   #ffd966;    /* polvo mágico */
+            --crystal-blue: #a4e0ff;    /* lago encantado */
+            --candy-purple: #c77dff;     /* caramelo de hada */
+            --dragonfire:   #ff8a5c;     /* aliento de dragón */
+            --cloud-white:  #fff9f0;
+            --text-forest:  #2f4858;     /* color cuento */
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--stardust);
+            font-family: 'Quicksand', sans-serif;
+            color: var(--text-forest);
+            overflow-x: hidden;
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ctext y='22' font-size='24'%3E🦄%3C/text%3E%3C/svg%3E") 15 15, auto;
+        }
+
+        /* Navbar mágica */
+        .navbar {
+            background: linear-gradient(90deg, #9370db, #b180df) !important;
+            border-bottom: 4px solid var(--magic-gold);
+            box-shadow: 0 8px 0 #7b4f9e;
+            padding: 12px 0;
+        }
+        .navbar-brand {
+            font-family: 'Rubik Bubbles', cursive;
+            font-size: 1.6rem;
+            color: #fffacd !important;
+            text-shadow: 3px 3px 0 #c95f9e, 5px 5px 0 rgba(0,0,0,0.1);
+            letter-spacing: 1px;
+        }
+        .nav-link {
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #ffefc0 !important;
+            text-shadow: 2px 2px 0 #7d55b0;
+        }
+        .nav-link:hover { color: var(--magic-gold) !important; transform: scale(1.05); }
+        .dropdown-menu {
+            background: #efd5ff;
+            border: 3px solid #ffb3b3;
+            border-radius: 25px;
+        }
+        .dropdown-item { color: #4b2e6b; font-family: 'Patrick Hand', cursive; font-size: 1.1rem; }
+        .dropdown-item:hover { background: #ffe49c; }
+
+        #cartCount { background: #f28c8c !important; border: 2px solid white; }
+
+        /* 🌟 HERO DE FANTASÍA 🌟 */
+        .hero-section {
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, #fee69c 0%, #ffc8dd 40%, #cdb4ff 80%);
+        }
+
+        /* Estrellas mágicas */
+        .magic-stars {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: transparent;
+            animation: twinkling 4s infinite alternate;
+        }
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 15px #fffacd, 0 0 25px #ffb3c6;
+            width: 6px; height: 6px;
+            opacity: 0.8;
+            animation: sparkle 3s infinite alternate;
+        }
+        .star:nth-child(1) { top: 10%; left: 12%; width: 10px; height: 10px; animation-duration: 2.2s; }
+        .star:nth-child(2) { top: 18%; left: 75%; width: 8px; height: 8px; animation-duration: 3s; }
+        .star:nth-child(3) { top: 40%; left: 20%; width: 12px; height: 12px; animation-duration: 2.5s; }
+        .star:nth-child(4) { top: 60%; left: 85%; width: 7px; height: 7px; animation-duration: 1.8s; }
+        .star:nth-child(5) { top: 75%; left: 30%; width: 9px; height: 9px; animation-duration: 3.2s; }
+        .star:nth-child(6) { top: 30%; left: 45%; width: 14px; height: 14px; animation-duration: 4s; }
+        @keyframes sparkle {
+            0% { opacity: 0.3; transform: scale(0.8); box-shadow: 0 0 5px gold; }
+            100% { opacity: 1; transform: scale(1.3); box-shadow: 0 0 25px #fff0b5, 0 0 35px #ffa5d2; }
+        }
+
+        /* unicornio volador y dragón amistoso (siluetas svg) */
+        .floating-unicorn {
+            position: absolute;
+            top: 15%;
+            left: 5%;
+            width: 130px;
+            z-index: 5;
+            animation: floatDance 8s ease-in-out infinite;
+            filter: drop-shadow(0 10px 8px rgba(255,190,250,0.5));
+        }
+        .floating-dragon {
+            position: absolute;
+            bottom: 15%;
+            right: 3%;
+            width: 140px;
+            z-index: 5;
+            animation: floatDance 9s 1s ease-in-out infinite reverse;
+            filter: drop-shadow(0 8px 12px #b8dc8c);
+        }
+        @keyframes floatDance {
+            0%,100%{ transform: translateY(0) rotate(0deg); }
+            50%{ transform: translateY(-22px) rotate(2deg); }
+        }
+
+        /* haditas con purpurina */
+        .fairy-dust {
+            position: absolute;
+            width: 100%; height: 100%;
+            background: radial-gradient(circle at 30% 50%, #fff5cf 2px, transparent 3px);
+            background-size: 50px 50px;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* nubes de algodón */
+        .cloud-candy {
+            background: #ffffffd6;
+            border-radius: 100px;
+            position: absolute;
+            box-shadow: 0 15px 0 #fff0f0 inset, 0 0 30px #fdd0ff;
+        }
+        .cloud-1 { width: 180px; height: 55px; top: 8%; left: 60%; }
+        .cloud-1::before, .cloud-1::after {
+            content: ''; position: absolute; background: white; border-radius: 50%;
+            box-shadow: 0 0 20px #fcd5ff;
+        }
+        .cloud-1::before { width: 65px; height: 65px; top: -32px; left: 20px; }
+        .cloud-1::after { width: 50px; height: 50px; top: -22px; left: 70px; }
+
+        .cloud-2 { width: 150px; height: 50px; top: 30%; left: 15%; }
+        .cloud-2::before { width: 60px; height: 60px; top: -30px; left: 15px; }
+        .cloud-2::after { width: 45px; height: 45px; top: -22px; left: 60px; }
+
+        /* arcoíris gigante */
+        .rainbow-arch {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 180px;
+            background: linear-gradient(90deg, 
+                #ff9494 0%, #ffb774 15%, #ffea9c 30%, #b3f0b3 45%, 
+                #a3d0ff 60%, #c7a2ff 75%, #ffb2f0 90%);
+            clip-path: polygon(0% 50%, 15% 20%, 30% 8%, 45% 2%, 60% 8%, 75% 20%, 85% 35%, 100% 60%, 100% 100%, 0% 100%);
+            opacity: 0.5;
+            z-index: 0;
+        }
+
+        .hero-inner {
+            position: relative; z-index: 20;
+            text-align: center;
+            padding-top: 50px;
+        }
+        .magic-logo {
+            width: 170px; height: 170px;
+            border-radius: 50%;
+            background: #ffe3fc;
+            border: 6px solid #ffcd94;
+            box-shadow: 0 0 0 12px #fcd9ff, 0 20px 35px #e2a9ff;
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-bottom: 24px;
+            animation: wobble 3s infinite;
+        }
+        .magic-logo img { width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 3px solid white; }
+        @keyframes wobble {
+            0%,100%{ transform: rotate(0deg) scale(1); }
+            25%{ transform: rotate(5deg) scale(1.03); }
+            75%{ transform: rotate(-5deg) scale(1.02); }
+        }
+        .hero-title {
+            font-family: 'Rubik Bubbles', cursive;
+            font-size: clamp(3.2rem, 12vw, 7rem);
+            background: linear-gradient(135deg, #b26bff, #ff78b3, #ffdb7c);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 5px 5px 0 #fff3bf, 8px 8px 0 rgba(0,0,0,0.05);
+            line-height: 1.1;
+            margin-bottom: 10px;
+        }
+        .hero-sub {
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.9rem;
+            color: #7550b5;
+            background: rgba(255,255,240,0.6);
+            display: inline-block;
+            padding: 8px 35px;
+            border-radius: 60px;
+            backdrop-filter: blur(3px);
+            box-shadow: 0 4px 0 #fbbb7c;
+        }
+        .hero-btn {
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.6rem;
+            padding: 12px 50px;
+            border-radius: 50px;
+            background: #ffb347;
+            border: 4px solid white;
+            color: #592c6b;
+            box-shadow: 0 8px 0 #ac6f3b, 0 14px 25px #ffb58a;
+            display: inline-block;
+            transition: 0.15s;
+            margin-top: 20px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .hero-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 0 #ac6f3b, 0 20px 30px #fcb;
+            background: #ffbe5e;
+            color: #402155;
+        }
+
+        /* barra mágica deslizante */
+        .magic-tape {
+            background: #b689ff;
+            border-block: 5px solid #fede7a;
+            padding: 10px 0;
+            overflow: hidden;
+        }
+        .tape-spell {
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.4rem;
+            color: #ffffd0;
+            display: inline-block;
+            white-space: nowrap;
+            animation: scrollSpell 20s linear infinite;
+            text-shadow: 2px 2px 0 #c14f9e;
+        }
+        @keyframes scrollSpell {
+            from { transform: translateX(100vw); }
+            to { transform: translateX(-100%); }
+        }
+
+        /* títulos sección */
+        .section-title {
+            font-family: 'Rubik Bubbles', cursive;
+            font-size: 2.6rem;
+            color: #8a56c2;
+            text-align: center;
+            margin-bottom: 40px;
+            text-shadow: 3px 3px 0 #ffdbb5;
+        }
+        .section-title::after {
+            content: "✨🦄✨";
+            display: block;
+            font-size: 2rem;
+            letter-spacing: 10px;
+        }
+
+        /* Categorías mágicas */
+        .cat-card {
+            background: #f7edff;
+            border: 4px solid white;
+            border-radius: 35px;
+            padding: 30px 12px;
+            box-shadow: 0 8px 0 #e5b2ff, 0 15px 25px #ffcfdf;
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.4rem;
+            color: #6d468c;
+            transition: 0.15s;
+            text-align: center;
+            display: block;
+            text-decoration: none;
+        }
+        .cat-card i { font-size: 2.4rem; color: #ff81b0; display: block; margin-bottom: 10px; }
+        .cat-card:hover {
+            transform: translateY(-10px);
+            background: #ffe5a3;
+            border-color: #ffbcd6;
+            box-shadow: 0 14px 0 #f597cf, 0 25px 35px #fec8af;
+        }
+
+        /* tarjetas de opiniones (hadas y duendes) */
+        .review-card {
+            background: #fff1e6;
+            border-radius: 35px;
+            border: 4px solid white;
+            padding: 30px;
+            box-shadow: 0 8px 0 #c696ff, 0 10px 25px #fac6ff;
+            position: relative;
+        }
+        .review-card .stars { color: #f7b731; font-size: 1.7rem; }
+        .review-card p { font-size: 1.2rem; color: #4f3570; }
+
+        /* grid catálogo hada */
+        .grid-item {
+            background: #f9e3fd;
+            border: 4px solid #ffeac5;
+            border-radius: 40px;
+            padding: 30px 10px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-family: 'Patrick Hand', cursive;
+            color: #8050ac;
+            box-shadow: 0 7px 0 #e1a0ff;
+            transition: 0.1s;
+            display: block;
+            text-decoration: none;
+        }
+        .grid-item:hover {
+            background: #ffd9a5;
+            transform: scale(1.02) translateY(-5px);
+            box-shadow: 0 12px 0 #fdafc8;
+            border-color: #ffdc9a;
+        }
+
+        /* sección about encantada */
+        .about-section {
+            background: linear-gradient(135deg, #b384ff, #fba9d6);
+            border-radius: 60px 60px 30px 30px;
+            padding: 50px;
+            border: 6px solid #fef9b9;
+            color: #2c1d42;
+        }
+        .about-section .section-title { color: #fffacd; }
+        .moving-logo {
+            background: #ffefb9;
+            width: 140px; height: 140px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            border: 6px solid #ffd966;
+            font-size: 4rem;
+            box-shadow: 0 0 30px #ffbc6e;
+            transition: transform 0.1s;
+        }
+
+        /* eventos con dragones */
+        .event-card {
+            background: #ceb2ff;
+            border-radius: 40px;
+            border: 5px solid #ffefb0;
+            padding: 25px 5px;
+            font-family: 'Patrick Hand', cursive;
+            color: #37255c;
+            box-shadow: 0 8px 0 #a977d9;
+            text-align: center;
+        }
+        .event-card i { font-size: 2.6rem; color: #ffb85b; }
+        .event-card h5 { font-size: 1.5rem; }
+
+        /* mapa mágico */
+        .location-section {
+            background: #fff2d4;
+            border-radius: 45px;
+            border: 5px solid #9f9fff;
+            padding: 40px;
+        }
+        /* formulario cuento */
+        .contact-card {
+            background: #fff9ea;
+            border-radius: 50px;
+            border: 6px solid #ffdab9;
+            padding: 45px;
+        }
+        .btn-aqua { /* pero mágico */
+            background: #fdafc8;
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.6rem;
+            border: none;
+            padding: 15px 45px;
+            border-radius: 60px;
+            border: 4px solid white;
+            color: #4f3670;
+            box-shadow: 0 8px 0 #dc869f;
+        }
+        .btn-aqua:hover { background: #ffc0d9; transform: translateY(-3px); box-shadow: 0 12px 0 #dc869f; }
+
+        /* footer de dragones */
+        footer {
+            background: #8560b0;
+            border-top: 8px solid #ffcf8a;
+            padding: 50px 0 20px;
+            position: relative;
+        }
+        .social-btn {
+            background: #ffcfcf;
+            border-radius: 50%;
+            width: 60px; height: 60px;
+            display: inline-flex; align-items: center; justify-content: center;
+            border: 3px solid white;
+            color: #733f8b;
+            font-size: 1.7rem;
+            box-shadow: 0 5px 0 #b48fd6;
+        }
+        .social-btn:hover { background: #ffe294; transform: translateY(-5px); }
+        footer h4 { font-family: 'Patrick Hand', cursive; color: #ffefc0; text-shadow: 3px 3px 0 #9f6bb3; }
+
+        /* fonditos pool bg mágico */
+        .pool-bg {
+            background-color: #fad5ff;
+            background-image: radial-gradient(#fefeac 2px, transparent 2px);
+            background-size: 35px 35px;
+            border-radius: 55px;
+            padding: 35px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar de cuento -->
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="#"><i class="fas fa-crown" style="color:#ffd966;"></i> D'S JUMPERS ✨</a>
+        <div class="d-flex align-items-center ms-auto me-3 order-lg-last">
+            <a class="nav-link position-relative p-2" href="#" id="cartIcon">
+                <i class="fas fa-shopping-cart fa-xl" style="color:#ffecaa;"></i>
+                <span id="cartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill">0</span>
+            </a>
+        </div>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal">
+            <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="menuPrincipal">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#categorias">🧚 CATEGORÍAS</a></li>
+                <li class="nav-item"><a class="nav-link" href="#eventos">🐉 EVENTOS</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">🦄 NOSOTROS</a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#nosotros">✨ REINO MÁGICO</a></li>
+                        <li><a class="dropdown-item" href="#contacto">📫 CONTACTO</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- HERO DE FANTASÍA -->
+<section class="hero-section">
+    <div class="magic-stars">
+        <div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div>
+    </div>
+    <div class="fairy-dust"></div>
+    <!-- criaturas flotantes (solo emojis gigantes con estilo) -->
+    <div class="floating-unicorn" style="font-size: 7rem; line-height: 1;">🦄🌈</div>
+    <div class="floating-dragon" style="font-size: 7rem;">🐲✨</div>
+
+    <div class="cloud-candy cloud-1"></div>
+    <div class="cloud-candy cloud-2"></div>
+    <div class="rainbow-arch"></div>
+
+    <div class="hero-inner">
+        <div class="magic-logo">
+            <img src="https://dsjumpers.com/wp-content/uploads/2025/02/cropped-Logotipo-D%C2%B4S-Jumpers-qnohhmv0x0akjoiwicpksyn98vul3qjxppjyzgt6og.webp" alt="logo mágico">
+        </div>
+        <h1 class="hero-title">D'S JUMPERS</h1>
+        <p class="hero-sub">✨ Donde los sueños saltan contigo ✨</p>
+        <a href="#categorias" class="hero-btn">🌟 ¡ABRACADABRA! 🌟</a>
+    </div>
+</section>
+
+<!-- CINTA MÁGICA -->
+<div class="magic-tape">
+    <span class="tape-spell">
+        🐲 DRAGONES BEBÉ &nbsp;·&nbsp; 🦄 UNICORNIOS DANZANTES &nbsp;·&nbsp; 🧚 HADAS RISUEÑAS &nbsp;·&nbsp; 🍭 BOSQUE ENCANTADO &nbsp;·&nbsp; 🎠 CASTILLO DE CARAMELO &nbsp;·&nbsp; 🌟 VARITAS MÁGICAS &nbsp;·&nbsp;
+    </span>
+</div>
+
+<div class="container py-5">
+
+    <!-- CATEGORÍAS FANTÁSTICAS -->
+    <section id="categorias" class="mb-5">
+        <h2 class="section-title">Categorías Encantadas</h2>
+        <div class="swiper swiperCategories">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-dragon"></i>Dragones</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-horse"></i>Unicornios</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-feather-alt"></i>Hadas</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-crown"></i>Princesas</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-hat-wizard"></i>Magos</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-tree"></i>Bosque</a></div>
+                <div class="swiper-slide"><a href="#" class="cat-card"><i class="fas fa-candy-cane"></i>Gominolas</a></div>
+            </div>
+            <div class="swiper-pagination mt-3"></div>
+        </div>
+    </section>
+
+    <div class="text-center display-4 my-4">🧚‍♀️✨🧚</div>
+
+    <!-- RESEÑAS MÁGICAS -->
+    <section class="mb-5">
+        <h2 class="section-title">Voces del Reino</h2>
+        <div class="swiper swiperReviews">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"Mi hija vio un hada de verdad mientras mirábamos la web. ¡Es mágico!"</p>
+                        <h6>— Sofía, 8 años</h6>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"Los dragones son súper amigables. Me encantó el apartado de juegos."</p>
+                        <h6>— Martín, 7 años</h6>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <div class="stars">★★★★☆</div>
+                        <p>"¡El unicornio parpadea! mi hermanito no paraba de reír."</p>
+                        <h6>— Valeria (10 años)</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+    </section>
+
+    <!-- CATÁLOGO ILUSIÓN -->
+    <section class="pool-bg mb-5">
+        <h2 class="section-title">Objetos Mágicos</h2>
+        <div class="row g-3">
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🪄 Varitas</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">📚 Hechizos</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🧝‍♀️ Disfraces</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🔮 Pociones</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🦄 Melena</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🐉 Huevos</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">🍄 Casitas</a></div>
+            <div class="col-6 col-md-4 col-lg-3"><a href="#" class="grid-item">👑 Coronas</a></div>
+        </div>
+    </section>
+
+    <!-- ABOUT MÁGICO -->
+    <section class="about-section mb-5" id="nosotros">
+        <h2 class="section-title">Nuestro Reino</h2>
+        <div class="row align-items-center g-4">
+            <div class="col-md-8">
+                <p class="lead" style="font-size:1.6rem;">✨ Somos un equipo de duendes, hadas y unicornios que creamos la web más encantadora para niños y niñas mágicos. ¡Llevamos la fantasía a cada clic! ✨</p>
+                <p>Desde 2020 concediendo deseos digitales con purpurina y risas. Todos nuestros dragones están entrenados para soltar purpurina en lugar de fuego.</p>
+            </div>
+            <div class="col-md-4">
+                <div class="about-logo-container" id="aboutLogoContainer">
+                    <div id="movingLogo" class="moving-logo">
+                        <i class="fas fa-star-and-crescent"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EVENTOS FANTASÍA -->
+    <section id="eventos" class="mb-5">
+        <h2 class="section-title"> Celebraciones Mágicas</h2>
+        <div class="swiper swiperEvents">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-birthday-cake"></i><h5>Cumpleaños de Hada</h5></div></div>
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-crown"></i><h5>Coronación Unicornio</h5></div></div>
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-dragon"></i><h5>Vuelo de Dragones</h5></div></div>
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-magic"></i><h5>Torneo de Magos</h5></div></div>
+                <div class="swiper-slide"><div class="event-card"><i class="fas fa-feather"></i><h5>Boda de Hadas</h5></div></div>
+            </div>
+            <div class="swiper-pagination"></div>
+        </div>
+    </section>
+
+    <!-- UBICACIÓN ENCANTADA -->
+    <section class="location-section mb-5">
+        <div class="row align-items-center">
+            <div class="col-md-5">
+                <h2 style="font-family: 'Rubik Bubbles';">📍 Bosque Susurrante</h2>
+                <p><i class="fas fa-map-pin"></i> Calle Arcoíris 7, Reino de Fantasía</p>
+                <p><i class="fas fa-clock"></i> Lun-Dom · 9am hasta que salga la luna</p>
+            </div>
+            <div class="col-md-7">
+                <div class="ratio ratio-16x9 rounded-5 overflow-hidden" style="border:6px solid #ffcfdf;">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1422937611435!2d-73.98731968459391!3d40.75889497932681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480293%3A0x5117f70619c651b0!2sTimes%20Square!5e0!3m2!1ses!2scl!4v1625070000000!5m2!1ses!2scl" style="border:0;" allowfullscreen=""></iframe>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACTO DE CUENTO -->
+    <section id="contacto" class="mb-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="contact-card">
+                    <h2 class="text-center" style="font-family: 'Rubik Bubbles';">📮 Envía un mensaje con un hada</h2>
+                    <form>
+                        <div class="row g-3">
+                            <div class="col-md-6"><label class="form-label">Nombre Mágico</label><input class="form-control" placeholder="Ej: Luna Brillante"></div>
+                            <div class="col-md-6"><label class="form-label">Correo de Hada</label><input class="form-control" placeholder="hada@bosque.encanto"></div>
+                            <div class="col-12"><label class="form-label">Asunto</label><input class="form-control" placeholder="¿Polvo de hadas o dragones?"></div>
+                            <div class="col-12"><label class="form-label">Mensaje</label><textarea class="form-control" rows="4" placeholder="Cuéntanos tu deseo..."></textarea></div>
+                            <div class="col-12 text-center"><button type="button" class="btn-aqua">✨ Enviar con un duende ✨</button></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- FOOTER DE FANTASÍA -->
+<footer>
+    <h4 class="mb-4">🦄✨ Sigue la magia ✨🦄</h4>
+    <div class="d-flex justify-content-center gap-3 flex-wrap">
+        <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-instagram"></i></a>
+        <a href="#" class="social-btn"><i class="fab fa-tiktok"></i></a>
+        <a href="#" class="social-btn"><i class="fas fa-star"></i></a>
+    </div>
+    <p class="mt-4" style="color:#ffefd5;">© 2026 D'S JUMPERS · Hecho con purpurina</p>
+</footer>
+
+<!-- Scripts (Swiper + logo movedizo) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+    new Swiper(".swiperCategories", { slidesPerView:1, spaceBetween:10, loop:true, autoplay:{delay:2600}, breakpoints:{640:{slidesPerView:2},768:{slidesPerView:3},1024:{slidesPerView:5}}, pagination:{el:".swiper-pagination",clickable:true} });
+    new Swiper(".swiperReviews", { slidesPerView:1, spaceBetween:20, loop:true, autoplay:{delay:4500}, navigation:{nextEl:".swiper-button-next",prevEl:".swiper-button-prev"}, breakpoints:{768:{slidesPerView:2}} });
+    new Swiper(".swiperEvents", { slidesPerView:1, spaceBetween:20, loop:true, autoplay:{delay:3200}, breakpoints:{640:{slidesPerView:2},1024:{slidesPerView:4}}, pagination:{el:".swiper-pagination",clickable:true} });
+
+    // Logo movedizo
+    const movingLogo = document.getElementById('movingLogo');
+    const container = document.getElementById('aboutLogoContainer');
+    if (movingLogo && container) {
+        container.addEventListener('mousemove', (e) => {
+            const rect = container.getBoundingClientRect();
+            const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+            movingLogo.style.transform = `translate(${nx*20}px, ${ny*20}px)`;
+        });
+        container.addEventListener('mouseleave', () => movingLogo.style.transform = 'translate(0,0)');
+    }
+
+    // Carrito mágico (simulación)
+    let count = 0;
+    document.getElementById('cartIcon').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('cartCount').innerText = ++count; });
+</script>
+</body>
+</html>

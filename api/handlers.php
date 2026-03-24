@@ -4,6 +4,9 @@
 use \Firebase\JWT\JWT;
 use \Firebase\JWT\Key;
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
 // ----------------------------------------------------
 // A. LÓGICA DE AUTENTICACIÓN
 // ----------------------------------------------------
@@ -83,6 +86,7 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
         'copy_records',
         'price_lists',
         'detail_price_lists',
+        'discounts'
     ];
     if (!in_array($table_name, $allowed_tables)) {
         http_response_code(400);
@@ -265,7 +269,14 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                     //    $Where.= ' WHERE Idioma = ? ';
                     //else
                     $Where.= ' AND Idioma = ? ';
-                }                  
+                } 
+                elseif ($table_name == 'document_center'){
+                    $v_table_name = 'document_center';
+                    //if ($Where =="")
+                    //    $Where.= ' WHERE Idioma = ? ';
+                    //else
+                    $Where.= ' AND Idioma = ? ';
+                } 
                 elseif ($table_name == 'detail_price_lists')
                     $v_table_name = 'v_detail_price_lists';
                 else
@@ -307,6 +318,11 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                     $p++;  
                     $count_stmt->bindValue($p, $lang);
                 }                 
+                if ($table_name == 'document_center'){
+                    //echo $count_query;
+                    $p++;  
+                    $count_stmt->bindValue($p, $lang);
+                }                   
 
                 $count_stmt->execute();
                 $total_rows = $count_stmt->fetch(PDO::FETCH_ASSOC)['total'];
@@ -458,8 +474,12 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                     $v_table_name = 'v_relationship_products';
                     $Where.= ' AND Idioma = :lang ';
                 }
+                elseif ($table_name == 'document_center'){
+                    $v_table_name = 'document_center';
+                    $Where.= ' AND Idioma = :lang ';
+                }                
                 elseif ($table_name == 'detail_price_lists')
-                    $v_table_name = 'v_detail_price_lists';                                                
+                    $v_table_name = 'v_detail_price_lists';
                 else
                     $v_table_name = $table_name;
                 // 3. Consulta para obtener los DATOS PAGINADOS
@@ -493,7 +513,11 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                 if ($table_name == 'relationship_products'){
                     $data_stmt->bindParam(':lang', $lang, PDO::PARAM_STR);
                     //echo $data_query;
-                }                   
+                }
+                if ($table_name == 'document_center'){
+                    $data_stmt->bindParam(':lang', $lang, PDO::PARAM_STR);
+                    //echo $data_query;
+                }                
 
                 $data_stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
                 $data_stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
@@ -2356,13 +2380,12 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
             OkT, WA, AE, ME, CustomerNote, Venue, EventName, Surface, 
             Delivery, Note1, Note2, ItemTotals, ChkDstC, DistanceCharges, ChkStCs, 
             StafCost, ChkDsc, Discount, SubTotal, TaxId, TaxPc, 
-            TaxAmount, Total, Deposit,DepositAmount, Balance, Status,FechaCreacion,FechaCambio,IdBranch,Folio
+            TaxAmount, Total, Deposit,DepositAmount, Balance, Status,FechaCreacion,FechaCambio,IdBranch,Folio,TotalBT
         ) VALUES (?,?,?,?,?,
-                  ?,?,?,?,?,
-                  ?,?,?,?,?,
-                  ?,?,?,?,?,
-                  ?,?,?,?,?,
-                  ?,?,?,?,?,?,?,now(),now(),?,?)";
+                  ?,?,?,?,?,?,?,?,
+                  ?,?,?,?,?,?,?,
+                  ?,?,?,?,?,?,
+                  ?,?,?,?,?,?,now(),now(),?,?,?)";
 
         $stmtLead = $db->prepare($sqlLead);
         $stmtLead->execute([
@@ -2370,7 +2393,7 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
             $h->OkT, $h->WA, $h->AE, $h->ME, $h->CusNt, $h->Venue, $h->EventName, $h->Surface,
             $h->Delivety, $h->Nt1, $h->Nt2, $h->Item_Totals, $h->ChkDstC, $h->DstC, $h->ChkStCs, 
             $h->StCs, $h->ChkDsc, $h->Dsc, $h->SubT, $h->TaxId, $h->TaxPc, 
-            $h->TaxAm, $h->Total, $h->Depo,$h->DepoA, $h->BalDue, $Status,$IdBranch,$Folio
+            $h->TaxAm, $h->Total, $h->Depo,$h->DepoA, $h->BalDue, $Status,$IdBranch,$Folio,$h->Total
         ]);
         $idLead = $db->lastInsertId();
 
@@ -2449,7 +2472,7 @@ function leads($table_name,$db, $method, $id, $data){
                         END AS NombreMostrar
                         FROM v_leads 
                         WHERE (NombreOrganizacion LIKE :s OR NombreCliente LIKE :s OR ApellidosCliente LIKE :s)
-                        ORDER BY StartDateTime DESC 
+                        ORDER BY Id DESC 
                         LIMIT :limit OFFSET :offset";
 
                 $stmt = $db->prepare($sql);
@@ -2466,7 +2489,7 @@ function leads($table_name,$db, $method, $id, $data){
                             ELSE 'Sin identificar'
                         END AS NombreMostrar
                         FROM v_leads 
-                        ORDER BY StartDateTime DESC 
+                        ORDER BY Id DESC 
                         LIMIT :limit OFFSET :offset";
 
                 $stmt = $db->prepare($sql);
@@ -2640,4 +2663,60 @@ function get_distance($ORG,$DST){
     }
 
 }
+
+function sendmail($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+        try{
+            $contenidoBinario = base64_decode($data->archivo_base64);
+            $nombreArchivo = $data->nombre_archivo;
+
+            $sql = "SELECT * FROM account";
+            $stmt = $db->prepare($sql);
+            //$stmt->bindValue(":name", $data->Product); 
+            $stmt->execute();
+            $account = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $datosConexion = [
+                'host'             => $account['ServidorS'],
+                'username'         => $account['UsuarioS'],
+                'password'         => $account['PasswordS'],
+                'port'             => $account['PortS'],
+                'encryption'       => PHPMailer::ENCRYPTION_SMTPS,
+                'nombre_remitente' => $account['NombreCompania']
+            ];
+            $archivos = [];
+
+            $resultado = enviarEmail(
+                $datosConexion, 
+                $data->correo, 
+                $data->Subject,
+                $data->Body,
+                $archivos,
+                $contenidoBinario,
+                $nombreArchivo
+            );            
+
+            http_response_code(200);
+            echo json_encode([
+                "status" => $resultado['status'],
+                "message"=>$resultado['message']." ".$data->correo
+            ]);
+        } catch (PDOException $e) {
+            http_response_code(405);
+            echo json_encode([
+                "status" => 'fail',
+                "message"=>$e->getMessage()
+            ]);
+        }
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }      
+}
+
 ?>

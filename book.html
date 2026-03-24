@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>Confirmación de Reserva y Pago</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f4; width: 100% !important; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #f4f4f4;">
+        <tr>
+            <td align="center" style="padding: 20px 0;">
+                
+                <table border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; max-width: 600px; width: 600px; background-color: #ffffff; border: 1px solid #e1e8ed; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden;">
+                    
+                    <tr>
+                        <td align="center" bgcolor="#002d72" style="padding: 25px; background-color: #002d72;">
+                            <img src="*company_logo*" width="140" alt="*company_name*" border="0" style="display: block; width: 140px; max-width: 140px; height: auto; outline: none; text-decoration: none; filter: brightness(0) invert(1);">
+                            <h2 style="margin: 15px 0 0 0; font-family: Arial, sans-serif; font-size: 18px; color: #ffffff; text-transform: uppercase; letter-spacing: 1px;">📅 Evento Agendado</h2>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding: 30px 25px; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #333333; line-height: 1.6;">
+                            
+                            <p style="margin: 0 0 20px 0; font-size: 15px; text-align: center;">
+                                Hola <strong>*ctfirstname*</strong>, tu evento ha sido registrado exitosamente.<br>
+                                <span style="color: #d35400; font-weight: bold;">Para garantizar tu servicio, por favor completa el pago pendiente.</span>
+                            </p>
+
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #f8f9fa; border: 1px solid #eeeeee; border-radius: 8px;">
+                                <tr>
+                                    <td style="padding: 20px;">
+                                        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; font-family: Arial, sans-serif; font-size: 14px;">
+                                            
+                                            <tr>
+                                                <td style="padding: 5px 0; color: #666666;">No. evento:</td>
+                                                <td align="right" style="padding: 5px 0; text-align: right; font-weight: bold; color: #000000;">#*leadid*</td>
+                                            </tr>
+
+                                            <tr>
+                                                <td style="padding: 5px 0; color: #666666;">Total del Evento:</td>
+                                                <td align="right" style="padding: 5px 0; text-align: right; font-weight: bold; color: #000000;">$*total*</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 5px 0; color: #666666;">Anticipo Aplicado:</td>
+                                                <td align="right" style="padding: 5px 0; text-align: right; color: #27ae60; font-weight: bold;">$-*apayment*</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2" style="padding: 10px 0; border-top: 2px solid #dddddd;"></td>
+                                            </tr>
+                                            <tr>
+                                                <td style="font-size: 18px; color: #c0392b;"><strong>Saldo a Pagar:</strong></td>
+                                                <td align="right" style="text-align: right; font-size: 20px; color: #c0392b;"><strong>$*balancedue*</strong></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="font-size: 13px; color: #777777; margin: 25px 0; text-align: center;">
+                                Haz clic en el botón de abajo para ingresar a nuestro portal seguro y realizar tu pago en línea.
+                            </p>
+
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="*link_to_accept*" style="background-color: #c0392b; color: #ffffff; padding: 16px 35px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 18px; display: inline-block; border: 1px solid #c0392b;">
+                                            💳 Pagar en Línea Ahora
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse; margin-top: 30px; border-top: 1px solid #eeeeee; padding-top: 20px;">
+                                <tr>
+                                    <td style="padding-top: 20px; font-size: 13px; color: #666666; font-family: Arial, sans-serif;">
+                                        <strong>📍 Ubicación:</strong> *eventstreet*, *eventcity*<br>
+                                        <strong>⏰ Fecha y Hora:</strong> *startdate*
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td align="center" style="padding: 20px; background-color: #fafafa; border-top: 1px solid #eeeeee; font-family: Arial, sans-serif; font-size: 11px; color: #999999; line-height: 1.4;">
+                            <strong style="color: #666666;">*company_name*</strong><br>
+                            *company_phone*<br><br>
+                            Si el botón no funciona, copia y pega esta URL en tu navegador:<br>
+                            <span style="color: #002d72;">*link_to_accept*</span>
+                        </td>
+                    </tr>
+                    
+                </table> </td>
+        </tr>
+    </table>
+
+</body>
+</html>

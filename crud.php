@@ -2,6 +2,7 @@
 ob_start();
 session_start(); 
     // Incluye la clase de conexión a la BD
+    include_once 'valid_login.php';
     include_once 'config/config.php';     
     include_once 'config/database.php'; 
     $database = new Database();
@@ -10,9 +11,8 @@ session_start();
     $Id2 = '';
     if (isset($_GET['Id2']))
         $Id2 = $_GET['Id2'];
-
+    
     $Idioma = $_SESSION['Idioma'];
-    $Idioma = 'es';
     $query = "select Traduccion FROM  programas_traduccion where Programa = 'crud' AND Idioma = ? ORDER BY Id";            
     $stmt = $db->prepare($query);
     $stmt->bindValue(1, $Idioma);
@@ -157,7 +157,8 @@ session_start();
             'surfaces',
             'item_prices',
             'document_center',
-            'price_lists'
+            'price_lists',
+            'discounts'
         ];
         if (!in_array($IdTabla, $allowed_tables)) {
             die("<h3>".Trd(3)."</h3></div></body></html>");
@@ -248,7 +249,7 @@ session_start();
             $TablePrices ='products_item_price';
             ?>
                 <form name="edit_<?php echo $TablePrices?>" id="edit_<?php echo $TablePrices?>" class="needs-validation" novalidate>
-                    <input type="hidden" name="edit_Producto" id="edit_Producto" >
+                    <input type="text" name="edit_Producto" id="edit_Producto" >
                     <div class="row">
                         <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
                             <?php
@@ -333,15 +334,15 @@ session_start();
 
                     <input type="hidden" id ="edit_JsonPrice" name ="edit_JsonPrice">
 
-            <div class="container">
-                <div class="seccion-proyeccion">
-                    <h3><?php Trd_2(3)?></h3>
+                    <div class="container">
+                        <div class="seccion-proyeccion">
+                            <h3><?php Trd_2(3)?></h3>
 
-                    <div class="grafica-container">
-                        <canvas id="costosChart"></canvas>
-                    </div>        
-                </div>
-            </div>                    
+                            <div class="grafica-container">
+                                <canvas id="costosChart"></canvas>
+                            </div>        
+                        </div>
+                    </div>                    
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button class="btn btn-primary" type="submit"><?php echo Trd(7)?></button>
@@ -349,6 +350,8 @@ session_start();
                 </form>            
             <?php
             echo "</div>";
+
+
             $Tabla = 'products_categories';
             echo '<br><h4 class="mb-4">'.Trd(30).'</h4>';
                 add_listado($Tabla);                
@@ -994,27 +997,22 @@ session_start();
                             IdInsert = valor;
                     });
 
-        switch (Id) {
-        case 3:
-listado('packing_list');               
-            break;
-        case 4:
-listado('related_products');;               
-            break;
-        case 5:
-listado('upselling_products');             
-            break;
-        case 6:
-listado('relationship_products');               
-            break;
-        default:
-            break;
-        }                       
-
-                    
-                    
-                    
-                    
+                    switch (Id) {
+                    case 3:
+                        listado('packing_list');               
+                        break;
+                    case 4:
+                        listado('related_products');;               
+                        break;
+                    case 5:
+                        listado('upselling_products');             
+                        break;
+                    case 6:
+                        listado('relationship_products');               
+                        break;
+                    default:
+                        break;
+                    }                       
 
                     setTimeout(() => {
                         showToast('✅ <?php echo Trd(12)?> ' + IdInsert);
@@ -1332,7 +1330,7 @@ function getRecordData(Id,IdTabla) {
                         // Para inputs normales (text, hidden, etc.)
                         //alert(input.type)
                         //alert(valor)
-                        if ((IdTabla == 'categories' || IdTabla == 'products_images' || IdTabla == 'related_products')  && input.type == 'file'){
+                        if ((IdTabla == 'categories' || IdTabla == 'products_images' || IdTabla == 'related_products' || IdTabla == 'account')  && input.type == 'file'){
                             var $select = $("#file_edit_" + clave+"_1")
                             $select.val(valor);
                             //alert(clave)
@@ -1370,6 +1368,7 @@ function getRecordData(Id,IdTabla) {
                 listado('cost_products');
                 listado('products_files');
                 getRecordData(IdSelected,'products_item_price')
+                $('#edit_Producto').val(IdSelected);
             }
             else if (IdTabla == 'distance_charges'){
                 listado('distance_charges_zip_code');
@@ -2514,6 +2513,26 @@ function cargar() {
             }
         });
     }
+
+
+    $('.lang-option').on('click', function(e) {
+        e.preventDefault();
+
+        $.ajax({
+            url: 'cambiar_idioma.php',
+            type: 'POST',
+            data: { lang: $(this).data('lang') },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    // Recargamos para que el servidor lea la nueva sesión de idioma
+                    location.reload(); 
+                }
+            }
+        });
+        
+    });
+
 
 </script>
 

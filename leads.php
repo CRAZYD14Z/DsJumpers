@@ -2,11 +2,31 @@
 ob_start();
 session_start(); 
 // Incluye la clase de conexión a la BD
+include_once 'valid_login.php';
 include_once 'config/config.php';     
 include_once 'config/database.php'; 
 $database = new Database();
 $db = $database->getConnection();
-    include_once 'head.php';
+
+$Idioma = $_SESSION['Idioma'];
+$query = "select Traduccion FROM  programas_traduccion where Programa = 'leads' AND Idioma = ? ORDER BY Id";            
+$stmt = $db->prepare($query);
+$stmt->bindValue(1, $Idioma);
+$stmt->execute();
+$resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$Traducciones[]='';
+if ($resultados) {
+    foreach ($resultados as $registro) {
+        $Traducciones[]=$registro['Traduccion'];
+    }
+}    
+function Trd($Id){
+    global $Traducciones;
+    return $Traducciones[$Id];
+}
+
+
+include_once 'head.php';
 ?>
 <style>
         body { background-color: #f4f7f6; }
@@ -42,7 +62,7 @@ $db = $database->getConnection();
                     <div class="card-body p-2">
                         <div class="input-group">
                             <span class="input-group-text border-0 bg-transparent"><i class="bi bi-search text-primary"></i></span>
-                            <input type="text" id="txtSearch" class="form-control border-0 shadow-none" placeholder="Buscar por cliente, organización o ciudad...">
+                            <input type="text" id="txtSearch" class="form-control border-0 shadow-none" placeholder="<?php echo Trd(1)?>">
                         </div>
                     </div>
                 </div>
@@ -55,11 +75,11 @@ $db = $database->getConnection();
             <table class="table table-hover align-middle m-0">
                 <thead class="table-light">
                     <tr>
-                        <th class="ps-4">Fecha / ID</th>
-                        <th>Cliente / Organización</th>
-                        <th>Ubicación (Lugar/Ciudad)</th>
-                        <th>Estado</th>
-                        <th class="text-end pe-4">Total</th>
+                        <th class="ps-4"><?php echo Trd(2)?></th>
+                        <th><?php echo Trd(3)?></th>
+                        <th><?php echo Trd(4)?></th>
+                        <th><?php echo Trd(5)?></th>
+                        <th class="text-end pe-4"><?php echo Trd(6)?></th>
                     </tr>
                 </thead>
                 <tbody id="leadsData">
@@ -70,7 +90,7 @@ $db = $database->getConnection();
 
     <div id="loadingIndicator" class="text-center my-4" style="display:none;">
         <div class="spinner-grow text-primary" role="status"></div>
-        <p class="text-muted small">Cargando datos...</p>
+        <p class="text-muted small"><?php echo Trd(7)?></p>
     </div>
 </div>
 
@@ -150,7 +170,7 @@ $(document).ready(function() {
                 if (response.length === 0) {
                     noMoreData = true;
                     if (currentPage === 1) {
-                        $('#leadsData').html('<tr><td colspan="5" class="text-center py-5 text-muted">No se encontraron resultados</td></tr>');
+                        $('#leadsData').html('<tr><td colspan="5" class="text-center py-5 text-muted"><?php echo Trd(8)?></td></tr>');
                     }
                 } else {
                     renderTable(response);
@@ -159,7 +179,7 @@ $(document).ready(function() {
             },
             error: function(xhr, status, error) {
                 console.error("Error en la petición:", error);
-                alert("Hubo un error al cargar los datos.");
+                alert("<?php echo Trd(9)?>");
             },
             complete: function() {
                 isFetching = false;
@@ -169,35 +189,35 @@ $(document).ready(function() {
     }
 
     // Renderizar filas con jQuery
-function renderTable(data) {
-    let rows = '';
-    $.each(data, function(i, item) {
-        const statusClass = "status-" + item.Status.toLowerCase().replace(/\s/g, '');
-        const badgeClass = getBadgeColor(item.Status);
-        
-        // Agregamos data-id para identificar el registro al hacer clic
-        // Agregamos estilo de cursor pointer para que el usuario sepa que es cliqueable
-        rows += `
-            <tr class="${statusClass} clickable-row" data-id="${item.Id}" style="cursor: pointer;">
-                <td class="ps-4">
-                    <div class="small text-muted">#${item.Folio}</div>
-                    <div class="fw-semibold">${item.StartDateTime}</div>
-                </td>
-                <td>
-                    <div class="fw-bold text-dark">${item.NombreMostrar}</div>
-                    <div class="small text-muted italic">${item.Organization > 0 ? 'Empresa' : 'Cliente Individual'}</div>
-                </td>
-                <td>
-                    <div>${item.Lugar}</div>
-                    <div class="small text-secondary">${item.Ciudad}, ${item.Estado}</div>
-                </td>
-                <td><span class="badge rounded-pill ${badgeClass}">${item.Status}</span></td>
-                <td class="text-end pe-4 fw-bold text-dark">$${parseFloat(item.Total).toFixed(2)}</td>
-            </tr>
-        `;
-    });
-    $('#leadsData').append(rows);
-}
+    function renderTable(data) {
+        let rows = '';
+        $.each(data, function(i, item) {
+            const statusClass = "status-" + item.Status.toLowerCase().replace(/\s/g, '');
+            const badgeClass = getBadgeColor(item.Status);
+            
+            // Agregamos data-id para identificar el registro al hacer clic
+            // Agregamos estilo de cursor pointer para que el usuario sepa que es cliqueable
+            rows += `
+                <tr class="${statusClass} clickable-row" data-id="${item.Id}" style="cursor: pointer;">
+                    <td class="ps-4">
+                        <div class="small text-muted">#${item.Folio}</div>
+                        <div class="fw-semibold">${item.StartDateTime}</div>
+                    </td>
+                    <td>
+                        <div class="fw-bold text-dark">${item.NombreMostrar}</div>
+                        <div class="small text-muted italic">${item.Organization > 0 ? '<?php echo Trd(10)?>' : '<?php echo Trd(11)?>'}</div>
+                    </td>
+                    <td>
+                        <div>${item.Lugar}</div>
+                        <div class="small text-secondary">${item.Ciudad}, ${item.Estado}</div>
+                    </td>
+                    <td><span class="badge rounded-pill ${badgeClass}">${item.Status}</span></td>
+                    <td class="text-end pe-4 fw-bold text-dark">$${parseFloat(item.Total).toFixed(2)}</td>
+                </tr>
+            `;
+        });
+        $('#leadsData').append(rows);
+    }
 
     function getBadgeColor(status) {
         const s = status.toLowerCase();
@@ -225,19 +245,39 @@ function renderTable(data) {
         }, 500);
     });
 
-// Delegación de eventos para filas dinámicas
-$('#leadsData').on('click', '.clickable-row', function() {
-    const leadId = $(this).data('id'); // Obtenemos el ID del atributo data-id
-    
-    if (leadId) {
-        // Redirección a la página de detalles
-        window.location.href = `lead.php?IdLead=${leadId}`;
-    }
-});    
+    // Delegación de eventos para filas dinámicas
+    $('#leadsData').on('click', '.clickable-row', function() {
+        const leadId = $(this).data('id'); // Obtenemos el ID del atributo data-id
+        
+        if (leadId) {
+            // Redirección a la página de detalles
+            window.location.href = `lead.php?IdLead=${leadId}`;
+        }
+    });    
 
     // Carga inicial
     fetchLeads();
 });    
+
+
+    $('.lang-option').on('click', function(e) {
+        e.preventDefault();
+
+        $.ajax({
+            url: 'cambiar_idioma.php',
+            type: 'POST',
+            data: { lang: $(this).data('lang') },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    // Recargamos para que el servidor lea la nueva sesión de idioma
+                    location.reload(); 
+                }
+            }
+        });
+        
+    });
+
 
 </script>
 

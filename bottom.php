@@ -1,9 +1,9 @@
 <div id="barra-inferior" class="fixed-bottom barra-minimalista">
     <div class="container-fluid d-flex justify-content-center align-items-center py-2"> <div class="button-group">
-            <button class="btn-minimal" onclick="LoadDocument('Quote')">Cotización</button>
-            <button class="btn-minimal" onclick="LoadDocument('Contract')">Contrato</button>
-            <button class="btn-minimal" onclick="LoadDocument('Invoice')">Factura</button>
-            <button class="btn-minimal" onclick="LoadDocument('Picking')">Envío</button>
+            <button class="btn-minimal" onclick="LoadDocument('Quote')"><?php echo Trd(65)?></button>
+            <button class="btn-minimal" onclick="LoadDocument('Contract')"><?php echo Trd(66)?></button>
+            <button class="btn-minimal" onclick="LoadDocument('Invoice')"><?php echo Trd(67)?></button>
+            <button class="btn-minimal" onclick="LoadDocument('Picking')"><?php echo Trd(68)?></button>
         </div>
     </div>
 </div>

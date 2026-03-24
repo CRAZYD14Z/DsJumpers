@@ -2,16 +2,36 @@
 ob_start();
 session_start(); 
 // Incluye la clase de conexión a la BD
+include_once 'valid_login.php';
 include_once 'config/config.php';     
 include_once 'config/database.php'; 
 $database = new Database();
 $db = $database->getConnection();
+
+
+$Idioma = $_SESSION['Idioma'];
+$query = "select Traduccion FROM  programas_traduccion where Programa = 'lead' AND Idioma = ? ORDER BY Id";            
+$stmt = $db->prepare($query);
+$stmt->bindValue(1, $Idioma);
+$stmt->execute();
+$resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$Traducciones[]='';
+if ($resultados) {
+    foreach ($resultados as $registro) {
+        $Traducciones[]=$registro['Traduccion'];
+    }
+}    
+function Trd($Id){
+    global $Traducciones;
+    return $Traducciones[$Id];
+}
+
 include_once 'head.php';
 
-        $query = "select NombreCompania, Direccion,Direccion2, Ciudad,CP,Estado,Pais,TelefonoCelular FROM account";
-        $stmt = $db->prepare($query);
-        $stmt->execute();
-        $account = $stmt->fetch(PDO::FETCH_ASSOC);
+    $query = "select NombreCompania, Direccion,Direccion2, Ciudad,CP,Estado,Pais,TelefonoCelular FROM account";
+    $stmt = $db->prepare($query);
+    $stmt->execute();
+    $account = $stmt->fetch(PDO::FETCH_ASSOC);
 
 ?>
 <link rel="stylesheet" href="css/lead.css" />
@@ -88,9 +108,9 @@ include_once 'head.php';
                 </div>
             </div>
             <div class="modal-footer border-0 bg-light">
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal"><?php echo Trd(69)?></button>
                 <button type="button" class="btn btn-dark btn-sm" id="ShareButton" onclick="var newTab = window.open('quote.php?Id='+$('#UUID').val(), '_blank');">
-                    <i class="fa-solid fa-share-nodes"></i>Compartir
+                    <i class="fa-solid fa-share-nodes"></i><?php echo Trd(70)?>
                 </button>
 
             </div>
@@ -102,7 +122,7 @@ include_once 'head.php';
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-light">
-                <h5 class="modal-title fw-bold">Configurar Periodo</h5>
+                <h5 class="modal-title fw-bold"><?php echo Trd(71)?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-0">
@@ -113,22 +133,22 @@ include_once 'head.php';
                     
                     <div class="col-md-5 p-4 bg-light">
                         <div class="mb-4">
-                            <label class="small fw-bold text-primary text-uppercase d-block mb-2">Hora Inicio</label>
+                            <label class="small fw-bold text-primary text-uppercase d-block mb-2"><?php echo Trd(72)?></label>
                             <select id="hInicio" class="form-select hour-select"></select>
                         </div>
                         <div class="mb-4">
-                            <label class="small fw-bold text-success text-uppercase d-block mb-2">Hora Término</label>
+                            <label class="small fw-bold text-success text-uppercase d-block mb-2"><?php echo Trd(73)?></label>
                             <select id="hFin" class="form-select hour-select"></select>
                         </div>
                         <div class="alert alert-info py-2 small border-0 shadow-sm">
-                            Haga clic en el primer día y luego en el segundo para definir el rango.
+                            <?php echo Trd(74)?>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="modal-footer bg-light border-0">
-                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" id="btnConfirmar" class="btn btn-primary px-4 fw-bold">Sincronizar Datos</button>
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><?php echo Trd(75)?></button>
+                <button type="button" id="btnConfirmar" class="btn btn-primary px-4 fw-bold"><?php echo Trd(76)?></button>
             </div>
         </div>
     </div>
@@ -376,7 +396,7 @@ include_once 'head.php';
                 $('#IdOrganization').val(response.id)
 
                 //console.log("Registrado con éxito!");
-                lanzarMensaje("¡Organización registrada con éxito!", "exito", 5000);
+                lanzarMensaje("<?php echo Trd(77)?>", "exito", 5000);
             },
             error: function () {
                 alert("No se pudo guardar la organización.");
@@ -420,7 +440,7 @@ include_once 'head.php';
                     //if (res.newIdCustomer) {
                     //    $('#IdCustomer').val(res.newIdCustomer);
                     //}
-                    lanzarMensaje("¡Registro actualizado con éxito!", "exito", 5000);
+                    lanzarMensaje("<?php echo Trd(78)?>", "exito", 5000);
                 },
                 error: function(xhr, status, error) {
                     console.error('Error en el autoguardado:', error);
@@ -531,11 +551,11 @@ include_once 'head.php';
                 $('#IdCustomer').val(response.id)
 
                 //console.log("Registrado con éxito!");
-                lanzarMensaje("¡Cliente registradao con éxito!", "exito", 5000);
+                lanzarMensaje("<?php echo Trd(79)?>", "exito", 5000);
             },
             error: function () {
                 //alert("No se pudo guardar el cliente.");
-                lanzarMensaje("¡No se pudo guardar el cliente.!", "error", 5000);
+                lanzarMensaje("<?php echo Trd(80)?>", "error", 5000);
                 $('#Customer').val(null).trigger('change');
             }
         });
@@ -634,11 +654,11 @@ include_once 'head.php';
                 $('#IdVenue').val(response.id)
 
                 //console.log("Registrado con éxito!");
-                lanzarMensaje("¡Lugar de evento registrado con éxito!", "exito", 5000);
+                lanzarMensaje("<?php echo Trd(81)?>", "exito", 5000);
             },
             error: function () {
                 //alert("No se pudo guardar el ligar del evento.");
-                lanzarMensaje("¡No se pudo guardar el lugar del evento.!", "error", 5000);
+                lanzarMensaje("<?php echo Trd(82)?>", "error", 5000);
                 $('#Venue').val(null).trigger('change');
             }
         });
@@ -675,7 +695,7 @@ include_once 'head.php';
                     //    $('#IdCustomer').val(res.newIdCustomer);
                     //}
                     //console.log('Autoguardado exitoso');
-                    lanzarMensaje("¡Lugar de evento actualizado con éxito!", "exito", 5000);
+                    lanzarMensaje("<?php echo Trd(83)?>", "exito", 5000);
                 },
                 error: function(xhr, status, error) {
                     console.error('Error en el autoguardado:', error);
@@ -949,7 +969,7 @@ $(document).on("keypress", ".numbers-only", function (e) {
                 get_related_products($(this).find('td:nth-child(1)').text());
             }
             else{
-                lanzarMensaje("¡No hay más stock disponible!", "error", 5000);
+                lanzarMensaje("<?php echo Trd(84)?>", "error", 5000);
             }
             //alert($(this).find('td:nth-child(1)').data('name'))
             //console.log('Producto seleccionado:', nombreProd);
@@ -965,7 +985,7 @@ $(document).on("keypress", ".numbers-only", function (e) {
                 add_row(Row,$('#IdProducto').val(),todosLosDatos);
             }
             else{
-                lanzarMensaje("¡No hay más stock disponible!", "error", 5000);
+                lanzarMensaje("<?php echo Trd(85)?>", "error", 5000);
             }
         });          
 
@@ -1195,10 +1215,10 @@ $(document).on("keypress", ".numbers-only", function (e) {
     //FORMATO CUSTOMER DE SELECT2
     // Función para dibujar las 2 filas en el listado
     function formatResult(repo) {
-        if (repo.loading) return "Buscando...";
+        if (repo.loading) return "<?php echo Trd(86)?>";
         // Si es un tag nuevo, mostramos un diseño simple o un aviso
         if (repo.newTag) {
-            return $("<span><strong>Agregar nuevo: </strong>" + repo.text + "</span>");
+            return $("<span><strong><?php echo Trd(87)?> </strong>" + repo.text + "</span>");
         }        
         // Estructura de dos filas con clases de Bootstrap 5
         var $container = $(
@@ -1292,7 +1312,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const fechas = fp.selectedDates;
         
         if (fechas.length < 2) {
-            alert("Por favor selecciona dos fechas en el calendario.");
+            alert("<?php echo Trd(88)?>");
             return;
         }
 
@@ -1563,7 +1583,7 @@ function cambiarCantidad(id, delta) {
             inventario.add(fila_afectada.dataset.product, fila_afectada.dataset.name, 1);
         } else {
             //alert("¡No hay más stock disponible!");
-            lanzarMensaje("¡No hay más stock disponible!", "alert", 5000);
+            lanzarMensaje("<?php echo Trd(89)?>", "alert", 5000);
         }
     } else if (delta < 0) {
         // Lógica para RESTAR
@@ -1898,7 +1918,7 @@ function copy_ad(){
 
             }
             else{
-                lanzarMensaje("Es necesario seleccionar o registrar un cliente u organización", "error");
+                lanzarMensaje("<?php echo Trd(90)?>", "error");
             }
             //$('#EventStreet').val($('#Street').val());
             //$('#EventCity').val( $('#City').val());
@@ -1957,7 +1977,7 @@ function abrirRutaGoogleMaps() {
 function Add_Discount(){
     if ($('#DiscountType').val()==''){
         //alert('No selecciono tipo descuento')
-        lanzarMensaje("¡No selecciono tipo descuento!", "alert", 5000);
+        lanzarMensaje("<?php echo Trd(91)?>", "alert", 5000);
     }
     if ($('#DiscountType').val()=='Fee'){
         TrDsc+=1;
@@ -1990,14 +2010,14 @@ function Add_Discount(){
 
         <?php 
                 $disc='';
-                $query = "select * FROM discounts WHERE DateExp > now() AND Active = 1 AND ( Quantity > 0 OR Unlimited = 1) ORDER BY Name";
+                $query = "select * FROM discounts WHERE DateExp > now() AND Active = 1 AND ( Used < Quantity  OR Unlimited = 1) ORDER BY Name";
                 $stmt = $db->prepare($query);
                 $stmt->execute();
                 $discounts = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 if ($discounts) {
                     $disc.='<option value="">...</option>';
                     foreach ($discounts as $discount) {
-                        $disc.='<option value="'.$discount['Id'].'" data-Id="'.$discount['Id'].'" data-type="'.$discount['Type'].'" data-amount="'.$discount['Amount'].'" >'.$discount['Name'].'</option>';
+                        $disc.='<option value="'.$discount['Id'].'" data-Id="'.$discount['Id'].'" data-type="'.$discount['Type'].'" data-amount="'.$discount['Amount'].'" >'.$discount['Code'].'</option>';
                     }
                     
                 }   
@@ -2209,7 +2229,7 @@ function LoadDocument(DocumentType){
             const $filaPlantilla = $cuerpoTabla.find('.item-fila').first();
             ejecutarRenderizadoContract($contenedor, $cuerpoTabla, $filaPlantilla, datosGenerales, productos,descuentos);
             $('#ShareButton').hide();
-            lanzarMensaje("Contrato cargado correctamente", "exito");
+            lanzarMensaje("<?php echo Trd(92)?>", "exito");
     }
     else if (DocumentType =='Quote'){
             $('#modalContratoLabel').html('Visualización de Cotización');
@@ -2220,7 +2240,7 @@ function LoadDocument(DocumentType){
             const $filaPlantilla = $cuerpoTabla.find('.item-fila').first();
             ejecutarRenderizadoQuote($contenedor, $cuerpoTabla, $filaPlantilla, datosGenerales, productos,descuentos);
             $('#ShareButton').show();
-            lanzarMensaje("Cotizacion cargada correctamente", "exito");
+            lanzarMensaje("<?php echo Trd(93)?>", "exito");
 
     }
     else if (DocumentType =='Picking'){
@@ -2606,7 +2626,7 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
                 //alert(response.IdLead)
                 $('#IdLead').val(response.IdLead);
                 $('#UUID').val(response.UUID);                
-                lanzarMensaje("¡Auto guadado correctamente!", tipo = 'exito');
+                lanzarMensaje("<?php echo Trd(94)?>", tipo = 'exito');
                 
             }
         });
@@ -2712,6 +2732,27 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
         recalculate_totals();
         
     }
+
+
+    $('.lang-option').on('click', function(e) {
+        e.preventDefault();
+
+        $.ajax({
+            url: 'cambiar_idioma.php',
+            type: 'POST',
+            data: { lang: $(this).data('lang') },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    // Recargamos para que el servidor lea la nueva sesión de idioma
+                    location.reload(); 
+                }
+            }
+        });
+        
+    });
+
+
     </script>
 
 
