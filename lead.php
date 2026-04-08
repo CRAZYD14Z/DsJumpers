@@ -2113,19 +2113,19 @@ function LoadDocument(DocumentType){
     <?php
 
 
-        $query = "select Template FROM document_center WHERE Tipo = 'contract' AND IdTemplate = 2 AND Activo = 1 AND Idioma ='$lang'";
+        $query = "select Template FROM document_center WHERE Tipo = 'contract' AND IdTemplate = 2 AND Activo = 1 AND Idioma ='$Idioma'";
         $stmt = $db->prepare($query);
         $stmt->execute();
         $Template = $stmt->fetch(PDO::FETCH_ASSOC);
         $Contract = $Template['Template'];
 
-        $query = "select Template FROM document_center WHERE Tipo = 'quote' AND IdTemplate = 4 AND Activo = 1 AND Idioma ='$lang'";
+        $query = "select Template FROM document_center WHERE Tipo = 'quote' AND IdTemplate = 4 AND Activo = 1 AND Idioma ='$Idioma'";
         $stmt = $db->prepare($query);
         $stmt->execute();
         $Template = $stmt->fetch(PDO::FETCH_ASSOC);
         $Quote = $Template['Template'];
 
-        $query = "select Template FROM document_center WHERE Tipo = 'picking' AND IdTemplate = 5 AND Activo = 1 AND Idioma ='$lang'";
+        $query = "select Template FROM document_center WHERE Tipo = 'picking' AND IdTemplate = 5 AND Activo = 1 AND Idioma ='$Idioma'";
         $stmt = $db->prepare($query);
         $stmt->execute();
         $Template = $stmt->fetch(PDO::FETCH_ASSOC);

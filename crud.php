@@ -158,7 +158,8 @@ session_start();
             'item_prices',
             'document_center',
             'price_lists',
-            'discounts'
+            'discounts',
+            'inventory_stock'
         ];
         if (!in_array($IdTabla, $allowed_tables)) {
             die("<h3>".Trd(3)."</h3></div></body></html>");
@@ -249,7 +250,7 @@ session_start();
             $TablePrices ='products_item_price';
             ?>
                 <form name="edit_<?php echo $TablePrices?>" id="edit_<?php echo $TablePrices?>" class="needs-validation" novalidate>
-                    <input type="text" name="edit_Producto" id="edit_Producto" >
+                    <input type="hidden" name="edit_Producto" id="edit_Producto" >
                     <div class="row">
                         <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
                             <?php
@@ -1275,6 +1276,7 @@ function getRecordData(Id,IdTabla) {
             //console.log('Datos del registro:', response);
             Object.entries(response).forEach(([clave, valor]) => {
                 // Buscar input por id igual a la clave (case-insensitive)
+                //alert("edit_"+clave);
                 const input = document.getElementById("edit_"+clave);
                 //alert("edit_"+clave +" "+ input.type + " " + valor)
                 if (input) {
@@ -1533,7 +1535,15 @@ function deleteRecord(Id,IdTabla) {
                         </td>`;                
             }
                 
+            if (IdTabla == 'detail_price_lists'){
 
+                html += `<td style="text-align: center">
+                            <button type="button" class="btn btn-danger btn-sm" onclick="questionDelete('${Id}','${IdTabla}')"  data-bs-toggle="modal" data-bs-target="#delete_${IdTabla}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>`;            
+
+            }else{
                 html += `<td style="text-align: center">
                             <button type="button" class="btn btn-primary btn-sm" onclick="getRecordData('${Id}','${IdTabla}')">
                                 <i class="fas fa-pen"></i>
@@ -1542,8 +1552,8 @@ function deleteRecord(Id,IdTabla) {
                             <button type="button" class="btn btn-danger btn-sm" onclick="questionDelete('${Id}','${IdTabla}')"  data-bs-toggle="modal" data-bs-target="#delete_${IdTabla}">
                                 <i class="fas fa-trash"></i>
                             </button>
-                        </td>`;                        
-
+                        </td>`;
+            }
                 html += '</tr>';
             });
 
@@ -1995,8 +2005,8 @@ $(document).ready(function() {
 function actualizarJSON() {
     const idsExistentes = $('.linea-config').map(function() { return this.id; }).get();
     configTotal = configTotal.filter(item => idsExistentes.includes(item.id_linea));
-    //$('#JsonPrice').val(JSON.stringify(configTotal, null, 2));
-    //$('#edit_JsonPrice').val(JSON.stringify(configTotal, null, 2));
+    $('#JsonPrice').val(JSON.stringify(configTotal, null, 2));
+    $('#edit_JsonPrice').val(JSON.stringify(configTotal, null, 2));
     proyectarTarifa(); 
 }
 

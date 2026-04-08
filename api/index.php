@@ -47,7 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $database = new Database();
 $db = $database->getConnection();
 $method = $_SERVER['REQUEST_METHOD'];
-$data = json_decode(file_get_contents("php://input"));
+
+
 
 // Obtener y limpiar los segmentos de la URI (ej: /api/clientes/123 -> clientes, 123)
 $request_uri = $_SERVER['REQUEST_URI'];
@@ -56,8 +57,12 @@ $base_path = '/api';
 $path = trim(str_replace($base_path, '', $request_uri), '/'); 
 $segments = explode('/', $path);
 
-$resource = $segments[0]; // Ej: 'login', 'clientes', 'productos'
-$id = $segments[1] ?? null; // Ej: ID si existe
+$resource = $segments[1]; // Ej: 'login', 'clientes', 'productos'
+$id = $segments[2] ?? null; // Ej: ID si existe
+
+if ($resource != 'process_stage_change' )
+    $data = json_decode(file_get_contents("php://input"));
+else $data= '';
 // ----------------------------------------------------
 // 4. ENRUTAMIENTO Y AUTENTICACIÓN
 // ----------------------------------------------------
@@ -115,8 +120,19 @@ if (isset($_SERVER['HTTP_ID5']))
 //print_r($IDS);
 //die();
 switch ($resource) {
+    case 'delete_route':
+        delete_route($resource,$db, $method, $id, $data);
+    break;        
+    case 'process_stage_change_em':
+        process_stage_change_em($resource,$db, $method, $id, $data);
+    break;    
+    case 'process_stage_change':
+        process_stage_change($resource,$db, $method, $id, $data);
+    break;
+    case 'inventory_stock':
+        handle_generic_crud($resource,$db, $method, $id, $data);
+        break;            
     case 'discounts':
-        
         handle_generic_crud($resource,$db, $method, $id, $data);
         break;    
     case 'clientes':
@@ -302,6 +318,9 @@ switch ($resource) {
     case 'pending_payments':
         pending_payments($resource,$db, $method, $id, $data);
         break;
+    case 'operation':
+        operation($resource,$db, $method, $id, $data);
+        break;        
     case 'get_packing_list':
         get_packing_list($resource,$db, $method, $id, $data);
         break;        

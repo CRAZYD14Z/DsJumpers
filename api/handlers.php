@@ -86,7 +86,8 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
         'copy_records',
         'price_lists',
         'detail_price_lists',
-        'discounts'
+        'discounts',
+        'inventory_stock'
     ];
     if (!in_array($table_name, $allowed_tables)) {
         http_response_code(400);
@@ -279,6 +280,8 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                 } 
                 elseif ($table_name == 'detail_price_lists')
                     $v_table_name = 'v_detail_price_lists';
+                elseif ($table_name == 'inventory_stock')
+                    $v_table_name = 'v_inventory_stock';                
                 else
                     $v_table_name = $table_name;
                 
@@ -480,6 +483,8 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                 }                
                 elseif ($table_name == 'detail_price_lists')
                     $v_table_name = 'v_detail_price_lists';
+                elseif ($table_name == 'inventory_stock')
+                    $v_table_name = 'v_inventory_stock';                
                 else
                     $v_table_name = $table_name;
                 // 3. Consulta para obtener los DATOS PAGINADOS
@@ -750,6 +755,7 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
             }
             $Where=substr($Where, 0, -3);
             $query = "UPDATE $table_name SET $Campos $CamposUpdate WHERE $Where";
+            //echo $query;
             $stmt = $db->prepare($query);            
             // Sanitizar y enlazar parámetros
             foreach ($resultados as $registro) {
@@ -2562,6 +2568,52 @@ function pending_payments($table_name,$db, $method, $id, $data){
     }
 }  
 
+function operation($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+
+
+            $limit = 15;
+            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+            $offset = ($page - 1) * $limit;
+            $search = isset($_GET['search']) ? $_GET['search'] : '';
+
+            // Consulta con lógica de negocio integrada
+            $sql = "SELECT *, 
+                    CASE 
+                        WHEN Organization > 0 THEN NombreOrganizacion 
+                        WHEN Customer > 0 THEN CONCAT(NombreCliente, ' ', ApellidosCliente)
+                        ELSE 'Sin identificar'
+                    END AS NombreMostrar
+                    FROM v_operations
+                    WHERE (NombreOrganizacion LIKE :s OR NombreCliente LIKE :s OR ApellidosCliente LIKE :s) and id_vehicle > 0                   
+                    ORDER BY StartDateTime, id_vehicle, orden  DESC"; 
+//                    LIMIT :limit OFFSET :offset";
+
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(':s', "%$search%", PDO::PARAM_STR);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->execute();            
+
+
+            if ($stmt) {
+                http_response_code(200);
+                echo json_encode($stmt->fetchAll());
+            } else {
+                http_response_code(404);
+                echo json_encode(array("message" => "Registro no encontrado."));
+            }
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+}  
+
 function get_packing_list($table_name,$db, $method, $id, $data){
     global $IDS;
     switch ($method) {
@@ -2604,6 +2656,225 @@ function get_packing_list($table_name,$db, $method, $id, $data){
         break;
     }
 }  
+
+function process_stage_change($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+
+            // 1. Recibir datos básicos
+            $id_op     = $_POST['id_op'];
+            $currentStage = $_POST['currentStage'];
+            $nextStage = $_POST['next_stage'];
+            $coords    = $_POST['coords'];
+            $notes     = $_POST['notes'];
+            $items     = json_decode($_POST['items'], true);
+
+            // 2. Manejar la imagen (opcional)
+            $filename = '';
+            $imagePath = null;
+            if (isset($_FILES['evidence_img']) && $_FILES['evidence_img']['error'] === UPLOAD_ERR_OK) {
+                $ext = pathinfo($_FILES['evidence_img']['name'], PATHINFO_EXTENSION);
+                $filename = "evidencia_" . time() . "_" . uniqid() . "." . $ext;
+                $target = "../ajax/tmp/evidencias/" . $filename;
+                
+                if (move_uploaded_file($_FILES['evidence_img']['tmp_name'], $target)) {
+                    $imagePath = $filename;
+                }
+            }            
+
+
+            $queryI ="SELECT * FROM operation_checklist WHERE id_operation = :id_operation AND stage = :operation_type";
+
+            $stmtI = $db->prepare($queryI);
+            $stmtI->bindValue(":id_operation", $id_op);
+            $stmtI->bindValue(":operation_type", $currentStage);
+            $stmtI->execute();      
+            $resultados = $stmtI->fetchAll(PDO::FETCH_ASSOC);       
+            if ($resultados) {
+                foreach ($resultados as $registro) {
+                    $queryI= "INSERT INTO operation_checklist (id_operation,id_product,id_accesory_base,id_accesory,requested_quantity,assorted_quantity,stage) VALUES(:id_operation,:id_product,:id_accesory_base,:id_accesory,:requested_quantity,:assorted_quantity,:stage)";
+                    $stmtI = $db->prepare($queryI);
+                    $stmtI->bindValue(":id_operation", $registro['id_operation']);
+                    $stmtI->bindValue(":id_product", $registro['id_product']);
+                    $stmtI->bindValue(":id_accesory_base", $registro['id_accesory_base']);
+                    $stmtI->bindValue(":id_accesory", $registro['id_accesory']);
+                    $stmtI->bindValue(":requested_quantity", $registro['requested_quantity']);
+                    //$stmtI->bindValue(":assorted_quantity", $registro['assorted_quantity']);
+                    $stmtI->bindValue(":assorted_quantity", 0);
+                    $stmtI->bindValue(":stage", $nextStage);
+                    $stmtI->execute();                  
+                }
+            }
+
+            $queryI= "INSERT INTO operation_evidence (id_operation,operation_type,url_photo,geolocation,datetime) VALUES(:id_operation,:operation_type,:url_photo,:geolocation,NOW())";
+
+            $stmtI = $db->prepare($queryI);
+            $stmtI->bindValue(":id_operation", $id_op);
+            $stmtI->bindValue(":operation_type", $currentStage);
+            $stmtI->bindValue(":url_photo", $filename);
+            $stmtI->bindValue(":geolocation", $coords);
+            $stmtI->execute();            
+
+            $queryI= "UPDATE operation_checklist SET assorted_quantity = requested_quantity WHERE id_operation = :id_operation AND stage = :operation_type ";
+            $stmtI = $db->prepare($queryI);
+            $stmtI->bindValue(":id_operation", $id_op);
+            $stmtI->bindValue(":operation_type", $currentStage);
+            $stmtI->execute();            
+
+
+            $queryI= "UPDATE operation_master SET status = :operation_type  WHERE id_operation = :id_operation ";
+            $stmtI = $db->prepare($queryI);
+            $stmtI->bindValue(":id_operation", $id_op);
+            $stmtI->bindValue(":operation_type", $currentStage);
+            $stmtI->execute();               
+
+
+            http_response_code(200);
+            echo json_encode(array("message" => "Registro actualizado."));
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+}  
+
+
+
+function process_stage_change_em($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+
+            // 1. Recibir datos básicos
+            $id_route     = $_POST['id_route'];
+            $currentStage = $_POST['currentStage'];
+            $nextStage = $_POST['next_stage'];
+            $coords    = '';
+            $notes     = '';            
+            $filename = '';
+
+            $queryI ="SELECT id_operation FROM route_stops WHERE id_route = :id_route";
+            $stmtI = $db->prepare($queryI);
+            $stmtI->bindValue(":id_route", $id_route);
+            $stmtI->execute();             
+            $operaciones = $stmtI->fetchAll(PDO::FETCH_ASSOC);       
+
+    if ($operaciones) {            
+        foreach ($operaciones as $operacion) {
+            $id_op     = $operacion['id_operation'];
+            $queryI ="SELECT * FROM operation_checklist WHERE id_operation = :id_operation AND stage = :operation_type";
+
+            $stmtI = $db->prepare($queryI);
+            $stmtI->bindValue(":id_operation", $id_op);
+            $stmtI->bindValue(":operation_type", $currentStage);
+            $stmtI->execute();      
+            $resultados = $stmtI->fetchAll(PDO::FETCH_ASSOC);       
+            if ($resultados) {
+                foreach ($resultados as $registro) {
+                    $queryI= "INSERT INTO operation_checklist (id_operation,id_product,id_accesory_base,id_accesory,requested_quantity,assorted_quantity,stage) VALUES(:id_operation,:id_product,:id_accesory_base,:id_accesory,:requested_quantity,:assorted_quantity,:stage)";
+                    $stmtI = $db->prepare($queryI);
+                    $stmtI->bindValue(":id_operation", $registro['id_operation']);
+                    $stmtI->bindValue(":id_product", $registro['id_product']);
+                    $stmtI->bindValue(":id_accesory_base", $registro['id_accesory_base']);
+                    $stmtI->bindValue(":id_accesory", $registro['id_accesory']);
+                    $stmtI->bindValue(":requested_quantity", $registro['requested_quantity']);
+                    $stmtI->bindValue(":assorted_quantity", 0);
+                    //$stmtI->bindValue(":assorted_quantity", $registro['assorted_quantity']);
+                    $stmtI->bindValue(":stage", $nextStage);
+                    $stmtI->execute();                  
+                }
+            }
+
+            $queryI= "INSERT INTO operation_evidence (id_operation,operation_type,url_photo,geolocation,datetime) VALUES(:id_operation,:operation_type,:url_photo,:geolocation,NOW())";
+
+            $stmtI = $db->prepare($queryI);
+            $stmtI->bindValue(":id_operation", $id_op);
+            $stmtI->bindValue(":operation_type", $currentStage);
+            $stmtI->bindValue(":url_photo", $filename);
+            $stmtI->bindValue(":geolocation", $coords);
+            $stmtI->execute();            
+
+            $queryI= "UPDATE operation_checklist SET assorted_quantity = requested_quantity WHERE id_operation = :id_operation AND stage = :operation_type ";
+            $stmtI = $db->prepare($queryI);
+            $stmtI->bindValue(":id_operation", $id_op);
+            $stmtI->bindValue(":operation_type", $currentStage);
+            $stmtI->execute();            
+
+
+            $queryI= "UPDATE operation_master SET status = :operation_type  WHERE id_operation = :id_operation ";
+            $stmtI = $db->prepare($queryI);
+            $stmtI->bindValue(":id_operation", $id_op);
+            $stmtI->bindValue(":operation_type", $currentStage);
+            $stmtI->execute();   
+        }            
+    }
+
+            http_response_code(200);
+            echo json_encode(array("message" => "Registro actualizado."));
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+}
+
+
+function delete_route($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+
+            // 1. Recibir datos básicos
+            $vehiculoId     = $_POST['vehiculoId'];
+            $fecha          = $_POST['fecha'];
+
+            $queryI ="SELECT id_route FROM daily_route WHERE date = :date AND id_vehicle = :id_vehicle";
+
+            $stmtI = $db->prepare($queryI);
+            $stmtI->bindValue(":date", $fecha);
+            $stmtI->bindValue(":id_vehicle", $vehiculoId);
+            $stmtI->execute();      
+            $resultado = $stmtI->fetch(PDO::FETCH_ASSOC);       
+            if ($resultado) {
+                $query ="SELECT id_operation FROM route_stops WHERE id_route = :id_route";
+                $stmt = $db->prepare($query);
+                $stmt->bindValue(":id_route", $resultado['id_route']);
+                $stmt->execute();      
+                $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);       
+                if ($resultados) {
+                    foreach ($resultados as $registro) {
+
+                        $db->prepare("UPDATE operation_master SET status = 'BODEGA', id_vehicle=0, id_driver=0 WHERE id_operation = ?")->execute([$registro['id_operation']]);
+
+                        $db->prepare("UPDATE operation_checklist SET stage = 'SURTIDO', assorted_quantity=0 WHERE id_operation = ?")->execute([$registro['id_operation']]);                    
+
+                        $db->prepare("DELETE FROM operation_checklist WHERE id_operation = ? AND stage <> 'SURTIDO'")->execute([$registro['id_operation']]);
+                    }
+                }
+            }            
+
+            $db->prepare("DELETE FROM daily_route WHERE id_route = ?")->execute([$resultado['id_route']]);
+            $db->prepare("DELETE FROM route_stops WHERE id_route = ?")->execute([$resultado['id_route']]);            
+
+
+            http_response_code(200);
+            echo json_encode(array("message" => "Registro actualizado."));
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+}
 
 
 function generar_uuid_v4() {

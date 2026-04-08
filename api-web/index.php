@@ -115,8 +115,8 @@ $base_path = '/api-web';
 $path = trim(str_replace($base_path, '', $request_uri), '/'); 
 $segments = explode('/', $path);
 
-$resource = $segments[0]; // Ej: 'login', 'clientes', 'productos'
-$id = $segments[1] ?? null; // Ej: ID si existe
+$resource = $segments[1]; // Ej: 'login', 'clientes', 'productos'
+$id = $segments[2] ?? null; // Ej: ID si existe
 
 
 // --- C. ENRUTAMIENTO CRUD PROTEGIDO ---
@@ -133,11 +133,9 @@ if (isset($_SERVER['HTTP_ID5']))
 //print_r($IDS);
 //die($resource);
 switch ($resource) {
-
     case 'discounts':
         get_discounts($resource,$db, $method, $id, $data);
     break;    
-
     case 'products':
         products($resource,$db, $method, $id, $data);
     break;
@@ -165,6 +163,9 @@ switch ($resource) {
     case 'sendbook':
         sendbook($resource,$db, $method, $id, $data);
     break;
+    case 'cart_update':
+        cart_update($resource,$db, $method, $id, $data);
+    break;    
     default:
         // Manejar rutas no definidas
         http_response_code(404);
@@ -202,8 +203,6 @@ function sendbook($table_name,$db, $method, $id, $data){
     global $IDS;
     switch ($method) {
         case 'POST': 
-
-            
             $sql = "SELECT * FROM account ";
             $stmt = $db->prepare($sql);
             //$stmt->bindValue(":name", $data->Product); 
@@ -361,6 +360,7 @@ function products($table_name,$db, $method, $id, $data){
     switch ($method) {
         case 'POST': 
 
+            
             $sql = "SELECT * FROM products WHERE Name = :name";
             $stmt = $db->prepare($sql);
             $stmt->bindValue(":name", $data->Product); 
@@ -590,7 +590,7 @@ function products_categories($table_name,$db, $method, $id, $data){
     global $IDS;
     switch ($method) {
         case 'POST': 
-
+/*
             // 1. Definimos el SQL como un simple string (texto)
             $sql = "            
                 SELECT
@@ -625,6 +625,134 @@ function products_categories($table_name,$db, $method, $id, $data){
 
             // 5. Obtenemos los resultados desde el $stmt, no desde $db ni $query
             $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+*/
+            $sql = 'SELECT Id FROM categories WHERE Nombre = :name';
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(":name", $data->Category);
+            $stmt->execute();
+            $category = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $IdCat = $category['Id'];
+
+            $DateS_raw = isset($data->SD) ? $data->SD."T".$data->SH : date('Y-m-d\TH:i');
+            $DateE_raw = isset($data->ED) ? $data->ED."T".$data->EH  : date('Y-m-d\TH:i');
+
+            $objDateS = new DateTime($DateS_raw);
+            $objDateE = new DateTime($DateE_raw);
+
+            $fechaS = $objDateS->format('Ymd'); // 2026-02-04
+            $horaS  = $objDateS->format('H:i');   // 18:00
+
+            $fechaE = $objDateE->format('Ymd'); // 2026-02-05
+            $horaE  = $objDateE->format('H:i');   // 02:00
+
+            $DayWeek = date('w', strtotime($fechaS));
+
+            switch ($DayWeek) {
+                case '0':
+                    $DayWeek =' AND Do = 1 ';
+                break;
+                case '1':
+                    $DayWeek =' AND Lu = 1 ';
+                break;
+                case '2':
+                    $DayWeek =' AND Ma = 1 ';
+                break;
+                case '3':
+                    $DayWeek =' AND Mi = 1 ';
+                break;
+                case '4':
+                    $DayWeek =' AND Ju = 1 ';
+                break;
+                case '5':
+                    $DayWeek =' AND Vi = 1 ';
+                break;
+                case '6':
+                    $DayWeek =' AND Sa = 1 ';
+                break;
+            }
+
+            //RECUPERAR TODO EL DETALLE DE EVENTOS ACTIVOS DE ESTA FECHA PARA RESTAR LAS CANTIDADES DE LOS PRODUCTOS
+
+            $fechaS_db = $objDateS->format('Y-m-d H:i:s');
+            $fechaE_db = $objDateE->format('Y-m-d H:i:s');
+
+            $query = "
+                SELECT IdProduct, SUM(Quantity) as Quantity 
+                FROM v_leads_detail 
+                WHERE Status = 'quoted' 
+                AND (StartDateTime < :DateE AND EndDateTime > :DateS)
+                AND Unlimited = 0
+                GROUP BY IdProduct
+                
+                UNION
+
+                SELECT
+                    relationship_products.Producto_rsp as IdProduct, 
+                    count(relationship_products.Producto_rsp) as Quantity
+                FROM
+                    v_leads_detail
+                    INNER JOIN
+                    relationship_products
+                    ON 
+                        v_leads_detail.IdProduct = relationship_products.Producto_sp
+                        
+                WHERE v_leads_detail.Status = 'quoted' 
+                AND (v_leads_detail.StartDateTime < :DateEE AND v_leads_detail.EndDateTime > :DateSS)
+                AND v_leads_detail.Unlimited = 0
+                GROUP BY relationship_products.Producto_rsp		                
+
+            ";
+
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':DateS', $fechaS_db);
+            $stmt->bindParam(':DateE', $fechaE_db);
+            $stmt->bindParam(':DateSS', $fechaS_db);
+            $stmt->bindParam(':DateEE', $fechaE_db);            
+            $stmt->execute();                
+
+            $ocupados = $stmt->fetchAll(PDO::FETCH_ASSOC);                
+
+            $cantidadesOcupadas = array_column($ocupados, 'Quantity', 'IdProduct');                
+
+            $query = "
+                SELECT * FROM v_items_prices_lists
+                WHERE Category = :idCat  AND 
+                            Estatus_price_list = 1 AND
+                            Estatus_price = 1 AND 
+                :date BETWEEN  FechaHoraInicio AND FechaHoraFin  $DayWeek                                    
+            ";                            
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':idCat', $IdCat, PDO::PARAM_INT);
+            $stmt->bindParam(':date', $fechaS, PDO::PARAM_STR);
+            //$stmt->bindValue(1, $IdCat);
+            //$stmt->bindValue(2, $Date);
+            $stmt->execute();
+            $resultados_p = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            if ($resultados_p) {
+                foreach ($resultados_p as $index => $Precio) {
+                        $JsonPrice = $Precio['JsonPrice'];
+                        $JsonPrice = html_entity_decode($JsonPrice);
+                        $ingreso =  $objDateS->format('Y-m-d H:i:00');
+                        $salida  = $objDateE->format('Y-m-d H:i:00');
+                        // Modificamos directamente el arreglo usando el índice
+                        $resultados_p[$index]['Price'] = calcularCostoEstanciaPHP($JsonPrice, $ingreso, $salida);
+                            if (isset($cantidadesOcupadas[$resultados_p[$index]['Producto']])) {
+                                $cantidadOcupada = $cantidadesOcupadas[$resultados_p[$index]['Producto']];
+                            } else {
+                                $cantidadOcupada = 0; // Si no está en el arreglo, nadie lo ha rentado
+                            }                            
+                        $resultados_p[$index]['Quantity'] = $resultados_p[$index]['Quantity'] - $cantidadOcupada;
+                        $query = "SELECT *  from products_images WHERE Product = ".$resultados_p[$index]['Producto']." ORDER BY Orden LIMIT 1";
+                        $stmtigm = $db->prepare($query);
+                        $stmtigm->execute();
+                        $Img = $stmtigm->fetch(PDO::FETCH_ASSOC);                             
+                        if ($Img)
+                            $resultados_p[$index]['Image'] = $Img['Image'];
+                        //if ($resultados_p[$index]['Quantity'] <= 0)
+                        //    unset($resultados_p[$index]);
+                    }
+            }            
 
 
 
@@ -632,8 +760,8 @@ function products_categories($table_name,$db, $method, $id, $data){
             http_response_code(200);
             echo json_encode([
                 "status" => "success",
-                "total" => count($productos),
-                "data" => $productos
+                "total" => count($resultados_p),
+                "data" => $resultados_p
             ]);
         break;
 
@@ -1198,16 +1326,18 @@ function precios($data,$product){
 
     global $db;
 
+    //print_r($data);
+
     $DateS_raw = $data->SD . "T" . $data->SH;
     $DateE_raw = $data->ED . "T" . $data->EH;
 
     $objDateS = new DateTime($DateS_raw);
     $objDateE = new DateTime($DateE_raw);
 
-    $fechaS = $objDateS->format('Ymd'); // 2026-02-04
+    $fechaS = $objDateS->format('Y-m-d'); // 2026-02-04
     $horaS  = $objDateS->format('H:i');   // 18:00
 
-    $fechaE = $objDateE->format('Ymd'); // 2026-02-05
+    $fechaE = $objDateE->format('Y-m-d'); // 2026-02-05
     $horaE  = $objDateE->format('H:i');   // 02:00
 
     $DayWeek = date('w', strtotime($fechaS));
@@ -1276,7 +1406,7 @@ function precios($data,$product){
     $stmt->execute();                
 
     $ocupados = $stmt->fetchAll(PDO::FETCH_ASSOC);                
-
+    
     $cantidadesOcupadas = array_column($ocupados, 'Quantity', 'IdProduct');                
 
     $query = "
@@ -1293,6 +1423,9 @@ function precios($data,$product){
     //$stmt->bindValue(2, $Date);
     $stmt->execute();
     $resultados_p = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    //echo $product." ".$fechaS."---".$DayWeek ;
+    //print_r($resultados_p);    
+
     if ($resultados_p) {
         foreach ($resultados_p as $index => $Precio) {
                 $JsonPrice = $Precio['JsonPrice'];
@@ -1321,5 +1454,28 @@ function precios($data,$product){
     return $resultados_p;
 }
 
+function cart_update($resource,$db, $method, $id, $data){
+    global $db;
+    $itemsActualizados = [];
+    foreach ($data->items as $item) {
+
+        $resultados_p = precios($data,$item->id);
+        //print_r($resultados_p);
+        
+
+        $itemActualizado = clone $item; // Clonar para no modificar el original
+        $itemActualizado->precio = $resultados_p[0]['Price'] ?? $item->precio."*";
+        $itemActualizado->existencia = $resultados_p[0]['Quantity'] ?? $item->existencia."*";
+        
+        $itemsActualizados[] = $itemActualizado;        
+    }
+
+    http_response_code(200);
+    echo json_encode([
+        "status" => "success",
+        "data" => $itemsActualizados
+    ]);     
+
+}
 
 ?>

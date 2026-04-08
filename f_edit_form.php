@@ -25,10 +25,11 @@ function armar_formulario_edit($tabla,$etiqueta,$idioma){
                     modal_edit.Etiqueta = ? AND
                     modal_edit.TipoCampo <> 'eval' AND
                     modal_edit.TipoCampo <> 'auto' AND
-                    titulos_campos_tablas.Idioma = ?
+                    modal_edit.Visible = 1 AND
+                    titulos_campos_tablas.Idioma = ? 
                 ORDER BY
-                    modal_edit.Id ASC, 
-                    modal_edit.Fila ASC
+                    modal_edit.Fila ASC,
+                    modal_edit.Id ASC
             ";
             $stmt = $db->prepare($query);
             $stmt->bindValue(1, $tabla);
@@ -71,7 +72,7 @@ function armar_formulario_edit($tabla,$etiqueta,$idioma){
                     $CampoDescripcion2  = $row['CampoDescripcion2'];
                     $Receptor       = $row['Receptor'];                    
                     $Filtro2        = $row['Filtro2'];
-
+                    $ValorCampo     = $row['Valor'];
                     $form_control = " form-control  form-control-sm";
                     $form_select  = " form-select form-select-sm";
 
@@ -115,27 +116,27 @@ function armar_formulario_edit($tabla,$etiqueta,$idioma){
                             break;                        
                         case 'text':
                             echo "<label for='$Campo' class='form-label'>$Titulo</label>";
-                            echo '<input name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.'" type="'.$TipoCampo.'" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.'>';
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.'" type="'.$TipoCampo.'" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.'>';
                             echo '<div class="invalid-feedback">'.$Validacion.'</div>';
                             break;
                         case 'number';
                             echo "<label for='$Campo' class='form-label'>$Titulo</label>";
-                            echo '<input name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' numbers-only" type="number" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.' >';
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' numbers-only" type="number" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.' >';
                             echo '<div class="invalid-feedback">'.$Validacion.'</div>';
                             break;
                         case 'decimal';
                             echo "<label for='$Campo' class='form-label'>$Titulo</label>";
-                            echo '<input name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' decimals" type="number" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.' >';
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' decimals" type="number" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.' >';
                             echo '<div class="invalid-feedback">'.$Validacion.'</div>';
                             break;
                         case 'currency';
                             echo "<label for='$Campo' class='form-label'>$Titulo</label>";
-                            echo '<input name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' decimals currency" type="text" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.' >';                            
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' decimals currency" type="text" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.' >';                            
                             echo '<div class="invalid-feedback">'.$Validacion.'</div>';
                             break;   
                         case 'area';
                             echo "<label for='$Campo' class='form-label'>$Titulo</label>";
-                            echo '<textarea name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.'" data-tipo="area" rows="'.$LargoMin.'" cols="'.$LargoMax.'" '.$SoloLectura.'></textarea>';
+                            echo '<textarea name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.'" data-tipo="area" rows="'.$LargoMin.'" cols="'.$LargoMax.'" '.$SoloLectura.'>'.$ValorCampo.'</textarea>';
                             echo '<div class="invalid-feedback">'.$Validacion.'</div>';
                             break;
                         case 'html';
@@ -145,35 +146,35 @@ function armar_formulario_edit($tabla,$etiqueta,$idioma){
                             break;                            
                         case 'range':
                             echo "<label for='$Campo' class='form-label'>$Titulo</label>";
-                            echo '<input name="'.$Campo.'" id="'.$Campo.'" type="'.$TipoCampo.'" class="form-range" style="" min="'.$LargoMin.'" max="'.$LargoMax.'" />';
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" type="'.$TipoCampo.'" class="form-range" style="" min="'.$LargoMin.'" max="'.$LargoMax.'" />';
                             break;
                         case 'date':
                             echo "<label for='$Campo' class='form-label'>$Titulo</label>";
-                            echo '<input name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.'" type="'.$TipoCampo.'" style="" '.$Requerido.' '.$SoloLectura.'>';
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.'" type="'.$TipoCampo.'" style="" '.$Requerido.' '.$SoloLectura.'>';
                             break;
                         case 'time':
                             echo "<label for='$Campo' class='form-label'>$Titulo</label>";
-                            echo '<input name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.'" type="'.$TipoCampo.'" style="" '.$Requerido.' '.$SoloLectura.'>';
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.'" type="'.$TipoCampo.'" style="" '.$Requerido.' '.$SoloLectura.'>';
                             break;
                         case 'tel':
                             echo "<label for='$Campo' class='form-label'>$Titulo</label>";
-                            echo '<input name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.'" type="'.$TipoCampo.'" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.'>';
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.'" type="'.$TipoCampo.'" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.'>';
                             break;
                         case 'url':
                             echo "<label for='$Campo' class='form-label'>$Titulo</label>";
-                            echo '<input name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.'" type="'.$TipoCampo.'" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.'>';
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.'" type="'.$TipoCampo.'" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.'>';
                             break;
                         case 'password':
                             echo "<label for='$Campo' class='form-label'>$Titulo</label>";
-                            echo '<input name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.'" type="'.$TipoCampo.'" style="text-align: '.$Alineacion.';" '.$Requerido.' '.$SoloLectura.'>';
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.'" type="'.$TipoCampo.'" style="text-align: '.$Alineacion.';" '.$Requerido.' '.$SoloLectura.'>';
                             break;
                         case 'color':
                             echo "<label for='$Campo' class='form-label'>$Titulo</label>";
-                            echo '<input name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.'" type="'.$TipoCampo.'" >';
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.'" type="'.$TipoCampo.'" >';
                             break;
                         case 'email':
                             echo "<label for='$Campo' class='form-label'>$Titulo</label>";
-                            echo '<input name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.'" type="'.$TipoCampo.'" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.'>';
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.'" type="'.$TipoCampo.'" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.'>';
                             break;
                         case 'select':
                             if ($SoloLectura!="")

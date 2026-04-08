@@ -6,7 +6,8 @@
         "openpay/sdk": "3.0",
         "square/square": "^45.0",
         "symfony/http-client": "^7.4",
-        "nyholm/psr7": "^1.8"
+        "nyholm/psr7": "^1.8",
+        "google/auth": "^1.50"
     },
     "config": {
         "allow-plugins": {

@@ -28,6 +28,7 @@
                 <li><a class="dropdown-item" href="crud.php?Id=organizations">Organizations</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=price_lists">Price Lists</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=products">Products</a></li>
+                <li><a class="dropdown-item" href="crud.php?Id=inventory_stock">Inventory Stock</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=referals">Referals</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=surfaces">Surfaces</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=venues">Venues</a></li>
@@ -36,6 +37,9 @@
                 <li><a class="dropdown-item" href="lead.php">New Lead</a></li>
                 <li><a class="dropdown-item" href="leads.php">Leads</a></li>
                 <li><a class="dropdown-item" href="pending_payments.php">Pending Payments</a></li>
+                <li><a class="dropdown-item" href="route.php">Armado de rutas</a></li>  
+                <li><a class="dropdown-item" href="operation.php">Operation</a></li>  
+
                 <li><a class="dropdown-item" href="logout.php">Sign Out</a></li>
                 <?php } else{?>
                 <li><a class="dropdown-item" href="crud.php?Id=account">Cuenta</a></li>
@@ -50,6 +54,7 @@
                 <li><a class="dropdown-item" href="crud.php?Id=organizations">Organizaciones</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=price_lists">Listas de Precios</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=products">Productos</a></li>
+                <li><a class="dropdown-item" href="crud.php?Id=inventory_stock">Inventario</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=referals">Referidos</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=surfaces">Superficies</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=venues">Lugares de eventos</a></li>
@@ -58,6 +63,9 @@
                 <li><a class="dropdown-item" href="lead.php">Nuevo Evento </a></li>
                 <li><a class="dropdown-item" href="leads.php">Eventos</a></li>
                 <li><a class="dropdown-item" href="pending_payments.php">Pendientes de pago</a></li>
+                <li><a class="dropdown-item" href="route.php">Armado de rutas</a></li>  
+                <li><a class="dropdown-item" href="operation.php">Operación</a></li>                
+
                 <li><a class="dropdown-item" href="logout.php">Salir</a></li>                
                 <?php }?>
             </ul>
