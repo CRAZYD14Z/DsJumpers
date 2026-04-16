@@ -1277,6 +1277,8 @@ function getRecordData(Id,IdTabla) {
             Object.entries(response).forEach(([clave, valor]) => {
                 // Buscar input por id igual a la clave (case-insensitive)
                 //alert("edit_"+clave);
+                if (clave=='IId')
+                    clave ='IId_'+IdTabla;
                 const input = document.getElementById("edit_"+clave);
                 //alert("edit_"+clave +" "+ input.type + " " + valor)
                 if (input) {
@@ -1328,6 +1330,14 @@ function getRecordData(Id,IdTabla) {
                         else
                             input.value = valor || '';
                     }
+                    else if (input.type === "hidden") {
+                        
+                        //alert(clave+ ":"+valor)
+                        //$('#edit_'+clave).val(valor);
+                        input.value = valor;
+
+
+                    }                    
                     else {
                         // Para inputs normales (text, hidden, etc.)
                         //alert(input.type)

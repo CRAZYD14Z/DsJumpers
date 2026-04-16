@@ -202,11 +202,11 @@ $lang ='es';
 
             <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
 
-<a href="<?php echo $pdfDataUri; ?>" 
-   download="<?php echo $pdfNombre; ?>" 
-   class="btn btn-primary btn-lg px-4 gap-3">
-   Descargar PDF
-</a>            
+                <a href="<?php echo $pdfDataUri; ?>" 
+                download="<?php echo $pdfNombre; ?>" 
+                class="btn btn-primary btn-lg px-4 gap-3">
+                Descargar PDF
+                </a>            
 
                 <a href="<?php echo URL_BASE;?>" class="btn btn-outline-secondary btn-lg px-4">Volver al Inicio</a>
             </div>

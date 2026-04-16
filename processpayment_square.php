@@ -4,6 +4,7 @@ session_start();
 // Incluye la clase de conexión a la BD
 include_once 'config/config.php';     
 include_once 'config/database.php'; 
+include_once 'api/process_op.php'; 
 $database = new Database();
 $db = $database->getConnection();
 $lang ='es';
@@ -116,8 +117,17 @@ try {
     //}
     //else{
         $stmt = $db->prepare(" UPDATE lead SET Status = ? WHERE Id = ?");
-        $stmt->execute(['confirmed', $lead['IdBranch']]);
+        $stmt->execute(['confirmed', $cotizacion['IdQuote']]);
     //}    
+
+        process_op($cotizacion['IdQuote'],$db);
+
+        //METER A OPERACION!!//METER A OPERACION!!
+        //METER A OPERACION!!
+        //METER A OPERACION!!
+        //METER A OPERACION!!
+        //METER A OPERACION!!    
+
 
 
     echo json_encode([

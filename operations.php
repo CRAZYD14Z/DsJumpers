@@ -27,6 +27,17 @@
         .badge-base { background-color: #0dcaf0; color: #000; font-size: 0.65rem; }
         .badge-acc { background-color: #ffc107; color: #000; font-size: 0.65rem; }
         .main-row { border-left: 5px solid var(--ds-primary); }
+
+        tr.estado-rojo td {
+            background-color: rgba(220, 53, 69, 0.2); /* 0.7 = 70% opaco, 30% transparente */
+            color: black;
+        }
+
+        tr.estado-normal td {
+            background-color: #ffffff;
+            color: black;
+        }        
+
     </style>    
 
 <style>
@@ -113,13 +124,25 @@
     include_once 'nav.php';
 $id_op = $_GET['IdOperation'];
 //EN ENTREGA METER LA FIRMA Y LA LIGA PARA EL PROCESO DE LIQUIDACION 
-$stages = ['BODEGA','SURTIDO', 'CARGA', 'INSTALACION', 'PRUEBA FUNCIONAMIENTO', 'ENTREGA', 'RECOLECCION', 'LAVADO', 'LIMPIEZA', 'DOBLADO', 'ALMACENADO'];
+$stages = ['BODEGA','SURTIDO', 'CARGA', 'INSTALACION', 'PRUEBA FUNCIONAMIENTO', 'ENTREGA', 'RECOLECCION', 'ACONDICIONAMIENTO', 'LIMPIEZA', 'LAVADO','REPARACION',  'ALMACENADO','FINALIZADO'];
 
-$stage = $db->query("SELECT status FROM operation_master WHERE id_operation = $id_op")->fetch();
+$stage = $db->query("SELECT id_lead, status FROM operation_master WHERE id_operation = $id_op")->fetch();
 
 
+$id_lead = $stage['id_lead'];
 $currentStage = $stage['status'];
+
+$lead = $db->query("SELECT Balance FROM lead WHERE Id = $id_lead")->fetch();
+
+$Balance = $lead['Balance'];
+
+
+if ($currentStage == 'ACONDICIONAMIENTO')
+    $currentStage = 'REPARACION';
+
 $nextIdx = array_search($currentStage, $stages) + 1;
+
+
 
 $rows = $db->query("SELECT * FROM v_operation_checklist WHERE id_operation = $id_op AND stage = '".$stages[$nextIdx]."' ORDER BY id_product,id_accesory,id_accesory_base ")->fetchAll();
 
@@ -144,6 +167,10 @@ foreach ($rows as $row) {
             'image'     => $Img,
             'requested' => $row['requested_quantity'],
             'assorted'  => $row['assorted_quantity'],
+            'cleaning' => $row['assorted_quantity'],
+            'washing' => $row['assorted_quantity'],
+            'repair' => $row['assorted_quantity'],            
+            'verification_stage' => $row['verification_stage'], 
             'children'  => []
         ];
     }
@@ -167,7 +194,11 @@ foreach ($rows as $row) {
             'image'     => $Img,
             'type'     => $row['id_accesory_base'] ? 'BASE' : 'ACCESORIO',
             'requested' => $row['requested_quantity'],
-            'assorted' => $row['assorted_quantity']
+            'assorted' => $row['assorted_quantity'],
+            'cleaning' => $row['assorted_quantity'],
+            'washing' => $row['assorted_quantity'],
+            'repair' => $row['assorted_quantity'],
+            'verification_stage' => $row['verification_stage']
         ];
     }
 } 
@@ -191,82 +222,236 @@ foreach ($rows as $row) {
                             <th>Imagen</th>
                             <th>Producto / Componente</th>
                             <th class="text-center" style="width: 100px;">Pedido</th>
-                            <th class="text-center" style="width: 180px;">Surtido</th>
+                            <?php if ($stage['status'] == 'RECOLECCION'): ?>
+                                <th class="text-center">Limpieza</th>
+                                <th class="text-center">Lavado</th>
+                                <th class="text-center">Reparación</th>
+                            <?php else: ?>
+
+                            <?php if ($stage['status'] == 'ENTREGA'): ?>
+                                    <th class="text-center">Dañado</th>
+                                    <th class="text-center">Surtido</th>
+                            <?php else: ?>
+                                <th class="text-center">Surtido</th>
+                            <?php endif; ?>
+                            <?php endif; ?>
                         </tr>
                     </thead>
-                    <tbody>
-                        <?php foreach ($items as $pId => $item): ?>
-                            <tr class="main-row border-bottom shadow-sm">
-                                <td class="text-center">
-                                    <input class="form-check-input row-check" type="checkbox" data-id="<?= $item['id'] ?>" disabled>
-                                </td>
-                                <td>
-                                    <img src="ajax/tmp/<?= $item['image'] ?>" class="rounded border" width="55" height="55" >
-                                </td>
-                                <td>
-                                    <div class="fw-bold"><?= $item['name'] ?></div>
-                                    <span class="badge bg-secondary x-small">PRODUCTO</span>
-                                </td>
-                                <td>
-                                    <input type="number" class="form-control form-control-sm text-center bg-light fw-bold requested-qty" value="<?= $item['requested'] ?>" readonly>
-                                </td>
-                                <td>
-                                    <div class="input-group input-group-sm custom-qty-group">
-                                        <button class="btn btn-outline-secondary btn-minus px-3" type="button"><i class="fas fa-minus"></i></button>
-                                        <input type="number" class="form-control text-center assorted-qty fw-bold" value="<?= $item['assorted'] ?>" min="0" max="<?= $item['requested'] ?>" inputmode="numeric">
-                                        <button class="btn btn-outline-secondary btn-plus px-3" type="button"><i class="fas fa-plus"></i></button>
-                                    </div>
-                                </td>
-                            </tr>
+<tbody>
+    <?php foreach ($items as $pId => $item): ?>
 
-                            <?php foreach ($item['children'] as $child): ?>
-                                <tr class="bg-light border-bottom border-white">
-                                    <td class="text-center">
-                                        <input class="form-check-input row-check" type="checkbox" data-id="<?= $child['id'] ?>" disabled>
-                                    </td>
-                                    <td>
-                                        <img src="ajax/tmp/<?= $child['image'] ?>" class="rounded border ms-3" width="40" height="40" >
-                                    </td>
-                                    <td>
-                                        <div class="small fw-bold text-muted"><?= $child['name'] ?></div>
-                                        <span class="badge <?= ($child['type'] == 'BASE') ? 'bg-info text-dark' : 'bg-warning text-dark' ?> x-small">
-                                            <?= $child['type'] ?>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <input type="number" class="form-control form-control-sm text-center bg-transparent border-0 requested-qty" value="<?= $child['requested'] ?>" readonly>
-                                    </td>
-                                    <td>
-                                        <div class="input-group input-group-sm px-3 custom-qty-group">
-                                            <button class="btn btn-outline-secondary btn-minus" type="button"><i class="fas fa-minus small"></i></button>
-                                            <input type="number" class="form-control text-center assorted-qty bg-white" value="<?= $child['assorted'] ?>" min="0" max="<?= $child['requested'] ?>" inputmode="numeric">
-                                            <button class="btn btn-outline-secondary btn-plus" type="button"><i class="fas fa-plus small"></i></button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php endforeach; ?>
-                    </tbody>
+    
+        <tr class="main-row border-bottom shadow-sm <?= $item['verification_stage'] == 1 ? 'estado-rojo' : 'estado-normal' ?>">
+            <td class="text-center">
+                <input class="form-check-input row-check" type="checkbox" data-id="<?= $item['id'] ?>" disabled>
+            </td>
+            <td>
+                <img src="ajax/tmp/<?= $item['image'] ?>" class="rounded border" width="55" height="55" >
+            </td>
+            <td>
+                <div class="fw-bold"><?= $item['name'] ?></div>
+                <span class="badge bg-secondary x-small">PRODUCTO</span>
+            </td>
+            <td>
+                <input type="number" class="form-control form-control-sm text-center bg-light fw-bold requested-qty" value="<?= $item['requested'] ?>" readonly>
+            </td>
+
+            <?php if ($stage['status'] == 'RECOLECCION'): ?>
+                <td>
+                    <div class="input-group input-group-sm custom-qty-group">
+                        <button class="btn btn-outline-secondary btn-minus_ px-2" type="button"><i class="fas fa-minus"></i></button>
+                        <input type="number" class="form-control text-center cleaning-qty fw-bold" value="<?= $item['cleaning'] ?? 0 ?>" min="0" max="<?= $item['requested'] ?>">
+                        <button class="btn btn-outline-secondary btn-plus_ px-2" type="button"><i class="fas fa-plus"></i></button>
+                    </div>
+                </td>
+                <td>
+                    <div class="input-group input-group-sm custom-qty-group">
+                        <button class="btn btn-outline-secondary btn-minus_ px-2" type="button"><i class="fas fa-minus"></i></button>
+                        <input type="number" class="form-control text-center washing-qty fw-bold" value="<?= $item['washing'] ?? 0 ?>" min="0" max="<?= $item['requested'] ?>">
+                        <button class="btn btn-outline-secondary btn-plus_ px-2" type="button"><i class="fas fa-plus"></i></button>
+                    </div>
+                </td>
+                <td>
+                    <div class="input-group input-group-sm custom-qty-group">
+                        <button class="btn btn-outline-secondary btn-minus_ px-2" type="button"><i class="fas fa-minus"></i></button>
+                        <input type="number" class="form-control text-center repair-qty fw-bold" value="<?= $item['repair'] ?? 0 ?>" min="0" max="<?= $item['requested'] ?>">
+                        <button class="btn btn-outline-secondary btn-plus_ px-2" type="button"><i class="fas fa-plus"></i></button>
+                    </div>
+                </td>
+            <?php else: ?>
+                <?php if ($stage['status'] == 'ENTREGA'): ?>
+
+                <td style="text-align: center;">
+                    <div class="form-check form-switch" style="display: inline-block;">
+                        <input class="form-check-input damage-item" type="checkbox" >
+                    </div>
+                </td>             
+
+                <td>
+                    <div class="input-group input-group-sm custom-qty-group">
+                        <button class="btn btn-outline-secondary btn-minus px-3" type="button"><i class="fas fa-minus"></i></button>
+                        <input type="number" class="form-control text-center assorted-qty fw-bold" value="<?= $item['assorted'] ?>" min="0" max="<?= $item['requested'] ?>">
+                        <button class="btn btn-outline-secondary btn-plus px-3" type="button"><i class="fas fa-plus"></i></button>
+                    </div>
+                </td>                    
+
+                <?php else: ?>
+                <td>
+                    <div class="input-group input-group-sm custom-qty-group">
+                        <button class="btn btn-outline-secondary btn-minus px-3" type="button"><i class="fas fa-minus"></i></button>
+                        <input type="number" class="form-control text-center assorted-qty fw-bold" value="<?= $item['assorted'] ?>" min="0" max="<?= $item['requested'] ?>">
+                        <button class="btn btn-outline-secondary btn-plus px-3" type="button"><i class="fas fa-plus"></i></button>
+                    </div>
+                </td>
+                <?php endif; ?>
+            <?php endif; ?>
+        </tr>
+
+        <?php foreach ($item['children'] as $child): ?>
+            <tr class=" border-bottom border-white <?= $child['verification_stage'] == 1 ? 'estado-rojo' : 'estado-normal' ?>">
+                <td class="text-center">
+                    <input class="form-check-input row-check" type="checkbox" data-id="<?= $child['id'] ?>" disabled>
+                </td>
+                <td>
+                    <img src="ajax/tmp/<?= $child['image'] ?>" class="rounded border ms-3" width="40" height="40" >
+                </td>
+                <td>
+                    <div class="small fw-bold text-muted"><?= $child['name'] ?></div>
+                    <span class="badge <?= ($child['type'] == 'BASE') ? 'bg-info text-dark' : 'bg-warning text-dark' ?> x-small"><?= $child['type'] ?></span>
+                </td>
+                <td>                    
+                    <input type="number" class="form-control form-control-sm text-center bg-light fw-bold requested-qty" value="<?= $child['requested'] ?>" readonly>
+                </td>
+
+                <?php if ($stage['status'] == 'RECOLECCION'): ?>
+                    <td>
+                        <div class="input-group input-group-sm px-3 custom-qty-group">
+                            <button class="btn btn-outline-secondary btn-minus_" type="button"><i class="fas fa-minus small"></i></button>
+                            <input type="number" class="form-control text-center cleaning-qty bg-white" value="<?= $child['cleaning'] ?>" min="0" max="<?= $child['requested'] ?>">
+                            <button class="btn btn-outline-secondary btn-plus_" type="button"><i class="fas fa-plus small"></i></button>
+                        </div>                    
+                    </td>
+                    <td>
+
+                        <div class="input-group input-group-sm px-3 custom-qty-group">
+                            <button class="btn btn-outline-secondary btn-minus_" type="button"><i class="fas fa-minus small"></i></button>
+                            <input type="number" class="form-control text-center washing-qty bg-white" value="<?= $child['washing'] ?>" min="0" max="<?= $child['requested'] ?>">
+                            <button class="btn btn-outline-secondary btn-plus_" type="button"><i class="fas fa-plus small"></i></button>
+                        </div>                     
+
+                    </td>
+                    <td>
+
+                        <div class="input-group input-group-sm px-3 custom-qty-group">
+                            <button class="btn btn-outline-secondary btn-minus_" type="button"><i class="fas fa-minus small"></i></button>
+                            <input type="number" class="form-control text-center repair-qty bg-white" value="<?= $child['repair'] ?>" min="0" max="<?= $child['requested'] ?>">
+                            <button class="btn btn-outline-secondary btn-plus_" type="button"><i class="fas fa-plus small"></i></button>
+                        </div>                     
+
+                    </td>
+                <?php else: ?>
+                    <?php if ($stage['status'] == 'ENTREGA'): ?>
+                        <td style="text-align: center;">
+                            <div class="form-check form-switch" style="display: inline-block;">
+                                <input class="form-check-input damage-item" type="checkbox" >
+                            </div>
+                        </td>                                       
+                        <td>
+                            <div class="input-group input-group-sm px-3 custom-qty-group">
+                                <button class="btn btn-outline-secondary btn-minus" type="button"><i class="fas fa-minus small"></i></button>
+                                <input type="number" class="form-control text-center assorted-qty bg-white" value="<?= $child['assorted'] ?>" min="0" max="<?= $child['requested'] ?>">
+                                <button class="btn btn-outline-secondary btn-plus" type="button"><i class="fas fa-plus small"></i></button>
+                            </div>
+                        </td>
+                    <?php else: ?>
+                    <td>
+                        <div class="input-group input-group-sm px-3 custom-qty-group">
+                            <button class="btn btn-outline-secondary btn-minus" type="button"><i class="fas fa-minus small"></i></button>
+                            <input type="number" class="form-control text-center assorted-qty bg-white" value="<?= $child['assorted'] ?>" min="0" max="<?= $child['requested'] ?>">
+                            <button class="btn btn-outline-secondary btn-plus" type="button"><i class="fas fa-plus small"></i></button>
+                        </div>
+                    </td>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </tr>
+        <?php endforeach; ?>
+    <?php endforeach; ?>
+</tbody>
                 </table>
             </div>
 
+
+
             <div class="row p-3">
-                <div class="col-md-4">
-                    <label class="form-label small fw-bold"><i class="fas fa-camera me-1"></i> Foto de Evidencia (Opcional)</label>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label small fw-bold"><i class="fas fa-camera me-1"></i> Foto de Evidencia</label>
                     <input type="file" id="evidence-file" class="form-control form-control-sm" accept="image/*" capture="environment">
                 </div>
-                <div class="col-md-4">
+
+                <div class="col-md-4 mb-3">
                     <label class="form-label small fw-bold"><i class="fas fa-map-marker-alt me-1"></i> Ubicación</label>
                     <div class="input-group input-group-sm">
-                        <input type="text" id="geo-location" class="form-control bg-light" placeholder="Obteniendo coordenadas..." readonly>
+                        <input type="text" id="geo-location" class="form-control bg-light" placeholder="Coordenadas..." readonly>
                         <button class="btn btn-outline-secondary" type="button" id="btn-refresh-geo"><i class="fas fa-sync-alt"></i></button>
                     </div>
                 </div>
-                <div class="col-md-8">
-                    <label class="form-label small fw-bold"><i class="fas fa-sticky-note me-1"></i> Notas de la Etapa</label>
-                    <textarea id="stage-notes" class="form-control form-control-sm" rows="5" placeholder="Observaciones adicionales..." ></textarea>
+<?php if ($stages[$nextIdx] == 'ENTREGA' AND $Balance > 0){?>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label small fw-bold"><i class="fas fa-wallet me-1"></i> Saldo y Pago</label>
+                    <div class="card border-primary shadow-sm">
+                        <div class="card-body p-2">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small text-muted">Saldo Pendiente:</span>
+                                <span class="fw-bold text-danger" id="pending-balance">$<?php echo number_format($Balance, 2, '.', ',')?></span>
+                            </div>
+                            <button type="button" class="btn btn-primary btn-sm w-100" id="btn-confirm-payment"
+                            
+                            onclick="window.open('payments.php?IdLead=<?php echo $id_lead;?>', '_blank')">
+                                <i class="fas fa-check-circle me-1"></i> Realizar Pago
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>              
+<?php }?>
+
+<?php if ($stages[$nextIdx] == 'RECOLECCION' AND $Balance > 0){?>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label small fw-bold"><i class="fas fa-wallet me-1"></i> Saldo y Pago</label>
+                    <div class="card border-primary shadow-sm">
+                        <div class="card-body p-2">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small text-muted">Saldo Pendiente:</span>
+                                <span class="fw-bold text-danger" id="pending-balance">$<?php echo number_format($Balance, 2, '.', ',')?></span>
+                            </div>
+                            <button type="button" class="btn btn-primary btn-sm w-100" id="btn-confirm-payment"
+                            
+                            onclick="window.open('payments.php?IdLead=<?php echo $id_lead;?>', '_blank')">
+                                <i class="fas fa-check-circle me-1"></i> Realizar Pago
+                            </button>
+                        </div>
+                    </div>
+                </div>
+<?php }?>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label small fw-bold"><i class="fas fa-sticky-note me-1"></i> Notas de la Etapa</label>
+                    <textarea id="stage-notes" class="form-control form-control-sm" rows="5" placeholder="Observaciones..."></textarea>
+                </div>
+<?php if ($stages[$nextIdx] == 'ENTREGA'){?>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label small fw-bold"><i class="fas fa-signature me-1"></i> Firma de Conformidad</label>
+                    <div class="signature-wrapper border rounded bg-white shadow-sm" style="position: relative; height: 135px; overflow: hidden;">
+                        <canvas id="signature-pad" style="width: 100%; height: 100%; cursor: crosshair; touch-action: none;"></canvas>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-clear-signature" 
+                                style="position: absolute; bottom: 5px; right: 5px; --bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;">
+                            <i class="fas fa-eraser"></i> Limpiar
+                        </button>
+                    </div>
+                    <input type="hidden" id="signature-data">
+                </div>
+<?php }?>                
+            </div>
+
 
         </div>
 
@@ -290,6 +475,16 @@ foreach ($rows as $row) {
     </div>
 </div>
 
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div id="liveToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header bg-primary text-white">
+      <strong class="me-auto"><i class="fas fa-bell me-2"></i> Notificación</strong>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body" id="toast-message">
+      </div>
+  </div>
+</div>
 
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -370,72 +565,114 @@ foreach ($rows as $row) {
     }
 
 
+    let firmaUtilizada = false;
+
 $(document).ready(function() {
 
-
-
-    const stages = ['SURTIDO', 'CARGA', 'INSTALACION', 'PRUEBA FUNCIONAMIENTO', 'ENTREGA', 'RECOLECCION', 'LAVADO', 'LIMPIEZA', 'DOBLADO', 'ALMACENADO'];
+    const stages = ['SURTIDO', 'CARGA', 'INSTALACION', 'PRUEBA FUNCIONAMIENTO', 'ENTREGA', 'RECOLECCION', 'ACONDICIONAMIENTO', 'LIMPIEZA', 'LAVADO','REPARACION',  'ALMACENADO','FINALIZADO'];
 
     getCoords();
     $('#btn-refresh-geo').click(getCoords);
 
+// 1. Lógica de botones +/- (Adaptada para múltiples columnas)
+$('.btn-plus, .btn-minus, .btn-plus_, .btn-minus_').on('click', function() {
+    const row = $(this).closest('tr');
+    // Buscamos el input que está justo al lado del botón presionado
+    const input = $(this).siblings('input'); 
+    const max = parseInt(row.find('.requested-qty').val()) || 0;
+    let current = parseInt(input.val()) || 0;
 
-    // 1. Lógica de botones +/-
-    $('.btn-plus, .btn-minus').on('click', function() {
-        const row = $(this).closest('tr');
-        const input = row.find('.assorted-qty');
-        const max = parseInt(row.find('.requested-qty').val());
-        let current = parseInt(input.val()) || 0;
-
-        if ($(this).hasClass('btn-plus')) {
-            if (current < max) {
-                input.val(current + 1).trigger('change');
-            } else {
-                input.addClass('qty-limit-error');
-                setTimeout(() => input.removeClass('qty-limit-error'), 400);
-            }
+    if ($(this).hasClass('btn-plus') || $(this).hasClass('btn-plus_')) {
+        // Calculamos la suma actual de la fila para validar contra el máximo
+        const currentTotal = calculateRowSum(row);
+        
+        if (currentTotal < max) {
+            input.val(current + 1).trigger('change');
         } else {
-            if (current > 0) {
-                input.val(current - 1).trigger('change');
-            }
+            // Feedback visual de error
+            input.addClass('qty-limit-error');
+            mostrarToast("La suma total no puede exceder lo solicitado (" + max + ")", true);
+            setTimeout(() => input.removeClass('qty-limit-error'), 400);
         }
+    } else {
+        if (current > 0) {
+            input.val(current - 1).trigger('change');
+        }
+    }
+});
+
+// Función auxiliar para sumar los valores de recolección en la fila
+function calculateRowSum(row) {
+    let sum = 0;
+    // Sumamos limpieza, lavado y reparación (o assorted-qty si no es recolección)
+    row.find('.cleaning-qty, .washing-qty, .repair-qty, .assorted-qty').each(function() {
+        sum += parseInt($(this).val()) || 0;
     });
+    return sum;
+}
 
-    // 2. Validación de reglas de negocio
-    function validateLogic(row) {
-        const req = parseInt(row.find('.requested-qty').val());
-        let ass = parseInt(row.find('.assorted-qty').val()) || 0;
-        const check = row.find('.row-check');
+// 2. Validación de reglas de negocio
+function validateLogic(row) {
+    const req = parseInt(row.find('.requested-qty').val()) || 0;
+    const check = row.find('.row-check');
+    
+    let totalRow = calculateRowSum(row);
 
-        // Impedir que surtan más de lo pedido
-        if (ass > req) {
-            ass = req;
-            row.find('.assorted-qty').val(req);
+    // Si el usuario escribe manualmente un número que hace que la suma exceda el total
+    if (totalRow > req) {
+        mostrarToast("Cantidad ajustada al máximo permitido", true);
+        
+        // Ajuste proporcional o simple: restamos el exceso al input que cambió
+        // Para este ejemplo, ajustamos el input actual para que la suma sea exactamente 'req'
+        const activeInput = row.find('input:focus'); 
+        if(activeInput.length) {
+            const otherInputsSum = totalRow - (parseInt(activeInput.val()) || 0);
+            activeInput.val(req - otherInputsSum);
+            totalRow = req;
         }
-
-        if (ass === req && req > 0) {
-            check.prop('checked', true);
-            row.addClass('table-success-row');
-        } else {
-            check.prop('checked', false);
-            row.removeClass('table-success-row');
-        }
-
-        checkGlobalStatus();
     }
 
-    function checkGlobalStatus() {
-        const total = $('.row-check').length;
-        const ready = $('.row-check:checked').length;
+    // Regla de éxito: la fila está "lista" si la suma es igual a lo pedido
+    if (totalRow === req && req > 0) {
+        check.prop('checked', true);
+        row.addClass('table-success-row text-success');
+    } else {
+        check.prop('checked', false);
+        row.removeClass('table-success-row text-success');
+    }
+
+    checkGlobalStatus();
+}
+
+// Listener para todos los tipos de inputs de cantidad
+$(document).on('change keyup', '.assorted-qty, .cleaning-qty, .washing-qty, .repair-qty', function() {
+    validateLogic($(this).closest('tr'));
+});
+
+function checkGlobalStatus() {
+    const total = $('.row-check').length;
+    const ready = $('.row-check:checked').length;
+    
+    // Actualización de progreso visual (opcional)
+    const percent = total > 0 ? (ready / total) * 100 : 0;
+    $('.progress-bar').css('width', percent + '%');
+
+    // Habilitar botón de siguiente etapa solo si todo está cuadrado
+    $('#btn-update-stage').prop('disabled', ready < total);
+
+
+
         const currentStage = $('#current-stage').text().trim();
-        const nextIdx = stages.indexOf(currentStage) + 1;
-
+        let  nextIdx = stages.indexOf(currentStage) + 1;
         if (nextIdx < stages.length) {
+            if (nextIdx == 7)
+                nextIdx = 10
             $('#next-stage-label').text(stages[nextIdx]);
-        }
+        }    
 
-        $('#btn-update-stage').prop('disabled', ready < total);
-    }
+
+}
+
 
     $('.assorted-qty').on('change keyup', function() {
         validateLogic($(this).closest('tr'));
@@ -443,11 +680,35 @@ $(document).ready(function() {
 
 
 $('#btn-update-stage').on('click', function() {
+
+
         const btn = $(this);
         const currentStage = $('#current-stage').text().trim();
-        const actualStage  = stages[stages.indexOf(currentStage) + 1];
-        const nextStage = stages[stages.indexOf(currentStage) + 2];
+
+        let actualStage  ='';
+        let nextStage = '';
         
+        if (currentStage == 'ACONDICIONAMIENTO' ){
+             actualStage  = stages[stages.indexOf(currentStage) + 4];
+             nextStage = stages[stages.indexOf(currentStage) + 5];    
+        }
+        else{
+             actualStage  = stages[stages.indexOf(currentStage) + 1];
+             nextStage = stages[stages.indexOf(currentStage) + 2];            
+        }
+
+        if(<?php echo $Balance?> > 0 && actualStage == 'RECOLECCION'){
+            //alert("Error: Es necesario liquidar el saldo pendiente.");
+            mostrarToast("Es necesario liquidar el saldo pendiente.", true);
+            return;            
+        }
+
+        if (actualStage == 'ENTREGA' && !firmaUtilizada) {
+            //alert("Error: La firma del cliente es obligatoria.");
+            mostrarToast("La firma del cliente es obligatoria.", true);
+            return;
+        }        
+
         // Creamos el objeto FormData para soportar el archivo de imagen
         let formData = new FormData();
         
@@ -458,25 +719,61 @@ $('#btn-update-stage').on('click', function() {
         formData.append('coords', $('#geo-location').val());
         formData.append('notes', $('#stage-notes').val());
 
+        if (actualStage == 'ENTREGA' ) {
+            const canvas = document.getElementById('signature-pad');
+            const signatureBase64 = canvas.toDataURL('image/png'); // Esto genera el string
+
+            formData.append('sign', signatureBase64);
+        }                
+
+        if (actualStage == 'ACONDICIONAMIENTO' ) {        
+            const jsonStages = generarJsonStages();
+            formData.append('STAGES', jsonStages);
+        }
+
         // Archivo de imagen (si existe)
         const fileInput = $('#evidence-file')[0].files[0];
         if (fileInput) {
             formData.append('evidence_img', fileInput);
         }
 
+        //alert(actualStage)
+
+
         // Datos del checklist
         let items = [];
-        $('.row-check:checked').each(function() {
-            const row = $(this).closest('tr');
-            if($(this).data('id')) {
-                items.push({
-                    id: $(this).data('id'),
-                    qty: row.find('.assorted-qty').val()
-                });
-            }
-        });
-        formData.append('items', JSON.stringify(items));
+        if (actualStage == 'RECOLECCION'){
 
+            $('.row-check:checked').each(function() {
+                const row = $(this).closest('tr');
+                if($(this).data('id')) {
+                    items.push({
+                        id: $(this).data('id'),
+//                        qty: row.find('.assorted-qty').val(),
+                        chk: row.find('.damage-item').prop('checked')
+                    });
+                }
+            });        
+
+        }
+        else{
+
+            $('.row-check:checked').each(function() {
+                const row = $(this).closest('tr');
+                if($(this).data('id')) {
+                    items.push({
+                        id: $(this).data('id'),
+//                        qty: row.find('.assorted-qty').val(),
+                        chk: false
+                    });
+                }
+            });        
+
+        }
+
+        formData.append('items', JSON.stringify(items));
+        //alert(JSON.stringify(items))
+        //return;
         // UI Feedback: Cargando
         btn.prop('disabled', true);
         $('#btn-text').addClass('d-none');
@@ -520,6 +817,125 @@ $('#btn-update-stage').on('click', function() {
     // Inicializar al cargar
     $('tr').each(function() { validateLogic($(this)); });
 });
+
+<?php if ($stages[$nextIdx] == 'ENTREGA'){?>
+
+document.addEventListener("DOMContentLoaded", function() {
+    const canvas = document.getElementById('signature-pad');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+
+    // Ajustar resolución del canvas al tamaño visual
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+
+    function getMousePos(e) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+            x: (e.clientX || e.touches[0].clientX) - rect.left,
+            y: (e.clientY || e.touches[0].clientY) - rect.top
+        };
+    }
+
+    function startDrawing(e) {
+        drawing = true;
+        firmaUtilizada = true;
+        const pos = getMousePos(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+        e.preventDefault();
+    }
+
+    function draw(e) {
+        if (!drawing) return;
+        const pos = getMousePos(e);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+        e.preventDefault();
+    }
+
+    function stopDrawing() {
+        drawing = false;
+        // Guardar en el input hidden para enviarlo al servidor
+        document.getElementById('signature-data').value = canvas.toDataURL();
+    }
+
+    // Eventos Mouse y Touch
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    window.addEventListener('mouseup', stopDrawing);
+
+    canvas.addEventListener('touchstart', startDrawing);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', stopDrawing);
+
+    // Botón Limpiar
+    document.getElementById('btn-clear-signature').addEventListener('click', () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        document.getElementById('signature-data').value = "";
+        firmaUtilizada = false;
+    });
+});
+
+
+
+
+
+<?php }?>
+
+function mostrarToast(mensaje, esError = false) {
+    const toastElement = document.getElementById('liveToast');
+    const toastMessage = document.getElementById('toast-message');
+    const toastHeader = toastElement.querySelector('.toast-header');
+
+    // Cambiar color si es error o éxito
+    if (esError) {
+        toastHeader.classList.replace('bg-primary', 'bg-danger');
+    } else {
+        toastHeader.classList.replace('bg-danger', 'bg-primary');
+    }
+
+    toastMessage.textContent = mensaje;
+
+    // Inicializar y mostrar con Bootstrap 5
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
+}
+
+function generarJsonStages() {
+    let stagesData = [];
+
+    // Recorremos todas las filas que tengan un ID (padres e hijos)
+    $('tbody tr').each(function() {
+        const row = $(this);
+        const id = row.find('.row-check').data('id');
+        
+        // Si la fila no tiene ID (a veces hay filas de espacio), la saltamos
+        if (!id) return;
+
+        // Extraemos los valores. Usamos || 0 para asegurar que siempre haya un número
+        const requested = parseInt(row.find('.requested-qty').val()) || 0;
+        
+        // Buscamos específicamente los campos de recolección
+        const cleaning  = parseInt(row.find('.cleaning-qty').val()) || 0;
+        const washing   = parseInt(row.find('.washing-qty').val()) || 0;
+        const repair    = parseInt(row.find('.repair-qty').val()) || 0;
+        
+        // Si no estamos en recolección, podrías querer capturar assorted-qty
+        const assorted  = parseInt(row.find('.assorted-qty').val()) || 0;
+
+        stagesData.push({
+            id: id,
+            requested: requested,
+            cleaning: cleaning,
+            washing: washing,
+            repair: repair,
+            assorted: assorted // Incluido por si acaso
+        });
+    });
+
+    return JSON.stringify(stagesData);
+}
 
 
 </script>

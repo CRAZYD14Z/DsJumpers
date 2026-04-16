@@ -2752,6 +2752,31 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
         
     });
 
+    function ProcesarSinPago(){
+        var misHeaders = {
+            'Authorization': 'Bearer ' + TOKEN
+        };
+        const dataGlobal = {
+            Lead: $('#IdLead').val(),
+            From: 'Lead'
+
+        };
+        $.ajax({
+        url: API_BASE_URL + 'process_operation/',
+        type: 'POST',
+        dataType: 'json', // Indica que esperamos JSON
+        headers: misHeaders,
+        data: JSON.stringify(dataGlobal),        
+        success: function(data) {    
+
+                lanzarMensaje("Procesado sin pago!", "exito", 5000);
+            },
+            error: function () {
+                alert("No se pudo procesar!");
+                $('#Organization').val(null).trigger('change');
+            }
+        });
+    }
 
     </script>
 

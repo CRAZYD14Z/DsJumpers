@@ -112,6 +112,8 @@ function armar_formulario_edit($tabla,$etiqueta,$idioma){
                             echo '<h4 class="mb-4">'.$Titulo.'</h4>';
                             break;                          
                         case 'hidden':
+                            if ( $Campo == "edit_IId")
+                                $Campo.="_".$tabla;
                             echo '<input name="'.$Campo.'" id="'.$Campo.'"  type="'.$TipoCampo.'" >';
                             break;                        
                         case 'text':

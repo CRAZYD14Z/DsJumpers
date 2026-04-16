@@ -149,7 +149,7 @@ include_once 'head.php';
                 <br>
                 <br>
                 <button class="btn btn-warning btn-lg shadow-sm" onclick=" mostrarModalPagoEfectivo(<?php echo $saldoPendiente;?>,'')" >
-                    <i class="bi bi-credit-card-2-back"></i> <?php echo Trd(43)?>  ($<?php echo number_format($saldoPendiente, 2); ?>)
+                    <i class="bi bi-credit-card-2-back"></i> <?php echo Trd(41)?>  ($<?php echo number_format($saldoPendiente, 2); ?>)
                 </button>                
 
             <?php else: ?>
@@ -309,7 +309,7 @@ include_once 'head.php';
                                     <p class="card-text small text-muted"><?php echo Trd(34)?></p>
 
                                     <button type="button" class="btn btn-outline-secondary flex-fill" id="btnConfirmarPago" >
-                                        <i class="bi bi-check-circle"></i> <?php echo Trd(40)?>
+                                        <i class="bi bi-check-circle"></i> <?php echo Trd(39)?>
                                     </button>                                    
                                 </div>
                             </div>
@@ -388,7 +388,11 @@ include_once 'head.php';
     </div>
 </div>
 
-
+<div id="close-window-container" style="display: none;" class="text-center mt-3">
+    <button type="button" class="btn btn-danger" onclick="cerrarPestana()">
+        <i class="fas fa-times-circle me-1"></i> Cerrar Ventana y Volver
+    </button>
+</div>
 <script>
     
 $('#btnPagar').on('click', function() {
@@ -416,7 +420,7 @@ $('#btnPagar').on('click', function() {
                 $('#urlPagoInput').val(url);
                 
                 // Configurar botón WhatsApp
-                const msj = encodeURIComponent("<?php echo Trd(42)?> " + url);
+                const msj = encodeURIComponent("<?php echo Trd(40)?> " + url);
                 $('#btnWhatsApp').attr('href', 'https://wa.me/?text=' + msj);
                 
                 $('#loadingPago').hide();
@@ -539,6 +543,25 @@ document.getElementById('btnConfirmarPago').addEventListener('click', function()
 
 });
 
+document.addEventListener("DOMContentLoaded", function() {
+    // Verificamos si la pestaña tiene un 'opener' (quien la abrió)
+    // y si no es la misma ventana
+    if (window.opener && window.opener !== window) {
+        document.getElementById('close-window-container').style.display = 'block';
+    }
+});
+
+function cerrarPestana() {
+    // Opcional: Podrías recargar la ventana padre para actualizar saldos
+    try {
+        window.opener.location.reload(); 
+    } catch (e) {
+        console.log("No se pudo recargar la página principal");
+    }
+    
+    // Cerrar la pestaña actual
+    window.close();
+}
 
 </script>
 </body>

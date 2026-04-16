@@ -94,6 +94,12 @@ $db = $database->getConnection();
         echo "Enlace no válido.";
         die();
     }
+
+    $stmt = $db->prepare("SELECT Idioma FROM account");
+    $stmt->execute();
+    $account = $stmt->fetch();
+    $lang = $account['Idioma'];    
+
 ?>
 
 <div id="scroll-indicator">
@@ -256,7 +262,7 @@ $db = $database->getConnection();
 function LoadDocument(){
 
     <?php
-        $query = "select NombreCompania, Direccion,Direccion2, Ciudad,CP,Estado,Pais,TelefonoCelular FROM account";
+        $query = "select Logo,NombreCompania, Direccion,Direccion2, Ciudad,CP,Estado,Pais,TelefonoCelular FROM account";
         $stmt = $db->prepare($query);
         $stmt->execute();
         $account = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -299,6 +305,7 @@ const FHFp = FHF.split(' ')
     const datosGenerales = {
         leadid: "",
         contractsentdate: "",
+        company_logo: "<?php echo $account['Logo']?>",
         company_name: "<?php echo $account['NombreCompania']?>",
         company_address:"<?php echo $account['Direccion']." ".$account['Direccion2'];?>",
         company_city:"<?php echo $account['Ciudad']." ".$account['CP'];?>",

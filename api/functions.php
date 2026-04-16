@@ -57,4 +57,42 @@ function generarHtmlCotizacion($html, $datos) {
     $sustitucion = array_values($datos);
     return str_replace($busqueda, $sustitucion, $html);
 }
+
+function dividirNombreCompleto($nombreCompleto) {
+    // Limpiamos espacios extras
+    $nombreCompleto = trim($nombreCompleto);
+    $partes = explode(' ', $nombreCompleto);
+    $numPartes = count($partes);
+
+    $resultado = [
+        'nombres' => '',
+        'apellido_paterno' => '',
+        'apellido_materno' => ''
+    ];
+
+    switch ($numPartes) {
+        case 1:
+            $resultado['nombres'] = $partes[0];
+            break;
+        case 2:
+            $resultado['nombres'] = $partes[0];
+            $resultado['apellido_paterno'] = $partes[1];
+            break;
+        case 3:
+            $resultado['nombres'] = $partes[0];
+            $resultado['apellido_paterno'] = $partes[1];
+            $resultado['apellido_materno'] = $partes[2];
+            break;
+        default:
+            // Para 4 o más partes, asumimos que los dos últimos son apellidos
+            // y todo lo anterior son nombres.
+            $resultado['apellido_materno'] = array_pop($partes);
+            $resultado['apellido_paterno'] = array_pop($partes);
+            $resultado['nombres'] = implode(' ', $partes);
+            break;
+    }
+
+    return $resultado;
+}
+
 ?>

@@ -22,6 +22,7 @@ use PHPMailer\PHPMailer\Exception;
 
 // Incluye las funciones de manejo (simuladas)
 include_once 'functions.php'; 
+include_once 'process_op.php'; 
 include_once 'handlers.php'; 
 
 
@@ -120,6 +121,18 @@ if (isset($_SERVER['HTTP_ID5']))
 //print_r($IDS);
 //die();
 switch ($resource) {
+
+    case 'process_operation';
+        process_operation($resource,$db, $method, $id, $data);
+    break;  
+    case 'data_monitor':
+        data_monitor($resource,$db, $method, $id, $data);
+    break;  
+
+    case 'assign_operator':
+        assign_operator($resource,$db, $method, $id, $data);
+    break;        
+
     case 'delete_route':
         delete_route($resource,$db, $method, $id, $data);
     break;        
@@ -327,6 +340,7 @@ switch ($resource) {
     case 'sendmail':
         sendmail($resource,$db, $method, $id, $data);
     break;
+
     default:
         // Manejar rutas no definidas
         http_response_code(404);

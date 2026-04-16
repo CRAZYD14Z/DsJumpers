@@ -6,8 +6,10 @@ include_once 'config/config.php';
 include_once 'config/database.php'; 
 $database = new Database();
 $db = $database->getConnection();
-$Idioma = $_SESSION['Idioma'];
-
+if (isset($_SESSION['Idioma']))
+    $Idioma = $_SESSION['Idioma'];
+else
+    $Idioma = 'es';
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $Idioma;?>">
@@ -161,7 +163,12 @@ $Idioma = $_SESSION['Idioma'];
                                 <p class="mb-2 text-muted small">
                                     <i class="bi bi-file-earmark-pdf"></i> Documento legal listo para revisión.
                                 </p>
-                                <a href="<?php echo $_GET['base']."/".$token?>.pdf" class="btn btn-outline-primary btn-sm" download>
+                                <a href="<?php 
+                                            if (isset( $_GET['base']))
+                                                 echo $_GET['base']."/".$token;
+                                            else
+                                                echo $token;
+                                        ?>.pdf" class="btn btn-outline-primary btn-sm" download>
                                     <i class="bi bi-download"></i> Descargar PDF
                                 </a>
                             </div>
@@ -455,7 +462,14 @@ $Idioma = $_SESSION['Idioma'];
 
 <script>
     $(document).ready(function() {
-    const url = '<?php echo $_GET['base']."/".$token?>.pdf'; // Ruta de tu PDF
+    const url = '<?php 
+    
+                if (isset( $_GET['base']))
+                        echo $_GET['base']."/".$token;
+                else
+                    echo $token;    
+
+                ?>.pdf'; // Ruta de tu PDF
 
     const pdfjsLib = window['pdfjs-dist/build/pdf'] || window.pdfjsLib;
 

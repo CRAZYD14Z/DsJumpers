@@ -9,78 +9,78 @@
 
     include_once 'head.php';
 ?>
-
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Outfit:wght@300;400;500;600;700&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#07090f;--s1:#0d1117;--s2:#131b26;--s3:#1b2535;
-  --bd:#1e2d40;--bd2:#2a3d55;
-  --t1:#e4ecf7;--t2:#8fa8c8;--t3:#4d6a8a;
-  --acc:#38bdf8;--acc2:#34d399;--acc3:#fb923c;
-  --p1:#ef4444;--p2:#f97316;--p3:#eab308;--p4:#22c55e;--p5:#64748b;
-  --lifo:#a78bfa;--zone-door:#34d399;--zone-mid:#38bdf8;--zone-back:#fb923c;
-  --frag:#f472b6;
+  --bg:#f0f2f7;--s1:#ffffff;--s2:#f5f7fb;--s3:#eaecf3;
+  --bd:#d4d9e8;--bd2:#bcc4d8;
+  --t1:#1a2035;--t2:#4a5572;--t3:#8892aa;
+  --acc:#2563eb;--acc2:#059669;--acc3:#ea580c;
+  --p1:#dc2626;--p2:#ea580c;--p3:#ca8a04;--p4:#16a34a;--p5:#64748b;
+  --lifo:#7c3aed;--zone-door:#059669;--zone-mid:#2563eb;--zone-back:#ea580c;
+  --frag:#db2777;
   --r:8px;--r2:12px;
 }
 body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
-.topbar{display:flex;align-items:center;gap:12px;padding:10px 18px;background:var(--s1);border-bottom:1px solid var(--bd);flex-shrink:0;z-index:20;}
+.topbar{display:flex;align-items:center;gap:12px;padding:10px 18px;background:var(--s1);border-bottom:1px solid var(--bd);flex-shrink:0;z-index:20;box-shadow:0 1px 4px rgba(0,0,0,.06);}
 .brand{display:flex;align-items:center;gap:10px;}
 .brand-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--acc),var(--acc2));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
-.brand h1{font-size:14px;font-weight:700;letter-spacing:.2px;}
+.brand h1{font-size:14px;font-weight:700;letter-spacing:.2px;color:var(--t1);}
 .brand span{font-size:11px;color:var(--t3);font-family:'IBM Plex Mono',monospace;}
 .strategy-tabs{display:flex;gap:4px;margin-left:12px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:3px;}
 .stab{padding:5px 10px;border-radius:6px;border:none;font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;cursor:pointer;color:var(--t2);background:transparent;transition:all .18s;white-space:nowrap;}
-.stab:hover{color:var(--t1);}
-.stab.active{background:var(--acc);color:#000;}
+.stab:hover{color:var(--t1);background:var(--s3);}
+.stab.active{background:var(--acc);color:#fff;}
 .topstats{margin-left:auto;display:flex;gap:18px;align-items:center;}
 .tstat{text-align:right;}
-.tstat-v{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;}
+.tstat-v{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--t1);}
 .tstat-l{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;}
 .main{display:flex;flex:1;overflow:hidden;}
-.panel{width:290px;background:var(--s1);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+.panel{width:290px;background:var(--s1);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;box-shadow:2px 0 8px rgba(0,0,0,.04);}
 .pblock{padding:12px 14px;border-bottom:1px solid var(--bd);}
 .pblock h2{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--t3);margin-bottom:8px;}
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
 .field label{display:block;font-size:10px;color:var(--t3);margin-bottom:3px;font-family:'IBM Plex Mono',monospace;}
 .field input,.field select{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:6px;color:var(--t1);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:5px 7px;outline:none;transition:border-color .15s;}
-.field input:focus{border-color:var(--acc);}
+.field input:focus{border-color:var(--acc);box-shadow:0 0 0 2px rgba(37,99,235,.1);}
 .field.full{grid-column:1/-1;}
 .btn{border:none;border-radius:var(--r);font-family:'Outfit',sans-serif;font-weight:600;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:5px;}
-.btn-acc{background:var(--acc);color:#000;font-size:12px;padding:7px 14px;}
-.btn-acc:hover{filter:brightness(1.1);}
-.btn-ghost{background:var(--s3);color:var(--t2);border:1px solid var(--bd);font-size:11px;padding:6px 10px;}
-.btn-ghost:hover{border-color:var(--acc);color:var(--acc);}
-.btn-lifo{background:rgba(167,139,250,.15);color:var(--lifo);border:1px solid rgba(167,139,250,.3);font-size:11px;padding:6px 10px;}
-.btn-lifo:hover{background:rgba(167,139,250,.25);}
-.btn-danger{background:rgba(239,68,68,.12);color:var(--p1);border:1px solid rgba(239,68,68,.25);font-size:11px;padding:6px 8px;}
-.btn-danger:hover{background:rgba(239,68,68,.25);}
+.btn-acc{background:var(--acc);color:#fff;font-size:12px;padding:7px 14px;}
+.btn-acc:hover{background:#1d4ed8;}
+.btn-ghost{background:var(--s2);color:var(--t2);border:1px solid var(--bd);font-size:11px;padding:6px 10px;}
+.btn-ghost:hover{border-color:var(--acc);color:var(--acc);background:rgba(37,99,235,.05);}
+.btn-lifo{background:rgba(124,58,237,.08);color:var(--lifo);border:1px solid rgba(124,58,237,.25);font-size:11px;padding:6px 10px;}
+.btn-lifo:hover{background:rgba(124,58,237,.15);}
+.btn-danger{background:rgba(220,38,38,.06);color:var(--p1);border:1px solid rgba(220,38,38,.2);font-size:11px;padding:6px 8px;}
+.btn-danger:hover{background:rgba(220,38,38,.12);}
 .btn:disabled{opacity:.35;cursor:not-allowed;}
 .zone-legend{display:flex;gap:6px;flex-wrap:wrap;}
 .zone-tag{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:3px 7px;border-radius:5px;}
-.zone-tag.door{background:rgba(52,211,153,.1);color:var(--zone-door);border:1px solid rgba(52,211,153,.25);}
-.zone-tag.mid{background:rgba(56,189,248,.1);color:var(--zone-mid);border:1px solid rgba(56,189,248,.25);}
-.zone-tag.back{background:rgba(251,146,60,.1);color:var(--zone-back);border:1px solid rgba(251,146,60,.25);}
-.zone-tag.frag{background:rgba(244,114,182,.1);color:var(--frag);border:1px solid rgba(244,114,182,.25);}
+.zone-tag.door{background:rgba(5,150,105,.08);color:var(--zone-door);border:1px solid rgba(5,150,105,.2);}
+.zone-tag.mid{background:rgba(37,99,235,.08);color:var(--zone-mid);border:1px solid rgba(37,99,235,.2);}
+.zone-tag.back{background:rgba(234,88,12,.08);color:var(--zone-back);border:1px solid rgba(234,88,12,.2);}
+.zone-tag.frag{background:rgba(219,39,119,.08);color:var(--frag);border:1px solid rgba(219,39,119,.2);}
 .items-scroll{flex:1;overflow-y:auto;padding:4px 0;}
-.items-scroll::-webkit-scrollbar{width:3px;}
+.items-scroll::-webkit-scrollbar{width:4px;}
+.items-scroll::-webkit-scrollbar-track{background:var(--s2);}
 .items-scroll::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px;}
 .item-row{display:flex;align-items:center;gap:7px;padding:7px 14px;cursor:pointer;border-left:3px solid transparent;transition:all .12s;}
 .item-row:hover{background:var(--s2);}
-.item-row.active{background:var(--s2);border-left-color:var(--acc);}
-.item-row.done{opacity:.5;}
-.item-row.done .step-n{background:var(--s2);color:var(--t3);}
+.item-row.active{background:rgba(37,99,235,.06);border-left-color:var(--acc);}
+.item-row.done{opacity:.45;}
+.item-row.done .step-n{background:var(--s3);color:var(--t3);}
 .cdot{width:9px;height:9px;border-radius:3px;flex-shrink:0;}
 .iinfo{flex:1;min-width:0;}
-.iname{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.iname{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--t1);}
 .imeta{font-size:10px;color:var(--t3);font-family:'IBM Plex Mono',monospace;display:flex;gap:6px;margin-top:1px;flex-wrap:wrap;}
 .zone-pip{font-size:9px;padding:1px 4px;border-radius:3px;font-weight:700;}
-.zone-pip.door{color:var(--zone-door);}
-.zone-pip.mid{color:var(--zone-mid);}
-.zone-pip.back{color:var(--zone-back);}
+.zone-pip.door{color:var(--zone-door);background:rgba(5,150,105,.1);}
+.zone-pip.mid{color:var(--zone-mid);background:rgba(37,99,235,.1);}
+.zone-pip.back{color:var(--zone-back);background:rgba(234,88,12,.1);}
 .step-n{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 5px;border-radius:4px;background:var(--s3);color:var(--t3);flex-shrink:0;}
-.step-n.active{background:var(--acc);color:#000;}
-.controls{padding:12px 14px;border-top:1px solid var(--bd);flex-shrink:0;}
+.step-n.active{background:var(--acc);color:#fff;}
+.controls{padding:12px 14px;border-top:1px solid var(--bd);flex-shrink:0;background:var(--s2);}
 .step-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
 .step-ctr{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--t3);}
 .step-ctr strong{color:var(--acc2);}
@@ -91,25 +91,24 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;height
 .occ-track{height:5px;background:var(--bd);border-radius:3px;overflow:hidden;margin-bottom:10px;}
 .occ-fill{height:100%;border-radius:3px;transition:width .35s,background .35s;}
 .btn-row{display:flex;gap:5px;margin-bottom:5px;}
-.no-fit{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:var(--r);padding:7px 10px;margin-top:6px;}
+.no-fit{background:rgba(220,38,38,.05);border:1px solid rgba(220,38,38,.15);border-radius:var(--r);padding:7px 10px;margin-top:6px;}
 .no-fit-title{font-size:10px;color:var(--p1);font-weight:700;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;}
 .no-fit-item{font-size:10px;color:var(--t2);padding:2px 0;display:flex;align-items:center;gap:5px;}
-.viewport{flex:1;position:relative;overflow:hidden;background:radial-gradient(ellipse 70% 60% at 45% 35%,#0d1e35 0%,var(--bg) 75%);}
+.viewport{flex:1;position:relative;overflow:hidden;background:radial-gradient(ellipse 80% 70% at 45% 30%,#e8edf8 0%,#dde3f0 100%);}
 #c{display:block;width:100%!important;height:100%!important;}
-#tip{position:absolute;background:var(--s1);border:1px solid var(--bd2);border-radius:var(--r);padding:10px 13px;font-size:11px;line-height:1.8;pointer-events:none;display:none;z-index:50;font-family:'IBM Plex Mono',monospace;box-shadow:0 8px 30px rgba(0,0,0,.6);max-width:210px;}
-#tip strong{color:var(--acc2);font-size:12px;display:block;margin-bottom:3px;}
+#tip{position:absolute;background:var(--s1);border:1px solid var(--bd2);border-radius:var(--r);padding:10px 13px;font-size:11px;line-height:1.8;pointer-events:none;display:none;z-index:50;font-family:'IBM Plex Mono',monospace;box-shadow:0 6px 24px rgba(0,0,0,.12);max-width:210px;color:var(--t1);}
+#tip strong{color:var(--acc);font-size:12px;display:block;margin-bottom:3px;}
 #tip .tag{display:inline-flex;align-items:center;gap:3px;padding:1px 5px;border-radius:3px;font-size:10px;font-weight:700;margin-top:3px;}
-#tip .tag.door{background:rgba(52,211,153,.15);color:var(--zone-door);}
-#tip .tag.mid{background:rgba(56,189,248,.15);color:var(--zone-mid);}
-#tip .tag.back{background:rgba(251,146,60,.15);color:var(--zone-back);}
-#tip .tag.frag{background:rgba(244,114,182,.15);color:var(--frag);}
+#tip .tag.door{background:rgba(5,150,105,.1);color:var(--zone-door);}
+#tip .tag.mid{background:rgba(37,99,235,.1);color:var(--zone-mid);}
+#tip .tag.back{background:rgba(234,88,12,.1);color:var(--zone-back);}
+#tip .tag.frag{background:rgba(219,39,119,.1);color:var(--frag);}
 .hint{position:absolute;bottom:14px;right:14px;font-size:10px;color:var(--t3);text-align:right;pointer-events:none;line-height:2;}
 .zone-overlay{position:absolute;bottom:0;left:0;right:0;height:4px;display:flex;pointer-events:none;}
-.zo-door{flex:1;background:var(--zone-door);opacity:.6;}
-.zo-mid{flex:1;background:var(--zone-mid);opacity:.6;}
-.zo-back{flex:1;background:var(--zone-back);opacity:.6;}
-/* Giro badge */
-.rot-badge{display:inline-flex;align-items:center;gap:2px;font-size:9px;padding:1px 4px;border-radius:3px;background:rgba(56,189,248,.12);color:var(--acc);border:1px solid rgba(56,189,248,.25);}
+.zo-door{flex:1;background:var(--zone-door);opacity:.5;}
+.zo-mid{flex:1;background:var(--zone-mid);opacity:.5;}
+.zo-back{flex:1;background:var(--zone-back);opacity:.5;}
+.rot-badge{display:inline-flex;align-items:center;gap:2px;font-size:9px;padding:1px 4px;border-radius:3px;background:rgba(37,99,235,.08);color:var(--acc);border:1px solid rgba(37,99,235,.2);}
 </style>
 </head>
 <body>
@@ -145,9 +144,26 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;height
     $stmt->execute();
     $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    $Vehiculo = '';
+    $Operador = '';
+
     $productos_finales = [];
     if ($resultados) {
         foreach ($resultados as $reg) {
+
+            if ($Vehiculo == ''){
+
+              $query = "SELECT * from v_operations WHERE Id_operation = ?";
+              $stmt = $db->prepare($query);
+              $stmt->bindValue(1, $reg['id_operation']);
+              $stmt->execute();
+              $operation = $stmt->fetch(PDO::FETCH_ASSOC);            
+
+              $Vehiculo = $operation['vehiculo']. " ".$operation['placas'];
+              $Operador = $operation['NombresChofer']. " ".$operation['ApellidosChofer'];
+              
+            }        
+
             $query = "SELECT * from v_operation_checklist WHERE Id_operation = ? AND STAGE = 'SURTIDO'";
             $stmt = $db->prepare($query);
             $stmt->bindValue(1, $reg['id_operation']);
@@ -244,10 +260,10 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;height
   <h2>Logística y Transporte</h2>
   <div class="field" style="margin-bottom: 8px;">
     <label>VEHÍCULO / PLACAS</label>
-    <input type="text" value="Ford F-550 (D-01)" readonly style="color: var(--acc2);">
+    <input type="text" value="<?php echo $Vehiculo;?>" readonly style="color: var(--acc2);">
   </div>
   <div class="row3">
-    <div class="field full"><label>OPERADOR</label><input type="text" value="Juan Pérez" readonly></div>
+    <div class="field full"><label>OPERADOR</label><input type="text" value="<?php echo $Operador;?>" readonly></div>
   </div>
   <div class="field" style="margin-top: 8px;">
     <label>RUTA DESTINO</label>
@@ -759,10 +775,10 @@ renderer.shadowMap.type    = THREE.PCFSoftShadowMap;
 const scene  = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(42, 1, .1, 12000);
 
-scene.add(new THREE.AmbientLight(0xffffff, .45));
-const sun = new THREE.DirectionalLight(0xffffff, .75);
+scene.add(new THREE.AmbientLight(0xffffff, .75));
+const sun = new THREE.DirectionalLight(0xffffff, .6);
 sun.position.set(400, 600, 300); sun.castShadow = true; scene.add(sun);
-const fill = new THREE.DirectionalLight(0x38bdf8, .2);
+const fill = new THREE.DirectionalLight(0x93c5fd, .25);
 fill.position.set(-300, 100, -200); scene.add(fill);
 
 // Orbit manual
@@ -839,7 +855,7 @@ let cwire=null;
 let zonePlanes=[], slotPlanes=[];
 
 // Paleta de colores para slots de grupos de entrega
-const SLOT_PALETTE=[0xef4444,0x38bdf8,0x34d399,0xfb923c,0xa78bfa,0xf472b6,0xfbbf24,0x4ade80];
+const SLOT_PALETTE=[0xdc2626,0x2563eb,0x059669,0xea580c,0x7c3aed,0xdb2777,0xca8a04,0x0891b2];
 
 function buildZonePlanes(C) {
   zonePlanes.forEach(p=>scene.remove(p)); zonePlanes=[];
@@ -900,16 +916,17 @@ function buildSlotDividers(C, slots) {
   });
 }
 
+
 function buildContainer(C) {
   if (cwire) scene.remove(cwire);
   const g=new THREE.BoxGeometry(C.w,C.h,C.d);
   cwire=new THREE.LineSegments(new THREE.EdgesGeometry(g),
-    new THREE.LineBasicMaterial({color:0x38bdf8,transparent:true,opacity:.3}));
+    new THREE.LineBasicMaterial({color:0x2563eb,transparent:true,opacity:.25}));
   cwire.position.set(C.w/2,C.h/2,C.d/2);
   scene.add(cwire);
   if (window._fl) scene.remove(window._fl);
   window._fl=new THREE.Mesh(new THREE.PlaneGeometry(C.w,C.d),
-    new THREE.MeshStandardMaterial({color:0x1b2535,transparent:true,opacity:.5,side:THREE.DoubleSide}));
+    new THREE.MeshStandardMaterial({color:0xc7d2e8,transparent:true,opacity:.6,side:THREE.DoubleSide}));
   window._fl.rotation.x=-Math.PI/2;
   window._fl.position.set(C.w/2,.2,C.d/2);
   window._fl.receiveShadow=true;
@@ -921,10 +938,11 @@ function buildContainer(C) {
   buildZonePlanes(C);
 }
 
+
 const zoneEmissive={
-  door: new THREE.Color(0x34d399),
-  mid:  new THREE.Color(0x38bdf8),
-  back: new THREE.Color(0xfb923c),
+  door: new THREE.Color(0x059669),
+  mid:  new THREE.Color(0x2563eb),
+  back: new THREE.Color(0xea580c),
 };
 
 function addMesh(item, highlight=false) {

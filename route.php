@@ -840,7 +840,7 @@ h1, h2, h3, h4, h5, h6,
                     Fecha de operación
                 </div>
                 <?php
-                    $fecha_actual = isset($_GET['fecha']) ? $_GET['fecha'] : date('2026-04-01');
+                    $fecha_actual = isset($_GET['fecha']) ? $_GET['fecha'] : date('Y-m-d');
                 ?>
                 <div class="date-input-wrap">
                     <input type="date" id="fecha-operacion"
@@ -1127,6 +1127,9 @@ function calcularCarga(array $productos, float $factorHolgura = 1.2): array
     ];
 }
 
+$stmt = $db->prepare("Select Lat,Lng FROM account WHERE Id = 1");
+$stmt->execute();
+$account = $stmt->fetch(PDO::FETCH_ASSOC); 
 // Vehículos
 $stmt = $db->prepare(
     "
@@ -1157,8 +1160,8 @@ foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $reg) {
         "peso"         => (int)$reg['peso'],
         "costoporhora" => (float)$reg['costoporhora'],
         "costoporkm"   => (float)$reg['costoporkm'],
-        "lat"          => 20.6736,
-        "lng"          => -103.344
+        "lat"          => $account['Lat'],
+        "lng"          => $account['Lng']
     ];
 }
 
@@ -1307,11 +1310,10 @@ function renderListas() {
                     <span class="s-cliente">${e.cliente}</span>
                     <span class="s-time"><i class="far fa-clock me-1"></i>${e.ventana[0]} – ${e.ventana[1]}</span>
                     <span class="badge-ruta-envio" id="badge-ruta-${e.id}"></span>
-                </div>
-                <div class="shipment-meta">
                     <span class="meta-pill">${e.volumen} m³</span>
                     <span class="meta-pill">${e.peso} kg</span>
                 </div>
+
             </label>
         `);
         $contE.append(card);

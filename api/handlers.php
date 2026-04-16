@@ -710,7 +710,7 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                 $Campos = '';
                 unset($Campos);
                 foreach ($resultados as $registro) {
-                    if ($registro['Requerido'] == 'X' AND empty($data->{$registro['Campo']}) ){
+                    if ($registro['Requerido'] == 'X' AND empty($data->{$registro['Campo']}) AND $registro['Campo'] != 'IId' ){
                         http_response_code(404);
                         echo json_encode(array("message" => $registro['Campo']." Requerido."));
                     }
@@ -723,8 +723,6 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
             }        
 
             $Campos = implode(', ', $Campos);
-
-
 
             $CamposUpdate= '';
             
@@ -756,6 +754,7 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
             $Where=substr($Where, 0, -3);
             $query = "UPDATE $table_name SET $Campos $CamposUpdate WHERE $Where";
             //echo $query;
+            //die();
             $stmt = $db->prepare($query);            
             // Sanitizar y enlazar parámetros
             foreach ($resultados as $registro) {
@@ -793,7 +792,6 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                             ? (($data->{$registro['Campo']}))
                             : null;                            
                         $stmt->bindValue(":" . $campo, $valor);
-
                     }
                     else{
                         $stmt->bindValue(":" . $campo, $valor);
@@ -802,6 +800,7 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
 
                     //$stmt->bindValue(":" . $campo, $valor);                    
                 }
+
             }
             $Id1 = 0;
             $Id2 = 0;
@@ -812,6 +811,10 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                 $valor = isset($data->{$llave['Campo']}) 
                     ? htmlspecialchars(strip_tags($data->{$llave['Campo']}))
                     : null;
+                        if ($campo == 'iid'){
+                            $valor = $data->{'IId_'.$table_name};
+                        }                    
+
                 $stmt->bindValue(":" . $campo, $valor);
                 if ($IdC == 1)
                     $Id1 = $valor;
@@ -820,6 +823,46 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
             }                 
 
             if ($stmt->execute()) {
+
+                if ($table_name == 'account' ){
+                    $sql = "
+                        SELECT
+                            account.Direccion, 
+                            account.Ciudad, 
+                            account.CP, 
+                            estados_pais.Estado, 
+                            pais.Pais
+                        FROM
+                            account
+                            INNER JOIN
+                            estados_pais
+                            ON 
+                                account.Estado = estados_pais.Id
+                            INNER JOIN
+                            pais
+                            ON 
+                                account.Pais = pais.Codigo
+                        Limit 1                    
+                    ";
+                    $stmt = $db->prepare($sql);
+                    $stmt->execute();
+                    $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                    //if ($resultado['Lat'] == null OR $resultado['Lat'] == ''){
+                        $miDireccion = $resultado['Direccion']." ".$resultado['Ciudad']." ".$resultado['CP']." ".$resultado['Estado']." ".$resultado['Pais'];
+                        $miDireccion = obtenerCoordenadas($miDireccion, GOOGLE_API_KEY);
+                        if (isset($miDireccion['error'])) {
+                            echo "Hubo un problema: " . $miDireccion['error'];
+                        } else {
+                            $query = "UPDATE account SET Lat = :lat, Lng = :lng WHERE Id = 1";
+                            $stmt = $db->prepare($query);
+                            $stmt->bindValue(":lat", $miDireccion['lat']);
+                            $stmt->bindValue(":lng", $miDireccion['lng']);
+                            $stmt->execute();
+                        }                    
+                    //}                    
+
+                }
 
                 $InsertLog ="INSERT INTO log (FechaHora,Usuario,Tabla,Id,Id2,Tipo,Log) VALUES(now(),'','$table_name','$Id1','$Id2','U','Registro Actualizado')";
                 $stmt = $db->prepare($InsertLog);
@@ -906,6 +949,7 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
             break;
     }
 }
+
 function get_json_price($table_name,$db, $method, $id, $data) {
     global $IDS;
     switch ($method) {
@@ -940,6 +984,7 @@ function get_json_price($table_name,$db, $method, $id, $data) {
         break;
     }
 }
+
 function get_price($table_name,$db, $method, $id, $data) {
 
     global $IDS;
@@ -1854,9 +1899,13 @@ function save_customer($table_name,$db, $method, $id, $data){
     global $IDS;
     switch ($method) {
         case 'POST': 
-            $query = "INSERT INTO  customers (Nombres,Estatus,FechaCreacion,FechaCambio) VALUES(:nombre,'A',now(),now()) ";
+
+            $resultado = dividirNombreCompleto($data->{'nombre'});
+
+            $query = "INSERT INTO  customers (Nombres,Apellidos,Estatus,FechaCreacion,FechaCambio) VALUES(:nombre,:apellidos,'A',now(),now()) ";
             $stmt = $db->prepare($query);
-            $stmt->bindValue(":nombre", $data->{'nombre'});
+            $stmt->bindValue(":nombre",$resultado['nombres']);
+            $stmt->bindValue(":apellidos",$resultado['apellido_paterno']." ".$resultado['apellido_materno'] );
             
             if ($stmt->execute()) {
 
@@ -2403,7 +2452,7 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
         ]);
         $idLead = $db->lastInsertId();
 
-        $stmt = $db->prepare(" UPDATE folios SET Folio = ? WHERE IdBranch = ? AND Type = 'Pay'");
+        $stmt = $db->prepare(" UPDATE folios SET Folio = ? WHERE IdBranch = ? AND Type = 'Lead'");
         $stmt->execute([$Folio,$IdBranch]);
         $UUID = generar_uuid_v4();
         //$stmt = $db->prepare("INSERT INTO quotes (UUID,IdQuote,ExpDate,Status) VALUES (?,?,NOW() + INTERVAL '2 days',?)");
@@ -2587,7 +2636,7 @@ function operation($table_name,$db, $method, $id, $data){
                         ELSE 'Sin identificar'
                     END AS NombreMostrar
                     FROM v_operations
-                    WHERE (NombreOrganizacion LIKE :s OR NombreCliente LIKE :s OR ApellidosCliente LIKE :s) and id_vehicle > 0                   
+                    WHERE (NombreOrganizacion LIKE :s OR NombreCliente LIKE :s OR ApellidosCliente LIKE :s) and id_vehicle > 0  AND Status <> 'ALMACENADO'                 
                     ORDER BY StartDateTime, id_vehicle, orden  DESC"; 
 //                    LIMIT :limit OFFSET :offset";
 
@@ -2683,16 +2732,28 @@ function process_stage_change($table_name,$db, $method, $id, $data){
                 }
             }            
 
+            if  ($currentStage == 'ENTREGA'){
+                $sign     = $_POST['sign'];
+            }
 
-            $queryI ="SELECT * FROM operation_checklist WHERE id_operation = :id_operation AND stage = :operation_type";
+            if  ($currentStage == 'ACONDICIONAMIENTO'){
+                $stages = json_decode($_POST['STAGES'], true);
 
-            $stmtI = $db->prepare($queryI);
-            $stmtI->bindValue(":id_operation", $id_op);
-            $stmtI->bindValue(":operation_type", $currentStage);
-            $stmtI->execute();      
-            $resultados = $stmtI->fetchAll(PDO::FETCH_ASSOC);       
-            if ($resultados) {
-                foreach ($resultados as $registro) {
+                foreach ($stages as $item) {
+                    $id = $item['id'];
+                    $limpios = $item['cleaning'];
+                    $lavados = $item['washing'];
+                    $reparar = $item['repair'];
+
+
+                    $queryI ="SELECT * FROM operation_checklist WHERE id_operation = :id_operation AND id_checklist = :id";
+
+                    $stmtI = $db->prepare($queryI);
+                    $stmtI->bindValue(":id_operation", $id_op);
+                    $stmtI->bindValue(":id", $id);
+                    $stmtI->execute();      
+                    $registro = $stmtI->fetch(PDO::FETCH_ASSOC);                    
+
                     $queryI= "INSERT INTO operation_checklist (id_operation,id_product,id_accesory_base,id_accesory,requested_quantity,assorted_quantity,stage) VALUES(:id_operation,:id_product,:id_accesory_base,:id_accesory,:requested_quantity,:assorted_quantity,:stage)";
                     $stmtI = $db->prepare($queryI);
                     $stmtI->bindValue(":id_operation", $registro['id_operation']);
@@ -2700,27 +2761,93 @@ function process_stage_change($table_name,$db, $method, $id, $data){
                     $stmtI->bindValue(":id_accesory_base", $registro['id_accesory_base']);
                     $stmtI->bindValue(":id_accesory", $registro['id_accesory']);
                     $stmtI->bindValue(":requested_quantity", $registro['requested_quantity']);
-                    //$stmtI->bindValue(":assorted_quantity", $registro['assorted_quantity']);
+
+                    $stmtI->bindValue(":assorted_quantity", $limpios);
+                    $stmtI->bindValue(":stage", 'LIMPIEZA');
+                    $stmtI->execute();
+
+                    $stmtI->bindValue(":assorted_quantity", $lavados);
+                    $stmtI->bindValue(":stage", 'LAVADO');
+                    $stmtI->execute();
+
+                    $stmtI->bindValue(":assorted_quantity", $reparar);
+                    $stmtI->bindValue(":stage", 'REPARACION');
+                    $stmtI->execute();                    
+
+                    }                
+                    $nextStage = 'ALMACENADO';
+            }            
+
+
+            $items = json_decode($_POST['items'], true);
+
+            foreach ($items as $item) {
+                $id = $item['id'];
+                //$qty = $item['qty'];
+                $chk = $item['chk'];            
+                if ($chk)
+                    $chk = 1;
+                else
+                    $chk = 0;
+
+                $queryI= "UPDATE operation_checklist SET assorted_quantity = requested_quantity, verification_stage = :verification_stage WHERE id_checklist = :id_checklist AND id_operation = :id_operation AND stage = :operation_type ";
+                
+                $stmtI = $db->prepare($queryI);
+                $stmtI->bindValue(":verification_stage", $chk);
+                $stmtI->bindValue(":id_checklist", $id);
+                $stmtI->bindValue(":id_operation", $id_op);
+                $stmtI->bindValue(":operation_type", $currentStage);
+                $stmtI->execute();                
+            }
+            
+            $queryI ="SELECT * FROM operation_checklist WHERE    id_operation = :id_operation AND stage = :operation_type";
+            $stmtI = $db->prepare($queryI);
+            $stmtI->bindValue(":id_operation", $id_op);
+            $stmtI->bindValue(":operation_type", $currentStage);
+            $stmtI->execute();      
+            $resultados = $stmtI->fetchAll(PDO::FETCH_ASSOC);
+            if ($resultados) {
+                foreach ($resultados as $registro) {
+                    $queryI= "INSERT INTO operation_checklist (id_operation,id_product,id_accesory_base,id_accesory,requested_quantity,assorted_quantity,stage,verification_stage) VALUES(:id_operation,:id_product,:id_accesory_base,:id_accesory,:requested_quantity,:assorted_quantity,:stage,:verification_stage)";
+                    $stmtI = $db->prepare($queryI);
+                    $stmtI->bindValue(":id_operation", $registro['id_operation']);
+                    $stmtI->bindValue(":id_product", $registro['id_product']);
+                    $stmtI->bindValue(":id_accesory_base", $registro['id_accesory_base']);
+                    $stmtI->bindValue(":id_accesory", $registro['id_accesory']);
+                    $stmtI->bindValue(":requested_quantity", $registro['requested_quantity']);
                     $stmtI->bindValue(":assorted_quantity", 0);
                     $stmtI->bindValue(":stage", $nextStage);
+                    $stmtI->bindValue(":verification_stage", $registro['verification_stage']);
                     $stmtI->execute();                  
                 }
             }
 
-            $queryI= "INSERT INTO operation_evidence (id_operation,operation_type,url_photo,geolocation,datetime) VALUES(:id_operation,:operation_type,:url_photo,:geolocation,NOW())";
 
-            $stmtI = $db->prepare($queryI);
-            $stmtI->bindValue(":id_operation", $id_op);
-            $stmtI->bindValue(":operation_type", $currentStage);
-            $stmtI->bindValue(":url_photo", $filename);
-            $stmtI->bindValue(":geolocation", $coords);
-            $stmtI->execute();            
+            if  ($currentStage == 'ENTREGA'){
+                $sign     = $_POST['sign'];
+                $queryI= "INSERT INTO operation_evidence (id_operation,operation_type,url_photo,geolocation,notes,sign,datetime) VALUES(:id_operation,:operation_type,:url_photo,:geolocation,:notes,:sign,NOW())";                
+                $stmtI = $db->prepare($queryI);
+                $stmtI->bindValue(":id_operation", $id_op);
+                $stmtI->bindValue(":operation_type", $currentStage);
+                $stmtI->bindValue(":url_photo", $filename);
+                $stmtI->bindValue(":geolocation", $coords);
+                $stmtI->bindValue(":notes", $notes);
+                $stmtI->bindValue(":sign", $sign);
+                $stmtI->execute();
+            }
+            else{
+                $queryI= "INSERT INTO operation_evidence (id_operation,operation_type,url_photo,geolocation,notes,datetime) VALUES(:id_operation,:operation_type,:url_photo,:geolocation,:notes,NOW())";
+                $stmtI = $db->prepare($queryI);
+                $stmtI->bindValue(":id_operation", $id_op);
+                $stmtI->bindValue(":operation_type", $currentStage);
+                $stmtI->bindValue(":url_photo", $filename);
+                $stmtI->bindValue(":geolocation", $coords);
+                $stmtI->bindValue(":notes", $notes);
+                $stmtI->execute();                
+            }
 
-            $queryI= "UPDATE operation_checklist SET assorted_quantity = requested_quantity WHERE id_operation = :id_operation AND stage = :operation_type ";
-            $stmtI = $db->prepare($queryI);
-            $stmtI->bindValue(":id_operation", $id_op);
-            $stmtI->bindValue(":operation_type", $currentStage);
-            $stmtI->execute();            
+
+        
 
 
             $queryI= "UPDATE operation_master SET status = :operation_type  WHERE id_operation = :id_operation ";
@@ -2825,6 +2952,50 @@ function process_stage_change_em($table_name,$db, $method, $id, $data){
     }
 }
 
+function assign_operator($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+
+            // 1. Recibir datos básicos
+            $vehiculoId     = $_POST['vehiculoId'];
+            $fecha          = $_POST['fecha'];
+            $operadorId     = $_POST['operadorId'];
+
+            $queryI ="SELECT id_route FROM daily_route WHERE date = :date AND id_vehicle = :id_vehicle";
+
+            $stmtI = $db->prepare($queryI);
+            $stmtI->bindValue(":date", $fecha);
+            $stmtI->bindValue(":id_vehicle", $vehiculoId);
+            $stmtI->execute();      
+            $resultado = $stmtI->fetch(PDO::FETCH_ASSOC);       
+            if ($resultado) {
+                $db->prepare("UPDATE daily_route SET  id_driver=? WHERE id_route = ?")->execute([$operadorId,$resultado['id_route']]);
+
+                $query ="SELECT id_operation FROM route_stops WHERE id_route = :id_route";
+                $stmt = $db->prepare($query);
+                $stmt->bindValue(":id_route", $resultado['id_route']);
+                $stmt->execute();      
+                $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);       
+                if ($resultados) {
+                    foreach ($resultados as $registro) {
+                        $db->prepare("UPDATE operation_master SET  id_driver=? WHERE id_operation = ?")->execute([$operadorId,$registro['id_operation']]);
+                    }
+                }
+            }            
+
+            http_response_code(200);
+            echo json_encode(array("message" => "Registro actualizado."));
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+}
+
 
 function delete_route($table_name,$db, $method, $id, $data){
     global $IDS;
@@ -2856,12 +3027,14 @@ function delete_route($table_name,$db, $method, $id, $data){
                         $db->prepare("UPDATE operation_checklist SET stage = 'SURTIDO', assorted_quantity=0 WHERE id_operation = ?")->execute([$registro['id_operation']]);                    
 
                         $db->prepare("DELETE FROM operation_checklist WHERE id_operation = ? AND stage <> 'SURTIDO'")->execute([$registro['id_operation']]);
+
+                        $db->prepare("DELETE FROM operation_evidence WHERE id_route = ?")->execute([$resultado['id_route']]);                        
                     }
                 }
             }            
 
             $db->prepare("DELETE FROM daily_route WHERE id_route = ?")->execute([$resultado['id_route']]);
-            $db->prepare("DELETE FROM route_stops WHERE id_route = ?")->execute([$resultado['id_route']]);            
+            $db->prepare("DELETE FROM route_stops WHERE id_route = ?")->execute([$resultado['id_route']]);
 
 
             http_response_code(200);
@@ -2876,6 +3049,194 @@ function delete_route($table_name,$db, $method, $id, $data){
     }
 }
 
+function data_monitor($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+
+$sql = "
+SELECT
+	daily_route.id_route, 
+	daily_route.id_route as Ruta, 
+	daily_route.date, 	
+	v_operations.NombreOrganizacion, 
+    v_operations.OPhone, 
+	CONCAT(v_operations.NombreCliente, ' ' , v_operations.ApellidosCliente) as NombreCliente,
+    v_operations.CPhone, 
+	CONCAT(NombresChofer, ' ',	v_operations.ApellidosChofer ) as Operador, 
+	v_operations.vehiculo as Vehiculo, 
+	route_stops.id_operation as id_operacion, 		
+	operation_evidence.operation_type, 
+	operation_evidence.url_photo, 
+	operation_evidence.geolocation, 
+	operation_evidence.notes, 
+	operation_evidence.sign as firma, 
+	operation_evidence.datetime as fechahora
+FROM
+	daily_route
+	INNER JOIN
+	route_stops
+	ON 
+		daily_route.id_route = route_stops.id_route
+	INNER JOIN
+	v_operations
+	ON 
+		route_stops.id_operation = v_operations.Id_operation
+	INNER JOIN
+	operation_evidence
+	ON 
+		v_operations.Id_operation = operation_evidence.id_operation
+    WHERE daily_route.date = :date
+		ORDER BY id_route, id_evidence
+";
+
+            $stmtI = $db->prepare($sql);
+            $stmtI->bindValue(":date", $_POST['date']);
+            $stmtI->execute();      
+            $SAMPLE_DATA = $stmtI->fetchAll(PDO::FETCH_ASSOC);       
+            if ($SAMPLE_DATA) {
+
+                $OPERATION_ORDER = [
+                    'SURTIDO','CARGA','INSTALACION','PRUEBA FUNCIONAMIENTO',
+                    'ENTREGA','RECOLECCION','ACONDICIONAMIENTO','ALMACENADO'
+                ];
+                //'DOBLADO'
+
+                // ── Agrupar ───────────────────────────────────────────────────
+                $rutas = [];
+                foreach ($SAMPLE_DATA as $row) {
+                    $r  = $row['Ruta'];
+                    $op = $row['id_operacion'];
+                    $Cient = $row['NombreOrganizacion'] ?: $row['NombreCliente'];
+                    $Phonte = !empty($row['NombreOrganizacion']) ? $row['OPhone'] : $row['CPhone'];
+                    if (!isset($rutas[$r])) {
+                        $rutas[$r] = ['ruta'=>$r,'operador'=>$row['Operador'],'vehiculo'=>$row['Vehiculo'],'operaciones'=>[]];
+                    }
+                    if (!isset($rutas[$r]['operaciones'][$op])) {
+                        $rutas[$r]['operaciones'][$op] = [];
+                    }
+                    $rutas[$r]['operaciones'][$op][] = $row;
+                }
+
+                // ── Calcular ──────────────────────────────────────────────────
+                $result = [];
+                foreach ($rutas as $rutaKey => $rutaData) {
+                    $totalOps   = count($OPERATION_ORDER);
+                    $totalItems = count($rutaData['operaciones']);
+                    $totalPasos = $totalItems * $totalOps;
+                    $pasosHechos = 0;
+
+                    $itemsDetail = [];
+                    foreach ($rutaData['operaciones'] as $opId => $rows) {
+                        $pasosItem = count($rows);
+                        $pasosHechos += $pasosItem;
+                        $lastOp = end($rows);
+                        $pctItem = round(($pasosItem / $totalOps) * 100);
+
+                        // Pasos con detalle completo
+                        $stepsDetail = [];
+                        $doneTypes = array_map(fn($r)=>$r['operation_type'], $rows);
+                        foreach ($OPERATION_ORDER as $i => $opType) {
+                            $done = in_array($opType, $doneTypes);
+                            $stepData = null;
+                            if ($done) {
+                                foreach ($rows as $r2) {
+                                    if ($r2['operation_type'] === $opType) { $stepData = $r2; break; }
+                                }
+                            }
+                            $stepsDetail[] = [
+                                'step'           => $i + 1,
+                                'operation_type' => $opType,
+                                'done'           => $done,
+                                'url_photo'      => $done ? ($stepData['url_photo'] ?? '') : '',
+                                'geolocation'    => $done ? ($stepData['geolocation'] ?? '') : '',
+                                'notas'          => $done ? ($stepData['notas'] ?? '') : '',
+                                'firma'          => $done ? ($stepData['firma'] ?? '') : '',
+                                'fechahora'      => $done ? ($stepData['fechahora'] ?? '') : '',
+                            ];
+                        }
+
+                        $itemsDetail[] = [
+                            'id_operacion'    => $opId,
+                            'client'         => $Cient,
+                            'phone'           => $Phonte,
+                            'completados'     => $pasosItem,
+                            'total'           => $totalOps,
+                            'pct'             => $pctItem,
+                            'ultima_operacion'=> $lastOp['operation_type'],
+                            'ultima_hora'     => $lastOp['fechahora'],
+                            'completo'        => ($pasosItem >= $totalOps),
+                            'steps'           => $stepsDetail,
+                        ];
+                    }
+
+                    $pctRuta = $totalPasos > 0 ? round(($pasosHechos / $totalPasos) * 100) : 0;
+
+                    $result[] = [
+                        'ruta'       => $rutaKey,
+                        'operador'   => $rutaData['operador'],
+                        'vehiculo'   => $rutaData['vehiculo'],
+                        'pct_global' => $pctRuta,
+                        'total_items'=> $totalItems,
+                        'items'      => $itemsDetail,
+                        'ultima_actualizacion' => date('Y-m-d H:i:s'),
+                    ];
+                }
+
+                http_response_code(200);
+                echo json_encode([
+                    'success'   => true,
+                    'timestamp' => date('Y-m-d H:i:s'),
+                    'rutas'     => $result,
+                ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);            
+
+            }
+            else{
+
+                http_response_code(200);
+                echo json_encode([
+                    'success'   => false,
+                    'timestamp' => date('Y-m-d H:i:s'),
+                    'rutas'     => '',
+                ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);               
+
+            }
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+}
+
+function process_operation($table_name,$db, $method, $id, $data){
+
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+            $Lead     = $data->{'Lead'};
+            process_op($Lead,$db);
+
+            if($data->{'From'} == 'Lead'){
+                $queryI ="UPDATE lead SET Status = 'pending' WHERE Id = :lead";
+                $stmtI = $db->prepare($queryI);
+                $stmtI->bindValue(":lead", $Lead);
+                $stmtI->execute();
+            }            
+
+            http_response_code(200);
+            echo json_encode(array("message" => "Registro actualizado."));
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+}
 
 function generar_uuid_v4() {
     // Generamos 16 bytes de datos aleatorios
@@ -2989,5 +3350,7 @@ function sendmail($table_name,$db, $method, $id, $data){
         break;
     }      
 }
+
+
 
 ?>

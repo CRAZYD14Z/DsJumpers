@@ -95,6 +95,11 @@ $db = $database->getConnection();
         echo "Enlace no válido.";
         die();
     }
+
+    $stmt = $db->prepare("SELECT Idioma FROM account");
+    $stmt->execute();
+    $account = $stmt->fetch();
+    $lang = $account['Idioma'];
 ?>
 
 <div id="scroll-indicator">
@@ -177,7 +182,7 @@ $db = $database->getConnection();
 <script>
 
  <?php
-        $query = "select NombreCompania, Direccion,Direccion2, Ciudad,CP,Estado,Pais,TelefonoCelular FROM account";
+        $query = "select Logo,NombreCompania, Direccion,Direccion2, Ciudad,CP,Estado,Pais,TelefonoCelular FROM account";
         $stmt = $db->prepare($query);
         $stmt->execute();
         $account = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -254,6 +259,7 @@ const FHFp = FHF.split(' ')
     const datosGenerales = {
         leadid: "",
         contractsentdate: "",
+        company_logo: "<?php echo $account['Logo']?>",
         company_name: "<?php echo $account['NombreCompania']?>",
         company_address:"<?php echo $account['Direccion']." ".$account['Direccion2'];?>",
         company_city:"<?php echo $account['Ciudad']." ".$account['CP'];?>",
@@ -302,7 +308,7 @@ const FHFp = FHF.split(' ')
     if ($lead_details) {
         foreach ($lead_details as $lead_detail) {
             if ($lead_detail['IdProductRel'] > 0 )
-                $query = "select * FROM products WHERE Id = ". $lead_detail['IdProductRel'];
+                $query = "select * FROM products WHERE Id = ". $lead_detail['IdProduct'];
             else
                 $query = "select * FROM products WHERE Id = ". $lead_detail['IdProduct'];
             $stmt = $db->prepare($query);
@@ -310,7 +316,7 @@ const FHFp = FHF.split(' ')
             $product = $stmt->fetch(PDO::FETCH_ASSOC);  
             
             if ($lead_detail['IdProductRel'] > 0 )
-                $query = "SELECT *  from products_images WHERE Product = ". $lead_detail['IdProductRel']." ORDER BY Orden LIMIT 1";
+                $query = "SELECT *  from products_images WHERE Product = ". $lead_detail['IdProduct']." ORDER BY Orden LIMIT 1";
             else
                 $query = "SELECT *  from products_images WHERE Product = ". $lead_detail['IdProduct']." ORDER BY Orden LIMIT 1";
             $stmt = $db->prepare($query);
