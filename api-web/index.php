@@ -115,8 +115,8 @@ $base_path = '/api-web';
 $path = trim(str_replace($base_path, '', $request_uri), '/'); 
 $segments = explode('/', $path);
 
-$resource = $segments[1]; // Ej: 'login', 'clientes', 'productos'
-$id = $segments[2] ?? null; // Ej: ID si existe
+$resource = $segments[0]; // Ej: 'login', 'clientes', 'productos'
+$id = $segments[1] ?? null; // Ej: ID si existe
 
 
 // --- C. ENRUTAMIENTO CRUD PROTEGIDO ---
