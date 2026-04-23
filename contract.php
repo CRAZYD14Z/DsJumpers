@@ -147,7 +147,7 @@ $db = $database->getConnection();
                         </div>                        
 
                         <div class="d-grid gap-2 mt-5">
-                            <button type="submit" class="btn btn-primary btn-lg">Validar y Enviar Contrato</button>
+                            <button type="submit" class="btn btn-primary btn-lg" id="CrearDocumento">Validar y Enviar Contrato</button>
                         </div>
                     </form>
                 </div>
@@ -230,6 +230,10 @@ $db = $database->getConnection();
                 token: '<?php echo $token;?>',
                 contrato: contenidoDiv 
             };
+
+            $('#CrearDocumento')
+                .prop('disabled', true)
+                .html('<i class="fa-solid fa-spinner fa-spin"></i> Procesando...');                        
 
             fetch('pdf.php', {
                 method: 'POST',

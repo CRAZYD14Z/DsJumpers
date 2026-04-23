@@ -102,6 +102,12 @@ $lang ='es';
     $stmt->execute();
     $customer = $stmt->fetch(PDO::FETCH_ASSOC);
 
+    $query = "select * FROM organizations WHERE Id = ".$lead['Organization'];
+    $stmt = $db->prepare($query);
+    $stmt->execute();
+    $organization = $stmt->fetch(PDO::FETCH_ASSOC);            
+
+
     //RECUPERAR venue
     $sql = "SELECT * FROM venues WHERE Id = :id";
     $stmt = $db->prepare($sql);
@@ -116,10 +122,20 @@ $lang ='es';
                 // Incluimos el teléfono en el cuerpo del correo
     $cuerpo = "<html>".$Template['Template']."</html>";
 
+            if ($customer){
+                $nombreCliente = $customer['Nombres'];
+                $correoCliente =$customer['Correo'];
+            }
+            else{
+                $nombreCliente = $organization['Nombre'];
+                $correoCliente =$organization['Correo'];
+
+            }    
+
     $valores = [
         'company_logo'      => $account['Logo'],
         'company_name' => $account['NombreCompania'],
-        'ctfirstname'  => $customer['Nombres'],
+        'ctfirstname'  => $nombreCliente,
         'leadid'       => $lead['Folio'],
         'total'  => $lead['Total'],
         'apayment'  => $lead['DepositAmount'],
@@ -148,7 +164,7 @@ $lang ='es';
 
     $resultado = enviarEmail(
         $datosConexion, 
-        $customer['Correo'], 
+        $correoCliente, 
         $header,
         $cuerpo,
         $archivos,

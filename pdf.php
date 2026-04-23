@@ -103,12 +103,18 @@ $data = json_encode([
             $stmt->execute();
             $lead = $stmt->fetch(PDO::FETCH_ASSOC);
 
+            $query = "select * FROM organizations WHERE Id = ".$lead['Organization'];
+            $stmt = $db->prepare($query);
+            $stmt->execute();
+            $organization = $stmt->fetch(PDO::FETCH_ASSOC);            
+
             //RECUPERAR Customer
             $sql = "SELECT * FROM customers WHERE Id = :id";
             $stmt = $db->prepare($sql);
             $stmt->bindValue(":id", $lead['Customer']); 
             $stmt->execute();
             $customer = $stmt->fetch(PDO::FETCH_ASSOC);
+
 
             //RECUPERAR venue
             $sql = "SELECT * FROM venues WHERE Id = :id";
@@ -123,11 +129,20 @@ $data = json_encode([
             $header .= $Template['Nombre']."\r\n";            
                         // Incluimos el teléfono en el cuerpo del correo
             $cuerpo = "<html>".$Template['Template']."</html>";
+            if ($customer){
+                $nombreCliente = $customer['Nombres'];
+                $correoCliente =$customer['Correo'];
+            }
+            else{
+                $nombreCliente = $organization['Nombre'];
+                $correoCliente =$organization['Correo'];
+
+            }
 
             $valores = [
                 'company_logo'      => $account['Logo'],
                 'company_name' => $account['NombreCompania'],
-                'ctfirstname'  => $customer['Nombres'],
+                'ctfirstname'  => $nombreCliente,
                 'leadid'       => $lead['Folio'],
                 'total'  => $lead['Total'],
                 'apayment'  => $lead['DepositAmount'],
@@ -144,7 +159,7 @@ $data = json_encode([
 
             $cuerpo = generarHtmlCotizacion($cuerpo, $valores);
 
-            $mail['correo'] = $customer['Correo'];
+            $mail['correo'] = $correoCliente;
             $mail['archivo_base64'] = '';
             $mail['nombre_archivo'] = '';
             $mail['Subject'] = $header;

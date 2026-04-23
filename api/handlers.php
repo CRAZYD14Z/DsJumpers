@@ -950,6 +950,76 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
     }
 }
 
+function process_pay($table_name,$db, $method, $id, $data) {
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+            $amount     = $_POST['monto']?? 0;
+            $idLead     = $_POST['idLead'] ?? 0;
+            $Tipo     = $_POST['tipo']  ?? 0;
+            $Usuario     = $_POST['usuario']  ?? 0;
+            $Currency   = 'MXN';
+            try {
+
+
+                $query = "SELECT IdBranch FROM lead WHERE Id = ?";
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(1, $idLead);
+                $stmt->execute();
+                $lead = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                $Folio = 0;    
+                $stmt = $db->prepare("SELECT MAX(Folio) as Folio FROM folios WHERE IdBranch = ? AND Type = 'Pay'");
+                $stmt->bindParam(1, $lead['IdBranch']);  // Usa bindParam también aquí
+                $stmt->execute();
+                $Payments = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($Payments){
+                    $Folio = $Payments['Folio'];
+                }
+                $Folio += 1;
+
+                if ($Tipo == 'E')
+                    $Tipo ='Cash';
+                else
+                    $Tipo ='Transfer';
+
+                $sqlPay = "INSERT INTO payments (IdLead,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus,Usuario) 
+                                        VALUES  (?,?,now(),?,?,?,?,'A',?)";
+                $stmtPay = $db->prepare($sqlPay);
+                $stmtPay->execute([$idLead,$Folio,$Tipo,$amount,$Currency,'',$Usuario]);    
+
+                $stmt = $db->prepare(" UPDATE folios SET Folio = ? WHERE IdBranch = ? AND Type = 'Pay'");
+                $stmt->execute([$Folio,$lead['IdBranch']]);
+
+                $stmt = $db->prepare(" UPDATE lead SET Balance = Balance - ? WHERE Id = ? ");
+                $stmt->execute([$amount,$idLead]);                
+
+                http_response_code(200);
+                    echo json_encode([
+                        'success' => true,
+                        'status' => 'success',
+                        'message' => '¡Pago realizado con éxito!'
+                    ]);    
+            } catch (\Exception $e) {
+                // Errores generales del sistema
+                http_response_code(500);
+                echo json_encode([
+                    'success' => false,
+                    'status' => 'error',
+                    'message' => $e->getMessage()
+                ]);
+            }
+
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+}
+
 function get_json_price($table_name,$db, $method, $id, $data) {
     global $IDS;
     switch ($method) {
@@ -1533,7 +1603,7 @@ function get_products_categories($table_name,$db, $method, $id, $data){
             $query = "
                 SELECT IdProduct, SUM(Quantity) as Quantity 
                 FROM v_leads_detail 
-                WHERE Status = 'quoted' 
+                WHERE Status = 'confirmed' 
                 AND (StartDateTime < :DateE AND EndDateTime > :DateS)
                 AND Unlimited = 0
                 GROUP BY IdProduct
@@ -2400,7 +2470,7 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
             OkT=?, WA=?, AE=?, ME=?, CustomerNote=?, Venue=?, EventName=?, Surface=?, 
             Delivery=?, Note1=?, Note2=?, ItemTotals=?, ChkDstC=?, DistanceCharges=?, ChkStCs=?, 
             StafCost=?, ChkDsc=?, Discount=?, SubTotal=?, TaxId=?, TaxPc=?, 
-            TaxAmount=?, Total=?, Deposit=?,DepositAmount=?, Balance=?, Status=?,FechaCambio=now()
+            TaxAmount=?, Total=?, Deposit=?,DepositAmount=?, Balance=?, Status=?,FechaCambio=now(),TotalBT=?
             WHERE Id = ?";
         
         $stmtLead = $db->prepare($sqlLead);
@@ -2409,7 +2479,7 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
             $h->OkT, $h->WA, $h->AE, $h->ME, $h->CusNt, $h->Venue, $h->EventName, $h->Surface,
             $h->Delivety, $h->Nt1, $h->Nt2, $h->Item_Totals, $h->ChkDstC, $h->DstC, $h->ChkStCs, 
             $h->StCs, $h->ChkDsc, $h->Dsc, $h->SubT, $h->TaxId, $h->TaxPc, 
-            $h->TaxAm, $h->Total, $h->Depo,$h->DepoA, $h->BalDue, $Status, $idLead
+            $h->TaxAm, $h->Total, $h->Depo,$h->DepoA, $h->BalDue, $Status,$h->Total, $idLead
         ]);
 
         // Limpiar detalles anteriores para evitar duplicados
@@ -2590,10 +2660,10 @@ function pending_payments($table_name,$db, $method, $id, $data){
                     END AS NombreMostrar
                     FROM v_leads 
                     WHERE (NombreOrganizacion LIKE :s OR NombreCliente LIKE :s OR ApellidosCliente LIKE :s)
-                    AND Status = 'Pending'
+                    AND Balance > 0
                     ORDER BY StartDateTime DESC 
                     LIMIT :limit OFFSET :offset";
-
+//                    AND Status = 'Pending'
             $stmt = $db->prepare($sql);
             $stmt->bindValue(':s', "%$search%", PDO::PARAM_STR);
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
@@ -3225,6 +3295,99 @@ function process_operation($table_name,$db, $method, $id, $data){
                 $stmtI->bindValue(":lead", $Lead);
                 $stmtI->execute();
             }            
+
+            http_response_code(200);
+            echo json_encode(array("message" => "Registro actualizado."));
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+}
+
+function payment_report($table_name,$db, $method, $id, $data){
+
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+
+$fechaInicio = $_POST['fecha_inicio'] ?? date('Y-m-d');
+$fechaFin = $_POST['fecha_fin'] ?? date('Y-m-d');
+
+$usuario = $_POST['usuario'] ?? '';
+$sql = "SELECT payments.Folio, payments.DateTime as FechadePago, payments.Platform, 
+               payments.Amount, payments.Currency, payments.TransactionId, payments.Estatus,
+        CASE WHEN v_leads.NombreOrganizacion IS NULL THEN CONCAT(v_leads.NombreCliente, ' ', v_leads.ApellidosCliente) 
+             ELSE v_leads.NombreOrganizacion END AS Cliente,
+        CASE WHEN usuarios.nombre IS NULL THEN 'Link Pago' ELSE usuarios.nombre END AS Usuario
+        FROM payments
+        LEFT JOIN usuarios ON payments.Usuario = usuarios.usuario
+        INNER JOIN v_leads ON payments.IdLead = v_leads.Id
+        WHERE DATE(payments.DateTime) BETWEEN :inicio AND :fin";
+
+if ($usuario !== '') {
+    $sql .= " AND usuarios.nombre = :usuario";
+}
+
+$stmt = $db->prepare($sql);
+
+// Bind de parámetros con PDO
+$stmt->bindValue(':inicio', $fechaInicio);
+$stmt->bindValue(':fin', $fechaFin);
+
+if ($usuario !== '') {
+    $stmt->bindValue(':usuario', $usuario);
+}
+
+$stmt->execute();
+$data = $stmt->fetchAll(PDO::FETCH_ASSOC);    
+
+
+            http_response_code(200);
+            echo json_encode(array("data" => $data));
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+}
+
+function reassign_route($table_name,$db, $method, $id, $data){
+
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+                $idRoute     = $_POST['idRoute'];
+                $idOperation     = $_POST['idOperation'];
+
+                $queryI ="UPDATE route_stops SET id_route = :idRoute WHERE id_operation = :idOperation";
+                $stmtI = $db->prepare($queryI);
+                $stmtI->bindValue(":idRoute", $idRoute);
+                $stmtI->bindValue(":idOperation", $idOperation);
+                $stmtI->execute();
+
+                $queryI ="SELECT id_vehicle, id_driver FROM daily_route WHERE id_route = :idRoute";                
+                $stmtI = $db->prepare($queryI);
+                $stmtI->bindValue(":idRoute", $idRoute);
+                $stmtI->execute();
+                $resultado = $stmtI->fetch(PDO::FETCH_ASSOC);       
+
+                $idDriver = $resultado['id_driver'];
+                $idVehicle = $resultado['id_vehicle'];
+
+                $queryI ="UPDATE operation_master SET id_vehicle = :idVehicle, id_driver = :idDriver  WHERE id_operation = :idOperation";
+                $stmtI = $db->prepare($queryI);
+                //$stmtI->bindValue(":idRoute", $idRoute);
+                $stmtI->bindValue(":idVehicle", $idVehicle);
+                $stmtI->bindValue(":idDriver", $idDriver);
+                $stmtI->bindValue(":idOperation", $idOperation);
+                $stmtI->execute();                
 
             http_response_code(200);
             echo json_encode(array("message" => "Registro actualizado."));

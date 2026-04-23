@@ -296,7 +296,16 @@ include_once 'head.php';
                     <!-- Monto a pagar -->
                     <div class="text-center mb-4">
                         <p class="text-muted"><?php echo Trd(32)?></p>
-                        <h2 class="fw-bold text-dark" id="montoEfectivoModal">$0.00</h2>
+                        <!-- Monto a pagar -->
+                        <!--<h2 class="fw-bold text-dark" id="montoEfectivoModal">$0.00</h2>-->
+<input type="number" 
+       id="montoEfectivoModal" 
+       class="monto-input" 
+       step="any" 
+       min="0" 
+       max="<?php echo $saldoPendiente; ?>" 
+       placeholder="0.00" 
+       style="text-align: right; font-size: 1.5rem; padding: 0.75rem; width: 100%; border-radius: 8px; border: 1px solid #ccc;">
                     </div>
 
                     <!-- Opciones de pago -->
@@ -308,7 +317,7 @@ include_once 'head.php';
                                     <h5 class="card-title mt-2"><?php echo Trd(33)?></h5>
                                     <p class="card-text small text-muted"><?php echo Trd(34)?></p>
 
-                                    <button type="button" class="btn btn-outline-secondary flex-fill" id="btnConfirmarPago" >
+                                    <button type="button" class="btn btn-outline-secondary flex-fill" id="btnConfirmarPago" onclick="ProcesarP('E')" >
                                         <i class="bi bi-check-circle"></i> <?php echo Trd(39)?>
                                     </button>                                    
                                 </div>
@@ -357,6 +366,11 @@ include_once 'head.php';
                                             <input type="text" id="documentoInfo" class="form-control form-control-sm" readonly value="12345678-9">
                                         </div>
                                     </div>
+
+                                    <button type="button" class="btn btn-outline-secondary flex-fill" id="btnConfirmarPagoT" onclick="ProcesarP('T')" >
+                                        <i class="bi bi-check-circle"></i> Procesar como transferencia
+                                    </button>                                        
+
                                 </div>
                             </div>
                         </div>
@@ -393,8 +407,83 @@ include_once 'head.php';
         <i class="fas fa-times-circle me-1"></i> Cerrar Ventana y Volver
     </button>
 </div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div id="liveToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header bg-primary text-white">
+      <strong class="me-auto"><i class="fas fa-bell me-2"></i> Notificación</strong>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body" id="toast-message">
+      </div>
+  </div>
+</div>
+
+
 <script>
     
+
+    const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
+    const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
+    const TOKEN = localStorage.getItem('apiToken'); 
+
+    function attemptLogin(username, password) {
+        $.ajax({
+            url: LOGIN_URL,
+            type: 'POST',
+            contentType: 'application/json', // Indica que enviamos JSON
+            data: JSON.stringify({
+                username: username,
+                password: password
+            }),
+            success: function(response) {
+                // Éxito: Guardar el token para futuras llamadas
+                const jwtToken = response.jwt;
+                //console.log('Login exitoso. Token:', jwtToken);
+                
+                // *** Almacena el token de forma segura (ej: localStorage) ***
+                localStorage.setItem('apiToken', jwtToken); 
+                
+            },
+            error: function(xhr, status, error) {
+                // Error: Credenciales inválidas (401) o error del servidor
+                const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'Error desconocido.';
+                //console.error('Error de login:', errorMessage);
+                //alert('Fallo el inicio de sesión: ' + errorMessage);
+            }
+        });
+    }    
+
+
+    $(document).ready(function() {
+        attemptLogin('admin', '1234'); 
+        if (TOKEN) {
+            //getRecordData(1); 
+        } else {
+            console.warn('No se encontró el token. Necesita iniciar sesión primero.');
+        }
+    });
+
+
+    $('.lang-option').on('click', function(e) {
+        e.preventDefault();
+
+        $.ajax({
+            url: 'cambiar_idioma.php',
+            type: 'POST',
+            data: { lang: $(this).data('lang') },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    // Recargamos para que el servidor lea la nueva sesión de idioma
+                    location.reload(); 
+                }
+            }
+        });
+        
+    });
+
+
 $('#btnPagar').on('click', function() {
     const idLead = <?php echo $lead['Id']; ?>;
     const saldo = <?php echo $saldoPendiente; ?>;
@@ -412,7 +501,7 @@ $('#btnPagar').on('click', function() {
     $.ajax({
         url: '<?php echo $URLGenerate_Link;?>',
         method: 'POST',
-        data: { idLead: idLead, monto: saldo },
+        data: { idLead: idLead, monto: saldo, user: 'admin' },
         dataType: 'json',
         success: function(response) {
             if(response.success) {
@@ -465,9 +554,9 @@ function mostrarModalPagoEfectivo(monto, datosBancarios = null) {
     // Simular carga de datos
     setTimeout(() => {
         // Actualizar monto
-        document.getElementById('montoEfectivoModal').textContent = 
-            new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(monto);
-        
+        //document.getElementById('montoEfectivoModal').textContent = 
+        //    new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(monto);
+        document.getElementById('montoEfectivoModal').value =  monto;
         // Si se proporcionan datos bancarios, actualizarlos
         if (datosBancarios) {
             document.getElementById('bancoInfo').value = datosBancarios.banco || 'Banco Ejemplo';
@@ -500,23 +589,29 @@ document.getElementById('btnCopiarCuenta').addEventListener('click', function() 
 
 
 
-// Función para confirmar pago
-document.getElementById('btnConfirmarPago').addEventListener('click', function() {
-    // Aquí puedes agregar la lógica cuando el usuario confirma que realizará el pago
-    //console.log('Usuario confirmó que realizará el pago');
-    // Puedes enviar un email, guardar en BD, etc.
+function ProcesarP(Tipo){
 
-    document.getElementById('loadingPagoEfectivo').style.display = 'block';
-    document.getElementById('pagoEfectivoContent').style.display = 'none';    
+
 
     const idLead = <?php echo $lead['Id']; ?>;
-    const saldo = <?php echo $saldoPendiente; ?>;
+    const saldop = <?php echo $saldoPendiente; ?>;
+    const saldo = document.getElementById('montoEfectivoModal').value;
+
+    if (saldo > saldop ){
+        mostrarToast('Monto mayor al saldo!', true);
+        //alert('Monto mayor al saldo!');
+        return;
+    }
+
+    document.getElementById('loadingPagoEfectivo').style.display = 'block';
+    document.getElementById('pagoEfectivoContent').style.display = 'none';        
 
     // Petición AJAX
     $.ajax({
-        url: 'cash.php',
+        url: API_BASE_URL + 'api/process_pay/',
         method: 'POST',
-        data: { idLead: idLead, monto: saldo },
+        data: { idLead: idLead, monto: saldo, tipo:Tipo, usuario:'admin'},
+        headers: { 'Authorization': 'Bearer ' + TOKEN },
         dataType: 'json',
         success: function(response) {
             if(response.success) {
@@ -539,9 +634,16 @@ document.getElementById('btnConfirmarPago').addEventListener('click', function()
             document.getElementById('loadingPagoEfectivo').style.display = 'none';
             document.getElementById('pagoEfectivoContent').style.display = 'block';            
         }
-    });    
+    });   
 
-});
+}
+
+// Función para confirmar pago
+//document.getElementById('btnConfirmarPago').addEventListener('click', function() {
+    // Aquí puedes agregar la lógica cuando el usuario confirma que realizará el pago
+    //console.log('Usuario confirmó que realizará el pago');
+    // Puedes enviar un email, guardar en BD, etc.
+//});
 
 document.addEventListener("DOMContentLoaded", function() {
     // Verificamos si la pestaña tiene un 'opener' (quien la abrió)
@@ -562,6 +664,28 @@ function cerrarPestana() {
     // Cerrar la pestaña actual
     window.close();
 }
+
+
+function mostrarToast(mensaje, esError = false) {
+    const toastElement = document.getElementById('liveToast');
+    const toastMessage = document.getElementById('toast-message');
+    const toastHeader = toastElement.querySelector('.toast-header');
+
+    // Cambiar color si es error o éxito
+    if (esError) {
+        toastHeader.classList.replace('bg-primary', 'bg-danger');
+    } else {
+        toastHeader.classList.replace('bg-danger', 'bg-primary');
+    }
+
+    toastMessage.textContent = mensaje;
+
+    // Inicializar y mostrar con Bootstrap 5
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
+}
+
+
 
 </script>
 </body>

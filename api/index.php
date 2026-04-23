@@ -122,6 +122,16 @@ if (isset($_SERVER['HTTP_ID5']))
 //die();
 switch ($resource) {
 
+    case 'payment_report':
+        payment_report($resource,$db, $method, $id, $data);
+        break;
+
+    case 'process_pay':
+        process_pay($resource,$db, $method, $id, $data);
+        break;
+    case 'reassign_route';
+        reassign_route($resource,$db, $method, $id, $data);
+    break;      
     case 'process_operation';
         process_operation($resource,$db, $method, $id, $data);
     break;  

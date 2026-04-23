@@ -51,7 +51,7 @@ include_once 'head.php';
 ?>
 <style>
         body { background-color: #f4f7f6; }
-        .sticky-search { position: sticky; top: 0; z-index: 1020; background: rgba(244, 247, 246, 0.95); padding: 20px 0; }
+
         .table-container { background: white; border-radius: 12px; overflow: hidden; }
         /* Bordes laterales de colores según status */
         .status-parcial { background: #6c757d !important; }        
@@ -65,24 +65,22 @@ include_once 'head.php';
             background-color: rgba(13, 110, 253, 0.05) !important; /* Un azul muy tenue */
             transition: background-color 0.2s ease;
         }        
+        /* Efecto de foco en el select */
+        .form-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+        }
 
+        /* Redondear bordes del modal */
+        .modal-content {
+            border-radius: 15px;
+            overflow: hidden;
+        }
 
-/* Efecto de foco en el select */
-.form-select:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
-}
-
-/* Redondear bordes del modal */
-.modal-content {
-    border-radius: 15px;
-    overflow: hidden;
-}
-
-/* Estilo para el encabezado */
-.modal-header {
-    border-bottom: 1px solid #f0f0f0;
-}        
+        /* Estilo para el encabezado */
+        .modal-header {
+            border-bottom: 1px solid #f0f0f0;
+        }        
 
     </style>
 </head>
@@ -91,25 +89,18 @@ include_once 'head.php';
 <?php
     include_once 'nav.php';
 ?>
+
 <br>
 <br>
-<div class="container pb-5">
-<!-- 
-    <div class="sticky-search">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card shadow-sm">
-                    <div class="card-body p-2">
-                        <div class="input-group">
-                            <span class="input-group-text border-0 bg-transparent"><i class="bi bi-search text-primary"></i></span>
-                            <input type="text" id="txtSearch" class="form-control border-0 shadow-none" placeholder="<?php echo Trd(1)?>">
-                        </div>
-                    </div>
-                </div>
-            </div>
+
+<div class="container my-5">
+    <div class="card shadow">
+        <div class="card-header text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0 text-black">Reporte de Operaciones: Lavado, Limpieza y Reparación</h4>
         </div>
-    </div>
--->
+    </div>     
+       
+<div class="container pb-5">
     <div class="table-container shadow-sm border">
         <div class="table-responsive">
             <table class="table table-hover align-middle m-0">
@@ -132,6 +123,7 @@ include_once 'head.php';
         <div class="spinner-grow text-primary" role="status"></div>
         <p class="text-muted small"><?php echo Trd(7)?></p>
     </div>
+</div>
 </div>
 
 <div class="modal fade" id="modalOperadores" tabindex="-1" aria-hidden="true">
@@ -301,12 +293,15 @@ let asignaciones = [ <?php echo $asignaciones;?>];
 let rutas = [];
 
 
-function abrirAsignacion(event,date,route){
+function abrirAsignacion(event,date,route,Id_operation){
+
+    date = date.substring(0, 10); 
+
     event.stopPropagation();
     //alert(date)
     //alert(route)
     //alert(JSON.stringify(rutas))
-
+    //alert(Id_operation)
     const $select = $('#selectRoute');    
 
     $select.empty().append('<option value="" selected disabled>Seleccione una ruta...</option>');
@@ -314,7 +309,9 @@ function abrirAsignacion(event,date,route){
         rutas.forEach(op => {
             if (op.NombreChofer == undefined )
                 op.NombreChofer = 'S/A';
+            //alert(op.Fecha +" "+  date)
             if (op.Fecha == date){
+                //alert(op.Ruta +" "+  route)
                 if (op.Ruta != route)
                     $select.append(`<option value="${op.Ruta}"> ${op.nombreVehiculo}  ${op.placas}  - ${op.NombreChofer} </option>`);
             }
@@ -328,8 +325,48 @@ function abrirAsignacion(event,date,route){
     else{
         $('#btnGuardarAsignacionRuta').prop('disabled', false);
     }
+
+    $('#btnGuardarAsignacionRuta').off('click').on('click', function() {
+        const idRoute = parseInt($select.val());
+        if (idRoute) {
+            reasignarRuta(Id_operation, date, idRoute);
+            // Efecto visual antes de cerrar
+            $(this).html('<span class="spinner-border spinner-border-sm"></span> Guardando...');
+            setTimeout(() => {
+                $('#modalOperadores').modal('hide');
+                $(this).html('<i class="bi bi-check2-circle me-1"></i>Confirmar');
+            }, 600);
+        }
+    });    
     $('#modalRutas').modal('show');
 }
+
+
+function reasignarRuta(Id_operation, date, idRoute) {
+
+    let formData = new FormData();
+    formData.append('idOperation', Id_operation);
+    formData.append('date', date);
+    formData.append('idRoute', idRoute);
+    $.ajax({
+        url: API_BASE_URL + 'api/reassign_route/',
+        method: 'POST',
+        data: formData,
+        headers: { 'Authorization': 'Bearer ' + TOKEN },            
+        processData: false, // Vital para FormData
+        contentType: false, // Vital para FormData
+        success: function(response) {
+            location.reload();
+        },
+        error: function() {
+        }
+    });     
+
+    //console.log("Asignación exitosa:", asignaciones);
+    // Aquí puedes llamar a una función para refrescar tu tabla o vista
+
+}
+
 
 function abrirModalAsignacion(IdVehiculo, fecha) {
     const ocupados = asignaciones.filter(a => a.Fecha === fecha).map(a => a.IdOperador);
@@ -489,14 +526,14 @@ function renderTable(data) {
     
     // 1. Agrupar los datos
     $.each(data, function(i, item) {
-        const grupoKey = `${item.id_vehicle}_${item.vehiculo}_${item.Organization}_${item.placas}_${item.StartDateTime}`;
+        const grupoKey = `${item.id_vehicle}_${item.vehiculo}_${item.placas}_${item.StartDateTime}`;
         
         if (!grupos[grupoKey]) {
             grupos[grupoKey] = {
                 id_vehicle: item.id_vehicle,
                 nombreVehiculo: item.vehiculo,
                 placas: item.placas,
-                organizacion: item.Organization,
+                
                 id_driver: item.id_driver,
                 NombresChofer: item.NombresChofer,
                 ApellidosChofer: item.ApellidosChofer,
@@ -623,7 +660,7 @@ rows += `
                 <button type="button" 
                         class="btn btn-sm btn-outline-primary ms-2"
                         
-                        onclick="abrirAsignacion(event,'${item.StartDateTime}','${item.id_route}')">
+                        onclick="abrirAsignacion(event,'${item.StartDateTime}','${item.id_route}','${item.Id_operation}')">
                         <i class="fa-solid fa-up-down"></i> Reasignar
                 </button>
 
@@ -684,9 +721,9 @@ function abrirRutaEnMaps(event, destLat, destLng) {
 
     // Evento Scroll (Infinite Scroll)
     $(window).on('scroll', function() {
-        if ($(window).scrollTop() + $(window).height() >= $(document).height() - 300) {
-            fetchLeads();
-        }
+//        if ($(window).scrollTop() + $(window).height() >= $(document).height() - 300) {
+//            fetchLeads();
+//        }
     });
 
     // Evento de Búsqueda (Debounce para no saturar el servidor)

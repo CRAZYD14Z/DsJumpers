@@ -1,7 +1,7 @@
 <?php 
     ob_start();
     session_start(); 
-    //include_once 'config/config.php';     
+    include_once 'config/config.php';     
     include_once 'config/database.php'; 
     require 'idioma.php'; 
 ?>

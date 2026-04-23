@@ -79,11 +79,12 @@ include_once 'head.php';
                         <th><?php echo Trd(3)?></th>
                         <th><?php echo Trd(4)?></th>
                         <th><?php echo Trd(5)?></th>
+                        <th class="text-end pe-4"></th>
                         <th class="text-end pe-4"><?php echo Trd(6)?></th>
                     </tr>
                 </thead>
                 <tbody id="leadsData">
-                    </tbody>
+                </tbody>
             </table>
         </div>
     </div>
@@ -212,7 +213,9 @@ function renderTable(data) {
                     <div class="small text-secondary">${item.Ciudad}, ${item.Estado}</div>
                 </td>
                 <td><span class="badge rounded-pill ${badgeClass}">${item.Status}</span></td>
+                <td class="text-end pe-4 fw-bold text-dark">$${parseFloat(item.Balance).toFixed(2)}</td>
                 <td class="text-end pe-4 fw-bold text-dark">$${parseFloat(item.Total).toFixed(2)}</td>
+
             </tr>
         `;
     });

@@ -7,18 +7,15 @@ include_once 'config/config.php';
 include_once 'config/database.php'; 
 $database = new Database();
 $db = $database->getConnection();
-
 include_once 'head.php';
 ?>
-
-
     <style>
+        .table-container { background: white; border-radius: 12px; overflow: hidden; }
         .img-report { width: 50px; height: 50px; object-fit: cover; border-radius: 5px; }
         .row-child { background-color: #f8f9fa; font-size: 0.9em; }
         .indent { padding-left: 30px !important; }
         .badge-stage { font-size: 0.75em; }
     </style>
-
 <?php
 
 $operations = $db->query("SELECT * FROM v_operations WHERE `status` = 'ACONDICIONAMIENTO' ORDER BY id_operation")->fetchAll();
@@ -67,78 +64,87 @@ foreach ($operations as $op) {
     include_once 'nav.php';
 ?>
 
-<body class="bg-light">
+<body>
 
 <div class="container my-5">
     <div class="card shadow">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0">Reporte de Operaciones: Lavado, Limpieza y Reparación</h4>
+        <div class="card-header text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0 text-black">Reporte de Operaciones: Lavado, Limpieza y Reparación</h4>
             <button id="btnPDF" class="btn btn-danger">
                 <i class="bi bi-file-pdf"></i> Exportar a PDF
             </button>
         </div>
-<div class="card shadow-sm">
-    <div class="card-body p-0">
-        <table class="table table-hover align-middle mb-0" id="reportTable">
-            <thead class="table-dark">
-                <tr>
-                    <th style="width: 80px;"></th>
-                    <th>Producto</th>
-                    <th class="text-center">Etapa</th>
-                    
-                    <th class="text-center">A procesar</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($operaciones as $idOp => $datos): ?>
-                    <tr class="table-light">
-                        <td colspan="4" class="py-3 border-start border-primary ">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <span class="text-muted small d-block">Nº OPERACIÓN</span>
-                                    <strong class="h5">#<?= $datos['folio'] ?></strong>
-                                </div>
-                                <div class="col-md-8">
-                                    <span class="text-muted small d-block">CLIENTE</span>
-                                    <strong class="h5"><?= htmlspecialchars($datos['cliente']) ?></strong>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-
-                    <?php foreach ($datos['items'] as $item): ?>
-                        <tr>
-                            <td class="text-center">
-
-
-
-                                <?php if($item['image']): ?>
-                                    <img src="<?= $item['image'] ?>" data-img-src="<?= $item['image'] ?>" class="rounded shadow-sm" style="width: 50px; height: 50px; object-fit: cover;">
-                                <?php else: ?>
-                                    <div class="bg-light text-muted d-flex align-items-center justify-content-center rounded" style="width: 50px; height: 50px; font-size: 10px;">SIN FOTO</div>
-                                <?php endif; ?>
-                            </td>
-                            <td>
-                                <div class="fw-bold"><?= $item['name'] ?></div>
-                                <span class="badge bg-light text-muted border" style="font-size: 0.7rem;"><?= $item['tipo'] ?></span>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge <?= getStageColor($item['stage']) ?> px-3 py-2">
-                                    <?= $item['stage'] ?>
-                                </span>
-                            </td>
-
-                            <td class="text-center">
-                                <span class="h6 mb-0"><?= $item['assorted'] ?></span>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
     </div>
-</div>
-</div>
+
+        <div class="container pb-5">
+            <div class="table-container shadow-sm border">
+                <div class="table-responsive">
+
+                
+                    <table class="table table-hover align-middle m-0" id="reportTable">
+
+                        <thead class=" text-black">
+                            <tr>
+                                <th style="width: 80px;"></th>
+                                <th>Producto</th>
+                                <th class="text-center">Etapa</th>
+                                
+                                <th class="text-center">A procesar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($operaciones as $idOp => $datos): ?>
+                                <tr class="table-light">
+                                    <td colspan="4" class="py-3 border-start border-primary ">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <span class="text-muted small d-block">Nº OPERACIÓN</span>
+                                                <strong class="h5">#<?= $datos['folio'] ?></strong>
+                                            </div>
+                                            <div class="col-md-8">
+                                                <span class="text-muted small d-block">CLIENTE</span>
+                                                <strong class="h5"><?= htmlspecialchars($datos['cliente']) ?></strong>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <?php foreach ($datos['items'] as $item): ?>
+                                    <tr>
+                                        <td class="text-center">
+
+
+
+                                            <?php if($item['image']): ?>
+                                                <img src="<?= $item['image'] ?>" data-img-src="<?= $item['image'] ?>" class="rounded shadow-sm" style="width: 50px; height: 50px; object-fit: cover;">
+                                            <?php else: ?>
+                                                <div class="bg-light text-muted d-flex align-items-center justify-content-center rounded" style="width: 50px; height: 50px; font-size: 10px;">SIN FOTO</div>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <div class="fw-bold"><?= $item['name'] ?></div>
+                                            <span class="badge bg-light text-muted border" style="font-size: 0.7rem;"><?= $item['tipo'] ?></span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge <?= getStageColor($item['stage']) ?> px-3 py-2">
+                                                <?= $item['stage'] ?>
+                                            </span>
+                                        </td>
+
+                                        <td class="text-center">
+                                            <span class="h6 mb-0"><?= $item['assorted'] ?></span>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>                
+
+
+                
+            </div>
+        </div>
+    </div>
 </div>
 
 

@@ -44,6 +44,25 @@ include_once 'head.php';
             .signature-box { width: 100% !important; margin-bottom: 20px; }
             .total-table { width: 100% !important; }
         }
+
+
+#watermark {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    font-size: 10vw; /* Ajusta el tamaño según necesites */
+    color: rgba(200, 200, 200, 0.3); /* Transparente para no tapar el contenido */
+    pointer-events: none; /* Permite hacer clic a través de la marca */
+    z-index: 9999;
+    white-space: nowrap;
+    user-select: none;
+    font-weight: bold;
+    text-transform: uppercase;
+}        
+        
+
+
     </style>    
 
 </head>
@@ -91,6 +110,12 @@ include_once 'head.php';
         require 'lead_customer.php';
         require 'lead_venues.php';
         require 'bottom.php';
+
+        
+            if ($lead['Status'] == 'confirmed')
+                echo "<div id='watermark'>CONFIRMADO</div>";
+        
+
     ?>
 
 
@@ -757,6 +782,10 @@ include_once 'head.php';
                         $('#Organization').append(newOption).trigger('change');                    
                     ";
                 }            
+
+                if ($lead['Status'] == 'confirmed'){
+                    
+                }
 
                 if ($lead['Customer']>0){
 
@@ -2518,6 +2547,10 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
 //AUTO GUARDADO GRAL
 
     function autosave_lead(){
+        <?php 
+            if ($lead['Status'] == 'confirmed')
+                echo "return;";
+        ?>
 
         const headerData = {
             IdLead : $('#IdLead').val(),
@@ -2777,6 +2810,25 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
             }
         });
     }
+
+
+<?php 
+if ($lead['Status'] == 'confirmed'){
+
+echo "
+$(window).on('scroll', function() {
+    var scrollTop = $(this).scrollTop();
+    // Ajustamos la posición vertical basada en el scroll
+    $('#watermark').css({
+        'margin-top': -(scrollTop * 0.2) + 'px' 
+    });
+});
+";
+
+}
+
+
+?>    
 
     </script>
 

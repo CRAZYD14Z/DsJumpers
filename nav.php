@@ -41,6 +41,7 @@
                 <li><a class="dropdown-item" href="operation.php">Operation</a></li>  
                 <li><a class="dropdown-item" href="acondicionamiento.php">Acondicionamiento</a></l
                 <li><a class="dropdown-item" href="monitor.php">Monitor</a></li>  
+                <li><a class="dropdown-item" href="payment_report.php">Reporte de Pagos</a></li>  
 
                 <li><a class="dropdown-item" href="logout.php">Sign Out</a></li>
                 <?php } else{?>
@@ -69,6 +70,7 @@
                 <li><a class="dropdown-item" href="operation.php">Operación</a></li> 
                 <li><a class="dropdown-item" href="acondicionamiento.php">Acondicionamiento</a></l                               
                 <li><a class="dropdown-item" href="monitor.php">Monitor</a></li>  
+                <li><a class="dropdown-item" href="payment_report.php">Reporte de Pagos</a></li>                  
                 <li><a class="dropdown-item" href="logout.php">Salir</a></li>                
                 <?php }?>
             </ul>

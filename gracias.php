@@ -27,7 +27,7 @@ $mensaje = "";
 try {
     // Intentamos consultar el checkout
     $url = "https://sandbox-api.openpay.mx/v1/$merchantId/checkouts/$idCheckout";
-    
+    //echo $url;
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -40,8 +40,9 @@ try {
 
     // SI EL CHECKOUT DA 404, PERO TENEMOS UN ORDER_ID, BUSCAMOS POR TRANSACCION
     if ($httpCode == 404) {
-        $orderIdBusqueda = 'LIQ-' . $idLead;
+        $orderIdBusqueda = 'LIQ-' . $idLead.'-1';
         $urlBusqueda = "https://sandbox-api.openpay.mx/v1/$merchantId/charges?order_id=" . $orderIdBusqueda;
+        //echo $urlBusqueda;
         
         curl_setopt($ch, CURLOPT_URL, $urlBusqueda);
         $responseBusqueda = curl_exec($ch);
@@ -60,7 +61,6 @@ try {
         $transactionId = $checkout->charge->id ?? null;
         $montoPagado = $checkout->charge->amount ?? 0;
     }
-
 
     if ($statusPago == 'completed') {
 
@@ -84,10 +84,12 @@ try {
         if ($stmt->fetchColumn() > 0) {
             $pagoRegistrado = true;
             $mensaje = "Este pago ya había sido procesado anteriormente.";
+
+            
         } else {
             try {
-                $query = "INSERT INTO payments (IdLead, Folio, DateTime, Platform, Amount, Currency, TransactionId, Estatus) 
-                          VALUES (?, ?, NOW(), 'OPENPAY_LINK', ?, 'MXN', ?, 'A')";
+                $query = "INSERT INTO payments (IdLead, Folio, DateTime, Platform, Amount, Currency, TransactionId, Estatus,Usuario) 
+                          VALUES (?, ?, NOW(), 'OPENPAY_LINK', ?, 'MXN', ?, 'A', 'Link')";
                 $stmt = $db->prepare($query);
                 $stmt->execute([$idLead, $Folio, $montoPagado, $transactionId]);
 
@@ -101,6 +103,15 @@ try {
             } catch (Exception $e) {
                 $mensaje = "Error al guardar en BD: " . $e->getMessage();
             }
+
+            $stmt = $db->prepare("SELECT SUM(Amount) as Pagos FROM payments WHERE IdLead = ? AND Estatus = 'A'");
+            $stmt->execute([$idLead]);
+            $lead = $stmt->fetch();               
+
+            $query = "UPDATE lead SET Balance =  Total - ? WHERE   Id = ?";
+            $stmt = $db->prepare($query);
+            $stmt->execute([$lead['Pagos'], $idLead]);            
+
         }        
         $mensaje = "Pago verificado y registrado con éxito.";
     } else {
