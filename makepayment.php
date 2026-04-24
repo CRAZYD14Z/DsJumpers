@@ -103,12 +103,12 @@ else
         $stmt->bindParam(1, $cotizacion['IdQuote']);
         $stmt->execute();
         $lead = $stmt->fetch(PDO::FETCH_ASSOC);    
-
+/*
         $query = "select * FROM lead_detail WHERE IdLead = ".$lead['Id']." ORDER BY Id";
         $stmt = $db->prepare($query);
         $stmt->execute();
         $lead_details = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
+*/
         $query = "select * FROM customers WHERE Id = ".$lead['Customer'];
         $stmt = $db->prepare($query);
         $stmt->execute();

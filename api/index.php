@@ -6,8 +6,43 @@
 // Incluye el autoloader de Composer (para JWT)
 require '../vendor/autoload.php';
 
-// Incluye las configuraciones globales (SECRET_KEY, DB_USER, etc.)
-include_once '../config/config.php'; 
+//include_once '../config/config.php'; 
+
+require_once dirname(__DIR__) . '/vendor/autoload.php';
+$dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+$secret_key     = $_ENV['SECRET_KEY'];
+$url_base       = $_ENV['URL_BASE'];
+$google_api_key = $_ENV['GOOGLE_API_KEY'];
+
+$host       = $_ENV['host'];
+$db_name    = $_ENV['db_name'];
+$username   = $_ENV['username'];
+$password   = $_ENV['password'];
+$port       = $_ENV['port'];
+
+$CFendpoint     = $_ENV['endpoint'];
+$CFkey          = $_ENV['key'];
+$CFsecret       = $_ENV['secret'];
+$CFpublicurl    = $_ENV['publicurl'];
+
+
+define('SECRET_KEY', $secret_key);
+define('URL_BASE', $url_base);
+define('GOOGLE_API_KEY', $google_api_key);
+
+define('HOST', $host);
+define('USERNAME', $username);
+define('PASSWORD', $password);
+define('PORT',$port);
+
+define('CFENDPOINT',$CFendpoint);
+define('CFKEY',$CFkey);
+define('CFSECRET',$CFsecret);
+define('CFPUBLICURL',$CFpublicurl);
+
+date_default_timezone_set('America/Mexico_City');
 
 // Incluye la clase de conexión a la BD
 include_once '../config/database.php'; 
@@ -45,11 +80,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // 3. INICIALIZACIÓN Y LECTURA DE LA SOLICITUD
 // ----------------------------------------------------
 
-$database = new Database();
-$db = $database->getConnection();
+
 $method = $_SERVER['REQUEST_METHOD'];
-
-
 
 // Obtener y limpiar los segmentos de la URI (ej: /api/clientes/123 -> clientes, 123)
 $request_uri = $_SERVER['REQUEST_URI'];
@@ -70,7 +102,7 @@ else $data= '';
 
 // --- A. LOGIN (No requiere Token) ---
 if ($resource === 'login' && $method === 'POST') {
-    handle_login_request($db, $data); // Llama a la función de login en Handlers.php
+    handle_login_request( $data); // Llama a la función de login en Handlers.php
     exit();
 } 
 
@@ -90,8 +122,21 @@ if ($resource !== 'login') {
     try {
         // La validación de la firma y la expiración ocurren aquí
         $decoded_token = JWT::decode($jwt, new Key(SECRET_KEY, 'HS256'));
-        // El token es válido. La información del usuario está en $decoded_token
-        
+        // El token es válido. La información del usuario está en $decoded_token        
+        // Opcional: Puedes adjuntar los datos del usuario del token a la solicitud si lo necesitas
+        // $user_id = $decoded_token->data->id;
+        $db_name = $decoded_token->data->base_datos;
+        define('ID_CLIENTE', $decoded_token->data->id_cliente);
+
+        $now = time();
+        // Si faltan menos de 600 segundos (10 minutos) para que expire
+        if (($decoded_token->exp - $now) < 600) {
+            // Generar un nuevo token con el mismo payload
+            $nuevoToken = JWT::encode((array)$decoded, SECRET_KEY, 'HS256');
+            // Enviar el nuevo token en un header para que el cliente lo actualice
+            header("Authorization-Update: " . $nuevoToken);
+        }        
+
     } catch (ExpiredException $e) {
         http_response_code(401);
         echo json_encode(["message" => "Acceso denegado. Token expirado."]);
@@ -102,9 +147,14 @@ if ($resource !== 'login') {
         exit();
     }
     
-    // Opcional: Puedes adjuntar los datos del usuario del token a la solicitud si lo necesitas
-    // $user_id = $decoded_token->data->id;
+
+
 }
+
+define('DB_NAME', $db_name);  
+
+$database = new Database();
+$db = $database->getConnection();
 
 
 // --- C. ENRUTAMIENTO CRUD PROTEGIDO ---
@@ -358,5 +408,7 @@ switch ($resource) {
         break;
     
 }
+
+$db = null;
 
 ?>

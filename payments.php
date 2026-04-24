@@ -426,7 +426,7 @@ include_once 'head.php';
     const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
     const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
     const TOKEN = localStorage.getItem('apiToken'); 
-
+/*
     function attemptLogin(username, password) {
         $.ajax({
             url: LOGIN_URL,
@@ -453,8 +453,8 @@ include_once 'head.php';
             }
         });
     }    
-
-
+*/
+/*
     $(document).ready(function() {
         attemptLogin('admin', '1234'); 
         if (TOKEN) {
@@ -463,7 +463,7 @@ include_once 'head.php';
             console.warn('No se encontró el token. Necesita iniciar sesión primero.');
         }
     });
-
+*/
 
     $('.lang-option').on('click', function(e) {
         e.preventDefault();

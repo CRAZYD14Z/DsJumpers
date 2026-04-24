@@ -479,7 +479,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-main);
     const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
     const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
     const TOKEN = localStorage.getItem('apiToken'); 
-
+/*
     function attemptLogin(username, password) {
         $.ajax({
             url: LOGIN_URL,
@@ -506,16 +506,17 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-main);
             }
         });
     }    
-
+*/
 
     $(document).ready(function() {
+        /*
         attemptLogin('admin', '1234'); 
         if (TOKEN) {
             //getRecordData(1); 
         } else {
             console.warn('No se encontró el token. Necesita iniciar sesión primero.');
         }
-
+        */
         fetchData();        
 
 

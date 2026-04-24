@@ -810,7 +810,11 @@ session_start();
 <script>
     const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
     const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
-    const TOKEN = localStorage.getItem('apiToken'); 
+    const TOKEN = '<?= $_SESSION['apiToken']; ?>'; 
+    const ID_CLIENTE = '<?= $_SESSION['id_cliente']; ?>'; 
+    const CFPUBLICURL = '<?= CFPUBLICURL ?>'; 
+    
+    
     let IdSelected = '<?php echo $Id2;?>';
     let IdDelete = '';
 
@@ -1150,15 +1154,14 @@ session_start();
 
 
 $(document).ready(function() {
-
-    attemptLogin('admin', '1234'); 
-    
+/*
+    attemptLogin('admin', '1234');   
     if (TOKEN) {
         //getRecordData(1); 
     } else {
         console.warn('No se encontró el token. Necesita iniciar sesión primero.');
     }
-
+*/
     // Agregar Bootstrap JS si es necesario para funcionalidades adicionales
     //if (typeof bootstrap === 'undefined') {
     //    $.getScript("https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js");
@@ -1185,7 +1188,7 @@ $(document).ready(function() {
     ?>
 
 });
-
+/*
 function attemptLogin(username, password) {
     $.ajax({
         url: LOGIN_URL,
@@ -1212,7 +1215,7 @@ function attemptLogin(username, password) {
         }
     });
 }
-
+*/
 function listado(IdTabla) {
 
     var misHeaders = {
@@ -1514,6 +1517,8 @@ function deleteRecord(Id,IdTabla) {
                         html += `<td style="text-align: ${alineaciones[idx]}" >❌</td>`;
                 }
                 else if (Tipos[idx] == 'file'){
+                        //url = `${CFPUBLICURL}/${ID_CLIENTE}/${IdTabla}/thumbnails/${row[col] || ''}`;
+                        //html += `<td style="text-align: ${alineaciones[idx]}" ><a href="${url || ''}" target="_blank" rel="noopener noreferrer">${row[col] || ''}</a></td>`;                    
                         html += `<td style="text-align: ${alineaciones[idx]}" ><a href="ajax/tmp/${row[col] || ''}" target="_blank" rel="noopener noreferrer">${row[col] || ''}</a></td>`;
                 }                
                 else{
@@ -1911,7 +1916,9 @@ function deleteRecord(Id,IdTabla) {
         function CargaImagen(Id,div){
             //alert(Id)
             //alert("ajax/tmp/"+$('#file_edit_'+Id+"_1").val())
-            $("#"+div).attr("src","ajax/tmp/"+$('#file_edit_'+Id+"_1").val());
+            img = $('#file_edit_'+Id+"_1").val();
+            url = `${CFPUBLICURL}/${ID_CLIENTE}/<?= $IdTabla ?>/originals/${img || ''}`;
+            $("#"+div).attr("src",url);
             $("#"+div).attr("width","120px");
         }
 

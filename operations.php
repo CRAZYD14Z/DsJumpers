@@ -7,6 +7,7 @@
     include_once 'config/database.php'; 
     $database = new Database();
     $db = $database->getConnection();
+    define('ID_CLIENTE' , $_SESSION['id_cliente']);
     //$_SESSION['Idioma'] = 'es';
 ?>
 <!DOCTYPE html>
@@ -246,7 +247,7 @@ foreach ($rows as $row) {
                 <input class="form-check-input row-check" type="checkbox" data-id="<?= $item['id'] ?>" disabled>
             </td>
             <td>
-                <img src="ajax/tmp/<?= $item['image'] ?>" class="rounded border" width="55" height="55" >
+                <img src="<?= CFPUBLICURL.'/'.ID_CLIENTE.'/products_images/thumbnails/'.$item['image'] ?>" class="rounded border" width="55" height="55" >
             </td>
             <td>
                 <div class="fw-bold"><?= $item['name'] ?></div>
@@ -313,7 +314,7 @@ foreach ($rows as $row) {
                     <input class="form-check-input row-check" type="checkbox" data-id="<?= $child['id'] ?>" disabled>
                 </td>
                 <td>
-                    <img src="ajax/tmp/<?= $child['image'] ?>" class="rounded border ms-3" width="40" height="40" >
+                    <img src="<?= CFPUBLICURL.'/'.ID_CLIENTE.'/products_images/thumbnails/'.$child['image'] ?>" class="rounded border ms-3" width="40" height="40" >
                 </td>
                 <td>
                     <div class="small fw-bold text-muted"><?= $child['name'] ?></div>
@@ -495,7 +496,7 @@ foreach ($rows as $row) {
     const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
     const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
     const TOKEN = localStorage.getItem('apiToken'); 
-
+/*
     function attemptLogin(username, password) {
         $.ajax({
             url: LOGIN_URL,
@@ -522,8 +523,8 @@ foreach ($rows as $row) {
             }
         });
     }    
-
-
+*/
+/*
     $(document).ready(function() {
         attemptLogin('admin', '1234'); 
         if (TOKEN) {
@@ -532,7 +533,7 @@ foreach ($rows as $row) {
             console.warn('No se encontró el token. Necesita iniciar sesión primero.');
         }
     });
-
+*/
 
     $('.lang-option').on('click', function(e) {
         e.preventDefault();

@@ -186,6 +186,8 @@ include_once 'head.php';
     const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
     const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
     const TOKEN = localStorage.getItem('apiToken'); 
+    const ID_CLIENTE = '<?= $_SESSION['id_cliente']; ?>'; 
+    const CFPUBLICURL = '<?= CFPUBLICURL ?>';     
 
     let Row = 0;
     let Rltpc = 0;
@@ -282,7 +284,7 @@ include_once 'head.php';
     const inventario = new ProductCounter();
 
         $(document).ready(function() {
-
+/*
             attemptLogin('admin', '1234'); 
             
             if (TOKEN) {
@@ -290,7 +292,7 @@ include_once 'head.php';
             } else {
                 console.warn('No se encontró el token. Necesita iniciar sesión primero.');
             }        
-
+*/
             $('.select-auto').each(function() {
                     $(this).select2({
                         theme: "bootstrap-5",
@@ -1269,7 +1271,7 @@ $(document).on("keypress", ".numbers-only", function (e) {
 
 
     // LOGIN PARA TOKEN
-
+/*
     function attemptLogin(username, password) {
         $.ajax({
             url: LOGIN_URL,
@@ -1296,7 +1298,7 @@ $(document).on("keypress", ".numbers-only", function (e) {
             }
         });
     }    
-
+*/
 
 
 
@@ -2215,7 +2217,8 @@ function LoadDocument(DocumentType){
             // Creamos el objeto con las llaves que espera nuestro contrato
             let item = {
                 rentalid: '',
-                rentalname_url_photo: 'ajax/tmp/'+$el.data('image'),
+                //rentalname_url_photo: 'ajax/tmp/'+$el.data('image'),
+                rentalname_url_photo: CFPUBLICURL+'/'+ID_CLIENTE+'/products_images/thumbnails/'+$el.data('image'),
                 rentalname: $el.data('name'),
                 fullrentaltime: "",
                 rentalqty: $(`#row_${i}_col_3`).val(),

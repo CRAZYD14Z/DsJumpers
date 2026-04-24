@@ -42,8 +42,7 @@
                 <li><a class="dropdown-item" href="acondicionamiento.php">Acondicionamiento</a></l
                 <li><a class="dropdown-item" href="monitor.php">Monitor</a></li>  
                 <li><a class="dropdown-item" href="payment_report.php">Reporte de Pagos</a></li>  
-
-                <li><a class="dropdown-item" href="logout.php">Sign Out</a></li>
+                <li><a class="dropdown-item" href="#" id="logout-link">Sign Out</a></li>
                 <?php } else{?>
                 <li><a class="dropdown-item" href="crud.php?Id=account">Cuenta</a></li>
                 <li><a class="dropdown-item" href="crud.php?Id=categories">Categorias</a></li>
@@ -71,7 +70,7 @@
                 <li><a class="dropdown-item" href="acondicionamiento.php">Acondicionamiento</a></l                               
                 <li><a class="dropdown-item" href="monitor.php">Monitor</a></li>  
                 <li><a class="dropdown-item" href="payment_report.php">Reporte de Pagos</a></li>                  
-                <li><a class="dropdown-item" href="logout.php">Salir</a></li>                
+                <li><a class="dropdown-item" href="#" id="logout-link">Salir</a></li>                
                 <?php }?>
             </ul>
         </li>
@@ -96,3 +95,15 @@
     </nav>
     <br>
     <br>
+
+<script>
+    document.getElementById('logout-link').addEventListener('click', function(e) {
+        e.preventDefault(); // Evita que el enlace redirija inmediatamente
+        
+        // 1. Borramos el token del navegador
+        localStorage.removeItem('apiToken');
+        
+        // 2. Redirigimos al archivo PHP que cierra la sesión en el servidor
+        window.location.href = 'logout.php';
+    });
+</script>    

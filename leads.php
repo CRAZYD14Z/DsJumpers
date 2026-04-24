@@ -100,7 +100,7 @@ const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
 const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
 const TOKEN = localStorage.getItem('apiToken'); 
 
-
+/*
 function attemptLogin(username, password) {
     $.ajax({
         url: LOGIN_URL,
@@ -127,10 +127,10 @@ function attemptLogin(username, password) {
         }
     });
 }    
-
+*/
 
 $(document).ready(function() {
-
+/*
     attemptLogin('admin', '1234'); 
     
     if (TOKEN) {
@@ -138,7 +138,7 @@ $(document).ready(function() {
     } else {
         console.warn('No se encontró el token. Necesita iniciar sesión primero.');
     }        
-
+*/
     let currentPage = 1;
     let isFetching = false;
     let noMoreData = false;

@@ -7,29 +7,37 @@ use \Firebase\JWT\Key;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+use Aws\S3\S3Client;
+
 // ----------------------------------------------------
 // A. LÓGICA DE AUTENTICACIÓN
 // ----------------------------------------------------
-function handle_login_request($db, $data) {
+function handle_login_request($data) {
     
     // --- Esta es la lógica copiada del antiguo login.php ---
     // Simulación de verificación de credenciales
-    if (isset($data->username) && $data->username == "admin" && $data->password == "1234") {
-        
+    //if (isset($data->username) && $data->username == "admin" && $data->password == "1234") {
+    if (isset($data->username)) {
         $issued_at = time();
         $expiration_time = $issued_at + (60 * 60); // 1 hora
-        $issuer = URL_BASE & "/api/"; 
-
+        $issuer = URL_BASE & "/api/";     
+        //if (isset($data->data_base)){
+        //}
+        //else{
+        //}
         $token_payload = array(
             "iss" => $issuer,
             "iat" => $issued_at,
             "exp" => $expiration_time,
             "data" => array(
-                "id" => 1,
-                "nombre_usuario" => "AdminAPI"
+                "id" => $data->usuario_id,
+                "username" => $data->username,
+                "nombre_usuario" => $data->usuario_nombre,
+                "base_datos" => $data->data_base,
+                "rol" => $data->role_id,
+                "id_cliente" => $data->id_cliente,
             )
         );
-        
         try {
             // Usamos la constante SECRET_KEY definida en config/config.php
             $jwt = JWT::encode($token_payload, SECRET_KEY, 'HS256');
@@ -541,7 +549,8 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                         // Si existe y el tipo asociado es 'img'
                         if ($indice !== false && $TCampos[$indice] === 'img') {
                             // Reemplazamos el valor por el tag HTML (ajusta la ruta según necesites)
-                            $row[$columna] = '<img src="ajax/tmp/' . htmlspecialchars($valor) . '" alt="imagen" style="width:50px;">';
+                            //$row[$columna] = '<img src="ajax/tmp/' . htmlspecialchars($valor) . '" alt="imagen" style="width:50px;">';
+                            $row[$columna] = '<img src="'.CFPUBLICURL.'/'.ID_CLIENTE.'/'.$table_name.'/thumbnails/'.htmlspecialchars($valor) . '" alt="imagen" style="width:50px;">';
                         }
                     }
                 }                    
@@ -677,6 +686,16 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                     }
                     $stmt->bindValue(":" . $campo, $valor);
                 }
+                elseif ($tipocampo =='img'){
+                    $client = ID_CLIENTE;
+                    $gallery = $table_name;
+                    $normal = $valor;
+                    $miniatura = "thumbnail_".$valor;
+                    $miniaturaj = "thumbnail_".$valor;
+                    $miniaturaj =  str_replace("avif", "jpg", $miniaturaj);
+                    upload_Aws($client,$gallery,$normal,$miniatura,$miniaturaj);
+                    $stmt->bindValue(":" . $campo, $valor);
+                }
                 else{
                     $stmt->bindValue(":" . $campo, $valor);
                 }
@@ -786,6 +805,16 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                                 : null;                            
                             $stmt->bindValue(":" . $campo, $valor);
                         }
+
+                        $client = ID_CLIENTE;
+                        $gallery = $table_name;
+                        $normal = $valor;
+                        $miniatura = "thumbnail_".$valor;
+                        $miniaturaj = "thumbnail_".$valor;
+                        $miniaturaj =  str_replace("avif", "jpg", $miniaturaj);                        
+                        upload_Aws($client,$gallery,$normal,$miniatura,$miniaturaj);
+                        $stmt->bindValue(":" . $campo, $valor);                        
+
                     }
                     elseif ($tipocampo =='html'){
                         $valor = isset($data->{$registro['Campo']}) 
@@ -3514,6 +3543,90 @@ function sendmail($table_name,$db, $method, $id, $data){
     }      
 }
 
+function upload_Aws($client,$gallery,$normal,$miniatura,$miniaturaj){
+    $r2_config = [
+        'region' => 'auto',
+        'endpoint' => CFENDPOINT,
+        'credentials' => [
+            'key'    => CFKEY,
+            'secret' => CFSECRET,
+        ],
+    ];
+
+    $s3Client    = new S3Client($r2_config);
+    try{
+        $bucket_name = 'eventgo';
+        $s3Client->putObject([
+            'Bucket' => $bucket_name,
+            'Key'    => "$client/$gallery/originals/$normal",
+            'SourceFile' => '../ajax/tmp/'.$normal,
+            'ContentType' => 'image/avif'
+        ]);
+        unlink('../ajax/tmp/'.$normal);
+
+        $miniatura_ =  str_replace("thumbnail_", "", $miniatura);
+        rename('../ajax/tmp/'.$miniatura, '../ajax/tmp/'.$miniatura_);
+
+        $s3Client->putObject([
+            'Bucket' => $bucket_name,
+            'Key'    => "$client/$gallery/thumbnails/$miniatura_",
+            'SourceFile'   => '../ajax/tmp/'.$miniatura_,
+            'ContentType' => 'image/avif'
+        ]);
+        
+        unlink('../ajax/tmp/'.$miniatura_);
+
+        $miniatura_ =  str_replace("thumbnail_", "", $miniaturaj);
+        rename('../ajax/tmp/'.$miniaturaj, '../ajax/tmp/'.$miniatura_);
+
+        $s3Client->putObject([
+            'Bucket' => $bucket_name,
+            'Key'    => "$client/$gallery/thumbnails/$miniatura_",
+            'SourceFile'   => '../ajax/tmp/'.$miniatura_,
+            'ContentType' => 'image/jpg'
+        ]);
+        unlink('../ajax/tmp/'.$miniatura_);        
+
+        return true;
+    } catch (Aws\S3\Exception\S3Exception $e) {
+        error_log("Error al subir a S3: " . $e->getMessage());
+        return false;
+    }        
+} 
 
 
+function delete_Aws($client,$gallery,$file){
+    $r2_config = [
+        'region' => 'auto',
+        'endpoint' => CFENDPOINT,
+        'credentials' => [
+            'key'    => CFKEY,
+            'secret' => CFSECRET,
+        ],
+    ];
+    $s3Client    = new S3Client($r2_config);
+    try{
+        $s3Client->deleteObject([
+            'Bucket' => 'eventgo',
+            'Key'    => "$client/$gallery/originals/$file"
+        ]);
+
+        $s3Client->deleteObject([
+            'Bucket' => 'eventgo',
+            'Key'    => "$client/$gallery/thumbnails/$file"
+        ]);        
+
+        $file =  str_replace("avif", "jpg", $file);
+
+        $s3Client->deleteObject([
+            'Bucket' => 'eventgo',
+            'Key'    => "$client/$gallery/thumbnails/$file"
+        ]);               
+
+        return true;
+    } catch (Aws\S3\Exception\S3Exception $e) {
+        error_log("Error al subir a S3: " . $e->getMessage());
+        return false;
+    }  
+}
 ?>

@@ -83,11 +83,8 @@ $(document).ready(function() {
             dataType: 'json',
             success: function(response) {
                 if (response.status === 'success') {
-                    $('#alert-container').html(`
-                        <div class="alert alert-success py-2">${response.message}</div>
-                    `);
-                    // Redirigir a un dashboard por ejemplo:
-                     window.location.href = 'home.php';
+                    localStorage.setItem('apiToken', response.jwtToken);
+                    window.location.href = 'home.php';
                 } else {
                     $('#alert-container').html(`
                         <div class="alert alert-danger py-2">${response.message}</div>

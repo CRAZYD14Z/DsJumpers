@@ -6,8 +6,40 @@
 // Incluye el autoloader de Composer (para JWT)
 require '../vendor/autoload.php';
 
+
 // Incluye las configuraciones globales (SECRET_KEY, DB_USER, etc.)
-include_once '../config/config.php'; 
+//include_once '../config/config.php'; 
+
+require_once dirname(__DIR__) . '/vendor/autoload.php';
+$dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+$secret_key     = $_ENV['SECRET_KEY'];
+$url_base       = $_ENV['URL_BASE'];
+$google_api_key = $_ENV['GOOGLE_API_KEY'];
+
+$host       = $_ENV['host'];
+$db_name    = $_ENV['db_name'];
+$username   = $_ENV['username'];
+$password   = $_ENV['password'];
+$port       = $_ENV['port'];
+
+$CFpublicurl    = $_ENV['publicurl'];
+
+
+define('SECRET_KEY', $secret_key);
+define('URL_BASE', $url_base);
+define('GOOGLE_API_KEY', $google_api_key);
+
+define('HOST', $host);
+define('USERNAME', $username);
+define('DB_NAMEP', $db_name);
+define('PASSWORD', $password);
+define('PORT',$port);
+
+date_default_timezone_set('America/Mexico_City');
+
+define('CFPUBLICURL',$CFpublicurl);
 
 // Incluye la clase de conexión a la BD
 include_once '../config/database.php'; 
@@ -20,8 +52,22 @@ use \Firebase\JWT\ExpiredException;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-include_once '../api/functions.php'; 
+use Openpay\Data\Openpay;
+use Openpay\Data\OpenpayApiTransactionError;
+use Openpay\Data\OpenpayApiRequestError;
+use Openpay\Data\OpenpayApiConnectionError;
+use Openpay\Data\OpenpayApiAuthError;
 
+
+use Square\SquareClient;
+use Square\Payments\Requests\CreatePaymentRequest;
+use Square\Types\Money;
+use Square\Types\Currency;
+use Square\Exceptions\SquareApiException;
+use Square\Exceptions\SquareException;
+
+include_once '../api/functions.php'; 
+include_once '../api/process_op.php'; 
 // ----------------------------------------------------
 // 2. CONFIGURACIÓN DE ENCABEZADOS (HEADERS)
 // ----------------------------------------------------
@@ -37,66 +83,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-// ----------------------------------------------------
-// 3. QUE BASE DE DATOS USAR
-// ----------------------------------------------------
-
-/*
-$key = "tu_clave_secreta_super_segura";
 $headers = getallheaders();
 
-try {
-    // 1. Validar Token
-    $authHeader = $headers['Authorization'] ?? '';
-    $token = str_replace('Bearer ', '', $authHeader);
+$authHeader = $headers['Authorization'] ?? '';
+$token = str_replace('Bearer ', '', $authHeader);
+$clienteId = $headers['X-ID-CLIENT'] ?? '';
+
+$database = new DatabaseLogin();
+$db = $database->getConnection();
+
+$sql = "SELECT nombre_db, token_key, fecha_termino FROM data_bases WHERE Id = :id AND estatus = 'Activo'";
+$stmt = $db->prepare($sql);
+$stmt->bindValue(":id", $clienteId); 
+$stmt->execute();
+$account = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if ($account){
+
+    $fecha_hoy = date('Y-m-d');
+    $fecha_termino = $account['fecha_termino'];
+    if ($fecha_hoy > $fecha_termino) {
+        echo json_encode(['status'=>'error','error' =>"La cuenta no está vigente. Su acceso expiró el " . $fecha_termino ]);        
+        die(); // Detenemos la ejecución
+    }  
+
+    $key = $account['token_key'];
     $decoded = JWT::decode($token, new Key($key, 'HS256'));
-    
-    $clienteId = $decoded->cliente_id;
-
-    // 2. Consultar DB Principal para saber a qué base de datos ir
-    $masterHost = 'localhost';
-    $masterUser = 'root';
-    $masterPass = '';
-    $masterDB   = 'db_principal';
-    
-    $pdoMaster = new PDO("mysql:host=$masterHost;dbname=$masterDB", $masterUser, $masterPass);
-    $stmt = $pdoMaster->prepare("SELECT nombre_db FROM clientes WHERE id = ?");
-    $stmt->execute([$clienteId]);
-    $configCliente = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$configCliente) throw new Exception("Cliente no configurado.");
-
-    // 3. Conexión DINÁMICA a la base de datos del cliente
-    $dbNombreCliente = $configCliente['nombre_db'];
-    $pdoCliente = new PDO("mysql:host=$masterHost;dbname=$dbNombreCliente", $masterUser, $masterPass);
-
-    // 4. Consultar Productos
-    $query = $pdoCliente->query("SELECT id, nombre, precio FROM productos");
-    $productos = $query->fetchAll(PDO::FETCH_ASSOC);
-
-    echo json_encode([
-        "status" => "success",
-        "cliente_contexto" => $dbNombreCliente,
-        "data" => $productos
-    ]);
-
-} catch (Exception $e) {
-    http_response_code(401);
-    echo json_encode(["error" => $e->getMessage()]);
+    if ($decoded->cliente_id == $clienteId){
+        define('DB_NAME', $account['nombre_db']);
+    }
+    else{
+        http_response_code(401);
+        echo json_encode(['status'=>'error',"error" => 'Id cliente no vinculado']);
+        die();        
+    }
 }
-*/
+else{
+    http_response_code(401);
+    echo json_encode(['status'=>'error',"error" => 'Cuenta no activa']);
+    die();
+}
+$db = null;
 
-
-    $key = "8gT!sFpQ2@vR9aL4uW7jY$0xKzC3hB6mO1eN5iZ&";
-    $headers = getallheaders();
-
-
-    // 1. Validar Token
-    $authHeader = $headers['Authorization'] ?? '';
-    $token = str_replace('Bearer ', '', $authHeader);
-    $decoded = JWT::decode($token, new Key($key, 'HS256'));
-    
-    $clienteId = $decoded->cliente_id;
+//$clienteId = $decoded->cliente_id;
 
     //die($clienteId);
 // ----------------------------------------------------
@@ -108,6 +137,9 @@ $db = $database->getConnection();
 $method = $_SERVER['REQUEST_METHOD'];
 $data = json_decode(file_get_contents("php://input"));
 
+//echo $data->token_id."***";
+
+//die();
 // Obtener y limpiar los segmentos de la URI (ej: /api/clientes/123 -> clientes, 123)
 $request_uri = $_SERVER['REQUEST_URI'];
 // Determinar la base para eliminarla de la URI
@@ -165,14 +197,785 @@ switch ($resource) {
     break;
     case 'cart_update':
         cart_update($resource,$db, $method, $id, $data);
+    break;
+    case 'quotes':
+        quotes($resource,$db, $method, $id, $data);
     break;    
+    case 'document_center':
+        document_center($resource,$db, $method, $id, $data);
+    break;   
+    case 'quote_account':
+        quote_account($resource,$db, $method, $id, $data);
+    break;        
+    case 'tip_deposit':
+        tip_deposit($resource,$db, $method, $id, $data);
+    break; 
+    case 'quote_data':
+        quote_data($resource,$db, $method, $id, $data);
+    break;     
+    case 'processpayment':
+        processpayment($resource,$db, $method, $id, $data);
+    break;  
+
+    case 'processpayment_square':
+        processpayment_square($resource,$db, $method, $id, $data);
+    break;      
+
     default:
         // Manejar rutas no definidas
         http_response_code(404);
         echo json_encode(["message" => "Recurso '" . $resource . "' no encontrado."]);
         break;
-    
 }
+
+$db = null;
+
+function processpayment_square($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+
+            /*
+            appId_square=sandbox-sq0idb-yPqsgRsRdPMdHTk7zApWPg
+            locId_square=LZZBFCYEW6Y2M
+            accessToken_square=EAAAl9cDwyU4FQwzfkJ8ge4kEYjsThSgsR6Cww34jRhn6ayhdnsB6S26ajhcf6b4
+            */
+            // ── Configuración ─────────────────────────────────────────────────────────────
+            $accessToken = 'EAAAl9cDwyU4FQwzfkJ8ge4kEYjsThSgsR6Cww34jRhn6ayhdnsB6S26ajhcf6b4';
+            $locationId  = 'LZZBFCYEW6Y2M';
+
+            // ── Recibir token del frontend ─────────────────────────────────────────────────
+            //$input = json_decode(file_get_contents('php://input'), true);
+            $token_id = $data->token_id ?? null;
+
+            if (!$token_id) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'Token de pago requerido']);
+                exit;
+            }
+
+                // 2. Recibir datos del formulario
+                $tokenId    = $data->token_id ?? null;
+                $token      = $data->token ?? null;
+                $deviceId   = $data->deviceIdHiddenFieldName ?? null;
+                $amount     = $data->amount ?? 0;
+                
+                $amount = $amount * 100;
+
+                $ahora = date("Y-m-d H:i:s");
+
+                $stmt = $db->prepare("SELECT * FROM quotes WHERE UUID = ? AND Status = 'A'");
+                $stmt->execute([$token]);
+                $cotizacion = $stmt->fetch();
+                if ($cotizacion) {
+                    // Verificar si la fecha actual es mayor a la de expiración
+                    if ($ahora > $cotizacion['ExpDate']) {
+                        echo "Lo sentimos, esta cotización ha caducado el " . $cotizacion['ExpDate']." $ahora";
+                        die();
+                    }
+                } else {
+                    echo "Enlace no válido.";
+                    die();
+                }        
+
+                $stmt = $db->prepare("SELECT IdBranch FROM lead WHERE Id = ? ");
+                $stmt->execute([$cotizacion['IdQuote']]);
+                $lead = $stmt->fetch();    
+
+
+                $Folio = 0;    
+                $stmt = $db->prepare("select MAX(Folio) as Folio FROM folios WHERE IdBranch = ? AND Type = 'Pay'");
+                $stmt->execute([$lead['IdBranch']]);
+                $Payments = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($Payments){
+                    $Folio = $Payments['Folio'];
+                }
+                $Folio+=1;
+
+                // Datos del cliente
+                $customerData = [
+                    'name' => $data->name,
+                    'last_name' => $data->last_name,
+                    'email' => $data->email,
+                    'phone_number' => $data->phone ?? '5500000000'
+                ];
+
+            // ── Inicializar cliente Square (v45) ───────────────────────────────────────────
+            $square = new SquareClient(
+                token: $accessToken,
+                options: ['baseUrl' => 'https://connect.squareupsandbox.com'] // sandbox
+                // Para producción: omitir baseUrl o usar 'https://connect.squareup.com'
+            );
+
+            // ── Crear el pago ──────────────────────────────────────────────────────────────
+            try {
+                $response = $square->payments->create(
+                    request: new CreatePaymentRequest([
+                        'idempotencyKey' => uniqid('Pago_', true), // clave única por transacción
+                        'sourceId'       => $token_id,
+                        'locationId'     => $locationId,
+                        'amountMoney'    => new Money([
+                            'amount'   => $amount,           // en centavos: 1000 = $10.00 USD
+                            'currency' => Currency::Usd->value,
+                        ]),
+                        'note' => 'Pago de anticipo/servicio - ' . $customerData['name'],
+                    ])
+                );
+
+                $payment = $response->getPayment();
+
+                $sqlPay = "INSERT INTO payments (IdLead,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus,Usuario) 
+                                        VALUES  (?,?,now(),'Square',?,?,?,'A','Web')";
+                $stmtPay = $db->prepare($sqlPay);
+                $stmtPay->execute([$cotizacion['IdQuote'],$Folio,$amount/100,Currency::Usd->value,$payment->getId()]);    
+
+                $stmt = $db->prepare(" UPDATE folios sET Folio = ? WHERE IdBranch = ? AND Type = 'Pay'");
+                $stmt->execute([$Folio,$lead['IdBranch']]);        
+
+                //if ($amount == 0){
+
+                //}
+                //else{
+                    $stmt = $db->prepare(" UPDATE lead SET Status = ? WHERE Id = ?");
+                    $stmt->execute(['confirmed', $cotizacion['IdQuote']]);
+                //}    
+
+                    process_op($cotizacion['IdQuote'],$db);
+
+                //ENVIO DE CORREO                    
+                    $sql = "SELECT * FROM account ";
+                    $stmt = $db->prepare($sql);
+                    //$stmt->bindValue(":name", $data->Product); 
+                    $stmt->execute();
+                    $account = $stmt->fetch(PDO::FETCH_ASSOC);                
+
+                    //RECUPERAR PLANTILLA
+                    $sql = "SELECT Nombre, Template FROM document_center WHERE Tipo = 'email' AND IdTemplate = '8' AND Idioma = 'es'";
+                    $stmt = $db->prepare($sql);
+                    //$stmt->bindValue(":name", $data->Product); 
+                    $stmt->execute();
+                    $Template = $stmt->fetch(PDO::FETCH_ASSOC);    
+
+
+                    //RECUPERAR Lead
+                    $sql = "SELECT * FROM lead WHERE Id = :id";
+                    $stmt = $db->prepare($sql);
+                    $stmt->bindValue(":id", $cotizacion['IdQuote']); 
+                    $stmt->execute();
+                    $lead = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                    //RECUPERAR Customer
+                    $sql = "SELECT * FROM customers WHERE Id = :id";
+                    $stmt = $db->prepare($sql);
+                    $stmt->bindValue(":id", $lead['Customer']); 
+                    $stmt->execute();
+                    $customer = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                    $query = "select * FROM organizations WHERE Id = ".$lead['Organization'];
+                    $stmt = $db->prepare($query);
+                    $stmt->execute();
+                    $organization = $stmt->fetch(PDO::FETCH_ASSOC);            
+
+
+                    //RECUPERAR venue
+                    $sql = "SELECT * FROM venues WHERE Id = :id";
+                    $stmt = $db->prepare($sql);
+                    $stmt->bindValue(":id", $lead['Venue']); 
+                    $stmt->execute();
+                    $venue = $stmt->fetch(PDO::FETCH_ASSOC);       
+
+
+                    $header = "MIME-Version: 1.0\r\n";
+                    $header .= "Content-Type: text/html; charset=UTF-8\r\n";
+                    $header .= $Template['Nombre']."\r\n";            
+                                // Incluimos el teléfono en el cuerpo del correo
+                    $cuerpo = "<html>".$Template['Template']."</html>";
+
+                            if ($customer){
+                                $nombreCliente = $customer['Nombres'];
+                                $correoCliente =$customer['Correo'];
+                            }
+                            else{
+                                $nombreCliente = $organization['Nombre'];
+                                $correoCliente =$organization['Correo'];
+
+                            }    
+
+                    $valores = [
+                        'company_logo'      => $account['Logo'],
+                        'company_name' => $account['NombreCompania'],
+                        'ctfirstname'  => $nombreCliente,
+                        'leadid'       => $lead['Folio'],
+                        'total'  => $lead['Total'],
+                        'apayment'  => $lead['DepositAmount'],
+                        'balancedue'  => $lead['Balance'],
+                        'link_to_accept'  => '',
+                        'eventstreet' => $venue['Direccion'],
+                        'eventcity'    => $venue['Ciudad'],
+                        'startdate'  => $lead['StartDateTime'],
+                        'company_name'  => $account['NombreCompania'],
+                        'company_phone'  => $account['TelefonoOficina'],
+                        'company_city'  => $account['Ciudad'],
+
+                    ];       
+
+                    $cuerpo = generarHtmlCotizacion($cuerpo, $valores);
+
+                    $datosConexion = [
+                        'host'             => $account['ServidorS'],
+                        'username'         => $account['UsuarioS'],
+                        'password'         => $account['PasswordS'],
+                        'port'             => $account['PortS'],
+                        'encryption'       => '',
+                        'nombre_remitente' => $account['NombreCompania']
+                    ];
+                    $archivos = [];
+
+                    $resultado = enviarEmail(
+                        $datosConexion, 
+                        $correoCliente, 
+                        $header,
+                        $cuerpo,
+                        $archivos,
+                        $cotizacion['Contrato'],
+                        $cotizacion['UUID'].".PDF"
+                    );                        
+                //
+                echo json_encode([
+                    'success'    => true,
+                    'payment_id' => $payment->getId(),
+                    'status'     => $payment->getStatus(),
+                    'amount'     => $payment->getAmountMoney()->getAmount() / 100,
+                    'currency'   => $payment->getAmountMoney()->getCurrency(),
+                    'status' => 'success',
+                    'message' => '¡Pago realizado con éxito!',
+                    'transaction_id' => $payment->getId(),
+                    'url' => 'successpayment.php?Id='.$token.'&TId='.$payment->getId()
+                ]);
+
+            } catch (SquareApiException $e) {
+                // Error de la API de Square (4xx / 5xx)
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'error'   => $e->getMessage(),
+                    'code'    => $e->getCode(),
+                    'body'    => json_decode($e->getBody(), true),
+                    'status' => 'error',
+                    'error_code' => $e->getCode(),
+                    'description' => $e->getMessage()        
+
+                ]);
+            } catch (SquareException $e) {
+                // Error de red u otro error del SDK
+                http_response_code(500);
+                echo json_encode([
+                    'success' => false,
+                    'error'   => 'Error interno: ' . $e->getMessage(),
+                    'status' => 'error',
+                    'description' => $e->getMessage()
+                ]);
+            }            
+
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }      
+}               
+
+function processpayment($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+        /*
+        id_OPAY=mles9ufd4m3rlilw00i8
+        sk_OPAY=sk_ab545fdf98b446e78ed7ef908d1687a2
+        pk_OPAY=pk_ed306f11c3764a9da955092ee7350160
+        */
+        // 1. Configuración de credenciales (Asegúrate de usar las tuyas)
+        $merchantId = 'mles9ufd4m3rlilw00i8';
+        $privateKey = 'sk_ab545fdf98b446e78ed7ef908d1687a2'; // REEMPLAZA CON TU LLAVE PRIVADA (sk_...)
+        $countryCode = 'MX';
+        $clientIp = $_SERVER['REMOTE_ADDR'];
+        $isSandbox = true;
+
+        try {
+            $openpay = Openpay::getInstance($merchantId, $privateKey,$countryCode,$clientIp);
+            Openpay::setProductionMode(!$isSandbox);
+
+            // 2. Recibir datos del formulario
+            $tokenId    = $data->token_id;
+            $token      = $data->token;
+            $deviceId   = $data->deviceIdHiddenFieldName;
+            $amount     = $data->amount;
+            
+            $ahora = date("Y-m-d H:i:s");
+
+            $stmt = $db->prepare("SELECT * FROM quotes WHERE UUID = ? AND Status = 'A'");
+            $stmt->execute([$token]);
+            $cotizacion = $stmt->fetch();
+            if ($cotizacion) {
+                // Verificar si la fecha actual es mayor a la de expiración
+                if ($ahora > $cotizacion['ExpDate']) {
+                    echo "Lo sentimos, esta cotización ha caducado el " . $cotizacion['ExpDate']." $ahora";
+                    die();
+                }
+            } else {
+                echo "Enlace no válido.";
+                die();
+            }        
+
+            $stmt = $db->prepare("SELECT IdBranch FROM lead WHERE Id = ? ");
+            $stmt->execute([$cotizacion['IdQuote']]);
+            $lead = $stmt->fetch();    
+
+
+            $Folio = 0;    
+            $stmt = $db->prepare("select MAX(Folio) as Folio FROM folios WHERE IdBranch = ? AND Type = 'Pay'");
+            $stmt->execute([$lead['IdBranch']]);
+            $Payments = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($Payments){
+                $Folio = $Payments['Folio'];
+            }
+            $Folio+=1;
+
+            // Datos del cliente
+            $customerData = [
+                'name' => $data->name,
+                'last_name' => $data->last_name,
+                'email' => $data->email,
+                'phone_number' => $data->phone ?? '5500000000'
+            ];
+
+            if (!$tokenId || !$deviceId) {
+                throw new Exception("Faltan identificadores de seguridad (Token/Device ID).");
+            }
+            $Currency = 'MXN';
+            // 3. Preparar el objeto del cargo
+            $chargeRequest = [
+                'method' => 'card',
+                'source_id' => $tokenId,
+                'amount' => (float)$amount,
+                'currency' => $Currency,
+                'description' => 'Pago de anticipo/servicio - ' . $customerData['name'],
+                'device_session_id' => $deviceId, // Vital para el sistema antifraude
+                'customer' => $customerData,
+                // Si quieres habilitar 3D Secure para mayor seguridad:
+                // 'use_3d_secure' => true,
+                // 'redirect_url' => 'https://tu-sitio.com/pago-completado',
+            ];
+
+            // 4. Realizar el cargo
+            $charge = $openpay->charges->create($chargeRequest);
+
+            // 5. Respuesta según el estado del pago
+            if ($charge->status == 'completed') {
+            
+                $sqlPay = "INSERT INTO payments (IdLead,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus,Usuario) 
+                                        VALUES  (?,?,now(),'OpenPay',?,?,?,'A','Web')";
+                $stmtPay = $db->prepare($sqlPay);
+                $stmtPay->execute([$cotizacion['IdQuote'],$Folio,$amount,$Currency,$charge->id]);    
+
+                $stmt = $db->prepare(" UPDATE folios sET Folio = ? WHERE IdBranch = ? AND Type = 'Pay'");
+                $stmt->execute([$Folio,$lead['IdBranch']]);        
+
+                //if ($amount == 0){
+
+                //}
+                //else{
+                    $stmt = $db->prepare(" UPDATE lead SET Status = ? WHERE Id = ?");
+                    $stmt->execute(['confirmed', $cotizacion['IdQuote']]);
+                //}
+
+                process_op($cotizacion['IdQuote'],$db);
+
+
+                //ENVIO DE CORREO                    
+                    $sql = "SELECT * FROM account ";
+                    $stmt = $db->prepare($sql);
+                    //$stmt->bindValue(":name", $data->Product); 
+                    $stmt->execute();
+                    $account = $stmt->fetch(PDO::FETCH_ASSOC);                
+
+                    //RECUPERAR PLANTILLA
+                    $sql = "SELECT Nombre, Template FROM document_center WHERE Tipo = 'email' AND IdTemplate = '8' AND Idioma = 'es'";
+                    $stmt = $db->prepare($sql);
+                    //$stmt->bindValue(":name", $data->Product); 
+                    $stmt->execute();
+                    $Template = $stmt->fetch(PDO::FETCH_ASSOC);    
+
+
+                    //RECUPERAR Lead
+                    $sql = "SELECT * FROM lead WHERE Id = :id";
+                    $stmt = $db->prepare($sql);
+                    $stmt->bindValue(":id", $cotizacion['IdQuote']); 
+                    $stmt->execute();
+                    $lead = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                    //RECUPERAR Customer
+                    $sql = "SELECT * FROM customers WHERE Id = :id";
+                    $stmt = $db->prepare($sql);
+                    $stmt->bindValue(":id", $lead['Customer']); 
+                    $stmt->execute();
+                    $customer = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                    $query = "select * FROM organizations WHERE Id = ".$lead['Organization'];
+                    $stmt = $db->prepare($query);
+                    $stmt->execute();
+                    $organization = $stmt->fetch(PDO::FETCH_ASSOC);            
+
+
+                    //RECUPERAR venue
+                    $sql = "SELECT * FROM venues WHERE Id = :id";
+                    $stmt = $db->prepare($sql);
+                    $stmt->bindValue(":id", $lead['Venue']); 
+                    $stmt->execute();
+                    $venue = $stmt->fetch(PDO::FETCH_ASSOC);       
+
+
+                    $header = "MIME-Version: 1.0\r\n";
+                    $header .= "Content-Type: text/html; charset=UTF-8\r\n";
+                    $header .= $Template['Nombre']."\r\n";            
+                                // Incluimos el teléfono en el cuerpo del correo
+                    $cuerpo = "<html>".$Template['Template']."</html>";
+
+                            if ($customer){
+                                $nombreCliente = $customer['Nombres'];
+                                $correoCliente =$customer['Correo'];
+                            }
+                            else{
+                                $nombreCliente = $organization['Nombre'];
+                                $correoCliente =$organization['Correo'];
+
+                            }    
+
+                    $valores = [
+                        'company_logo'      => $account['Logo'],
+                        'company_name' => $account['NombreCompania'],
+                        'ctfirstname'  => $nombreCliente,
+                        'leadid'       => $lead['Folio'],
+                        'total'  => $lead['Total'],
+                        'apayment'  => $lead['DepositAmount'],
+                        'balancedue'  => $lead['Balance'],
+                        'link_to_accept'  => '',
+                        'eventstreet' => $venue['Direccion'],
+                        'eventcity'    => $venue['Ciudad'],
+                        'startdate'  => $lead['StartDateTime'],
+                        'company_name'  => $account['NombreCompania'],
+                        'company_phone'  => $account['TelefonoOficina'],
+                        'company_city'  => $account['Ciudad'],
+
+                    ];       
+
+                    $cuerpo = generarHtmlCotizacion($cuerpo, $valores);
+
+                    $datosConexion = [
+                        'host'             => $account['ServidorS'],
+                        'username'         => $account['UsuarioS'],
+                        'password'         => $account['PasswordS'],
+                        'port'             => $account['PortS'],
+                        'encryption'       => '',
+                        'nombre_remitente' => $account['NombreCompania']
+                    ];
+                    $archivos = [];
+
+                    $resultado = enviarEmail(
+                        $datosConexion, 
+                        $correoCliente, 
+                        $header,
+                        $cuerpo,
+                        $archivos,
+                        $cotizacion['Contrato'],
+                        $cotizacion['UUID'].".PDF"
+                    );                        
+                //                
+
+
+
+
+                echo json_encode([
+                    'status' => 'success',
+                    'message' => '¡Pago realizado con éxito!',
+                    'transaction_id' => $charge->id,
+                    'url' => 'successpayment.php?Id='.$token.'&TId='.$charge->id
+                ]);
+            } else {
+                // En caso de pagos pendientes (como 3D Secure)
+                echo json_encode([
+                    'status' => 'pending',
+                    'url' => $charge->payment_method->url
+                ]);
+            }
+
+        } catch (OpenpayApiTransactionError $e) {
+            // Errores específicos de la transacción (ej. fondos insuficientes)
+            http_response_code(402);
+            echo json_encode([
+                'status' => 'error',
+                'error_code' => $e->getErrorCode(),
+                'description' => $e->getMessage()
+            ]);
+        } catch (\Exception $e) {
+            // Errores generales del sistema
+            http_response_code(500);
+            echo json_encode([
+                'status' => 'error',
+                'description' => $e->getMessage()
+            ]);
+        }            
+
+
+
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }      
+}   
+
+
+
+
+function quote_data($table_name,$db, $method, $id, $data){
+    global $IDS;
+    global $clienteId;
+    switch ($method) {
+        case 'GET': 
+
+
+            $query = "select * FROM lead WHERE Id = ?";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(1, $data->lead);
+            $stmt->execute();
+            $lead = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $query = "select * FROM lead_detail WHERE IdLead = ".$lead['Id']." ORDER BY Id";
+            $stmt = $db->prepare($query);
+            $stmt->execute();
+            $lead_detailss = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $query = "select * FROM customers WHERE Id = ".$lead['Customer'];
+            $stmt = $db->prepare($query);
+            $stmt->execute();
+            $customer = $stmt->fetch(PDO::FETCH_ASSOC);        
+
+            $query = "select * FROM organizations WHERE Id = ".$lead['Organization'];
+            $stmt = $db->prepare($query);
+            $stmt->execute();
+            $organization = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $query = "select * FROM venues WHERE Id = ".$lead['Venue'];
+            $stmt = $db->prepare($query);
+            $stmt->execute();
+            $venue = $stmt->fetch(PDO::FETCH_ASSOC);               
+
+            
+            $query = "
+                SELECT 
+                    ld.*, 
+                    p.Name AS ProductName, 
+                    pi.Image AS ProductImage
+                FROM lead_detail ld
+                LEFT JOIN products p ON p.Id = (CASE WHEN ld.IdProductRel > 0 THEN ld.IdProductRel ELSE ld.IdProduct END)
+                LEFT JOIN products_images pi ON pi.Product = (CASE WHEN ld.IdProductRel > 0 THEN ld.IdProductRel ELSE ld.IdProduct END)
+                WHERE ld.IdLead = :id_lead
+                GROUP BY ld.Id
+            ";
+
+            $stmt = $db->prepare($query);
+            $stmt->execute(['id_lead' => $lead['Id']]);
+            $lead_details = $stmt->fetchAll(PDO::FETCH_ASSOC);            
+
+            $push ='';
+            if ($lead_details) {
+                foreach ($lead_details as $row) {
+                    // Escapamos los datos para evitar errores de sintaxis JS
+                    $urlImage = CFPUBLICURL."/".$clienteId."/products_images/thumbnails/". ($row['ProductImage'] ?? 'default.jpg');
+                    $name     = addslashes($row['ProductName']);
+                    
+                    $push.="
+                        productos.push({
+                            rentalname_url_photo: '{$urlImage}',
+                            rentalname: '{$name}',
+                            fullrentaltime: '',
+                            rentalqty: '{$row['Quantity']}',
+                            rentaltotalprice: '{$row['Price']}'
+                        });
+                    ";
+                }
+            }            
+
+
+            $query = "
+            SELECT
+                lead_discounts.Id, 
+                lead_discounts.IdLead, 
+                lead_discounts.IdDiscount, 
+                discounts.`Name`, 
+                lead_discounts.Type, 
+                lead_discounts.Amount, 
+                lead_discounts.AmountVal
+            FROM
+                lead_discounts
+                INNER JOIN
+                discounts
+                ON 
+                    lead_discounts.IdDiscount = discounts.Id        
+            WHERE lead_discounts.IdLead = ".$lead['Id']." ORDER BY lead_discounts.Id";
+
+            $stmt = $db->prepare($query);
+            $stmt->execute();
+            $discounts = $stmt->fetchAll(PDO::FETCH_ASSOC);                
+
+
+            $respuesta = [
+                'lead'         => $lead,
+                'lead_details'      => $lead_detailss,
+                'customer'     => $customer,
+                'organization' => $organization,
+                'venue'        => $venue,
+                'script_push'  => $push,
+                'discounts' => $discounts
+            ];            
+
+            http_response_code(200);
+            echo json_encode($respuesta);
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }      
+}   
+
+function tip_deposit($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+            $Tip = $data->tip;
+            $APay = $data->apay;
+            $Cotizacion = $data->quote;
+            if ($Tip > 0){
+                $query = "UPDATE lead SET Tip = ?, Total = TotalBT + ? WHERE Id = ? ";        
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(1, $Tip);
+                $stmt->bindParam(2, $Tip);
+                $stmt->bindParam(3, $Cotizacion);
+                $stmt->execute();
+            }else{
+                $query = "UPDATE lead SET  Total = TotalBT WHERE Id = ? ";        
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(1, $Cotizacion);
+                $stmt->execute();
+
+                $query = "UPDATE lead SET Tip = 0 WHERE Id = ? ";        
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(1, $Cotizacion);
+                $stmt->execute();            
+            }
+            
+            if ($APay > 0){
+                $query = "UPDATE lead SET Deposit = ?, DepositAmount = Total * ( ? / 100) WHERE Id = ? ";
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(1, $APay);
+                $stmt->bindParam(2, $APay);
+                $stmt->bindParam(3, $Cotizacion);
+                $stmt->execute();
+
+                $query = "UPDATE lead SET Balance = Total - DepositAmount  WHERE Id = ? ";        
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(1, $Cotizacion);
+                $stmt->execute();            
+
+            }            
+            http_response_code(200);
+            //echo json_encode($account);
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }      
+}     
+
+function quote_account($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+            $sql = "select * FROM account";
+            $stmt = $db->prepare($sql);
+            //$stmt->bindValue(":uuid", $data->token); 
+            $stmt->execute();
+            $account = $stmt->fetch(PDO::FETCH_ASSOC);
+            http_response_code(200);
+            echo json_encode($account);
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }      
+}     
+
+function document_center($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+            $sql = "select Template FROM document_center WHERE Tipo = :tipo AND IdTemplate = :template AND Activo = 1 AND Idioma = :idioma";
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(":tipo", $data->Tipo); 
+            $stmt->bindValue(":template", $data->IdTemplate); 
+            $stmt->bindValue(":idioma", $data->Idioma); 
+            $stmt->execute();
+            $document_center = $stmt->fetch(PDO::FETCH_ASSOC);
+            http_response_code(200);
+            echo json_encode($document_center);
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }      
+}      
+
+function quotes($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+            $sql = "SELECT UUID,IdQuote,ExpDate,Status,Contrato FROM quotes WHERE UUID = :uuid AND Status = 'A'";
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(":uuid", $data->token); 
+            $stmt->execute();
+            $quotes = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($quotes) {
+                // Convertimos el contenido a base64 antes de devolverlo
+                $quotes['Contrato'] = base64_encode($quotes['Contrato']);
+            }            
+
+            http_response_code(200);
+            echo json_encode($quotes);
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }      
+}      
+
 function account($table_name,$db, $method, $id, $data){
     global $IDS;
     switch ($method) {
@@ -263,7 +1066,7 @@ function sendbook($table_name,$db, $method, $id, $data){
                 'total'  => $lead['Total'],
                 'apayment'  => $lead['DepositAmount'],
                 'balancedue'  => $lead['Balance'],
-                'link_to_accept'  => URL_BASE."/makepayment.php?Id=".$data->UUID."&base=".$account['WebSite'],
+                'link_to_accept'  => $account['WebSite']."makepayment.php?Id=".$data->UUID,
                 'eventstreet' => $venue['Direccion'],
                 'eventcity'    => $venue['Ciudad'],
                 'startdate'  => $lead['StartDateTime'],

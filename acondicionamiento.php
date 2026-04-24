@@ -7,6 +7,7 @@ include_once 'config/config.php';
 include_once 'config/database.php'; 
 $database = new Database();
 $db = $database->getConnection();
+define('ID_CLIENTE' , $_SESSION['id_cliente']);
 include_once 'head.php';
 ?>
     <style>
@@ -49,7 +50,7 @@ foreach ($operations as $op) {
         // Agregamos el ítem al grupo de esta operación
         $operaciones[$opId]['items'][] = [
             'name'         => $row['id_accesory_base'] || $row['id_accesory'] ? ($row['Base'] ?? $row['Accesory']) : $row['Product'],
-            'image'        => 'ajax/tmp/'.$img,
+            'image'        =>  CFPUBLICURL.'/'.ID_CLIENTE.'/products_images/thumbnails/'.$img,
             'stage'        => $row['stage'],
             'requested'    => $row['requested_quantity'],
             'assorted'     => $row['assorted_quantity'],

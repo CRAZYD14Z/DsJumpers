@@ -32,8 +32,9 @@
 <script>
 
     const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
-    const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
+    const API_BASE_URL = '<?php echo URL_BASE;?>/api/';
     const TOKEN = localStorage.getItem('apiToken'); 
+/*     
 
     function attemptLogin(username, password) {
         $.ajax({
@@ -62,16 +63,25 @@
         });
     }    
 
-
     $(document).ready(function() {
-        attemptLogin('admin', '1234'); 
         if (TOKEN) {
             //getRecordData(1); 
         } else {
-            console.warn('No se encontró el token. Necesita iniciar sesión primero.');
+            attemptLogin('admin', '1234'); 
+            //console.warn('No se encontró el token. Necesita iniciar sesión primero.');
         }
     });
 
+    $(document).ajaxComplete(function(event, xhr, settings) {
+        const nuevoToken = xhr.getResponseHeader('Authorization-Update');
+        
+        if (nuevoToken) {
+            // Actualizamos el token en localStorage sin que el usuario note nada
+            localStorage.setItem('apiToken', nuevoToken);
+            console.log("Token renovado automáticamente");
+        }
+    });    
+*/
 
     $('.lang-option').on('click', function(e) {
         e.preventDefault();

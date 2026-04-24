@@ -999,6 +999,7 @@ const API_BASE_URL = '<?php echo URL_BASE; ?>/api/';
 const TOKEN = localStorage.getItem('apiToken');
 
 /* ─── LOGIN ─────────────────────────────────────────────────────────── */
+/*
 function attemptLogin(username, password) {
     $.ajax({
         url: LOGIN_URL,
@@ -1013,7 +1014,7 @@ function attemptLogin(username, password) {
         }
     });
 }
-
+*/
 $(document).ready(function() {
     attemptLogin('admin', '1234');
     if (!TOKEN) console.warn('No token found. Login required.');

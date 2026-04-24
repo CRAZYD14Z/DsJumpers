@@ -25,7 +25,8 @@ $countryCode = 'MX';
 $clientIp = $_SERVER['REMOTE_ADDR'];
 $isSandbox = true;
 
-try {$openpay = Openpay::getInstance($merchantId, $privateKey,$countryCode,$clientIp);
+try {
+    $openpay = Openpay::getInstance($merchantId, $privateKey,$countryCode,$clientIp);
     Openpay::setProductionMode(!$isSandbox);
 
     // 2. Recibir datos del formulario
@@ -113,12 +114,6 @@ try {$openpay = Openpay::getInstance($merchantId, $privateKey,$countryCode,$clie
         //}
 
         process_op($cotizacion['IdQuote'],$db);
-
-        //METER A OPERACION!!//METER A OPERACION!!
-        //METER A OPERACION!!
-        //METER A OPERACION!!
-        //METER A OPERACION!!
-        //METER A OPERACION!!
 
         echo json_encode([
             'status' => 'success',
