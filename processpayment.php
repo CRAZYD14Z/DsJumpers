@@ -18,9 +18,13 @@ use Openpay\Data\OpenpayApiConnectionError;
 use Openpay\Data\OpenpayApiAuthError;
 
 
-// 1. Configuración de credenciales (Asegúrate de usar las tuyas)
-$merchantId = id_OPAY;
-$privateKey = sk_OPAY; // REEMPLAZA CON TU LLAVE PRIVADA (sk_...)
+$stmt = $db->prepare("SELECT * FROM  opay_account");
+$stmt->execute();
+$opay_account = $stmt->fetch();       
+
+
+$merchantId = $opay_account['Id'];
+$privateKey = $opay_account['SecretKey'];
 $countryCode = 'MX';
 $clientIp = $_SERVER['REMOTE_ADDR'];
 $isSandbox = true;
@@ -50,6 +54,9 @@ try {
         echo "Enlace no válido.";
         die();
     }        
+
+
+
 
     $stmt = $db->prepare("SELECT IdBranch FROM lead WHERE Id = ? ");
     $stmt->execute([$cotizacion['IdQuote']]);

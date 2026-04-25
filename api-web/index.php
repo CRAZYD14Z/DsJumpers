@@ -219,7 +219,15 @@ switch ($resource) {
 
     case 'processpayment_square':
         processpayment_square($resource,$db, $method, $id, $data);
-    break;      
+    break;
+
+    case 'OPAY':
+        OPAY($resource,$db, $method, $id, $data);
+    break;
+    
+    case 'SQUARE':
+        SQUARE($resource,$db, $method, $id, $data);
+    break;    
 
     default:
         // Manejar rutas no definidas
@@ -229,20 +237,53 @@ switch ($resource) {
 }
 
 $db = null;
-
+function OPAY($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+            $sql = "select Id,PublicKey FROM opay_account";
+            $stmt = $db->prepare($sql);
+            $stmt->execute();
+            $account = $stmt->fetch(PDO::FETCH_ASSOC);
+            http_response_code(200);
+            echo json_encode($account);
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }      
+} 
+function SQUARE($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+            $sql = "select Id, LocalId FROM square_account";
+            $stmt = $db->prepare($sql);
+            $stmt->execute();
+            $account = $stmt->fetch(PDO::FETCH_ASSOC);
+            http_response_code(200);
+            echo json_encode($account);
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }      
+} 
 function processpayment_square($table_name,$db, $method, $id, $data){
     global $IDS;
     switch ($method) {
         case 'POST': 
+            $stmt = $db->prepare("SELECT * FROM  square_account");
+            $stmt->execute();
+            $square_account = $stmt->fetch();       
 
-            /*
-            appId_square=sandbox-sq0idb-yPqsgRsRdPMdHTk7zApWPg
-            locId_square=LZZBFCYEW6Y2M
-            accessToken_square=EAAAl9cDwyU4FQwzfkJ8ge4kEYjsThSgsR6Cww34jRhn6ayhdnsB6S26ajhcf6b4
-            */
-            // ── Configuración ─────────────────────────────────────────────────────────────
-            $accessToken = 'EAAAl9cDwyU4FQwzfkJ8ge4kEYjsThSgsR6Cww34jRhn6ayhdnsB6S26ajhcf6b4';
-            $locationId  = 'LZZBFCYEW6Y2M';
+            $accessToken = $square_account['Token'];
+            $locationId  = $square_account['LocalId'];
+
 
             // ── Recibir token del frontend ─────────────────────────────────────────────────
             //$input = json_decode(file_get_contents('php://input'), true);
@@ -491,14 +532,16 @@ function processpayment($table_name,$db, $method, $id, $data){
     global $IDS;
     switch ($method) {
         case 'POST': 
-        /*
-        id_OPAY=mles9ufd4m3rlilw00i8
-        sk_OPAY=sk_ab545fdf98b446e78ed7ef908d1687a2
-        pk_OPAY=pk_ed306f11c3764a9da955092ee7350160
-        */
-        // 1. Configuración de credenciales (Asegúrate de usar las tuyas)
-        $merchantId = 'mles9ufd4m3rlilw00i8';
-        $privateKey = 'sk_ab545fdf98b446e78ed7ef908d1687a2'; // REEMPLAZA CON TU LLAVE PRIVADA (sk_...)
+
+        $stmt = $db->prepare("SELECT * FROM  opay_account");
+        $stmt->execute();
+        $opay_account = $stmt->fetch();       
+
+
+        $merchantId = $opay_account['Id'];
+        $privateKey = $opay_account['SecretKey'];            
+
+
         $countryCode = 'MX';
         $clientIp = $_SERVER['REMOTE_ADDR'];
         $isSandbox = true;

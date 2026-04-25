@@ -18,10 +18,6 @@ use Square\Types\Currency;
 use Square\Exceptions\SquareApiException;
 use Square\Exceptions\SquareException;
 
-// ── Configuración ─────────────────────────────────────────────────────────────
-$accessToken = accessToken_square;
-$locationId  = locId_square;
-
 // ── Recibir token del frontend ─────────────────────────────────────────────────
 //$input = json_decode(file_get_contents('php://input'), true);
 $token_id =  $_POST['token_id'] ?? null;
@@ -57,6 +53,15 @@ if (!$token_id) {
         echo "Enlace no válido.";
         die();
     }        
+
+
+    $stmt = $db->prepare("SELECT * FROM  square_account");
+    $stmt->execute();
+    $square_account = $stmt->fetch();       
+
+    $accessToken = $square_account['Token'];
+    $locationId  = $square_account['LocalId'];
+
 
     $stmt = $db->prepare("SELECT IdBranch FROM lead WHERE Id = ? ");
     $stmt->execute([$cotizacion['IdQuote']]);

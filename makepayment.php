@@ -274,12 +274,16 @@ else
         </div>
     </div>
 </div>
-<?php if ($PayPlatform == 'OPAY'){?>
+<?php if ($PayPlatform == 'OPAY'){
+        $stmt = $db->prepare("SELECT * FROM  opay_account");
+        $stmt->execute();
+        $opay_account = $stmt->fetch();
+    ?>
     <script>
         $(document).ready(function() {
             // Configuración Openpay
-            OpenPay.setId('<?php echo id_OPAY?>');
-            OpenPay.setApiKey('<?php echo pk_OPAY?>');
+            OpenPay.setId('<?php echo $opay_account['Id'];?>');
+            OpenPay.setApiKey('<?php echo $opay_account['PublicKey'];?>');
             OpenPay.setSandboxMode(true);
             OpenPay.deviceData.setup("payment-form", "deviceIdHiddenFieldName");
 
@@ -374,11 +378,16 @@ else
     </script>
 <?php }
     else{
+
+    $stmt = $db->prepare("SELECT * FROM  square_account");
+    $stmt->execute();
+    $square_account = $stmt->fetch();       
+
 ?>
     <script type="text/javascript" src="https://sandbox.web.squarecdn.com/v1/square.js"></script>
     <script>
-        const appId = '<?php echo appId_square;?>';
-        const locId = '<?php echo locId_square;?>';
+        const appId = '<?php echo $square_account['Id'];?>';
+        const locId = '<?php echo $square_account['LocalId'];?>';
 
             async function initSquare() {
             const payments = Square.payments(appId, locId);
