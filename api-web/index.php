@@ -87,7 +87,8 @@ $headers = getallheaders();
 
 $authHeader = $headers['Authorization'] ?? '';
 $token = str_replace('Bearer ', '', $authHeader);
-$clienteId = $headers['X-ID-CLIENT'] ?? '';
+$clienteId = $_SERVER['HTTP_X_ID_CLIENT'] ?? null;
+//$clienteId = $headers['X-ID-CLIENT'] ?? '';
 
 $database = new DatabaseLogin();
 $db = $database->getConnection();
