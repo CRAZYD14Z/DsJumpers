@@ -1167,10 +1167,10 @@ function clone_record($table_name,$db, $method, $id, $data){
                 //clonarRegistrosRelacionados($db, 'products_item_price', 'Product', $id, $nuevoId);
                 clonarRegistrosRelacionados($db, 'products_categories', 'Product', $id, $nuevoId);
                 clonarRegistrosRelacionados($db, 'products_images', 'Product', $id, $nuevoId);
-                clonarRegistrosRelacionados($db, 'packing_list', 'Producto_pl', $id, $nuevoId);
-                clonarRegistrosRelacionados($db, 'related_products', 'Producto_rp', $id, $nuevoId);
-                clonarRegistrosRelacionados($db, 'upselling_products', 'Producto_up', $id, $nuevoId);
-                clonarRegistrosRelacionados($db, 'relationship_products', 'Producto_sp', $id, $nuevoId);
+                clonarRegistrosRelacionados($db, 'packing_list', 'Producto_pl', $id, $nuevoId); //Lista de embalaje
+                clonarRegistrosRelacionados($db, 'related_products', 'Producto_rp', $id, $nuevoId); //Accesorios, complementos, banners y opciones
+                clonarRegistrosRelacionados($db, 'upselling_products', 'Producto_up', $id, $nuevoId); //Venta adicional
+                clonarRegistrosRelacionados($db, 'relationship_products', 'Producto_sp', $id, $nuevoId); //Relación
                 clonarRegistrosRelacionados($db, 'cost_products', 'Product', $id, $nuevoId);
                 clonarRegistrosRelacionados($db, 'products_files', 'Product', $id, $nuevoId);
 
@@ -1725,6 +1725,8 @@ function get_related_products($table_name,$db, $method, $id, $data){
     switch ($method) {
         case 'GET': 
             $IdP = isset($_GET['IdP']) ? (int)$_GET['IdP'] : 0;
+            $IdCat = isset($_GET['IdCat']) ? (int)$_GET['IdCat'] : 0;
+            
 
             $DateS_raw = isset($_GET['DateS']) ? $_GET['DateS'] : date('Y-m-d\TH:i');
             $DateE_raw = isset($_GET['DateE']) ? $_GET['DateE'] : date('Y-m-d\TH:i');
@@ -1812,10 +1814,11 @@ function get_related_products($table_name,$db, $method, $id, $data){
                 WHERE Producto_rp = :idp  AND 
                             Estatus_price_list = 1 AND
                             Estatus_price = 1 AND 
-                :date BETWEEN  FechaHoraInicio AND FechaHoraFin $DayWeek                                   
-            ";                            
+                :date BETWEEN  FechaHoraInicio AND FechaHoraFin $DayWeek  GROUP BY Producto                                 
+            ";
             $stmt = $db->prepare($query);
             $stmt->bindParam(':idp', $IdP, PDO::PARAM_INT);
+            //$stmt->bindParam(':idcat', $IdCat, PDO::PARAM_INT);//Category = :idcat AND
             $stmt->bindParam(':date', $fechaS, PDO::PARAM_STR);
             //$stmt->bindValue(1, $IdCat);
             //$stmt->bindValue(2, $Date);
@@ -2598,9 +2601,16 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
         $Quotes = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($Quotes){
             $UUID = $Quotes['UUID'];
-        }    
+        }
 
-    echo json_encode(["status" => "success", "IdLead" => $idLead, "UUID" => $UUID]);
+        $stmt = $db->prepare("select Folio FROM lead WHERE Id = ?");
+        $stmt->execute([$idLead]);
+        $Lead = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($Lead){
+            $Folio = $Lead['Folio'];
+        }        
+
+    echo json_encode(["status" => "success", "IdLead" => $idLead,"Folio" => $Folio, "UUID" => $UUID]);
 
 
 
@@ -2768,17 +2778,25 @@ function get_packing_list($table_name,$db, $method, $id, $data){
         case 'GET': 
             // Consulta con lógica de negocio integrada
             $sql = "SELECT
-                        packing_list.Item, 
-                        SUM(packing_list.Quantity_pl) as Quantity
+                        products.`Name` as Item, 
+                        sum(packing_list.Quantity_pl) as Quantity
                     FROM
+                        lead
+                        INNER JOIN
                         lead_detail
+                        ON 
+                            lead.Id = lead_detail.IdLead
                         INNER JOIN
                         packing_list
                         ON 
-                            lead_detail.IdProduct = packing_list.Producto_pl
-                    WHERE 
-                    lead_detail.IdLead = :id
-                    GROUP BY packing_list.Item";
+                            lead_detail.IdProduct = packing_list.Producto_pl AND
+                            lead.Surface = packing_list.Surface
+                        INNER JOIN
+                        products
+                        ON 
+                            packing_list.Producto_rpl = products.Id
+                            WHERE lead.Id = :id
+                            GROUP BY packing_list.Producto_rpl";
             //die ($sql);
             $stmt = $db->prepare($sql);
             $stmt->bindValue(':id', $id, PDO::PARAM_INT);

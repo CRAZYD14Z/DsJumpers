@@ -132,7 +132,7 @@ if ($resource !== 'login') {
         // Si faltan menos de 600 segundos (10 minutos) para que expire
         if (($decoded_token->exp - $now) < 600) {
             // Generar un nuevo token con el mismo payload
-            $nuevoToken = JWT::encode((array)$decoded, SECRET_KEY, 'HS256');
+            $nuevoToken = JWT::encode((array)$decoded_token, SECRET_KEY, 'HS256');
             // Enviar el nuevo token en un header para que el cliente lo actualice
             header("Authorization-Update: " . $nuevoToken);
         }        

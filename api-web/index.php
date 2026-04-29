@@ -76,7 +76,7 @@ header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS"); // Incluir OPTIONS para CORS
 header("Access-Control-Max-Age: 3600");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, ID2,ID3,ID4");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, ID2,ID3,ID4,X-ID-CLIENT");
 
 // Manejo de solicitudes OPTIONS (preflight requests de CORS)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -426,9 +426,9 @@ function processpayment_square($table_name,$db, $method, $id, $data){
                     $stmt->execute();
                     $venue = $stmt->fetch(PDO::FETCH_ASSOC);       
 
-
-                    $header = "MIME-Version: 1.0\r\n";
-                    $header .= "Content-Type: text/html; charset=UTF-8\r\n";
+                    $header = "";
+                    //$header = "MIME-Version: 1.0\r\n";
+                    //$header .= "Content-Type: text/html; charset=UTF-8\r\n";
                     $header .= $Template['Nombre']."\r\n";            
                                 // Incluimos el teléfono en el cuerpo del correo
                     $cuerpo = "<html>".$Template['Template']."</html>";
@@ -680,9 +680,9 @@ function processpayment($table_name,$db, $method, $id, $data){
                     $stmt->execute();
                     $venue = $stmt->fetch(PDO::FETCH_ASSOC);       
 
-
-                    $header = "MIME-Version: 1.0\r\n";
-                    $header .= "Content-Type: text/html; charset=UTF-8\r\n";
+                    $header = "";
+                    //$header = "MIME-Version: 1.0\r\n";
+                    //$header .= "Content-Type: text/html; charset=UTF-8\r\n";
                     $header .= $Template['Nombre']."\r\n";            
                                 // Incluimos el teléfono en el cuerpo del correo
                     $cuerpo = "<html>".$Template['Template']."</html>";
@@ -820,7 +820,7 @@ function quote_data($table_name,$db, $method, $id, $data){
             $stmt->execute();
             $venue = $stmt->fetch(PDO::FETCH_ASSOC);               
 
-            
+/*            
             $query = "
                 SELECT 
                     ld.*, 
@@ -829,6 +829,18 @@ function quote_data($table_name,$db, $method, $id, $data){
                 FROM lead_detail ld
                 LEFT JOIN products p ON p.Id = (CASE WHEN ld.IdProductRel > 0 THEN ld.IdProductRel ELSE ld.IdProduct END)
                 LEFT JOIN products_images pi ON pi.Product = (CASE WHEN ld.IdProductRel > 0 THEN ld.IdProductRel ELSE ld.IdProduct END)
+                WHERE ld.IdLead = :id_lead
+                GROUP BY ld.Id
+            ";
+*/
+            $query = "
+                SELECT 
+                    ld.*, 
+                    p.Name AS ProductName, 
+                    pi.Image AS ProductImage
+                FROM lead_detail ld
+                LEFT JOIN products p ON p.Id =  ld.IdProduct 
+                LEFT JOIN products_images pi ON pi.Product = ld.IdProduct
                 WHERE ld.IdLead = :id_lead
                 GROUP BY ld.Id
             ";
@@ -1095,9 +1107,9 @@ function sendbook($table_name,$db, $method, $id, $data){
             $stmt->execute();
             $venue = $stmt->fetch(PDO::FETCH_ASSOC);            
 
-
-            $header = "MIME-Version: 1.0\r\n";
-            $header .= "Content-Type: text/html; charset=UTF-8\r\n";
+            $header = "";
+            //$header = "MIME-Version: 1.0\r\n";
+            //$header .= "Content-Type: text/html; charset=UTF-8\r\n";
             $header .= $Template['Nombre']."\r\n";            
                         // Incluimos el teléfono en el cuerpo del correo
             $cuerpo = "<html>".$Template['Template']."</html>";
@@ -1959,8 +1971,8 @@ try {
                         $Total+= $extra->precio * $item->cantidad ;
                         $stmtDetail->execute([
                             $idLead,
-                            $item->id,
                             $extra->id,
+                            $item->id,
                             $item->cantidad,
                             '0',
                             '0',
@@ -2016,9 +2028,9 @@ try {
             $stmt->execute();
             $Template = $stmt->fetch(PDO::FETCH_ASSOC);        
 
-
-            $header = "MIME-Version: 1.0\r\n";
-            $header .= "Content-Type: text/html; charset=UTF-8\r\n";
+            $header = "";
+            //$header = "MIME-Version: 1.0\r\n";
+            //$header .= "Content-Type: text/html; charset=UTF-8\r\n";
             $header .= $Template['Nombre']."\r\n";            
                         // Incluimos el teléfono en el cuerpo del correo
             $cuerpo = "<html>".$Template['Template']."</html>";

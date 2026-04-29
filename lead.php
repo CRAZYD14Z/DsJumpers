@@ -28,7 +28,7 @@ function Trd($Id){
 
 include_once 'head.php';
 
-    $query = "select NombreCompania, Direccion,Direccion2, Ciudad,CP,Estado,Pais,TelefonoCelular FROM account";
+    $query = "select Logo,WebSite, NombreCompania, Direccion,Direccion2, Ciudad,CP,Estado,Pais,TelefonoCelular FROM account";
     $stmt = $db->prepare($query);
     $stmt->execute();
     $account = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -134,7 +134,7 @@ include_once 'head.php';
             </div>
             <div class="modal-footer border-0 bg-light">
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal"><?php echo Trd(69)?></button>
-                <button type="button" class="btn btn-dark btn-sm" id="ShareButton" onclick="var newTab = window.open('quote.php?Id='+$('#UUID').val(), '_blank');">
+                <button type="button" class="btn btn-dark btn-sm" id="ShareButton" onclick="var newTab = window.open('<?= $account['WebSite'] ?>quote.php?Id='+$('#UUID').val(), '_blank');">
                     <i class="fa-solid fa-share-nodes"></i><?php echo Trd(70)?>
                 </button>
 
@@ -193,11 +193,17 @@ include_once 'head.php';
     let Rltpc = 0;
     let TrDsc = 0;
 
+    let SCat = 0;
+
     //AUTO GUARDADO !!
     // Variable para controlar el tiempo de espera (debounce)
     let autoSaveTimer;
     let autoSaveTimerQuant;    
 
+    let CurrentOrganization = 0;
+    let CurrentCustomer = 0;
+    let CurrentVenue = 0;
+    let CurrentSurface = 0;
 
     class ProductCounter {
         constructor() {
@@ -1038,6 +1044,7 @@ $(document).on("keypress", ".numbers-only", function (e) {
             const FHI = $('#fechahorainicio').val(); // "2026-02-04T18:30"
             const FHF = $('#fechahorafin').val(); // "2026-02-04T18:30"
             //alert(FHIp[0].replaceAll('-',''))
+            SCat = IdCat;
             $.ajax ({
                 url: API_BASE_URL+"get_products_categories/?IdCat="+IdCat+"&DateS="+FHI+"&DateE="+FHF, // URL de tu Web Service
                 type: 'GET',
@@ -1119,7 +1126,7 @@ $(document).on("keypress", ".numbers-only", function (e) {
             const FHI = $('#fechahorainicio').val(); // "2026-02-04T18:30"
             const FHF = $('#fechahorafin').val(); // "2026-02-04T18:30"
             $.ajax ({
-                url: API_BASE_URL+"get_related_products/?IdP="+IdCat+"&DateS="+FHI+"&DateE="+FHF, // URL de tu Web Service
+                url: API_BASE_URL+"get_related_products/?IdP="+IdCat+"&IdCat="+SCat+"&DateS="+FHI+"&DateE="+FHF, // URL de tu Web Service
                 type: 'GET',
                 dataType: 'json', // Indica que esperamos JSON
                 headers: {
@@ -2126,6 +2133,20 @@ function cerrarBarra() {
 
 function LoadDocument(DocumentType){
 
+    if (!CurrentOrganization && !CurrentCustomer){
+        alert('<?= Trd(95) ?>')
+        return;
+    }
+    if (!CurrentVenue) {
+        alert('<?= Trd(96) ?>')
+        return;
+    }
+    if (!CurrentSurface) {
+        alert('<?= Trd(97) ?>')
+        return;
+    }    
+    
+
     const FHI = $('#fechahorainicio').val(); // "2026-02-04T18:30"
     const FHF = $('#fechahorafin').val(); // "2026-02-04T18:30"
     const FHIp = FHI.split('T')
@@ -2165,8 +2186,9 @@ function LoadDocument(DocumentType){
     ?>
 
     const datosGenerales = {
-        leadid: $('#IdLead').val(),
+        leadid: $('#Folio').val(),
         contractsentdate: "",
+        company_logo: "<?php echo $account['Logo']?>",
         company_name: "<?php echo $account['NombreCompania']?>",
         company_address:"<?php echo $account['Direccion']." ".$account['Direccion2'];?>",
         company_city:"<?php echo $account['Ciudad']." ".$account['CP'];?>",
@@ -2551,7 +2573,7 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
 
     function autosave_lead(){
         <?php 
-            if ($lead['Status'] == 'confirmed')
+            if (isset($lead) AND $lead['Status'] == 'confirmed')
                 echo "return;";
         ?>
 
@@ -2594,6 +2616,11 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
             Nt1:        $('#Note_1').val(),
             Nt2:        $('#Note_2').val()
         };
+
+        CurrentOrganization = $('#IdOrganization').val() || $('#Organization').val();
+        CurrentCustomer = $('#IdCustomer').val() || $('#Customer').val();
+        CurrentVenue = $('#IdVenue').val() || $('#Venue').val();
+        CurrentSurface = $('#Surface').val();        
 
         let detalleProductos = [];
         for (f=1; f<= Row;f++){
@@ -2662,6 +2689,7 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
                 //alert(response.IdLead)
                 $('#IdLead').val(response.IdLead);
                 $('#UUID').val(response.UUID);                
+                $('#Folio').val(response.Folio);    
                 lanzarMensaje("<?php echo Trd(94)?>", tipo = 'exito');
                 
             }
@@ -2816,7 +2844,7 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
 
 
 <?php 
-if ($lead['Status'] == 'confirmed'){
+if (isset($lead) AND $lead['Status'] == 'confirmed'){
 
 echo "
 $(window).on('scroll', function() {

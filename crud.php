@@ -265,7 +265,7 @@ session_start();
                                     $checkColumn = $db->query("SHOW COLUMNS FROM $TablaDts LIKE 'Idioma'");
                                     $columnExists = $checkColumn->fetch();                            
                                     if ($columnExists) {
-                                            $query ="SELECT $CampoValor,$CampoDescripcion FROM $TablaDts WHERE Idioma = '$idioma' $Filtro ";
+                                            $query ="SELECT $CampoValor,$CampoDescripcion FROM $TablaDts WHERE Idioma = '$Idioma' $Filtro ";
                                     }
                                     else{
                                         $query ="SELECT $CampoValor,$CampoDescripcion FROM $TablaDts WHERE 1 = 1  $Filtro ";
@@ -299,7 +299,7 @@ session_start();
                                     $checkColumn = $db->query("SHOW COLUMNS FROM $TablaDts LIKE 'Idioma'");
                                     $columnExists = $checkColumn->fetch();                            
                                     if ($columnExists) {
-                                            $query ="SELECT $CampoValor,$CampoDescripcion FROM $TablaDts WHERE Idioma = '$idioma' $Filtro ";
+                                            $query ="SELECT $CampoValor,$CampoDescripcion FROM $TablaDts WHERE Idioma = '$Idioma' $Filtro ";
                                     }
                                     else{
                                         $query ="SELECT $CampoValor,$CampoDescripcion FROM $TablaDts WHERE 1 = 1  $Filtro ";
@@ -950,9 +950,9 @@ session_start();
 
     function Copiar(Id){
     
-            var misHeaders = {
-                'Authorization': 'Bearer ' + TOKEN
-            };
+        var misHeaders = {
+            'Authorization': 'Bearer ' + TOKEN
+        };
 
             //misHeaders['ID2'] = 'products';
             //misHeaders['ID3'] = 'Id';
