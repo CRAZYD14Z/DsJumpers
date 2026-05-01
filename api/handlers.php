@@ -2746,13 +2746,13 @@ function operation($table_name,$db, $method, $id, $data){
                     END AS NombreMostrar
                     FROM v_operations
                     WHERE (NombreOrganizacion LIKE :s OR NombreCliente LIKE :s OR ApellidosCliente LIKE :s) and id_vehicle > 0  AND Status <> 'ALMACENADO'                 
-                    ORDER BY StartDateTime, id_vehicle, orden  DESC"; 
+                    ORDER BY  StartDateTime,id_vehicle, orden  ASC"; 
 //                    LIMIT :limit OFFSET :offset";
 
             $stmt = $db->prepare($sql);
             $stmt->bindValue(':s', "%$search%", PDO::PARAM_STR);
-            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            //$stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            //$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
             $stmt->execute();            
 
 
@@ -3145,7 +3145,7 @@ function delete_route($table_name,$db, $method, $id, $data){
 
                         $db->prepare("DELETE FROM operation_checklist WHERE id_operation = ? AND stage <> 'SURTIDO'")->execute([$registro['id_operation']]);
 
-                        $db->prepare("DELETE FROM operation_evidence WHERE id_route = ?")->execute([$resultado['id_route']]);                        
+                        $db->prepare("DELETE FROM operation_evidence WHERE id_operation = ?")->execute([$registro['id_operation']]);                        
                     }
                 }
             }            
@@ -3361,36 +3361,37 @@ function payment_report($table_name,$db, $method, $id, $data){
     switch ($method) {
         case 'POST': 
 
-$fechaInicio = $_POST['fecha_inicio'] ?? date('Y-m-d');
-$fechaFin = $_POST['fecha_fin'] ?? date('Y-m-d');
+            $fechaInicio = $_POST['fecha_inicio'] ?? date('Y-m-d');
+            $fechaFin = $_POST['fecha_fin'] ?? date('Y-m-d');
 
-$usuario = $_POST['usuario'] ?? '';
-$sql = "SELECT payments.Folio, payments.DateTime as FechadePago, payments.Platform, 
-               payments.Amount, payments.Currency, payments.TransactionId, payments.Estatus,
-        CASE WHEN v_leads.NombreOrganizacion IS NULL THEN CONCAT(v_leads.NombreCliente, ' ', v_leads.ApellidosCliente) 
-             ELSE v_leads.NombreOrganizacion END AS Cliente,
-        CASE WHEN usuarios.nombre IS NULL THEN 'Link Pago' ELSE usuarios.nombre END AS Usuario
-        FROM payments
-        LEFT JOIN usuarios ON payments.Usuario = usuarios.usuario
-        INNER JOIN v_leads ON payments.IdLead = v_leads.Id
-        WHERE DATE(payments.DateTime) BETWEEN :inicio AND :fin";
+            $usuario = $_POST['usuario'] ?? '';
+            $sql = "SELECT payments.Folio, payments.DateTime as FechadePago, payments.Platform, 
+                        payments.Amount, payments.Currency, payments.TransactionId, payments.Estatus,
+                    CASE WHEN v_leads.NombreOrganizacion IS NULL THEN CONCAT(v_leads.NombreCliente, ' ', v_leads.ApellidosCliente) 
+                        ELSE v_leads.NombreOrganizacion END AS Cliente,
+                    CASE WHEN usuarios.nombre IS NULL THEN 'Link Pago' ELSE usuarios.nombre END AS Usuario,
+                    v_leads.Id
+                    FROM payments
+                    LEFT JOIN usuarios ON payments.Usuario = usuarios.usuario
+                    INNER JOIN v_leads ON payments.IdLead = v_leads.Id
+                    WHERE DATE(payments.DateTime) BETWEEN :inicio AND :fin";
 
-if ($usuario !== '') {
-    $sql .= " AND usuarios.nombre = :usuario";
-}
+            if ($usuario !== '') {
+                $sql .= " AND usuarios.nombre = :usuario";
+            }
 
-$stmt = $db->prepare($sql);
+            $stmt = $db->prepare($sql);
 
-// Bind de parámetros con PDO
-$stmt->bindValue(':inicio', $fechaInicio);
-$stmt->bindValue(':fin', $fechaFin);
+            // Bind de parámetros con PDO
+            $stmt->bindValue(':inicio', $fechaInicio);
+            $stmt->bindValue(':fin', $fechaFin);
 
-if ($usuario !== '') {
-    $stmt->bindValue(':usuario', $usuario);
-}
+            if ($usuario !== '') {
+                $stmt->bindValue(':usuario', $usuario);
+            }
 
-$stmt->execute();
-$data = $stmt->fetchAll(PDO::FETCH_ASSOC);    
+            $stmt->execute();
+            $data = $stmt->fetchAll(PDO::FETCH_ASSOC);    
 
 
             http_response_code(200);
@@ -3447,6 +3448,145 @@ function reassign_route($table_name,$db, $method, $id, $data){
         break;
     }
 }
+function reschedule($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'PUT': 
+                
+            
+            $DateS_raw = $data->Start;
+            $DateE_raw = $data->End;
+
+            $objDateS = new DateTime($DateS_raw);
+            $objDateE = new DateTime($DateE_raw);
+
+            $fechaS = $objDateS->format('Ymd'); // 2026-02-04
+            $horaS  = $objDateS->format('H:i');   // 18:00
+
+            $fechaE = $objDateE->format('Ymd'); // 2026-02-05
+            $horaE  = $objDateE->format('H:i');   // 02:00
+
+            $DayWeek = date('w', strtotime($fechaS));
+
+            switch ($DayWeek) {
+                case '0':
+                    $DayWeek =' AND Do = 1 ';
+                break;
+                case '1':
+                    $DayWeek =' AND Lu = 1 ';
+                break;
+                case '2':
+                    $DayWeek =' AND Ma = 1 ';
+                break;
+                case '3':
+                    $DayWeek =' AND Mi = 1 ';
+                break;
+                case '4':
+                    $DayWeek =' AND Ju = 1 ';
+                break;
+                case '5':
+                    $DayWeek =' AND Vi = 1 ';
+                break;
+                case '6':
+                    $DayWeek =' AND Sa = 1 ';
+                break;
+            }                
+
+
+
+                $data->Start = str_replace("T", " ", $data->Start);
+                $data->End = str_replace("T", " ", $data->End);
+
+                //ACTUALIZAR FECHA
+                $queryI ="UPDATE lead SET StartDateTime = :startdatetime, EndDateTime = :enddatetime, FechaCreacion = now()  WHERE Id = :lead";
+                $stmtI = $db->prepare($queryI);
+                $stmtI->bindValue(":startdatetime", $data->Start);
+                $stmtI->bindValue(":enddatetime", $data->End);
+                $stmtI->bindValue(":lead", $data->Lead);
+                $stmtI->execute();
+
+                $queryI ="SELECT * FROM lead_detail WHERE IdLead = :lead";
+                $stmtI = $db->prepare($queryI);
+                $stmtI->bindValue(":lead", $data->Lead);
+                $stmtI->execute();
+                $resultados = $stmtI->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($resultados as $registro) {
+                    //echo 'Product:'. $registro['IdProduct'];
+                    $query = "
+                        SELECT * FROM v_items_prices_lists
+                        WHERE Producto = :idp  AND 
+                                    Estatus_price_list = 1 AND
+                                    Estatus_price = 1 AND 
+                        :date BETWEEN  FechaHoraInicio AND FechaHoraFin $DayWeek  GROUP BY Producto                                 
+                    ";
+                    $stmt = $db->prepare($query);
+                    $stmt->bindParam(':idp', $registro['IdProduct'], PDO::PARAM_INT);
+                    $stmt->bindParam(':date', $fechaS, PDO::PARAM_STR);
+                    $stmt->execute();
+
+                    $resultados_p = $stmt->fetchAll(PDO::FETCH_ASSOC);                
+
+                    if ($resultados_p) {
+                        foreach ($resultados_p as  $Precio) {
+                                $JsonPrice = $Precio['JsonPrice'];
+                                $JsonPrice = html_entity_decode($JsonPrice);
+                                $ingreso =  $objDateS->format('Y-m-d H:i:00');
+                                $salida  = $objDateE->format('Y-m-d H:i:00');
+                                // Modificamos directamente el arreglo usando el índice
+                                //$resultados_p[$index]['Price'] = calcularCostoEstanciaPHP($JsonPrice, $ingreso, $salida);
+                                $orgprice = calcularCostoEstanciaPHP($JsonPrice, $ingreso, $salida).' - '.$registro['IdProduct'];
+                                $queryI ="UPDATE lead_detail SET OrgPrice = :orgprice , Price = :orgpricep * Quantity WHERE IdLead = :lead AND IdProduct = :idproduct";
+                                $stmtI = $db->prepare($queryI);
+                                $stmtI->bindValue(":orgprice", $orgprice);
+                                $stmtI->bindValue(":orgpricep", $orgprice);
+                                $stmtI->bindValue(":lead", $data->Lead);
+                                $stmtI->bindValue(":idproduct", $registro['IdProduct']);
+                                $stmtI->execute();
+                        }
+                    }
+                }
+            http_response_code(200);
+            echo json_encode(array("message" => "Registro actualizado."));
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+}
+
+function swap_order($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+
+            $queryI ="UPDATE operation_master SET orden = :orden WHERE Id_operation = :id_operation";
+            $stmtI = $db->prepare($queryI);
+            $stmtI->bindValue(":orden", $data->orden_1);
+            $stmtI->bindValue(":id_operation", $data->id_1);
+            $stmtI->execute();        
+            $queryI ="UPDATE operation_master SET orden = :orden WHERE Id_operation = :id_operation";
+            $stmtI = $db->prepare($queryI);
+            $stmtI->bindValue(":orden", $data->orden_2);
+            $stmtI->bindValue(":id_operation", $data->id_2);
+            $stmtI->execute();     
+            
+            operation($table_name,$db, "GET", $id, $data);          
+            
+            //http_response_code(200);
+            //echo json_encode(array("message" => "Registro actualizado."));
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+}            
+            
 
 function generar_uuid_v4() {
     // Generamos 16 bytes de datos aleatorios

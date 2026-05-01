@@ -1,6 +1,6 @@
     <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">DsJumpers</a>
+        <a class="navbar-brand" href="#">Gaxi Brincolines</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
         </button>
@@ -39,7 +39,7 @@
                 <li><a class="dropdown-item" href="pending_payments.php">Pending Payments</a></li>
                 <li><a class="dropdown-item" href="route.php">Armado de rutas</a></li>  
                 <li><a class="dropdown-item" href="operation.php">Operation</a></li>  
-                <li><a class="dropdown-item" href="acondicionamiento.php">Acondicionamiento</a></l
+                <li><a class="dropdown-item" href="acondicionamiento.php">Acondicionamiento</a></li>
                 <li><a class="dropdown-item" href="monitor.php">Monitor</a></li>  
                 <li><a class="dropdown-item" href="payment_report.php">Reporte de Pagos</a></li>  
                 <li><a class="dropdown-item" href="#" id="logout-link">Sign Out</a></li>
@@ -67,7 +67,7 @@
                 <li><a class="dropdown-item" href="pending_payments.php">Pendientes de pago</a></li>
                 <li><a class="dropdown-item" href="route.php">Armado de rutas</a></li>  
                 <li><a class="dropdown-item" href="operation.php">Operación</a></li> 
-                <li><a class="dropdown-item" href="acondicionamiento.php">Acondicionamiento</a></l                               
+                <li><a class="dropdown-item" href="acondicionamiento.php">Acondicionamiento</a></li>                               
                 <li><a class="dropdown-item" href="monitor.php">Monitor</a></li>  
                 <li><a class="dropdown-item" href="payment_report.php">Reporte de Pagos</a></li>                  
                 <li><a class="dropdown-item" href="#" id="logout-link">Salir</a></li>                

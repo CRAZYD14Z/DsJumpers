@@ -9,15 +9,9 @@
     $db = $database->getConnection();
     define('ID_CLIENTE' , $_SESSION['id_cliente']);
     //$_SESSION['Idioma'] = 'es';
+    include_once 'head.php';    
 ?>
-<!DOCTYPE html>
-<html lang="<?php echo $_SESSION['Idioma'];?>">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Configuración con Navbar</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
 
 <style>
 
@@ -488,8 +482,7 @@ foreach ($rows as $row) {
 </div>
 
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 
 <script>
 
@@ -552,6 +545,14 @@ foreach ($rows as $row) {
         });
         
     });
+
+    $(document).ajaxSuccess(function(event, xhr, settings) {
+        const nuevoToken = xhr.getResponseHeader('Authorization-Update');
+        if (nuevoToken) {
+            localStorage.setItem('apiToken', nuevoToken);
+            console.log("Token actualizado globalmente desde: " + settings.url);
+        }
+    }); 
 
     function getCoords() {
         if (navigator.geolocation) {

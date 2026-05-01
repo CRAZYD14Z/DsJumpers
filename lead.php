@@ -60,8 +60,6 @@ include_once 'head.php';
     font-weight: bold;
     text-transform: uppercase;
 }        
-        
-
 
     </style>    
 
@@ -72,6 +70,7 @@ include_once 'head.php';
 ?>
 <div class="container-fluid px-3">
     <?php
+        $IdLead = 0;
         if (isset($_GET['IdLead']) AND $_GET['IdLead'] > 0 ){
             $IdLead = $_GET['IdLead'];
             $query = "select * FROM lead WHERE Id = ?";
@@ -112,7 +111,7 @@ include_once 'head.php';
         require 'bottom.php';
 
         
-            if ($lead['Status'] == 'confirmed')
+            if (isset($lead) AND $lead['Status'] == 'confirmed')
                 echo "<div id='watermark'>CONFIRMADO</div>";
         
 
@@ -173,7 +172,14 @@ include_once 'head.php';
             </div>
             <div class="modal-footer bg-light border-0">
                 <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><?php echo Trd(75)?></button>
-                <button type="button" id="btnConfirmar" class="btn btn-primary px-4 fw-bold"><?php echo Trd(76)?></button>
+                <?php 
+                    if ($IdLead > 0 ){
+                        echo '<button type="button" id="btnReagendar" class="btn btn-primary px-4 fw-bold">'.Trd(98).'</button>';
+                    }
+                    else{
+                        echo '<button type="button" id="btnConfirmar" class="btn btn-primary px-4 fw-bold">'.Trd(76).'</button>';
+                    }
+                ?>                
             </div>
         </div>
     </div>
@@ -791,7 +797,7 @@ include_once 'head.php';
                     ";
                 }            
 
-                if ($lead['Status'] == 'confirmed'){
+                if (isset($lead) AND $lead['Status'] == 'confirmed'){
                     
                 }
 
@@ -845,6 +851,47 @@ include_once 'head.php';
                 //}
 
                 //CARGAR DETALLES
+
+                
+                $query = "
+                    SELECT IdProduct, SUM(Quantity) as Quantity 
+                    FROM v_leads_detail 
+                    WHERE Status = 'confirmed' 
+                    AND (StartDateTime < :DateE AND EndDateTime > :DateS)
+                    AND Unlimited = 0
+                    GROUP BY IdProduct
+                    
+                    UNION
+
+                    SELECT
+                        relationship_products.Producto_rsp as IdProduct, 
+                        count(relationship_products.Producto_rsp) as Quantity
+                    FROM
+                        v_leads_detail
+                        INNER JOIN
+                        relationship_products
+                        ON 
+                            v_leads_detail.IdProduct = relationship_products.Producto_sp
+                            
+                    WHERE v_leads_detail.Status = 'quoted' 
+                    AND (v_leads_detail.StartDateTime < :DateEE AND v_leads_detail.EndDateTime > :DateSS)
+                    AND v_leads_detail.Unlimited = 0
+                    GROUP BY relationship_products.Producto_rsp		                
+
+                ";
+
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(':DateS', $lead['StartDateTime']);
+                $stmt->bindParam(':DateE', $lead['EndDateTime']);
+                $stmt->bindParam(':DateSS', $lead['StartDateTime']);
+                $stmt->bindParam(':DateEE', $lead['EndDateTime']);
+                $stmt->execute();                
+
+                $ocupados = $stmt->fetchAll(PDO::FETCH_ASSOC);                
+
+                $cantidadesOcupadas = array_column($ocupados, 'Quantity', 'IdProduct');                        
+
+
                 if ($lead_details) {
                     foreach ($lead_details as $lead_detail) {
 
@@ -852,7 +899,14 @@ include_once 'head.php';
                     $stmt = $db->prepare($query);
                     $stmt->execute();
                     $product = $stmt->fetch(PDO::FETCH_ASSOC);  
-                    
+
+                            if (isset($cantidadesOcupadas[$lead_detail['IdProduct']])) {
+                                $cantidadOcupada = $cantidadesOcupadas[$lead_detail['IdProduct']];
+                                $cantidadOcupada-=$lead_detail['Quantity'];
+                            } else {
+                                $cantidadOcupada = 0;
+                            }
+
                     $query = "SELECT *  from products_images WHERE Product = ". $lead_detail['IdProduct']." ORDER BY Orden LIMIT 1";
                     $stmt = $db->prepare($query);
                     $stmt->execute();
@@ -876,11 +930,10 @@ include_once 'head.php';
                                 rel: '".$lead_detail['IdProductRel']."',
                                 product: '".$lead_detail['IdProduct']."',
                                 name:  '".$product['Name']."',
-                                quantity:  '".$product['Quantity']."',
+                                quantity:  '".$product['Quantity']-$cantidadOcupada."',
                                 quantityS:  '".$lead_detail['Quantity']."',
                                 unlimited:  '".$product['Unlimited']."',
-                                price:  '".$lead_detail['Price']."',
-                                priceS:  '".$lead_detail['Price']."',
+                                price:  '".$lead_detail['OrgPrice']."',
                                 taxable:  '".$lead_detail['Tax']."',
                                 operationstaff:  '".$product['OperationStaff']."',
                                 setupstaff:  '".$product['SetUpStaff']."',
@@ -891,7 +944,7 @@ include_once 'head.php';
                             },1
                             );
                             ";
-                    
+//                                priceS:  '".$lead_detail['Price']."',                    
                     }
                 }
                 //CARGAR DESCUENTOS  
@@ -916,7 +969,8 @@ include_once 'head.php';
 
             }
         ?>
-
+        //alert();
+        recalculate();
 
         });
 
@@ -1345,7 +1399,47 @@ document.addEventListener('DOMContentLoaded', function() {
         hFin.value = nuevaH.toString().padStart(2, '0') + ":00";
     });
 
-    // 4. Confirmar y formatear para datetime-local
+
+<?php if ($IdLead > 0 ){ ?>
+    document.getElementById('btnReagendar').addEventListener('click', function() {
+        const fechas = fp.selectedDates;
+        
+        if (fechas.length < 2) {
+            alert("<?php echo Trd(88)?>");
+            return;
+        }
+
+        // Formato ISO local: YYYY-MM-DD
+        const f1 = fechas[0].toLocaleDateString('sv-SE'); // sv-SE devuelve YYYY-MM-DD
+        const f2 = fechas[1].toLocaleDateString('sv-SE');
+
+        // Los inputs datetime-local requieren el formato: YYYY-MM-DDTHH:mm
+        document.getElementById('fechahorainicio').value = `${f1}T${hInicio.value}`;
+        document.getElementById('fechahorafin').value = `${f2}T${hFin.value}`;
+
+        $.ajax({
+            url: API_BASE_URL + "reschedule/",
+            method: 'PUT',
+            headers: { 
+                'Authorization': 'Bearer ' + TOKEN,
+                'Content-Type': 'application/json' 
+            },
+            data: JSON.stringify({ Lead: <?= $IdLead ?>,
+                                   Start:`${f1}T${hInicio.value}`,
+                                   End:`${f2}T${hFin.value}`
+             }),
+            success: function (response) {
+                location.reload(); 
+            },
+            error: function () {
+                //alert("No se pudo guardar la organización.");
+                //$('#Organization').val(null).trigger('change');
+            }
+        });     
+        bootstrap.Modal.getInstance(document.getElementById('modalReserva')).hide();
+    });    
+<?php }else{ ?>
+
     document.getElementById('btnConfirmar').addEventListener('click', function() {
         const fechas = fp.selectedDates;
         
@@ -1365,6 +1459,7 @@ document.addEventListener('DOMContentLoaded', function() {
         bootstrap.Modal.getInstance(document.getElementById('modalReserva')).hide();
     });
 
+<?php } ?>
     // Valores iniciales
     hInicio.value = "08:00";
     hInicio.dispatchEvent(new Event('change'));
@@ -2861,6 +2956,13 @@ $(window).on('scroll', function() {
 
 ?>    
 
+$(document).ajaxSuccess(function(event, xhr, settings) {
+    const nuevoToken = xhr.getResponseHeader('Authorization-Update');
+    if (nuevoToken) {
+        localStorage.setItem('apiToken', nuevoToken);
+        console.log("Token actualizado globalmente desde: " + settings.url);
+    }
+});
     </script>
 
 

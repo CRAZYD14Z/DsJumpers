@@ -130,8 +130,11 @@ if ($resource !== 'login') {
 
         $now = time();
         // Si faltan menos de 600 segundos (10 minutos) para que expire
+        //echo $decoded_token->exp- $now;
         if (($decoded_token->exp - $now) < 600) {
             // Generar un nuevo token con el mismo payload
+            $decoded_token->exp = time() + 3600;
+
             $nuevoToken = JWT::encode((array)$decoded_token, SECRET_KEY, 'HS256');
             // Enviar el nuevo token en un header para que el cliente lo actualice
             header("Authorization-Update: " . $nuevoToken);
@@ -171,6 +174,14 @@ if (isset($_SERVER['HTTP_ID5']))
 //print_r($IDS);
 //die();
 switch ($resource) {
+
+    case 'swap_order':
+        swap_order($resource,$db, $method, $id, $data);
+        break;
+
+    case 'reschedule':
+        reschedule($resource,$db, $method, $id, $data);
+        break;
 
     case 'payment_report':
         payment_report($resource,$db, $method, $id, $data);

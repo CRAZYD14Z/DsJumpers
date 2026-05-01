@@ -54,7 +54,6 @@ session_start();
     }    
 ?>
     <style>
-        
         h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
         #contenedor-funciones { margin-top: 20px; }
         #edit_contenedor-funciones { margin-top: 20px; }
@@ -2560,6 +2559,13 @@ function cargar() {
         
     });
 
+    $(document).ajaxSuccess(function(event, xhr, settings) {
+        const nuevoToken = xhr.getResponseHeader('Authorization-Update');
+        if (nuevoToken) {
+            localStorage.setItem('apiToken', nuevoToken);
+            console.log("Token actualizado globalmente desde: " + settings.url);
+        }
+    });        
 
 </script>
 

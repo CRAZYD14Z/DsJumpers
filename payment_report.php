@@ -1,16 +1,40 @@
 <?php
-    ob_start();
-    session_start(); 
-    // Incluye la clase de conexión a la BD
-    include_once 'valid_login.php';
-    include_once 'config/config.php';     
-    include_once 'config/database.php'; 
-    $database = new Database();
-    $db = $database->getConnection();
-    //$_SESSION['Idioma'] = 'es';
-    include_once 'head.php';
-    include_once 'nav.php';
+ob_start();
+session_start(); 
+// Incluye la clase de conexión a la BD
+include_once 'valid_login.php';
+include_once 'config/config.php';     
+include_once 'config/database.php'; 
+$database = new Database();
+$db = $database->getConnection();
+$Idioma = $_SESSION['Idioma'];
+
+include_once 'head.php';
 ?>
+
+<style>
+/* Clase personalizada para filas clickeables */
+.fila-lead {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+/* Resaltado al pasar el mouse (opcional si no usas table-hover de Bootstrap) */
+.fila-lead:hover {
+    background-color: rgba(0, 123, 255, 0.05) !important;
+}
+
+</style>
+</head>
+<body>
+<?php
+
+    include_once 'nav.php';
+
+?>
+
+
+
 <div class="container my-5">
     <div class="card shadow">
         <div class="card-header text-white d-flex justify-content-between align-items-center">
@@ -44,13 +68,20 @@
             <tbody id="tablaPagos">
                 </tbody>
         </table>
-</div></div></div>
+        </div>
+    </div>
+</div>
 
     
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+
+    const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
+    const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
+    const TOKEN = localStorage.getItem('apiToken'); 
+
+
 $('#btnBuscar').click(function() {
 
     let formData = new FormData();
@@ -102,7 +133,7 @@ for (let usuario in reportData) {
     
     // 1. Filas de detalle
     grupo.movimientos.forEach(mov => {
-        html += `<tr>
+        html += `<tr class="fila-lead" onclick="window.location.href='lead.php?IdLead=${mov.Id}'">
             <td>${mov.Folio}</td>
             <td>${mov.Cliente}</td>
             <td>${mov.Platform}</td>
@@ -135,58 +166,7 @@ $('#tablaPagos').html(html);
         error: function() {
         }
     });   
-});
-</script>
-
-
-
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-
-    const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
-    const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
-    const TOKEN = localStorage.getItem('apiToken'); 
-/*
-    function attemptLogin(username, password) {
-        $.ajax({
-            url: LOGIN_URL,
-            type: 'POST',
-            contentType: 'application/json', // Indica que enviamos JSON
-            data: JSON.stringify({
-                username: username,
-                password: password
-            }),
-            success: function(response) {
-                // Éxito: Guardar el token para futuras llamadas
-                const jwtToken = response.jwt;
-                //console.log('Login exitoso. Token:', jwtToken);
-                
-                // *** Almacena el token de forma segura (ej: localStorage) ***
-                localStorage.setItem('apiToken', jwtToken); 
-                
-            },
-            error: function(xhr, status, error) {
-                // Error: Credenciales inválidas (401) o error del servidor
-                const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'Error desconocido.';
-                //console.error('Error de login:', errorMessage);
-                //alert('Fallo el inicio de sesión: ' + errorMessage);
-            }
-        });
-    }    
-*/
-/*
-    $(document).ready(function() {
-        attemptLogin('admin', '1234'); 
-        if (TOKEN) {
-            //getRecordData(1); 
-        } else {
-            console.warn('No se encontró el token. Necesita iniciar sesión primero.');
-        }
-    });
-*/
+});    
 
     $('.lang-option').on('click', function(e) {
         e.preventDefault();
@@ -206,6 +186,13 @@ $('#tablaPagos').html(html);
         
     });
 
+    $(document).ajaxSuccess(function(event, xhr, settings) {
+        const nuevoToken = xhr.getResponseHeader('Authorization-Update');
+        if (nuevoToken) {
+            localStorage.setItem('apiToken', nuevoToken);
+            console.log("Token actualizado globalmente desde: " + settings.url);
+        }
+    });    
 
 </script>
 </body>

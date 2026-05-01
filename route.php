@@ -6,19 +6,10 @@
     include_once 'config/database.php'; 
     $database = new Database();
     $db = $database->getConnection();
-?>
-<!DOCTYPE html>
-<html lang="<?php echo $_SESSION['Idioma'] ?? 'es'; ?>">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logística · D's Jumpers</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+include_once 'head.php';    
+
+?>
 
 <style>
 /* ─── TOKENS ─────────────────────────────────────────────────────────── */
@@ -48,8 +39,7 @@
 html, body {
     height: 100%;
     margin: 0;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
+
     background: var(--surface);
     color: var(--ink);
     -webkit-font-smoothing: antialiased;
@@ -986,9 +976,7 @@ h1, h2, h3, h4, h5, h6,
 </div>
 
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCRw-m6FwodZdcIPw1rtAKWqvyziRm1ihM&callback=initMap" async defer></script>
 
 <script>
@@ -1945,6 +1933,37 @@ $(document).on('change', '.check-vehiculo, .check-envio', function() {
     const $badge = $('#nav-badge-sel');
     total > 0 ? $badge.text(total).show() : $badge.hide();
 });
+
+
+
+    $('.lang-option').on('click', function(e) {
+        e.preventDefault();
+
+        $.ajax({
+            url: 'cambiar_idioma.php',
+            type: 'POST',
+            data: { lang: $(this).data('lang') },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    // Recargamos para que el servidor lea la nueva sesión de idioma
+                    location.reload(); 
+                }
+            }
+        });
+        
+    });
+
+    $(document).ajaxSuccess(function(event, xhr, settings) {
+        const nuevoToken = xhr.getResponseHeader('Authorization-Update');
+        if (nuevoToken) {
+            localStorage.setItem('apiToken', nuevoToken);
+            console.log("Token actualizado globalmente desde: " + settings.url);
+        }
+    }); 
+
+
+
 
 </script>
 

@@ -9,19 +9,9 @@
     $db = $database->getConnection();
     //$_SESSION['Idioma'] = 'es';
     $refresh_interval = 60;
+    include_once 'head.php';    
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Monitor de Rutas — Tiempo Real</title>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
-
 <style>
 :root {
     --bg:          #f0f2f7;
@@ -470,9 +460,10 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-main);
     </div>
 </div>
 
-<!-- JS -->
+<!-- JS 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+-->
 <script>
 
 
@@ -540,6 +531,14 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-main);
         });
         
     });
+
+    $(document).ajaxSuccess(function(event, xhr, settings) {
+        const nuevoToken = xhr.getResponseHeader('Authorization-Update');
+        if (nuevoToken) {
+            localStorage.setItem('apiToken', nuevoToken);
+            console.log("Token actualizado globalmente desde: " + settings.url);
+        }
+    }); 
 
 
 

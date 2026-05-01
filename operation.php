@@ -45,12 +45,9 @@ if ($resultados) {
         $asignaciones.='{ IdVehiculo: '.$registro['id_vehicle'].', Fecha: "'.$registro['StartDateTime'].'", IdOperador: '.$registro['id_driver'].' },';
     }
 }
-
-
 include_once 'head.php';
 ?>
 <style>
-        body { background-color: #f4f7f6; }
 
         .table-container { background: white; border-radius: 12px; overflow: hidden; }
         /* Bordes laterales de colores según status */
@@ -96,7 +93,7 @@ include_once 'head.php';
 <div class="container my-5">
     <div class="card shadow">
         <div class="card-header text-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0 text-black">Reporte de Operaciones: Lavado, Limpieza y Reparación</h4>
+            <h4 class="mb-0 text-black">Reporte de Operaciones:</h4>
         </div>
     </div>     
        
@@ -208,7 +205,7 @@ include_once 'head.php';
 const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
 const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
 const TOKEN = localStorage.getItem('apiToken'); 
-
+let grupos = {};
 /*
 function attemptLogin(username, password) {
     $.ajax({
@@ -292,6 +289,62 @@ let operadores = [<?php echo $Operadores;?>];
 let asignaciones = [ <?php echo $asignaciones;?>];
 
 let rutas = [];
+
+function cambiarOrden(event, grupoKey, indexActual, direccion) {
+    event.stopPropagation(); // Evitar click en la fila
+
+    const grupo = grupos[grupoKey];
+    const indexDestino = (direccion === 'up') ? indexActual - 1 : indexActual + 1;
+
+    // Validación de seguridad
+    if (indexDestino < 0 || indexDestino >= grupo.items.length) return;
+
+    const itemActual = grupo.items[indexActual];
+    const itemDestino = grupo.items[indexDestino];
+
+    // Mostramos un loader o bloqueamos la UI opcionalmente
+    console.log(`Cambiando orden entre: ${itemActual.Id_operation} y ${itemDestino.Id_operation}`);
+
+    $.ajax({
+        url: API_BASE_URL + 'swap_order/',        
+        method: 'POST',
+        dataType: 'json',
+        headers: { 'Authorization': 'Bearer ' + TOKEN },        
+        data: JSON.stringify({
+            id_1: itemActual.Id_operation,
+            orden_1: itemDestino.orden, // El actual toma el orden del destino
+            id_2: itemDestino.Id_operation,
+            orden_2: itemActual.orden   // El destino toma el orden del actual
+        }),
+        success: function(response) {
+            /*
+            // 1. Intercambiar en el array local para que el re-render sea correcto
+            const temp = grupo.items[indexActual];
+            grupo.items[indexActual] = grupo.items[indexDestino];
+            grupo.items[indexDestino] = temp;
+
+            // 2. Intercambiar los valores de la propiedad 'orden'
+            const tempOrden = itemActual.orden;
+            itemActual.orden = itemDestino.orden;
+            itemDestino.orden = tempOrden;
+
+            // 3. Re-renderizar la tabla (limpiar y llamar a renderTable de nuevo)
+            $('#leadsData').empty();
+            renderTable( Object.values(grupos).flatMap(g => g.items) ); 
+            
+            // Nota: Si 'grupos' es una variable global, usa una lógica de refresco 
+            // que no duplique los datos.
+            */
+            $('#leadsData').empty();
+            //alert()
+            renderTable(response)
+            //alert()
+        },
+        error: function() {
+            alert("Error al cambiar el orden en la base de datos.");
+        }
+    });
+}
 
 
 function abrirAsignacion(event,date,route,Id_operation){
@@ -521,9 +574,104 @@ $(document).ready(function() {
         });
     }
 
+
+
+function abrirRutaEnMaps(event, destLat, destLng) {
+    // Evita que al hacer clic en el botón se dispare el evento de la fila (tr)
+    event.stopPropagation();
+
+    // Verificamos si el navegador soporta geolocalización
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            // Éxito: Tenemos la ubicación del dispositivo
+            const originLat = position.coords.latitude;
+            const originLng = position.coords.longitude;
+            
+            // Construimos la URL con origen y destino
+            const url = `https://www.google.com/maps/dir/?api=1&origin=${originLat},${originLng}&destination=${destLat},${destLng}&travelmode=driving`;
+            
+            window.open(url, '_blank');
+        }, function(error) {
+            // Error o permiso denegado: Abrimos maps solo con el destino (Google usará ubicación aproximada)
+            console.warn("No se pudo obtener la ubicación exacta:", error.message);
+            const urlFallback = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}`;
+            window.open(urlFallback, '_blank');
+        });
+    } else {
+        // El navegador no soporta geolocalización
+        const urlFallback = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}`;
+        window.open(urlFallback, '_blank');
+    }
+}
+
+
+    // Evento Scroll (Infinite Scroll)
+    $(window).on('scroll', function() {
+//        if ($(window).scrollTop() + $(window).height() >= $(document).height() - 300) {
+//            fetchLeads();
+//        }
+    });
+
+    // Evento de Búsqueda (Debounce para no saturar el servidor)
+    $('#txtSearch').on('keyup', function() {
+        clearTimeout(timer);
+        timer = setTimeout(function() {
+            fetchLeads(true);
+        }, 500);
+    });
+
+// Delegación de eventos para filas dinámicas
+$('#leadsData').on('click', '.clickable-row', function() {
+    const leadId = $(this).data('id'); // Obtenemos el ID del atributo data-id
+    const status = $(this).data('status'); // Obtenemos el ID del atributo data-id
+
+    if (status == "SURTIDO")
+        return;
+    
+    if (leadId) {
+        // Redirección a la página de detalles
+        window.location.href = `operations.php?IdOperation=${leadId}`;
+    }
+});    
+
+    // Carga inicial
+    fetchLeads();
+});    
+
+function abrirRutaEnMaps_(event, destLat, destLng) {
+    event.stopPropagation(); // Evitamos el conflicto con la fila
+
+    let url;
+    const destino = `${destLat},${destLng}`;
+
+    if (posicionActual) {
+        // Usamos la ubicación que ya teníamos guardada
+        const origen = `${posicionActual.lat},${posicionActual.lng}`;
+        url = `https://www.google.com/maps/dir/?api=1&origin=${origen}&destination=${destino}&travelmode=driving`;
+    } else {
+        // Si por alguna razón no se ha cargado (el usuario fue muy rápido o denegó permiso)
+        // Google Maps tratará de determinar el origen por su cuenta
+        url = `https://www.google.com/maps/dir/?api=1&destination=${destino}`;
+    }
+
+    window.open(url, '_blank');
+}
+
+    function getBadgeColor(status) {
+        const s = status.toLowerCase();
+        if (s.includes('parcial') || s.includes('draft') ) return 'status-parcial';
+        if (s.includes('cotizado') || s.includes('quoted')) return 'status-cotizado';
+        if (s.includes('confirmado') || s.includes('confirmed')) return 'status-confirmado';
+        if (s.includes('pendiente') || s.includes('pending')) return 'status-pendiente';
+        if (s.includes('completo') || s.includes('complete')) return 'status-completo';
+        if (s.includes('cancelado') || s.includes('canceled')) return 'status-cancelado';
+        return 'text-bg-secondary';
+    }
+
+
 function renderTable(data) {
     let rows = '';
-    const grupos = {};
+    grupos = {};
     
     // 1. Agrupar los datos
     $.each(data, function(i, item) {
@@ -641,6 +789,9 @@ const iddisplay = (botonChofer == ""  && item.Status == 'CARGA') ? "" : "d-none"
 const clickClass = isDisabled ? "" : "clickable-row";
 const cursorStyle = isDisabled ? "default" : "pointer";
 
+const isFirst = (j === 0);
+const isLast = (j === grupo.items.length - 1)
+
 rows += `
     <tr class="${statusClass} ${clickClass}" data-id="${item.Id_operation}" data-status="${item.Status}" style="cursor: ${cursorStyle};">
         <td class="ps-5">
@@ -658,9 +809,24 @@ rows += `
                     <div class="small text-secondary">${item.Ciudad}, ${item.Estado}</div>
                 </div>
 
+                <div class="btn-group ms-2">
+                    <!-- Botón UP -->
+                    <button type="button" class="btn btn-sm btn-outline-secondary" 
+                        ${isFirst ? 'disabled' : ''} 
+                        onclick="cambiarOrden(event, '${key}', ${j}, 'up')">
+                        <i class="fa-solid fa-chevron-up"></i>
+                    </button>
+                    
+                    <!-- Botón DOWN -->
+                    <button type="button" class="btn btn-sm btn-outline-secondary" 
+                        ${isLast ? 'disabled' : ''} 
+                        onclick="cambiarOrden(event, '${key}', ${j}, 'down')">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                </div>                
+
                 <button type="button" 
                         class="btn btn-sm btn-outline-primary ms-2"
-                        
                         onclick="abrirAsignacion(event,'${item.StartDateTime}','${item.id_route}','${item.Id_operation}')">
                         <i class="fa-solid fa-up-down"></i> Reasignar
                 </button>
@@ -681,96 +847,31 @@ rows += `
     $('#leadsData').append(rows);
 }
 
-function abrirRutaEnMaps(event, destLat, destLng) {
-    // Evita que al hacer clic en el botón se dispare el evento de la fila (tr)
-    event.stopPropagation();
+    $('.lang-option').on('click', function(e) {
+        e.preventDefault();
 
-    // Verificamos si el navegador soporta geolocalización
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-            // Éxito: Tenemos la ubicación del dispositivo
-            const originLat = position.coords.latitude;
-            const originLng = position.coords.longitude;
-            
-            // Construimos la URL con origen y destino
-            const url = `https://www.google.com/maps/dir/?api=1&origin=${originLat},${originLng}&destination=${destLat},${destLng}&travelmode=driving`;
-            
-            window.open(url, '_blank');
-        }, function(error) {
-            // Error o permiso denegado: Abrimos maps solo con el destino (Google usará ubicación aproximada)
-            console.warn("No se pudo obtener la ubicación exacta:", error.message);
-            const urlFallback = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}`;
-            window.open(urlFallback, '_blank');
+        $.ajax({
+            url: 'cambiar_idioma.php',
+            type: 'POST',
+            data: { lang: $(this).data('lang') },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    // Recargamos para que el servidor lea la nueva sesión de idioma
+                    location.reload(); 
+                }
+            }
         });
-    } else {
-        // El navegador no soporta geolocalización
-        const urlFallback = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}`;
-        window.open(urlFallback, '_blank');
-    }
-}
-
-    function getBadgeColor(status) {
-        const s = status.toLowerCase();
-        if (s.includes('parcial') || s.includes('draft') ) return 'status-parcial';
-        if (s.includes('cotizado') || s.includes('quoted')) return 'status-cotizado';
-        if (s.includes('confirmado') || s.includes('confirmed')) return 'status-confirmado';
-        if (s.includes('pendiente') || s.includes('pending')) return 'status-pendiente';
-        if (s.includes('completo') || s.includes('complete')) return 'status-completo';
-        if (s.includes('cancelado') || s.includes('canceled')) return 'status-cancelado';
-        return 'text-bg-secondary';
-    }
-
-    // Evento Scroll (Infinite Scroll)
-    $(window).on('scroll', function() {
-//        if ($(window).scrollTop() + $(window).height() >= $(document).height() - 300) {
-//            fetchLeads();
-//        }
+        
     });
 
-    // Evento de Búsqueda (Debounce para no saturar el servidor)
-    $('#txtSearch').on('keyup', function() {
-        clearTimeout(timer);
-        timer = setTimeout(function() {
-            fetchLeads(true);
-        }, 500);
-    });
-
-// Delegación de eventos para filas dinámicas
-$('#leadsData').on('click', '.clickable-row', function() {
-    const leadId = $(this).data('id'); // Obtenemos el ID del atributo data-id
-    const status = $(this).data('status'); // Obtenemos el ID del atributo data-id
-
-    if (status == "SURTIDO")
-        return;
-    
-    if (leadId) {
-        // Redirección a la página de detalles
-        window.location.href = `operations.php?IdOperation=${leadId}`;
-    }
-});    
-
-    // Carga inicial
-    fetchLeads();
-});    
-
-function abrirRutaEnMaps_(event, destLat, destLng) {
-    event.stopPropagation(); // Evitamos el conflicto con la fila
-
-    let url;
-    const destino = `${destLat},${destLng}`;
-
-    if (posicionActual) {
-        // Usamos la ubicación que ya teníamos guardada
-        const origen = `${posicionActual.lat},${posicionActual.lng}`;
-        url = `https://www.google.com/maps/dir/?api=1&origin=${origen}&destination=${destino}&travelmode=driving`;
-    } else {
-        // Si por alguna razón no se ha cargado (el usuario fue muy rápido o denegó permiso)
-        // Google Maps tratará de determinar el origen por su cuenta
-        url = `https://www.google.com/maps/dir/?api=1&destination=${destino}`;
-    }
-
-    window.open(url, '_blank');
-}
+    $(document).ajaxSuccess(function(event, xhr, settings) {
+        const nuevoToken = xhr.getResponseHeader('Authorization-Update');
+        if (nuevoToken) {
+            localStorage.setItem('apiToken', nuevoToken);
+            console.log("Token actualizado globalmente desde: " + settings.url);
+        }
+    }); 
 
 </script>
 

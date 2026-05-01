@@ -25,11 +25,9 @@ function Trd($Id){
     return $Traducciones[$Id];
 }
 
-
 include_once 'head.php';
 ?>
-<style>
-        body { background-color: #f4f7f6; }
+<style>       
         .sticky-search { position: sticky; top: 0; z-index: 1020; background: rgba(244, 247, 246, 0.95); padding: 20px 0; }
         .table-container { background: white; border-radius: 12px; overflow: hidden; }
         /* Bordes laterales de colores según status */
@@ -247,19 +245,45 @@ function renderTable(data) {
         }, 500);
     });
 
-// Delegación de eventos para filas dinámicas
-$('#leadsData').on('click', '.clickable-row', function() {
-    const leadId = $(this).data('id'); // Obtenemos el ID del atributo data-id
-    
-    if (leadId) {
-        // Redirección a la página de detalles
-        window.location.href = `payments.php?IdLead=${leadId}`;
-    }
-});    
-
+    // Delegación de eventos para filas dinámicas
+    $('#leadsData').on('click', '.clickable-row', function() {
+        const leadId = $(this).data('id'); // Obtenemos el ID del atributo data-id
+        
+        if (leadId) {
+            // Redirección a la página de detalles
+            window.location.href = `payments.php?IdLead=${leadId}`;
+        }
+    });    
     // Carga inicial
     fetchLeads();
 });    
+
+    $('.lang-option').on('click', function(e) {
+        e.preventDefault();
+
+        $.ajax({
+            url: 'cambiar_idioma.php',
+            type: 'POST',
+            data: { lang: $(this).data('lang') },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    // Recargamos para que el servidor lea la nueva sesión de idioma
+                    location.reload(); 
+                }
+            }
+        });
+        
+    });
+
+    $(document).ajaxSuccess(function(event, xhr, settings) {
+        const nuevoToken = xhr.getResponseHeader('Authorization-Update');
+        if (nuevoToken) {
+            localStorage.setItem('apiToken', nuevoToken);
+            console.log("Token actualizado globalmente desde: " + settings.url);
+        }
+    }); 
+
 
 </script>
 
