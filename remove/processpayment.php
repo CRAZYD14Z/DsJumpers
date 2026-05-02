@@ -17,9 +17,11 @@ use Openpay\Data\OpenpayApiRequestError;
 use Openpay\Data\OpenpayApiConnectionError;
 use Openpay\Data\OpenpayApiAuthError;
 
+
 $stmt = $db->prepare("SELECT * FROM  opay_account");
 $stmt->execute();
 $opay_account = $stmt->fetch();       
+
 
 $merchantId = $opay_account['Id'];
 $privateKey = $opay_account['SecretKey'];
@@ -33,14 +35,31 @@ try {
 
     // 2. Recibir datos del formulario
     $tokenId    = $_POST['token_id'] ?? null;
-    $IdLead      = $_POST['token'] ?? null;
+    $token      = $_POST['token'] ?? null;
     $deviceId   = $_POST['deviceIdHiddenFieldName'] ?? null;
-    $amount     = $_POST['monto'] ?? 0;
+    $amount     = $_POST['amount'] ?? 0;
     
     $ahora = date("Y-m-d H:i:s");
 
+    $stmt = $db->prepare("SELECT * FROM quotes WHERE UUID = ? AND Status = 'A'");
+    $stmt->execute([$token]);
+    $cotizacion = $stmt->fetch();
+    if ($cotizacion) {
+        // Verificar si la fecha actual es mayor a la de expiración
+        if ($ahora > $cotizacion['ExpDate']) {
+            echo "Lo sentimos, esta cotización ha caducado el " . $cotizacion['ExpDate']." $ahora";
+            die();
+        }
+    } else {
+        echo "Enlace no válido.";
+        die();
+    }        
+
+
+
+
     $stmt = $db->prepare("SELECT IdBranch FROM lead WHERE Id = ? ");
-    $stmt->execute([$IdLead]);
+    $stmt->execute([$cotizacion['IdQuote']]);
     $lead = $stmt->fetch();    
 
 
@@ -55,10 +74,10 @@ try {
 
     // Datos del cliente
     $customerData = [
-        'name'          => $_POST['name'],
-        'last_name'     => $_POST['last_name'],
-        'email'         => $_POST['email'],
-        'phone_number'  => $_POST['phone'] ?? '5500000000'
+        'name' => $_POST['name'],
+        'last_name' => $_POST['last_name'],
+        'email' => $_POST['email'],
+        'phone_number' => $_POST['phone'] ?? '5500000000'
     ];
 
     if (!$tokenId || !$deviceId) {
@@ -85,33 +104,29 @@ try {
     // 5. Respuesta según el estado del pago
     if ($charge->status == 'completed') {
     
-        $sqlPay = "INSERT INTO payments (IdLead,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus,Usuario) 
-                                VALUES  (?,?,now(),'OpenPay',?,?,?,'A','')";
+        $sqlPay = "INSERT INTO payments (IdLead,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus) 
+                                VALUES  (?,?,now(),'OpenPay',?,?,?,'A')";
         $stmtPay = $db->prepare($sqlPay);
-        $stmtPay->execute([$IdLead,$Folio,$amount,$Currency,$charge->id]);    
+        $stmtPay->execute([$cotizacion['IdQuote'],$Folio,$amount,$Currency,$charge->id]);    
 
         $stmt = $db->prepare(" UPDATE folios sET Folio = ? WHERE IdBranch = ? AND Type = 'Pay'");
         $stmt->execute([$Folio,$lead['IdBranch']]);        
 
+        //if ($amount == 0){
 
-        $stmt = $db->prepare(" UPDATE lead SET Status = ?,Balance = Balance - ? WHERE Id = ?");
-        $stmt->execute(['confirmed',$amount, $IdLead]);
+        //}
+        //else{
+            $stmt = $db->prepare(" UPDATE lead SET Status = ? WHERE Id = ?");
+            $stmt->execute(['confirmed', $cotizacion['IdQuote']]);
+        //}
 
-        //METER A OPERACION!!
-        //process_op($cotizacion['IdQuote'],$db);
-        //METER A OPERACION!!
-
-        $query = "select * FROM payments WHERE IdLead = ?";
-        $stmt = $db->prepare($query);
-        $stmt->bindParam(1, $IdLead);
-        $stmt->execute();
-        $payments = $stmt->fetchAll(PDO::FETCH_ASSOC);           
+        process_op($cotizacion['IdQuote'],$db);
 
         echo json_encode([
             'status' => 'success',
             'message' => '¡Pago realizado con éxito!',
             'transaction_id' => $charge->id,
-            'pagos' => $payments
+            'url' => 'successpayment.php?Id='.$token.'&TId='.$charge->id
         ]);
     } else {
         // En caso de pagos pendientes (como 3D Secure)

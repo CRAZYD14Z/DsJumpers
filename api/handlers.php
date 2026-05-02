@@ -2498,7 +2498,7 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
     if ($idLead) {
         // --- MODO UPDATE ---
         $sqlLead = "UPDATE lead SET 
-            StartDateTime=?, EndDateTime=?, Organization=?, Customer=?, Referal=?, 
+            StartDateTime=?, EndDateTime=?, DeliveryDateTime=?,Organization=?, Customer=?, Referal=?, 
             OkT=?, WA=?, AE=?, ME=?, CustomerNote=?, Venue=?, EventName=?, Surface=?, 
             Delivery=?, Note1=?, Note2=?, ItemTotals=?, ChkDstC=?, DistanceCharges=?, ChkStCs=?, 
             StafCost=?, ChkDsc=?, Discount=?, SubTotal=?, TaxId=?, TaxPc=?, 
@@ -2507,7 +2507,7 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
         
         $stmtLead = $db->prepare($sqlLead);
         $stmtLead->execute([
-            $h->FHI, $h->FHF, $h->Organization, $h->Customer, $h->Referal,
+            $h->FHI, $h->FHF, $h->FHD, $h->Organization, $h->Customer, $h->Referal,
             $h->OkT, $h->WA, $h->AE, $h->ME, $h->CusNt, $h->Venue, $h->EventName, $h->Surface,
             $h->Delivety, $h->Nt1, $h->Nt2, $h->Item_Totals, $h->ChkDstC, $h->DstC, $h->ChkStCs, 
             $h->StCs, $h->ChkDsc, $h->Dsc, $h->SubT, $h->TaxId, $h->TaxPc, 
@@ -2533,12 +2533,12 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
 
         // --- MODO INSERT --
         $sqlLead = "INSERT INTO lead (
-            StartDateTime, EndDateTime, Organization, Customer, Referal, 
+            StartDateTime, EndDateTime,DeliveryDateTime, Organization, Customer, Referal, 
             OkT, WA, AE, ME, CustomerNote, Venue, EventName, Surface, 
             Delivery, Note1, Note2, ItemTotals, ChkDstC, DistanceCharges, ChkStCs, 
             StafCost, ChkDsc, Discount, SubTotal, TaxId, TaxPc, 
             TaxAmount, Total, Deposit,DepositAmount, Balance, Status,FechaCreacion,FechaCambio,IdBranch,Folio,TotalBT
-        ) VALUES (?,?,?,?,?,
+        ) VALUES (?,?,?,?,?,?,
                   ?,?,?,?,?,?,?,?,
                   ?,?,?,?,?,?,?,
                   ?,?,?,?,?,?,
@@ -2546,7 +2546,7 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
 
         $stmtLead = $db->prepare($sqlLead);
         $stmtLead->execute([
-            $h->FHI, $h->FHF, $h->Organization, $h->Customer, $h->Referal,
+            $h->FHI, $h->FHF, $h->FHD, $h->Organization, $h->Customer, $h->Referal,
             $h->OkT, $h->WA, $h->AE, $h->ME, $h->CusNt, $h->Venue, $h->EventName, $h->Surface,
             $h->Delivety, $h->Nt1, $h->Nt2, $h->Item_Totals, $h->ChkDstC, $h->DstC, $h->ChkStCs, 
             $h->StCs, $h->ChkDsc, $h->Dsc, $h->SubT, $h->TaxId, $h->TaxPc, 
@@ -3498,10 +3498,11 @@ function reschedule($table_name,$db, $method, $id, $data){
                 $data->End = str_replace("T", " ", $data->End);
 
                 //ACTUALIZAR FECHA
-                $queryI ="UPDATE lead SET StartDateTime = :startdatetime, EndDateTime = :enddatetime, FechaCreacion = now()  WHERE Id = :lead";
+                $queryI ="UPDATE lead SET StartDateTime = :startdatetime, EndDateTime = :enddatetime, DeliveryDateTime = :deliverydatetime, FechaCreacion = now()  WHERE Id = :lead";
                 $stmtI = $db->prepare($queryI);
                 $stmtI->bindValue(":startdatetime", $data->Start);
                 $stmtI->bindValue(":enddatetime", $data->End);
+                $stmtI->bindValue(":eliverydatetime", $data->Start);
                 $stmtI->bindValue(":lead", $data->Lead);
                 $stmtI->execute();
 

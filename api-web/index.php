@@ -1915,7 +1915,7 @@ try {
 
             // --- MODO INSERT --
             $sqlLead = "INSERT INTO lead (
-                StartDateTime, EndDateTime, Organization, Customer, Referal, 
+                StartDateTime, EndDateTime,DeliveryDateTime, Organization, Customer, Referal, 
                 OkT, WA, AE, ME, CustomerNote, Venue, EventName, Surface, 
                 Delivery, Note1, Note2, ItemTotals, ChkDstC, DistanceCharges, ChkStCs, 
                 StafCost, ChkDsc, Discount, SubTotal, TaxId, TaxPc, 
@@ -1929,7 +1929,7 @@ try {
 
             $stmtLead = $db->prepare($sqlLead);
             $stmtLead->execute([
-                $FHI, $FHF, $Organization, $Customer, $Referal,
+                $FHI, $FHF, $FHI, $Organization, $Customer, $Referal,
                 $OkT, $WA, $AE, $ME, $CusNt, $Venue, $EventName, $Surface,
                 $Delivety, $Nt1, $Nt2, $Item_Totals, $ChkDstC, $DstC, $ChkStCs, 
                 $StCs, $ChkDsc, $Dsc, $SubT, $TaxId, $TaxPc, 

@@ -106,6 +106,8 @@ include_once 'head.php';
 
 
         require 'lead_grid.php';
+        require 'lead_pagos.php';
+        echo "<br>";
         require 'lead_customer.php';
         require 'lead_venues.php';
         require 'bottom.php';
@@ -766,9 +768,9 @@ include_once 'head.php';
             var $this = $(this);
             // El setTimeout a veces es necesario en navegadores móviles o Chrome 
             // para ganarle al evento de click que deselecciona el texto
-            setTimeout(function() {
-                $this.select();
-            }, 50); 
+            //setTimeout(function() {
+            //    $this.select();
+            //}, 50); 
         });        
 
         
@@ -1416,6 +1418,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Los inputs datetime-local requieren el formato: YYYY-MM-DDTHH:mm
         document.getElementById('fechahorainicio').value = `${f1}T${hInicio.value}`;
         document.getElementById('fechahorafin').value = `${f2}T${hFin.value}`;
+        document.getElementById('fechahoraentrega').value = `${f1}T${hInicio.value}`;
 
         $.ajax({
             url: API_BASE_URL + "reschedule/",
@@ -1455,6 +1458,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Los inputs datetime-local requieren el formato: YYYY-MM-DDTHH:mm
         document.getElementById('fechahorainicio').value = `${f1}T${hInicio.value}`;
         document.getElementById('fechahorafin').value = `${f2}T${hFin.value}`;
+
+        document.getElementById('fechahoraentrega').value = `${f1}T${hInicio.value}`;
 
         bootstrap.Modal.getInstance(document.getElementById('modalReserva')).hide();
     });
@@ -1816,6 +1821,7 @@ function recalculate_totals(){
     let SubT = 0;
     let Total = 0;
     let Balance = 0;
+    let AmountPaid = 0;
     total = $('#Item_Totals').val() * 1;
 
     if ($('#Distance_Charges_check').prop('checked'))
@@ -1880,7 +1886,10 @@ function recalculate_totals(){
 
     $('#Total').val(SubT.toFixed(2));
     //$('#Depopsit').val('0.00');
-    $('#Balance').val(SubT.toFixed(2));
+    AmountPaid = $('#AmountPaid').val();
+    Balance =  SubT - AmountPaid;
+    $('#Balance').val(Balance.toFixed(2));
+    $('#display-saldo-hoy').html(formatter.format(Balance.toFixed(2)) );
 }
 
 //CARGA DATOS DE ORGANIZACION
@@ -2676,6 +2685,7 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
             IdLead : $('#IdLead').val(),
             FHI: $('#fechahorainicio').val(),
             FHF: $('#fechahorafin').val(),
+            FHD: $('#fechahoraentrega').val(),
 
             Item_Totals: $('#Item_Totals').val(),
 
@@ -2963,6 +2973,12 @@ $(document).ajaxSuccess(function(event, xhr, settings) {
         console.log("Token actualizado globalmente desde: " + settings.url);
     }
 });
+
+const formatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+});
+
     </script>
 
 

@@ -140,6 +140,17 @@
         <input type="hidden"  id="UUID" name="UUID" value = "<?php echo $UUID['UUID']?>" >
         <!-- SECCION REFERIDOS -->
         <div class='col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6 col-xxl-6'>
+
+            <div class="row">
+                <div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 col-xxl-12'>
+                    <label for="Referal" class="form-label">Fecha hora de entrega</label>
+                    <div class="input-group input-group-sm mb-1">
+                        <span class="input-group-text bg-light" style="width: 40px;"><i class="fa-regular fa-calendar-plus"></i></span>
+                        <input type="datetime-local" class="form-control" id="fechahoraentrega" name="fechahoraentrega" value = "<?php  echo !empty($lead['DeliveryDateTime']) ? $lead['DeliveryDateTime'] : '';?>">
+                    </div>                
+                </div>    
+            </div>        
+
             <div class="row">
                 <div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 col-xxl-12'>
                     <label for="Referal" class="form-label"><?php echo Trd(17)?></label>
@@ -345,6 +356,20 @@
                                     </div>                            
                                 </td>
                             </tr>
+
+                            <tr>
+                                <td >
+                                    <?php echo 'Monto Pagado'?>
+                                </td>
+                                <td ></td>
+                                <td  colspan="2">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-light">$</span>
+                                        <input type="text" class="form-control text-end" placeholder="0.00" id="AmountPaid" name="AmountPaid" value = "<?php  echo !empty($lead['Balance']) ? $lead['Total'] - $lead['Balance'] : '0.00';?>" readonly>
+                                    </div>                            
+                                </td>
+                            </tr>                               
+
                             <tr>
                                 <td >
                                     <?php echo Trd(29)?>
@@ -430,6 +455,7 @@ document.getElementById('fechahorainicio').addEventListener('change', function()
 // --- LÓGICA FECHA FIN ---
 document.getElementById('fechahorafin').addEventListener('change', function() {
     const inicioVal = document.getElementById('fechahorainicio').value;
+    
     const finVal = this.value;
     const ahora = new Date();
 

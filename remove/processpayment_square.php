@@ -28,14 +28,32 @@ if (!$token_id) {
     exit;
 }
 
+
+
+    // 2. Recibir datos del formulario
     $tokenId    = $_POST['token_id'] ?? null;
-    $IdLead      = $_POST['token'] ?? null;
+    $token      = $_POST['token'] ?? null;
     $deviceId   = $_POST['deviceIdHiddenFieldName'] ?? null;
-    $amount     = $_POST['monto'] ?? 0;
+    $amount     = $_POST['amount'] ?? 0;
     
     $amount = $amount * 100;
 
     $ahora = date("Y-m-d H:i:s");
+
+    $stmt = $db->prepare("SELECT * FROM quotes WHERE UUID = ? AND Status = 'A'");
+    $stmt->execute([$token]);
+    $cotizacion = $stmt->fetch();
+    if ($cotizacion) {
+        // Verificar si la fecha actual es mayor a la de expiración
+        if ($ahora > $cotizacion['ExpDate']) {
+            echo "Lo sentimos, esta cotización ha caducado el " . $cotizacion['ExpDate']." $ahora";
+            die();
+        }
+    } else {
+        echo "Enlace no válido.";
+        die();
+    }        
+
 
     $stmt = $db->prepare("SELECT * FROM  square_account");
     $stmt->execute();
@@ -46,7 +64,7 @@ if (!$token_id) {
 
 
     $stmt = $db->prepare("SELECT IdBranch FROM lead WHERE Id = ? ");
-    $stmt->execute([$IdLead]);
+    $stmt->execute([$cotizacion['IdQuote']]);
     $lead = $stmt->fetch();    
 
 
@@ -61,9 +79,9 @@ if (!$token_id) {
 
     // Datos del cliente
     $customerData = [
-        'name'      => $_POST['name'],
+        'name' => $_POST['name'],
         'last_name' => $_POST['last_name'],
-        'email'     => $_POST['email'],
+        'email' => $_POST['email'],
         'phone_number' => $_POST['phone'] ?? '5500000000'
     ];
 
@@ -91,28 +109,31 @@ try {
 
     $payment = $response->getPayment();
 
-    $amount = $amount / 100;
-
-    $sqlPay = "INSERT INTO payments (IdLead,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus,Usuario) 
-                            VALUES  (?,?,now(),'Square',?,?,?,'A','')";
+    $sqlPay = "INSERT INTO payments (IdLead,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus) 
+                            VALUES  (?,?,now(),'Square',?,?,?,'A')";
     $stmtPay = $db->prepare($sqlPay);
-    $stmtPay->execute([$IdLead,$Folio,$amount/100,Currency::Usd->value,$payment->getId()]);    
+    $stmtPay->execute([$cotizacion['IdQuote'],$Folio,$amount/100,Currency::Usd->value,$payment->getId()]);    
 
     $stmt = $db->prepare(" UPDATE folios sET Folio = ? WHERE IdBranch = ? AND Type = 'Pay'");
     $stmt->execute([$Folio,$lead['IdBranch']]);        
 
-    $stmt = $db->prepare(" UPDATE lead SET Status = ?,Balance = Balance - ? WHERE Id = ?");
-    $stmt->execute(['confirmed',$amount, $IdLead]);
+    //if ($amount == 0){
 
-        //METER A OPERACION!!
-        //process_op($cotizacion['IdQuote'],$db);
-        //METER A OPERACION!!
+    //}
+    //else{
+        $stmt = $db->prepare(" UPDATE lead SET Status = ? WHERE Id = ?");
+        $stmt->execute(['confirmed', $cotizacion['IdQuote']]);
+    //}    
 
-    $query = "select * FROM payments WHERE IdLead = ?";
-    $stmt = $db->prepare($query);
-    $stmt->bindParam(1, $IdLead);
-    $stmt->execute();
-    $payments = $stmt->fetchAll(PDO::FETCH_ASSOC);          
+        process_op($cotizacion['IdQuote'],$db);
+
+        //METER A OPERACION!!//METER A OPERACION!!
+        //METER A OPERACION!!
+        //METER A OPERACION!!
+        //METER A OPERACION!!
+        //METER A OPERACION!!    
+
+
 
     echo json_encode([
         'success'    => true,
@@ -123,7 +144,7 @@ try {
         'status' => 'success',
         'message' => '¡Pago realizado con éxito!',
         'transaction_id' => $payment->getId(),
-        'pagos' => $payments
+        'url' => 'successpayment.php?Id='.$token.'&TId='.$payment->getId()
     ]);
 
 } catch (SquareApiException $e) {
