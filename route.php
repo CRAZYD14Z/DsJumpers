@@ -976,7 +976,7 @@ h1, h2, h3, h4, h5, h6,
 </div>
 
 
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCRw-m6FwodZdcIPw1rtAKWqvyziRm1ihM&callback=initMap" async defer></script>
 
 <script>
@@ -1004,8 +1004,8 @@ function attemptLogin(username, password) {
 }
 */
 $(document).ready(function() {
-    attemptLogin('admin', '1234');
-    if (!TOKEN) console.warn('No token found. Login required.');
+//    attemptLogin('admin', '1234');
+//    if (!TOKEN) console.warn('No token found. Login required.');
 });
 
 /* ─── CAMBIAR IDIOMA ─────────────────────────────────────────────────── */
@@ -1158,7 +1158,7 @@ foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $reg) {
 $dataEnvios = [];
 $stmt = $db->prepare(
     "SELECT * FROM v_operations
-     WHERE DATE_FORMAT(StartDateTime,'%Y-%m-%d') = ? AND vehiculo IS NULL"
+     WHERE DATE_FORMAT(DeliveryDateTime,'%Y-%m-%d') = ? AND vehiculo IS NULL"
 );
 $stmt->bindValue(1, $fecha_actual);
 $stmt->execute();
@@ -1210,14 +1210,18 @@ if ($resultados) {
             }
         }
         $carga = calcularCarga($productos_finales, 1.2);
-
+        $date = new DateTime($reg['DeliveryDateTime']);
+        $horaInicio = $date->format('H:i');
+        //AGREGAMOS 1 HORA PARA LA VENTANA DE ENTREGA
+        $date->modify('+1 hour');
+        $horaFin = $date->format('H:i');
         $dataEnvios[] = [
             "id"      => 'E' . $reg['Id_operation'],
             "lugar"   => $reg['Lugar'],
             "cliente" => $reg['NombreOrganizacion'] ?? ($reg['NombreCliente'] . " " . $reg['ApellidosCliente']),
             "volumen" => $carga['volumen_total_m3'],
             "peso"    => $carga['peso_total_kg'],
-            "ventana" => ["09:00", "12:00"],
+            "ventana" => [$horaInicio, $horaFin],
             "lat"     => $reg['Lat'],
             "lng"     => $reg['Lng'],
             "duracion"=> '360'
@@ -1652,7 +1656,8 @@ function trazarRutaManual(vehiculo, envios) {
 function guardarRutaOptima(){
 
         $.ajax({
-            url: 'ajax/guardar_ruta.php',
+            url: API_BASE_URL +'save_route',
+            headers: { 'Authorization': 'Bearer ' + TOKEN },            
             method: 'POST',
             data: { todas_las_rutas: JSON.stringify(rutasParaGuardar),
                     fecha: $('#fecha-operacion').val(),
@@ -1681,7 +1686,8 @@ function guardarRutaManual(){
 
 function enviarRutaAlServidor(vehiculo, envios, datosRuta) {
     $.ajax({
-        url: 'ajax/guardar_ruta.php',
+        url: API_BASE_URL +'save_route',
+        headers: { 'Authorization': 'Bearer ' + TOKEN },
         method: 'POST',
         data: {
             id_vehiculo: vehiculo.id,

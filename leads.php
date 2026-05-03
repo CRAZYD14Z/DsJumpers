@@ -202,19 +202,20 @@ $(document).ready(function() {
             rows += `
                 <tr class="${statusClass} clickable-row" data-id="${item.Id}" style="cursor: pointer;">
                     <td class="ps-4">
-                        <div class="small text-muted">#${item.Folio}</div>
-                        <div class="fw-semibold">${item.FechaCreacion}</div>
+                        <div class="fw-semibold">#${item.Folio}</div>
+                        <div class="small text-muted">${item.FechaCreacion}</div>
                     </td>
                     <td class="ps-4">
-                        <div class="fw-semibold">${item.StartDateTime}</div>
-                        <div class="fw-semibold">${item.EndDateTime}</div>
+                        <div class="small text-muted italic">${item.StartDateTime}</div>
+                        <div class="small text-muted italic">${item.EndDateTime}</div>
                     </td>                    
                     <td>
                         <div class="fw-bold text-dark">${item.NombreMostrar}</div>
                         <div class="small text-muted italic">${item.Organization > 0 ? '<?php echo Trd(10)?>' : '<?php echo Trd(11)?>'}</div>
                     </td>
                     <td>
-                        <div>${item.Lugar}</div>
+                        <div class="small text-secondary">${item.DeliveryDateTime}</div>
+                        <div class="small text-secondary">${item.Lugar}</div>
                         <div class="small text-secondary">${item.Ciudad}, ${item.Estado}</div>
                     </td>
                     <td><span class="badge rounded-pill ${badgeClass}">${item.Status}</span></td>

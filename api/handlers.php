@@ -2837,18 +2837,56 @@ function process_stage_change($table_name,$db, $method, $id, $data){
             $items     = json_decode($_POST['items'], true);
 
             // 2. Manejar la imagen (opcional)
-            $filename = '';
+            $fileName = '';
             $imagePath = null;
             if (isset($_FILES['evidence_img']) && $_FILES['evidence_img']['error'] === UPLOAD_ERR_OK) {
-                $ext = pathinfo($_FILES['evidence_img']['name'], PATHINFO_EXTENSION);
-                $filename = "evidencia_" . time() . "_" . uniqid() . "." . $ext;
-                $target = "../ajax/tmp/evidencias/" . $filename;
-                
-                if (move_uploaded_file($_FILES['evidence_img']['tmp_name'], $target)) {
-                    $imagePath = $filename;
-                }
-            }            
 
+                $ext = pathinfo($_FILES['evidence_img']['name'], PATHINFO_EXTENSION);
+                $fileName = "evidencia_" . time() . "_" . uniqid();
+                $origen = "../ajax/tmp/evidencias/" . $fileName. "." . $ext;
+                echo $fileName;
+                if (move_uploaded_file($_FILES['evidence_img']['tmp_name'], $origen)) {
+                    $destinot  = "../ajax/tmp/thumbnail_" . $fileName . ".avif";
+                    $destino   = "../ajax/tmp/" . $fileName . ".avif";
+                    $destinot2 = "../ajax/tmp/thumbnail_" . $fileName . ".jpg";
+                    
+                    $normal   =  $fileName . ".avif";
+                    $miniatura  = "thumbnail_" . $fileName . ".avif";
+                    $miniaturaj = "thumbnail_" . $fileName . ".jpg";
+
+
+                    $imgOriginal = cargarImagen($origen);
+
+
+                    if ($imgOriginal) {
+                        generarThumbnailAVIF($imgOriginal, $destinot, 150);
+                        generarNormalAVIF($imgOriginal, $destino, 1200);
+                        generarThumbnailJPG($imgOriginal, $destinot2, 150);
+
+                        
+
+                        imagedestroy($imgOriginal);
+                        unlink($origen);
+
+                        //Cargar AWS
+                        $client = ID_CLIENTE;
+                        $gallery = 'evidence';
+
+                        $fileName = CFPUBLICURL . "/".$client."/".$gallery."/originals/". $fileName. ".avif";
+                        //die('Imagenes generadas');                        
+                        upload_Aws($client,$gallery,$normal,$miniatura,$miniaturaj);
+                        //unlink($destinot);
+                        //unlink($destino);
+                        //unlink($destinot2);
+
+                    } else {
+                        //echo "Formato no soportado.";
+                    }
+                }                
+
+
+            }            
+            //die();
             if  ($currentStage == 'ENTREGA'){
                 $sign     = $_POST['sign'];
             }
@@ -2946,7 +2984,7 @@ function process_stage_change($table_name,$db, $method, $id, $data){
                 $stmtI = $db->prepare($queryI);
                 $stmtI->bindValue(":id_operation", $id_op);
                 $stmtI->bindValue(":operation_type", $currentStage);
-                $stmtI->bindValue(":url_photo", $filename);
+                $stmtI->bindValue(":url_photo", $fileName);
                 $stmtI->bindValue(":geolocation", $coords);
                 $stmtI->bindValue(":notes", $notes);
                 $stmtI->bindValue(":sign", $sign);
@@ -2957,7 +2995,7 @@ function process_stage_change($table_name,$db, $method, $id, $data){
                 $stmtI = $db->prepare($queryI);
                 $stmtI->bindValue(":id_operation", $id_op);
                 $stmtI->bindValue(":operation_type", $currentStage);
-                $stmtI->bindValue(":url_photo", $filename);
+                $stmtI->bindValue(":url_photo", $fileName);
                 $stmtI->bindValue(":geolocation", $coords);
                 $stmtI->bindValue(":notes", $notes);
                 $stmtI->execute();                
@@ -3502,7 +3540,7 @@ function reschedule($table_name,$db, $method, $id, $data){
                 $stmtI = $db->prepare($queryI);
                 $stmtI->bindValue(":startdatetime", $data->Start);
                 $stmtI->bindValue(":enddatetime", $data->End);
-                $stmtI->bindValue(":eliverydatetime", $data->Start);
+                $stmtI->bindValue(":deliverydatetime", $data->Start);
                 $stmtI->bindValue(":lead", $data->Lead);
                 $stmtI->execute();
 
@@ -3588,6 +3626,267 @@ function swap_order($table_name,$db, $method, $id, $data){
     }
 }            
             
+function save_route($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+            $Tipo = $_POST['tipo'] ?? null;
+            if (!$Tipo) {
+
+                http_response_code(200);
+                echo json_encode(array("message" => "No se recibieron datos."));            
+                exit;
+            }    
+            $fecha = $_POST['fecha'];
+            $stmtRuta = $db->prepare("INSERT INTO daily_route (date,id_vehicle,id_driver,polyline,status) 
+                                        VALUES (?, ?, ?, ?, ?)");
+
+            $stmtDetalle = $db->prepare("INSERT INTO route_stops (id_route, id_operation, visit_order) 
+                                            VALUES (?, ?, ?)");    
+
+            $updtOP = $db->prepare("UPDATE operation_master SET id_vehicle = ?, orden = ? WHERE Id_operation = ? ");
+
+            if ($Tipo == 'optima'){
+
+                $json_data = $_POST['todas_las_rutas'] ?? null;
+                $rutas = json_decode($json_data, true);
+
+                foreach ($rutas as $item) {
+                    $v = $item['vehiculo'];
+                    $dr = $item['datosRuta'];
+                    $envios = $item['envios'];
+                    //echo "Vehiculo: ".$v['id']." Ruta:".$dr['polyline'];
+                    $V = str_replace("V", "", $v['id']);
+                    $stmtRuta->execute([
+                        $fecha, 
+                        $V,
+                        0, 
+                        $dr['polyline'],
+                        1
+                    ]);
+                    
+                    $idRutaInsertada = $db->lastInsertId();
+
+                    foreach ($envios as $index => $envio) {
+                        //echo "Envio ".$envio['id']."</br>"; 
+                        $E = str_replace("E", "", $envio['id']);
+                        $orden = $index + 1;
+                        $stmtDetalle->execute([
+                            $idRutaInsertada,
+                            $E,
+                            $orden
+                        ]);                
+
+                        $updtOP->execute([$V,$orden,$E]);
+                    }
+                }
+            }
+            else{
+
+                //echo "Vehiculo: ".$_POST['id_vehiculo']." Ruta:".$_POST['polyline'];
+                $puntos_envio = $_POST['puntos_envio'] ?? null;
+                $envios = json_decode($puntos_envio, true);        
+                $V = str_replace("V", "", $_POST['id_vehiculo']);
+                $stmtRuta->execute([
+                    $fecha, 
+                    $V,
+                    0, 
+                    $_POST['polyline'],
+                    1
+                ]);
+                
+                $idRutaInsertada = $db->lastInsertId();        
+                
+                foreach ($envios as $index => $envio) {
+                    //echo "Envio ".$envio['id']."</br>"; 
+                    $E = str_replace("E", "", $envio['id']);
+                    $orden = $index + 1;
+                    $stmtDetalle->execute([
+                        $idRutaInsertada,
+                        $E,
+                        $orden
+                    ]);
+
+                    $updtOP->execute([$V,$orden,$E]);
+                }
+
+            }            
+
+
+
+            
+            http_response_code(200);
+            echo json_encode(array("message" => "Ruta registrada."));
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+}            
+
+function acondicionamiento($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+
+
+            // Parámetros de la solicitud
+            $groupBy = $_GET['group_by'] ?? 'operation'; // 'operation' o 'product'
+
+            // 1. Obtener operaciones base
+            $opsQuery = $db->query("SELECT * FROM v_operations WHERE `status` = 'ACONDICIONAMIENTO' ORDER BY id_operation")->fetchAll();
+
+            $resultado = [];
+
+            foreach ($opsQuery as $op) {
+                // Lógica "Evento en Puerta": Por ejemplo, si la fecha de entrega es en los próximos 2 días
+                // Ajusta 'FechaEntrega' al nombre real de tu columna
+                //$esEventoEnPuerta = (strtotime($op['FechaEntrega']) <= strtotime('+2 days'));
+                
+                $rows = $db->query("SELECT * FROM v_operation_checklist WHERE `stage` IN ('LAVADO', 'LIMPIEZA', 'REPARACION') AND assorted_quantity > '0' AND id_operation = ".$op['Id_operation'])->fetchAll();
+
+                foreach ($rows as $row) {
+
+
+                    $itemIdForImg = $row['id_product'];
+                    if ($row['id_accesory_base']) $itemIdForImg = $row['id_accesory_base'];
+                    if ($row['id_accesory']) $itemIdForImg = $row['id_accesory'];
+
+                    $query = "SELECT Image from products_images WHERE Product = ? ORDER BY Orden LIMIT 1";
+                    $stmtigm = $db->prepare($query);
+                    $stmtigm->execute([$itemIdForImg]);
+                    $img = $stmtigm->fetchColumn();
+                    $img = str_replace("avif", "jpg", $img);
+
+                    $tipo = $row['id_accesory_base'] ? 'BASE' : ($row['id_accesory'] ? 'ACCESORIO' : 'PRODUCTO');
+
+                    $esEventoEnPuerta = false;
+                    if ($tipo == "ACCESORIO" || $tipo == "PRODUCTO") {
+                        // Buscamos si este producto tiene eventos confirmados en los próximos 2 días
+                        $queryEvento = "SELECT COUNT(*) FROM v_leads_detail 
+                                        WHERE Status = 'confirmed' 
+                                        AND IdProduct = ? 
+                                        AND StartDateTime BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 2 DAY)";
+                        
+                        $stmtEv = $db->prepare($queryEvento);
+                        $stmtEv->execute([$itemIdForImg]);
+                        $count = $stmtEv->fetchColumn();
+                        
+                        if ($count > 0) {
+                            $esEventoEnPuerta = true;
+                        }
+                    }
+
+                    $itemData = [
+                        'name'      => $row['id_accesory_base'] || $row['id_accesory'] ? ($row['Base'] ?? $row['Accesory']) : $row['Product'],
+                        'image'     => CFPUBLICURL.'/'.ID_CLIENTE.'/products_images/thumbnails/'.$img,
+                        'stage'     => $row['stage'],
+                        'assorted'  => $row['assorted_quantity'],
+                        'tipo'      => $tipo,
+                        'IdOp'     => $op['Id_operation'],
+                        'folio'     => $op['Folio'],
+                        'cliente'   => $op['NombreOrganizacion'] ?: ($op['NombreCliente'] . " " . $op['ApellidosCliente']),
+                        'urgente'   => $esEventoEnPuerta 
+                    ];
+
+                    if ($groupBy === 'product') {
+                        // Agrupar por Nombre de Producto
+                        $key = $itemData['name'];
+                        if (!isset($resultado[$key])) {
+                            $resultado[$key] = ['label' => $key, 'items' => []];
+                        }
+                        $resultado[$key]['items'][] = $itemData;
+                    } else {
+                        // Agrupar por Operación (Folio)
+                        $key = $op['Id_operation'];
+                        if (!isset($resultado[$key])) {
+                            $resultado[$key] = ['label' => "Folio: #".$op['Folio'] . " - " . $itemData['cliente'], 'items' => []];
+                        }
+                        $resultado[$key]['items'][] = $itemData;
+                    }
+                }
+            }
+            http_response_code(200);
+            echo json_encode(array_values($resultado));            
+
+            
+            //http_response_code(200);
+            //echo json_encode(array("message" => "Registro actualizado."));
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+}   
+
+function cancel_lead($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+            $Id = $data->Lead;
+            $Type = $data->Type;
+
+            $queryI ="UPDATE lead SET Status = 'canceled', Balance = Total, FechaCambio = now()  WHERE Id = :id";
+            $stmtI = $db->prepare($queryI);
+            $stmtI->bindValue(":id", $Id);
+            $stmtI->execute();        
+
+            $query = "SELECT * FROM operation_master WHERE id_lead = :q";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':q', $Id, PDO::PARAM_INT);
+            $stmt->execute();
+            $lead = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            $id_op = $lead['Id_operation'];
+
+            //OPERATION
+                $queryI ="DELETE from operation_master WHERE Id_operation = :id_op";
+                $stmtI = $db->prepare($queryI);
+                $stmtI->bindValue(":id_op", $id_op);
+                $stmtI->execute();
+                
+                $queryI ="DELETE from operation_master WHERE Id_operation = :id_op";
+                $stmtI = $db->prepare($queryI);
+                $stmtI->bindValue(":id_op", $id_op);
+                $stmtI->execute();
+                
+                $queryI ="DELETE from operation_checklist WHERE id_operation = :id_op";
+                $stmtI = $db->prepare($queryI);
+                $stmtI->bindValue(":id_op", $id_op);
+                $stmtI->execute();
+                
+                $queryI ="DELETE from operation_evidence WHERE id_operation = :id_op";
+                $stmtI = $db->prepare($queryI);
+                $stmtI->bindValue(":id_op", $id_op);
+                $stmtI->execute();
+
+            //PAYMENTS
+
+            if ($Type == 'GC'){
+                //GIFCARD
+            }
+            else{
+                //DEVOLUCION
+            }
+
+            http_response_code(200);
+            echo json_encode(array("message" => "Evento cancelado."));
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+}     
+
 
 function generar_uuid_v4() {
     // Generamos 16 bytes de datos aleatorios

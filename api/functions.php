@@ -95,4 +95,75 @@ function dividirNombreCompleto($nombreCompleto) {
     return $resultado;
 }
 
+
+
+// ─── Carga imagen según MIME real ────────────────────────────────────────────
+function cargarImagen(string $ruta): \GdImage|false {
+    $mime = (new finfo(FILEINFO_MIME_TYPE))->file($ruta);
+    return match ($mime) {
+        'image/jpeg' => imagecreatefromjpeg($ruta),
+        'image/png'  => imagecreatefrompng($ruta),
+        'image/webp' => imagecreatefromwebp($ruta),
+        'image/avif' => imagecreatefromavif($ruta),
+        default      => false
+    };
+}
+
+// ─── Calcula dimensiones proporcionales ──────────────────────────────────────
+function calcularDimensiones(\GdImage $img, int $anchoDestino): array {
+    $anchoOrig = imagesx($img);
+    $altoOrig  = imagesy($img);
+    if ($anchoDestino >= $anchoOrig) {
+        $anchoDestino = $anchoOrig;
+    }
+    $altoDestino = (int) round(($anchoDestino / $anchoOrig) * $altoOrig);
+    return [$anchoOrig, $altoOrig, $anchoDestino, $altoDestino];
+}
+
+// ─── 1. Thumbnail AVIF pequeño y liviano ─────────────────────────────────────
+function generarThumbnailAVIF(\GdImage $original, string $destino, int $ancho = 150): bool {
+    [$anchoOrig, $altoOrig, $anchoFinal, $altoFinal] = calcularDimensiones($original, $ancho);
+
+    $lienzo = imagecreatetruecolor($anchoFinal, $altoFinal);
+    imagealphablending($lienzo, false);
+    imagesavealpha($lienzo, true);
+    imagecopyresampled($lienzo, $original, 0, 0, 0, 0, $anchoFinal, $altoFinal, $anchoOrig, $altoOrig);
+
+    $ok = imageavif($lienzo, $destino, 45);
+    imagedestroy($lienzo);
+    return $ok;
+}
+
+// ─── 2. Imagen normal AVIF buena calidad ─────────────────────────────────────
+function generarNormalAVIF(\GdImage $original, string $destino, int $ancho = 1200): bool {
+    [$anchoOrig, $altoOrig, $anchoFinal, $altoFinal] = calcularDimensiones($original, $ancho);
+
+    $lienzo = imagecreatetruecolor($anchoFinal, $altoFinal);
+    imagealphablending($lienzo, false);
+    imagesavealpha($lienzo, true);
+    imagecopyresampled($lienzo, $original, 0, 0, 0, 0, $anchoFinal, $altoFinal, $anchoOrig, $altoOrig);
+
+    $ok = imageavif($lienzo, $destino, 82);
+    imagedestroy($lienzo);
+    return $ok;
+}
+
+// ─── 3. Thumbnail JPG pequeño y liviano ──────────────────────────────────────
+function generarThumbnailJPG(\GdImage $original, string $destino, int $ancho = 150): bool {
+    [$anchoOrig, $altoOrig, $anchoFinal, $altoFinal] = calcularDimensiones($original, $ancho);
+
+    $lienzo = imagecreatetruecolor($anchoFinal, $altoFinal);
+
+    // ✅ Fondo blanco ANTES del resampling (JPG no soporta transparencia)
+    $fondo = imagecolorallocate($lienzo, 255, 255, 255);
+    imagefill($lienzo, 0, 0, $fondo);
+
+    imagecopyresampled($lienzo, $original, 0, 0, 0, 0, $anchoFinal, $altoFinal, $anchoOrig, $altoOrig);
+
+    $ok = imagejpeg($lienzo, $destino, 55);
+    imagedestroy($lienzo);
+    return $ok;
+}
+
+
 ?>

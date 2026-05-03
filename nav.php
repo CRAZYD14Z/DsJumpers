@@ -40,6 +40,7 @@
                         <li><a class="dropdown-item" href="operation.php">Operación General</a></li>
                         <li><a class="dropdown-item" href="acondicionamiento.php">Acondicionamiento</a></li>
                         <li><a class="dropdown-item" href="monitor.php">Monitor</a></li>
+                        <li><a class="dropdown-item" href="crud.php?Id=wharehouses">Almacenes</a></li>                                                
                         <li><a class="dropdown-item" href="crud.php?Id=inventory_stock">Inventario / Stock</a></li>
                     </ul>
                 </li>
@@ -49,11 +50,25 @@
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                         <i class="fas fa-cogs"></i> <?php echo ($_SESSION['Idioma']== 'en') ? "Settings" : "Configuración"; ?>
                     </a>
-                    <ul class="dropdown-menu scrollable-menu" style="max-height: 400px; overflow-y: auto;">
+                    <ul class="dropdown-menu scrollable-menu" style="max-height: 600px; overflow-y: auto;">
                         <li><h6 class="dropdown-header">Administración</h6></li>
                         <li><a class="dropdown-item" href="crud.php?Id=account">Cuenta</a></li>
                         <li><a class="dropdown-item" href="crud.php?Id=customers">Clientes</a></li>
+                        <li><a class="dropdown-item" href="crud.php?Id=customer_type">Tipo Cliente</a></li>
+                        <li><a class="dropdown-item" href="crud.php?Id=organizations">Organizaciones</a></li>
+                        <li><a class="dropdown-item" href="crud.php?Id=venues">Lugares de eventos</a></li>
+                        <li><a class="dropdown-item" href="crud.php?Id=referals">Referidos</a></li>
+                        <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="crud.php?Id=products">Productos</a></li>
+                        <li><a class="dropdown-item" href="crud.php?Id=categories">Categorias</a></li>                        
+                        <li><a class="dropdown-item" href="crud.php?Id=price_lists">Listas de Precios</a></li>                        
+                        <li><a class="dropdown-item" href="crud.php?Id=item_prices">Item Prices</a></li>                        
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="crud.php?Id=discounts">Descuentos-Cupones-Tarifas</a></li>
+                        <li><a class="dropdown-item" href="crud.php?Id=distance_charges">Cargos por distancia</a></li>
+                        <li><a class="dropdown-item" href="documentcenter.php">Centro de Documentos</a></li>
+                        <li><a class="dropdown-item" href="crud.php?Id=gifcard">Tarjetas de regalo</a></li>                
+                        <li><a class="dropdown-item" href="crud.php?Id=surfaces">Superficies</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><h6 class="dropdown-header">Logística</h6></li>
                         <li><a class="dropdown-item" href="crud.php?Id=wharehouses">Almacenes</a></li>

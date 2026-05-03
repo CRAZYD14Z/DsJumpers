@@ -420,6 +420,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-main);
     include_once 'nav.php';
 ?>
 <br>
+<br>
 <div id="countdown-bar"><div id="countdown-fill"></div></div>
 
 <!-- MAIN -->

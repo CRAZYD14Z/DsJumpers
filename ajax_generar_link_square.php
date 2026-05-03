@@ -30,34 +30,51 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'error' => 'Método no permitido']);
     exit;
 }
+    
+$idLead = $_POST['idLead'];
+$monto = $_POST['monto'];
+
+$stmt = $db->prepare("SELECT NombreCompania, WebSite, Currency FROM  account");
+$stmt->execute();
+$account = $stmt->fetch();   
+
+$stmt = $db->prepare("SELECT * FROM  square_account");
+$stmt->execute();
+$square_account = $stmt->fetch();     
+$accessToken = $square_account['Token'];
+$locationId  = $square_account['LocalId'];    
+
+$stmt = $db->prepare("SELECT Organization, Customer FROM  lead WHERE Id = ?");
+$stmt->execute([$idLead]);
+$lead = $stmt->fetch();
+if ($lead['Organization'] > 0){
+    $stmt = $db->prepare("SELECT Nombre as Nombres, '' as Apellidos, Correo, TelefonoCelular FROM  organizations WHERE Id = ?");
+    $stmt->execute([$lead['Organization']]);
+    $Client = $stmt->fetch();
+}  
+else{
+    $stmt = $db->prepare("SELECT Nombres, Apellidos, Correo, TelefonoCelular FROM  customers WHERE Id = ?");
+    $stmt->execute([$lead['Customer']]);
+    $Client = $stmt->fetch();
+}
+
 
 // ── Input ──────────────────────────────────────────────────────────────────────
 //$input         = json_decode(file_get_contents('php://input'), true);
-$idLead = $_POST['idLead'];
-$description  = 'Liquidación de saldo - Lead #' . $idLead;
-$monto        = floatval($_POST['monto']    ?? 0);
-$currency     = 'USD';
-$customerName  = 'Julian';
-$customerEmail = 'jdiaz_huerta@hotmail.com';
+$description   = 'Liquidación de saldo - Lead #' . $idLead;
+$currency      = $account['Currency'];
+$customerName  = $Client['Nombres']." ".$Client['Apellidos'];
+$customerEmail = $Client['Correo'];
 $expiryHours   = 24;
 $note          = '';
 
-// ── Validaciones ───────────────────────────────────────────────────────────────
-//if (!$description) {
-//    http_response_code(400);
-//    echo json_encode(['success' => false, 'error' => 'La descripción es requerida']);
-//    exit;
-//}
+
 if ($monto <= 0) {
     http_response_code(400);
     echo json_encode(['success' => false, 'error' => 'El monto debe ser mayor a 0']);
     exit;
 }
-//if (!filter_var($customerEmail, FILTER_VALIDATE_EMAIL)) {
-//    http_response_code(400);
-//    echo json_encode(['success' => false, 'error' => 'Email del cliente inválido']);
-//    exit;
-//}
+
 
 // ── Convertir a centavos ───────────────────────────────────────────────────────
 // Monedas sin decimales (JPY, etc.) se manejan igual, pero aquí usamos USD/MXN
@@ -66,7 +83,7 @@ $amountCents = (int) round($monto * 100);
 // ── Cliente Square ─────────────────────────────────────────────────────────────
 $isSandbox = 'sandbox';
 $square = new SquareClient(
-    token: accessToken_square,
+    token: $accessToken,
     options: $isSandbox
         ? ['baseUrl' => 'https://connect.squareupsandbox.com']
         : []
@@ -86,7 +103,7 @@ if ($customerName) {
     $fullDescription .= " | Cliente: {$customerName}";
 }
 
-$orderId = 'LIQ-' . $idLead.'-1'; 
+$orderId = 'LIQ-'.$idLead.'-1'; 
 //uniqid('link_', true)
 // ── Crear Payment Link via Checkout API ────────────────────────────────────────
 
@@ -152,13 +169,13 @@ try {
                     'amount'   => $amountCents,
                     'currency' => $currency,
                 ]),
-                'locationId' => locId_square,
+                'locationId' => $locationId,
             ]),
 
             // Opciones del checkout
             'checkoutOptions' => new CheckoutOptions([
                 'askForShippingAddress' => false,
-                'redirectUrl'           => "http://localhost/DsJumpers/gracias_square.php?IdLead=$idLead&token=" . md5($idLead . "SECRETO_DSJUMPERS"),  // URL de retorno tras pago
+                'redirectUrl'           => $account['WebSite']. "tnks_square.php?IdLead=$idLead&token=".md5($idLead . $account['NombreCompania']),  // URL de retorno tras pago
             ]),
 
             // Pre-llenar el email del comprador
@@ -200,3 +217,5 @@ try {
         'error'   => 'Error de conexión con Square: ' . $e->getMessage(),
     ]);
 }
+//
+//http://localhost/eventgo_wpage/tnks_square.php?IdLead=71&token=e01ff1f7487bf02f074b0c56c8a62a72

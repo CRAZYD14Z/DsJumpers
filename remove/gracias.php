@@ -8,9 +8,6 @@ $db = $database->getConnection();
 
 require_once 'vendor/autoload.php';
 
-$merchantId = id_OPAY;
-$privateKey = sk_OPAY;
-
 $idLead         = $_GET['IdLead'] ?? null;
 $tokenRecibido  = $_GET['token'] ?? null;
 $idCheckout     = $_GET['id'] ?? null;
@@ -20,6 +17,13 @@ $tokenEsperado = md5($idLead . "SECRETO_DSJUMPERS");
 if (!$idLead || !$idCheckout || $tokenRecibido !== $tokenEsperado) {
     die("Acceso no autorizado o parámetros incompletos.");
 }
+
+$stmt = $db->prepare("SELECT * FROM  opay_account");
+$stmt->execute();
+$opay_account = $stmt->fetch();           
+// Credenciales
+$merchantId = $opay_account['Id'];
+$privateKey = $opay_account['SecretKey'];
 
 $pagoRegistrado = false;
 $mensaje = "";

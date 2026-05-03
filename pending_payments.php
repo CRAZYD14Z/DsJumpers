@@ -74,10 +74,11 @@ include_once 'head.php';
                 <thead class="table-light">
                     <tr>
                         <th class="ps-4"><?php echo Trd(2)?></th>
+                        <th class="ps-4"><?php echo Trd(12)?></th>
                         <th><?php echo Trd(3)?></th>
                         <th><?php echo Trd(4)?></th>
                         <th><?php echo Trd(5)?></th>
-                        <th class="text-end pe-4"></th>
+                        <th class="text-end pe-4"><?php echo Trd(13)?></th>
                         <th class="text-end pe-4"><?php echo Trd(6)?></th>
                     </tr>
                 </thead>
@@ -198,16 +199,21 @@ function renderTable(data) {
         rows += `
             <tr class="${statusClass} clickable-row" data-id="${item.Id}" style="cursor: pointer;">
                 <td class="ps-4">
-                    <div class="small text-muted">#${item.Folio}</div>
-                    <div class="fw-semibold">${item.StartDateTime}</div>
+                    <div class="fw-semibold">#${item.Folio}</div>
+                    <div class="small text-muted">${item.FechaCreacion}</div>
                 </td>
+                <td class="ps-4">
+                    <div class="small text-muted italic">${item.StartDateTime}</div>
+                    <div class="small text-muted italic">${item.EndDateTime}</div>
+                </td>  
                 <td>
                     <div class="fw-bold text-dark">${item.NombreMostrar}</div>
                     <div class="small text-muted italic">${item.Organization > 0 ? '<?php echo Trd(10)?>' : '<?php echo Trd(11)?>'}</div>
                 </td>
                 <td>
-                    <div>${item.Lugar}</div>
-                    <div class="small text-secondary">${item.Ciudad}, ${item.Estado}</div>
+                        <div class="small text-secondary">${item.DeliveryDateTime}</div>
+                        <div class="small text-secondary">${item.Lugar}</div>
+                        <div class="small text-secondary">${item.Ciudad}, ${item.Estado}</div>
                 </td>
                 <td><span class="badge rounded-pill ${badgeClass}">${item.Status}</span></td>
                 <td class="text-end pe-4 fw-bold text-dark">$${parseFloat(item.Balance).toFixed(2)}</td>

@@ -5,6 +5,7 @@
             <button class="btn-minimal" onclick="LoadDocument('Invoice')"><?php echo Trd(67)?></button>
             <button class="btn-minimal" onclick="LoadDocument('Picking')"><?php echo Trd(68)?></button>
             <button class="btn-minimal" onclick="ProcesarSinPago()">Procesar sin pago</button>
+            <button class="btn-minimalr" onclick="Cancelar()">Cancelar</button>
         </div>
     </div>
 </div>

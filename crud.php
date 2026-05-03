@@ -841,6 +841,9 @@ session_start();
         }
         if (Id=='item_prices'){
             IdSelected = 0;
+        }
+        if (Id=='gifcard'){
+            $('#Code').val(generarCodigoAlfanumerico());
         }        
         
     }
@@ -2514,6 +2517,15 @@ function cargar() {
         getTemplate( $('#IdTemplate').val(),'Template' );
     });    
 
+const generarCodigoAlfanumerico = () => {
+    const ts = Date.now().toString(36).toUpperCase();
+    const rd = Array.from({length: 16}, () => 
+        "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"[Math.floor(Math.random() * 36)]
+    ).join("");
+    
+    return (ts + rd).slice(0, 16).replace(/(.{4})/g, '$1-').replace(/-$/, '');
+};    
+
     function getTemplate(Id,IdCampo) {
 
         $.ajax({
@@ -2565,8 +2577,7 @@ function cargar() {
             localStorage.setItem('apiToken', nuevoToken);
             console.log("Token actualizado globalmente desde: " + settings.url);
         }
-    });        
-
+    });
 </script>
 
 </body>

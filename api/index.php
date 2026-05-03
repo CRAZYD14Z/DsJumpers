@@ -175,6 +175,11 @@ if (isset($_SERVER['HTTP_ID5']))
 //die();
 switch ($resource) {
 
+
+    case 'save_route':
+        save_route($resource,$db, $method, $id, $data);
+        break;
+
     case 'swap_order':
         swap_order($resource,$db, $method, $id, $data);
         break;
@@ -411,6 +416,13 @@ switch ($resource) {
     case 'sendmail':
         sendmail($resource,$db, $method, $id, $data);
     break;
+    case 'acondicionamiento':
+        acondicionamiento($resource,$db, $method, $id, $data);
+    break;    
+    case 'cancel_lead':
+        cancel_lead($resource,$db, $method, $id, $data);
+    break;    
+    
 
     default:
         // Manejar rutas no definidas

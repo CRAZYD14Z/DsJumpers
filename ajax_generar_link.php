@@ -9,14 +9,37 @@ $db = $database->getConnection();
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['idLead'])) {
+    
+
     $idLead = $_POST['idLead'];
     $monto = $_POST['monto'];
 
-    // Credenciales
-    $merchantId = id_OPAY;
-    $privateKey = sk_OPAY; // REEMPLAZA CON TU LLAVE PRIVADA (sk_...)
-// El Order ID debe ser consistente para poder recuperarlo
-    $orderId = 'LIQ-' . $idLead.'-1'; 
+    $stmt = $db->prepare("SELECT NombreCompania, WebSite, Currency FROM  account");
+    $stmt->execute();
+    $account = $stmt->fetch();           
+
+    $stmt = $db->prepare("SELECT * FROM  opay_account");
+    $stmt->execute();
+    $opay_account = $stmt->fetch();     
+    $merchantId = $opay_account['Id'];
+    $privateKey = $opay_account['SecretKey'];
+
+    $stmt = $db->prepare("SELECT Organization, Customer FROM  lead WHERE Id = ?");
+    $stmt->execute([$idLead]);
+    $lead = $stmt->fetch();
+    if ($lead['Organization'] > 0){
+        $stmt = $db->prepare("SELECT Nombre as Nombres, '' as Apellidos, Correo, TelefonoCelular FROM  organizations WHERE Id = ?");
+        $stmt->execute([$lead['Organization']]);
+        $Client = $stmt->fetch();
+    }  
+    else{
+        $stmt = $db->prepare("SELECT Nombres, Apellidos, Correo, TelefonoCelular FROM  customers WHERE Id = ?");
+        $stmt->execute([$lead['Customer']]);
+        $Client = $stmt->fetch();
+    }
+
+    // El Order ID debe ser consistente para poder recuperarlo
+    $orderId = 'LIQ-'.$idLead.'-1'; 
     $base_url = "https://sandbox-api.openpay.mx/v1/$merchantId/checkouts";
 
     // Función auxiliar para consultar a Openpay
@@ -40,17 +63,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['idLead'])) {
     // 1. Intentar crear el Checkout
     $payload = [
         'amount' => (float)$monto,
-        'currency' => 'MXN',
+        'currency' => $account['Currency'],
         'description' => 'Liquidación de saldo - Lead #' . $idLead,
         'order_id' => $orderId,
         'send_email' => false,
         'expiration_date' => date('Y-m-d H:i', strtotime('+3 days')),
-        'redirect_url' => "http://localhost/DsJumpers/gracias.php?IdLead=$idLead&token=" . md5($idLead . "SECRETO_DSJUMPERS"),
-                'customer' => [
-            'name' => 'Juan',
-            'last_name' => 'Perez',
-            'email' => 'juan.perez@ejemplo.com',
-            'phone_number' => '5512345678'
+        'redirect_url' => $account['WebSite']."tnks.php?IdLead=$idLead&token=".md5($idLead . $account['NombreCompania']),
+            'customer' => [
+            'name' => $Client['Nombres'],
+            'last_name' => $Client['Apellidos'],
+            'email' => $Client['Correo'],
+            'phone_number' => $Client['TelefonoCelular']
         ]
     ];
 
@@ -89,3 +112,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['idLead'])) {
         echo json_encode(['success' => false, 'error' => $res['data']->description ?? 'Error desconocido']);
     }
 }
+
+//http://localhost/eventgo_wpage/tnks.php?IdLead=77&token=24d546e9395e646948a48d6d4f5cbff2&id=tremplbyo0gcncklgh5j

@@ -796,7 +796,7 @@ rows += `
     <tr class="${statusClass} ${clickClass}" data-id="${item.Id_operation}" data-status="${item.Status}" style="cursor: ${cursorStyle};">
         <td class="ps-5">
             <div class="small text-muted">#${item.Folio}</div>
-            <div class="fw-semibold">${item.StartDateTime}</div>
+            <div class="fw-semibold">${item.DeliveryDateTime}</div>
         </td>
         <td>
             <div class="fw-bold text-dark">${item.NombreMostrar}</div>

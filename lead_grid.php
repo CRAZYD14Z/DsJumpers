@@ -146,7 +146,7 @@
                     <label for="Referal" class="form-label">Fecha hora de entrega</label>
                     <div class="input-group input-group-sm mb-1">
                         <span class="input-group-text bg-light" style="width: 40px;"><i class="fa-regular fa-calendar-plus"></i></span>
-                        <input type="datetime-local" class="form-control" id="fechahoraentrega" name="fechahoraentrega" value = "<?php  echo !empty($lead['DeliveryDateTime']) ? $lead['DeliveryDateTime'] : '';?>">
+                        <input type="datetime-local" class="form-control" id="fechahoraentrega" name="fechahoraentrega" value = "<?php  echo !empty($lead['DeliveryDateTime']) ? $lead['DeliveryDateTime'] : '';?>" onchange="aplicar_autosave()">
                     </div>                
                 </div>    
             </div>        

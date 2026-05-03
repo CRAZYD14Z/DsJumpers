@@ -12,17 +12,24 @@ use Square\SquareClient;
 //use Square\Orders\Requests\RetrieveOrderRequest;
 use Square\Payments\Requests\ListPaymentsRequest;
 
+$idLead =1;
+
+/*
 $idLead    = intval($_GET['IdLead'] ?? 0);
 $token     = $_GET['token'] ?? '';
 $tokenReal = md5($idLead . "SECRETO_DSJUMPERS");
-
-$tokenEsperado = md5($idLead . "SECRETO_DSJUMPERS");
-
 
 // Verificar que el token sea válido (evita acceso directo)
 if (!hash_equals($tokenReal, $token)) {
     die('Acceso no autorizado');
 }
+*/
+$stmt = $db->prepare("SELECT * FROM  square_account");
+$stmt->execute();
+$square_account = $stmt->fetch();     
+
+$accessToken = $square_account['Token'];
+$locationId  = $square_account['LocalId'];   
 
 
 $pagoRegistrado = false;
@@ -31,20 +38,23 @@ $mensaje = "";
 $orderId = 'LIQ-' . $idLead.'-1'; 
 
 $square = new SquareClient(
-    token: accessToken_square,
+    token: $accessToken,
     options: ['baseUrl' => 'https://connect.squareupsandbox.com']
 );
 
 $resultado = verificarPagoLink($square, $orderId);
 
-if ($resultado['pagado'] == 'COMPLETED ') {
-    // Marcar como pagado en tu BD
-    // $db->query("UPDATE leads SET pagado = 1 WHERE id_lead = ?", [$idLead]);
+if ($resultado['pagado'] == 'COMPLETED') {
+    $transactionId = $resultado['transaccion_id'];
+    $montoPagado = $resultado['monto'];
+    $moneda = $resultado['moneda'];
+
+        // Marcar como pagado en tu BD
+        // $db->query("UPDATE leads SET pagado = 1 WHERE id_lead = ?", [$idLead]);
 
         $stmt = $db->prepare("SELECT IdBranch FROM lead WHERE Id = ? ");
         $stmt->execute([$idLead]);
         $lead = $stmt->fetch();    
-
 
         $Folio = 0;    
         $stmt = $db->prepare("select MAX(Folio) as Folio FROM folios WHERE IdBranch = ? AND Type = 'Pay'");
@@ -55,7 +65,6 @@ if ($resultado['pagado'] == 'COMPLETED ') {
         }
         $Folio+=1;    
 
-
         $stmt = $db->prepare("SELECT COUNT(*) FROM payments WHERE TransactionId = ?");
         $stmt->execute([$transactionId]);
         if ($stmt->fetchColumn() > 0) {
@@ -64,9 +73,9 @@ if ($resultado['pagado'] == 'COMPLETED ') {
         } else {
             try {
                 $query = "INSERT INTO payments (IdLead, Folio, DateTime, Platform, Amount, Currency, TransactionId, Estatus) 
-                          VALUES (?, ?, NOW(), 'OPENPAY_LINK', ?, 'MXN', ?, 'A')";
+                          VALUES (?, ?, NOW(), 'OPENPAY_LINK', ?, ?, ?, 'A')";
                 $stmt = $db->prepare($query);
-                $stmt->execute([$idLead, $Folio, $montoPagado, $transactionId]);
+                $stmt->execute([$idLead, $Folio, $montoPagado, $moneda, $transactionId]);
 
                 // 6. ACTUALIZAR ESTADO DEL LEAD A 'CONFIRMADO'
                 //$update = $db->prepare("UPDATE v_leads SET status = 'CONFIRMADO' WHERE Id = ?");
@@ -87,7 +96,6 @@ if ($resultado['pagado'] == 'COMPLETED ') {
     //echo "⚠️ Aún no detectamos tu pago. Estado: " . $resultado['estado'];
 }
 
-
 function verificarPagoLink(SquareClient $square, string $orderId): array
 {
     $payments = $square->payments->list(
@@ -95,19 +103,26 @@ function verificarPagoLink(SquareClient $square, string $orderId): array
     );
 
     foreach ($payments as $payment) {
-            return [
-                'pagado'    => $payment->getStatus(),
-                'estado'    => $payment->getStatus()
-            ];    
+        // Obtenemos el objeto Money
+        $money = $payment->getAmountMoney();
+
+        return [
+            'pagado'         => $payment->getStatus(), // Ej: COMPLETED
+            'estado'         => $payment->getStatus(),
+            'transaccion_id' => $payment->getId(),
+            'monto'          => $money->getAmount() / 100, // Convertir centavos a decimal
+            'moneda'         => $money->getCurrency()      // Ej: USD, MXN, etc.
+        ];    
     }
 
     return [
-        'pagado'    => 'NO PAGADO',
-        'estado'    => 'NO PAGADO'
+        'pagado'         => 'NO PAGADO',
+        'estado'         => 'NO PAGADO',
+        'transaccion_id' => null,
+        'monto'          => 0,
+        'moneda'         => null
     ];      
-
 }
-
 ?>
 
 <!DOCTYPE html>

@@ -188,6 +188,47 @@ include_once 'head.php';
 </div>
 
 
+<div class="modal fade" id="modalCancelar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold">¿Cancelar evento?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="row g-0">
+                    <div class="col-md-7 p-4 border-end d-flex justify-content-center bg-white">
+                        Si el evento ya esta en proceso de ruta u operación, los registros serán retirados. 
+                    </div>
+
+                    <div class="col-md-5 p-4 bg-light">
+
+                        <div class="form-check">
+                        <input class="form-check-input" type="radio" name="candelationtype" id="GifCard" checked >
+                        <label class="form-check-label" for="GifCard">
+                            Aplicar Tarjeta de regalo
+                        </label>
+                        </div>
+                        <div class="form-check">
+                        <input class="form-check-input" type="radio" name="candelationtype" id="Devolution" >
+                        <label class="form-check-label" for="Devolution">
+                            Aplicar devolución
+                        </label>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-0">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Regresar</button>
+                <button type="button" id="btnCancelarEvnto" class="btn btn-primary px-4 fw-bold" onclick="btnCancelarEvnto()">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
 </div>
     <script>
 
@@ -440,7 +481,7 @@ include_once 'head.php';
                 lanzarMensaje("<?php echo Trd(77)?>", "exito", 5000);
             },
             error: function () {
-                alert("No se pudo guardar la organización.");
+                lanzarMensaje("No se pudo guardar la organización.",'alerta',4000);
                 $('#Organization').val(null).trigger('change');
             }
         });
@@ -1407,7 +1448,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const fechas = fp.selectedDates;
         
         if (fechas.length < 2) {
-            alert("<?php echo Trd(88)?>");
+            lanzarMensaje("<?php echo Trd(88)?>",'alert',4000);
             return;
         }
 
@@ -1447,7 +1488,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const fechas = fp.selectedDates;
         
         if (fechas.length < 2) {
-            alert("<?php echo Trd(88)?>");
+            lanzarMensaje("<?php echo Trd(88)?>",'alerta',4000);
             return;
         }
 
@@ -2233,20 +2274,26 @@ function cerrarBarra() {
 
 
 
+function Cancelar(){
+    const miModal = new bootstrap.Modal(document.getElementById('modalCancelar'));
+    miModal.show();
+}
+
+
 //FUNCION PARA CARGAR CONTRATO 
 
 function LoadDocument(DocumentType){
 
     if (!CurrentOrganization && !CurrentCustomer){
-        alert('<?= Trd(95) ?>')
+        lanzarMensaje('<?= Trd(95) ?>','alerta',4000)
         return;
     }
     if (!CurrentVenue) {
-        alert('<?= Trd(96) ?>')
+        lanzarMensaje('<?= Trd(96) ?>','alerta',4000)
         return;
     }
     if (!CurrentSurface) {
-        alert('<?= Trd(97) ?>')
+        lanzarMensaje('<?= Trd(97) ?>','alerta',4000)
         return;
     }    
     
@@ -2941,11 +2988,42 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
                 lanzarMensaje("Procesado sin pago!", "exito", 5000);
             },
             error: function () {
-                alert("No se pudo procesar!");
+                lanzarMensaje("No se pudo procesar!",'error',5000);
                 $('#Organization').val(null).trigger('change');
             }
         });
     }
+
+
+    function btnCancelarEvnto(){
+        var misHeaders = {
+            'Authorization': 'Bearer ' + TOKEN
+        };
+        let TipoC = '';
+        if ($('#GifCard').prop('checked'))
+            TipoC = 'GC'
+        else
+            TipoC = 'DV'
+        const dataGlobal = {
+            Lead: $('#IdLead').val(),
+            Type: TipoC
+
+        };
+        $.ajax({
+        url: API_BASE_URL + 'cancel_lead',
+        type: 'POST',
+        dataType: 'json', // Indica que esperamos JSON
+        headers: misHeaders,
+        data: JSON.stringify(dataGlobal),        
+        success: function(data) {
+                lanzarMensaje("Evento canelado!", "exito", 5000);
+            },
+            error: function () {
+                lanzarMensaje("No se pudo cancelar!",'error',5000);
+                $('#Organization').val(null).trigger('change');
+            }
+        });
+    }    
 
 
 <?php 

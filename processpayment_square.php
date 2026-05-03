@@ -45,26 +45,26 @@ if (!$token_id) {
     $locationId  = $square_account['LocalId'];
 
 
-    $stmt = $db->prepare("SELECT IdBranch FROM lead WHERE Id = ? ");
+    $stmt = $db->prepare("SELECT IdBranch,Organization, Customer FROM lead WHERE Id = ? ");
     $stmt->execute([$IdLead]);
     $lead = $stmt->fetch();    
-
-
-    $Folio = 0;    
-    $stmt = $db->prepare("select MAX(Folio) as Folio FROM folios WHERE IdBranch = ? AND Type = 'Pay'");
-    $stmt->execute([$lead['IdBranch']]);
-    $Payments = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($Payments){
-        $Folio = $Payments['Folio'];
+    if ($lead['Organization'] > 0){
+        $stmt = $db->prepare("SELECT Nombre as Nombres, '' as Apellidos, Correo, TelefonoCelular FROM  organizations WHERE Id = ?");
+        $stmt->execute([$lead['Organization']]);
+        $Client = $stmt->fetch();
+    }  
+    else{
+        $stmt = $db->prepare("SELECT Nombres, Apellidos, Correo, TelefonoCelular FROM  customers WHERE Id = ?");
+        $stmt->execute([$lead['Customer']]);
+        $Client = $stmt->fetch();
     }
-    $Folio+=1;
 
     // Datos del cliente
     $customerData = [
-        'name'      => $_POST['name'],
-        'last_name' => $_POST['last_name'],
-        'email'     => $_POST['email'],
-        'phone_number' => $_POST['phone'] ?? '5500000000'
+        'name'      => $Client['Nombres'],
+        'last_name' => $Client['Apellidos'],
+        'email'     => $Client['Correo'],
+        'phone_number' => $Client['TelefonoCelular'] ?? '5500000000'
     ];
 
 // ── Inicializar cliente Square (v45) ───────────────────────────────────────────
@@ -90,6 +90,15 @@ try {
     );
 
     $payment = $response->getPayment();
+
+    $Folio = 0;    
+    $stmt = $db->prepare("select MAX(Folio) as Folio FROM folios WHERE IdBranch = ? AND Type = 'Pay'");
+    $stmt->execute([$lead['IdBranch']]);
+    $Payments = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($Payments){
+        $Folio = $Payments['Folio'];
+    }
+    $Folio+=1;    
 
     $amount = $amount / 100;
 

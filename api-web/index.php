@@ -66,6 +66,8 @@ use Square\Types\Currency;
 use Square\Exceptions\SquareApiException;
 use Square\Exceptions\SquareException;
 
+use Square\Payments\Requests\ListPaymentsRequest;
+
 include_once '../api/functions.php'; 
 include_once '../api/process_op.php'; 
 // ----------------------------------------------------
@@ -229,6 +231,15 @@ switch ($resource) {
     case 'SQUARE':
         SQUARE($resource,$db, $method, $id, $data);
     break;    
+
+    case 'tnks':
+        tnks($resource,$db, $method, $id, $data);
+    break;    
+
+    case 'tnks_square':
+        tnks($resource,$db, $method, $id, $data);
+    break;        
+    
 
     default:
         // Manejar rutas no definidas
@@ -2335,6 +2346,266 @@ function cart_update($resource,$db, $method, $id, $data){
         "data" => $itemsActualizados
     ]);     
 
+}
+
+function tnks($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+            //echo $data->idLead;
+            //die();
+            $idLead = $data->idLead;
+            $idCheckout = $data->idCheckout;
+            $stmt = $db->prepare("SELECT * FROM  opay_account");
+            $stmt->execute();
+            $opay_account = $stmt->fetch();           
+            // Credenciales
+            $merchantId = $opay_account['Id'];
+            $privateKey = $opay_account['SecretKey'];
+
+            $pagoRegistrado = false;
+            $mensaje = "";
+
+            try {
+                // Intentamos consultar el checkout
+                $url = "https://sandbox-api.openpay.mx/v1/$merchantId/checkouts/$idCheckout";
+                //echo $url;
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+                curl_setopt($ch, CURLOPT_USERPWD, $privateKey . ":");
+                $response = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+                $checkout = json_decode($response);
+
+                // SI EL CHECKOUT DA 404, PERO TENEMOS UN ORDER_ID, BUSCAMOS POR TRANSACCION
+                if ($httpCode == 404) {
+                    $orderIdBusqueda = 'LIQ-' . $idLead.'-1';
+                    $urlBusqueda = "https://sandbox-api.openpay.mx/v1/$merchantId/charges?order_id=" . $orderIdBusqueda;
+                    //echo $urlBusqueda;
+                    
+                    curl_setopt($ch, CURLOPT_URL, $urlBusqueda);
+                    $responseBusqueda = curl_exec($ch);
+                    $charges = json_decode($responseBusqueda);
+
+                    if (!empty($charges) && $charges[0]->status == 'completed') {
+                        // Si encontramos la transacción exitosa, simulamos el objeto checkout
+                        $transactionId = $charges[0]->id;
+                        $montoPagado = $charges[0]->amount;
+                        $statusPago = 'completed';
+                    } else {
+                        $statusPago = 'not_found';
+                    }
+                } else {
+                    $statusPago = $checkout->status;
+                    $transactionId = $checkout->charge->id ?? null;
+                    $montoPagado = $checkout->charge->amount ?? 0;
+                }
+
+                if ($statusPago == 'completed') {
+
+                    $stmt = $db->prepare("SELECT IdBranch FROM lead WHERE Id = ? ");
+                    $stmt->execute([$idLead]);
+                    $lead = $stmt->fetch();    
+
+
+                    $Folio = 0;    
+                    $stmt = $db->prepare("select MAX(Folio) as Folio FROM folios WHERE IdBranch = ? AND Type = 'Pay'");
+                    $stmt->execute([$lead['IdBranch']]);
+                    $Payments = $stmt->fetch(PDO::FETCH_ASSOC);
+                    if ($Payments){
+                        $Folio = $Payments['Folio'];
+                    }
+                    $Folio+=1;    
+
+
+                    $stmt = $db->prepare("SELECT COUNT(*) FROM payments WHERE TransactionId = ?");
+                    $stmt->execute([$transactionId]);
+                    if ($stmt->fetchColumn() > 0) {
+                        $pagoRegistrado = true;
+                        $mensaje = "Este pago ya había sido procesado anteriormente.";
+
+                        
+                    } else {
+                        try {
+                            $query = "INSERT INTO payments (IdLead, Folio, DateTime, Platform, Amount, Currency, TransactionId, Estatus,Usuario) 
+                                    VALUES (?, ?, NOW(), 'OPENPAY_LINK', ?, 'MXN', ?, 'A', 'Link')";
+                            $stmt = $db->prepare($query);
+                            $stmt->execute([$idLead, $Folio, $montoPagado, $transactionId]);
+
+                            // 6. ACTUALIZAR ESTADO DEL LEAD A 'CONFIRMADO'
+                            //$update = $db->prepare("UPDATE v_leads SET status = 'CONFIRMADO' WHERE Id = ?");
+                            //$update->execute([$idLead]);
+
+
+                            $pagoRegistrado = true;
+                            $mensaje = "¡Pago registrado con éxito!";
+                        } catch (Exception $e) {
+                            $mensaje = "Error al guardar en BD: " . $e->getMessage();
+                        }
+
+                        $stmt = $db->prepare("SELECT SUM(Amount) as Pagos FROM payments WHERE IdLead = ? AND Estatus = 'A'");
+                        $stmt->execute([$idLead]);
+                        $lead = $stmt->fetch();               
+
+                        $query = "UPDATE lead SET Balance =  Total - ? WHERE   Id = ?";
+                        $stmt = $db->prepare($query);
+                        $stmt->execute([$lead['Pagos'], $idLead]);            
+                        $mensaje = "Pago verificado y registrado con éxito.";
+                    }        
+                    
+                } else {
+                    $mensaje = "No se pudo verificar el pago. Si ya realizaste el depósito, contacta a soporte.";
+                }
+                curl_close($ch);
+            } catch (Exception $e) {
+                $mensaje = "Error: " . $e->getMessage();
+            }            
+
+
+            http_response_code(200);
+            echo json_encode([
+                "status" => $pagoRegistrado,
+                "mensaje" => $mensaje,
+                "transactionId" => $transactionId
+            ]);            
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }      
+    
+}
+
+
+function tnks_square($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+
+            $idLead = $data->idLead;
+
+
+            $stmt = $db->prepare("SELECT * FROM  square_account");
+            $stmt->execute();
+            $square_account = $stmt->fetch();     
+
+            $accessToken = $square_account['Token'];
+            $locationId  = $square_account['LocalId'];   
+
+
+            $pagoRegistrado = false;
+            $mensaje = "";
+
+            $orderId = 'LIQ-' . $idLead.'-1'; 
+
+            $square = new SquareClient(
+                token: $accessToken,
+                options: ['baseUrl' => 'https://connect.squareupsandbox.com']
+            );
+
+            $resultado = verificarPagoLink($square, $orderId);
+
+            if ($resultado['pagado'] == 'COMPLETED') {
+                $transactionId = $resultado['transaccion_id'];
+                $montoPagado = $resultado['monto'];
+                $moneda = $resultado['moneda'];
+
+                    // Marcar como pagado en tu BD
+                    // $db->query("UPDATE leads SET pagado = 1 WHERE id_lead = ?", [$idLead]);
+
+                    $stmt = $db->prepare("SELECT IdBranch FROM lead WHERE Id = ? ");
+                    $stmt->execute([$idLead]);
+                    $lead = $stmt->fetch();    
+
+                    $Folio = 0;    
+                    $stmt = $db->prepare("select MAX(Folio) as Folio FROM folios WHERE IdBranch = ? AND Type = 'Pay'");
+                    $stmt->execute([$lead['IdBranch']]);
+                    $Payments = $stmt->fetch(PDO::FETCH_ASSOC);
+                    if ($Payments){
+                        $Folio = $Payments['Folio'];
+                    }
+                    $Folio+=1;    
+
+                    $stmt = $db->prepare("SELECT COUNT(*) FROM payments WHERE TransactionId = ?");
+                    $stmt->execute([$transactionId]);
+                    if ($stmt->fetchColumn() > 0) {
+                        $pagoRegistrado = true;
+                        $mensaje = "Este pago ya había sido procesado anteriormente.";
+                    } else {
+                        try {
+                            $query = "INSERT INTO payments (IdLead, Folio, DateTime, Platform, Amount, Currency, TransactionId, Estatus) 
+                                    VALUES (?, ?, NOW(), 'OPENPAY_LINK', ?, ?, ?, 'A')";
+                            $stmt = $db->prepare($query);
+                            $stmt->execute([$idLead, $Folio, $montoPagado, $moneda, $transactionId]);
+
+                            // 6. ACTUALIZAR ESTADO DEL LEAD A 'CONFIRMADO'
+                            //$update = $db->prepare("UPDATE v_leads SET status = 'CONFIRMADO' WHERE Id = ?");
+                            //$update->execute([$idLead]);
+
+
+                            $pagoRegistrado = true;
+                            $mensaje = "¡Pago registrado con éxito!";
+                        } catch (Exception $e) {
+                            $mensaje = "Error al guardar en BD: " . $e->getMessage();
+                        }
+                    }        
+                    $mensaje = "Pago verificado y registrado con éxito.";    
+
+                    //echo "🎉 ¡Gracias! Tu pago fue procesado exitosamente.";
+            } else {
+                $mensaje = "No se pudo verificar el pago. Si ya realizaste el depósito, contacta a soporte.";
+                //echo "⚠️ Aún no detectamos tu pago. Estado: " . $resultado['estado'];
+            }            
+
+
+
+            http_response_code(200);
+            echo json_encode([
+                "status" => $pagoRegistrado,
+                "mensaje" => $mensaje,
+                "transactionId" => $transactionId
+            ]);            
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }      
+    
+}
+
+function verificarPagoLink(SquareClient $square, string $orderId): array
+{
+    $payments = $square->payments->list(
+        new ListPaymentsRequest(['orderId' => $orderId])
+    );
+
+    foreach ($payments as $payment) {
+        // Obtenemos el objeto Money
+        $money = $payment->getAmountMoney();
+
+        return [
+            'pagado'         => $payment->getStatus(), // Ej: COMPLETED
+            'estado'         => $payment->getStatus(),
+            'transaccion_id' => $payment->getId(),
+            'monto'          => $money->getAmount() / 100, // Convertir centavos a decimal
+            'moneda'         => $money->getCurrency()      // Ej: USD, MXN, etc.
+        ];    
+    }
+
+    return [
+        'pagado'         => 'NO PAGADO',
+        'estado'         => 'NO PAGADO',
+        'transaccion_id' => null,
+        'monto'          => 0,
+        'moneda'         => null
+    ];      
 }
 
 ?>
