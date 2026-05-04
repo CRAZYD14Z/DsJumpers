@@ -9,7 +9,7 @@ $database = new Database();
 $db = $database->getConnection();
 
 $Idioma = $_SESSION['Idioma'];
-$query = "select Traduccion FROM  programas_traduccion where Programa = 'leads' AND Idioma = ? ORDER BY Id";            
+$query = "select Traduccion FROM  programas_traduccion where Programa = 'operation' AND Idioma = ? ORDER BY Id";            
 $stmt = $db->prepare($query);
 $stmt->bindValue(1, $Idioma);
 $stmt->execute();
@@ -24,6 +24,7 @@ function Trd($Id){
     global $Traducciones;
     return $Traducciones[$Id];
 }
+
 $Operadores ='';
 $query ="SELECT Id, Nombres, Apellidos  from operators WHERE Estatus = 'A' AND Tipo = 'DRIVER'";
 $stmt = $db->prepare($query);
@@ -93,7 +94,7 @@ include_once 'head.php';
 <div class="container my-5">
     <div class="card shadow">
         <div class="card-header text-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0 text-black">Reporte de Operaciones:</h4>
+            <h4 class="mb-0 text-black"><?php echo Trd(37)?></h4>
         </div>
     </div>     
        
@@ -128,7 +129,7 @@ include_once 'head.php';
     <div class="modal-content shadow-lg border-0">
       <div class="modal-header bg-light">
         <h5 class="modal-title fw-bold text-dark">
-          <i class="bi bi-person-badge me-2"></i>Asignar Personal
+          <i class="bi bi-person-badge me-2"></i><?=  Trd(14) ?>
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -138,13 +139,13 @@ include_once 'head.php';
             <div class="display-6 text-primary mb-2">
                 <i class="bi bi-truck"></i>
             </div>
-            <p class="text-muted small">Seleccione un operador disponible para la unidad y fecha seleccionada.</p>
+            <p class="text-muted small"><?=  Trd(15) ?></p>
         </div>
 
         <div class="form-floating">
           <select class="form-select border-primary-subtle" id="selectOperador" aria-label="Selección de operador">
             </select>
-          <label for="selectOperador">Operador disponible</label>
+          <label for="selectOperador"><?=  Trd(16) ?></label>
         </div>
         
         <div id="infoRuta" class="mt-3 p-2 bg-light rounded-3 small text-center text-secondary d-none">
@@ -152,9 +153,9 @@ include_once 'head.php';
       </div>
 
       <div class="modal-footer border-0 bg-light">
-        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal"><?=  Trd(17) ?></button>
         <button type="button" id="btnGuardarAsignacion" class="btn btn-primary px-4 fw-bold">
-          <i class="bi bi-check2-circle me-1"></i>Confirmar
+          <i class="bi bi-check2-circle me-1"></i><?=  Trd(18) ?>
         </button>
       </div>
     </div>
@@ -166,7 +167,7 @@ include_once 'head.php';
     <div class="modal-content shadow-lg border-0">
       <div class="modal-header bg-light">
         <h5 class="modal-title fw-bold text-dark">
-          <i class="bi bi-person-badge me-2"></i>Asignar a otra Ruta
+          <i class="bi bi-person-badge me-2"></i><?=  Trd(19) ?>
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -176,13 +177,13 @@ include_once 'head.php';
             <div class="display-6 text-primary mb-2">
                 <i class="bi bi-truck"></i>
             </div>
-            <p class="text-muted small">Seleccione la ruta a la cual se asigará.</p>
+            <p class="text-muted small"><?=  Trd(20) ?></p>
         </div>
 
         <div class="form-floating">
           <select class="form-select border-primary-subtle" id="selectRoute" aria-label="Selección de operador">
             </select>
-          <label for="selectRoute">Ruta disponible</label>
+          <label for="selectRoute"><?=  Trd(21) ?></label>
         </div>
         
         <div id="infoRuta" class="mt-3 p-2 bg-light rounded-3 small text-center text-secondary d-none">
@@ -190,9 +191,9 @@ include_once 'head.php';
       </div>
 
       <div class="modal-footer border-0 bg-light">
-        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal"><?=  Trd(22) ?></button>
         <button type="button" id="btnGuardarAsignacionRuta" class="btn btn-primary px-4 fw-bold">
-          <i class="bi bi-check2-circle me-1"></i>Confirmar
+          <i class="bi bi-check2-circle me-1"></i><?=  Trd(23) ?>
         </button>
       </div>
     </div>
@@ -206,34 +207,6 @@ const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
 const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
 const TOKEN = localStorage.getItem('apiToken'); 
 let grupos = {};
-/*
-function attemptLogin(username, password) {
-    $.ajax({
-        url: LOGIN_URL,
-        type: 'POST',
-        contentType: 'application/json', // Indica que enviamos JSON
-        data: JSON.stringify({
-            username: username,
-            password: password
-        }),
-        success: function(response) {
-            // Éxito: Guardar el token para futuras llamadas
-            const jwtToken = response.jwt;
-            //console.log('Login exitoso. Token:', jwtToken);
-            
-            // *** Almacena el token de forma segura (ej: localStorage) ***
-            localStorage.setItem('apiToken', jwtToken); 
-            
-        },
-        error: function(xhr, status, error) {
-            // Error: Credenciales inválidas (401) o error del servidor
-            const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'Error desconocido.';
-            //console.error('Error de login:', errorMessage);
-            //alert('Fallo el inicio de sesión: ' + errorMessage);
-        }
-    });
-}    
-*/
 
 $(document).on('click', '.btn-ejecutar-carga', function(e) {
     e.stopPropagation();
@@ -358,7 +331,7 @@ function abrirAsignacion(event,date,route,Id_operation){
     //alert(Id_operation)
     const $select = $('#selectRoute');    
 
-    $select.empty().append('<option value="" selected disabled>Seleccione una ruta...</option>');
+    $select.empty().append('<option value="" selected disabled><?=  Trd(24) ?></option>');
 
         rutas.forEach(op => {
             if (op.NombreChofer == undefined )
@@ -373,7 +346,7 @@ function abrirAsignacion(event,date,route,Id_operation){
     
     var numeroOpciones = $('#selectRoute option').length; 
     if (numeroOpciones == 1){
-        $select.append('<option value="">⚠️ No hay rutas alternas para asignar</option>');
+        $select.append('<option value="">⚠️<?=  Trd(25) ?></option>');
         $('#btnGuardarAsignacionRuta').prop('disabled', true);
     }
     else{
@@ -385,10 +358,10 @@ function abrirAsignacion(event,date,route,Id_operation){
         if (idRoute) {
             reasignarRuta(Id_operation, date, idRoute);
             // Efecto visual antes de cerrar
-            $(this).html('<span class="spinner-border spinner-border-sm"></span> Guardando...');
+            $(this).html('<span class="spinner-border spinner-border-sm"></span> <?=  Trd(26) ?>');
             setTimeout(() => {
                 $('#modalOperadores').modal('hide');
-                $(this).html('<i class="bi bi-check2-circle me-1"></i>Confirmar');
+                $(this).html('<i class="bi bi-check2-circle me-1"></i><?=  Trd(27) ?>');
             }, 600);
         }
     });    
@@ -433,10 +406,10 @@ function abrirModalAsignacion(IdVehiculo, fecha) {
     //$info.html(`IdVehiculo: <b>#${IdVehiculo}</b> | Fecha: <b>${fecha}</b>`).removeClass('d-none');
     $info.html(` Fecha: <b>${fecha}</b>`).removeClass('d-none');
 
-    $select.empty().append('<option value="" selected disabled>Seleccione una persona...</option>');
+    $select.empty().append('<option value="" selected disabled><?=  Trd(28) ?></option>');
 
     if (disponibles.length === 0) {
-        $select.append('<option value="">⚠️ No hay operadores libres</option>');
+        $select.append('<option value="">⚠️<?=  Trd(29) ?> </option>');
         $('#btnGuardarAsignacion').prop('disabled', true);
     } else {
         $('#btnGuardarAsignacion').prop('disabled', false);
@@ -450,10 +423,10 @@ function abrirModalAsignacion(IdVehiculo, fecha) {
         if (idOp) {
             agregarAsignacion(IdVehiculo, fecha, idOp);
             // Efecto visual antes de cerrar
-            $(this).html('<span class="spinner-border spinner-border-sm"></span> Guardando...');
+            $(this).html('<span class="spinner-border spinner-border-sm"></span> <?=  Trd(30) ?>');
             setTimeout(() => {
                 $('#modalOperadores').modal('hide');
-                $(this).html('<i class="bi bi-check2-circle me-1"></i>Confirmar');
+                $(this).html('<i class="bi bi-check2-circle me-1"></i><?=  Trd(31) ?>');
             }, 600);
         }
     });
@@ -718,7 +691,7 @@ function renderTable(data) {
             ? `<button class="btn btn-sm btn-success ms-3 btn-ejecutar-carga" 
                        data-vid="${grupo.id_vehicle}" 
                        data-fechas='${JSON.stringify(fechasCarga)}'>
-                   <i class="fas fa-file-upload me-1"></i> Cargar Unidad
+                   <i class="fas fa-file-upload me-1"></i> <?=  Trd(32) ?>
                </button>`
             : '';
 
@@ -737,7 +710,7 @@ function renderTable(data) {
         const botonEliminar = todosParaEliminar ? `<button class="btn btn-sm btn-danger ms-3 btn-eliminar-ruta" 
                        data-vid="${grupo.id_vehicle}" 
                        data-fechas='${JSON.stringify(fechasCarga)}'>
-                   <i class="fa-solid fa-trash-can"></i> Eliminar Ruta
+                   <i class="fa-solid fa-trash-can"></i> <?=  Trd(33) ?>
                </button>`:'';
 
 
@@ -748,7 +721,7 @@ function renderTable(data) {
             botonChofer = todosParaChofer ? `<button class="btn btn-sm btn-primary ms-3 btn-chofer-ruta" 
                         data-vid="${grupo.id_vehicle}" 
                         data-fechas='${JSON.stringify(fechasCarga)}'>
-                    <i class="fa-solid fa-user"></i> Asigar Operador
+                    <i class="fa-solid fa-user"></i><?=  Trd(34) ?> 
                 </button>`:'';        
 
         }
@@ -763,7 +736,7 @@ function renderTable(data) {
                         <span class="fw-bold text-uppercase">
                             ${grupo.nombreVehiculo} 
                             <small class="text-muted ms-2">[${grupo.placas}]</small></br>
-                            Operador:
+                            <?php echo Trd(38)?>
                             <small class="text-muted ms-2">[${grupo.NombresChofer != null ? grupo.NombresChofer+' '+grupo.ApellidosChofer   : ''}]</small>                            
                         </span>
                         ${botonCargar}
@@ -828,13 +801,13 @@ rows += `
                 <button type="button" 
                         class="btn btn-sm btn-outline-primary ms-2"
                         onclick="abrirAsignacion(event,'${item.StartDateTime}','${item.id_route}','${item.Id_operation}')">
-                        <i class="fa-solid fa-up-down"></i> Reasignar
+                        <i class="fa-solid fa-up-down"></i> <?= Trd(35) ?>
                 </button>
 
                 <button type="button" 
                         class="btn btn-sm btn-outline-info ms-2  ${iddisplay}" 
                         onclick="abrirRutaEnMaps(event, '${item.Lat}', '${item.Lng}')">
-                        <i class="fa-solid fa-route"></i> Ruta
+                        <i class="fa-solid fa-route"></i> <?= Trd(36) ?>
                 </button>
             </div>
         </td>

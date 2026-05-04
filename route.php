@@ -7,810 +7,34 @@
     $database = new Database();
     $db = $database->getConnection();
 
-include_once 'head.php';    
+    $Idioma = $_SESSION['Idioma'];
+    $query = "select Traduccion FROM  programas_traduccion where Programa = 'route' AND Idioma = ? ORDER BY Id";            
+    $stmt = $db->prepare($query);
+    $stmt->bindValue(1, $Idioma);
+    $stmt->execute();
+    $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $Traducciones[]='';
+    if ($resultados) {
+        foreach ($resultados as $registro) {
+            $Traducciones[]=$registro['Traduccion'];
+        }
+    }    
+    function Trd($Id){
+        global $Traducciones;
+        return $Traducciones[$Id];
+    }    
+
+    include_once 'head.php';    
 
 ?>
-
-<style>
-/* ─── TOKENS ─────────────────────────────────────────────────────────── */
-:root {
-    --ink:      #0d1117;
-    --ink-2:    #1c2333;
-    --ink-3:    #2d3748;
-    --muted:    #64748b;
-    --border:   #e2e8f0;
-    --surface:  #f7f9fc;
-    --white:    #ffffff;
-    --accent:   #f97316;      /* naranja logístico */
-    --accent-2: #0ea5e9;      /* azul ruta */
-    --success:  #10b981;
-    --warning:  #f59e0b;
-    --danger:   #ef4444;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-    --shadow-md: 0 4px 16px rgba(0,0,0,.08);
-    --shadow-lg: 0 12px 40px rgba(0,0,0,.12);
-    --radius:   10px;
-    --radius-lg:16px;
-}
-
-/* ─── BASE ────────────────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; }
-
-html, body {
-    height: 100%;
-    margin: 0;
-
-    background: var(--surface);
-    color: var(--ink);
-    -webkit-font-smoothing: antialiased;
-}
-
-h1, h2, h3, h4, h5, h6,
-.font-display { font-family: 'Syne', sans-serif; }
-
-/* ─── LAYOUT ──────────────────────────────────────────────────────────── */
-.app-shell {
-    display: grid;
-    grid-template-rows: auto 1fr;
-    height: 100vh;
-    overflow: hidden;
-}
-
-.main-grid {
-    display: grid;
-    grid-template-columns: 320px 1fr 300px;
-    gap: 0;
-    height: 100%;
-    overflow: hidden;
-}
-
-/* ─── TOPBAR ──────────────────────────────────────────────────────────── */
-.topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 1.5rem;
-    height: 56px;
-    background: var(--ink);
-    border-bottom: 2px solid var(--accent);
-    position: relative;
-    z-index: 100;
-    gap: 1rem;
-}
-
-.topbar-brand {
-    display: flex;
-    align-items: center;
-    gap: .6rem;
-    text-decoration: none;
-}
-
-.topbar-brand .brand-icon {
-    width: 30px;
-    height: 30px;
-    background: var(--accent);
-    border-radius: 6px;
-    display: grid;
-    place-items: center;
-    font-size: 14px;
-    color: white;
-}
-
-.topbar-brand .brand-name {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 16px;
-    color: white;
-    letter-spacing: -.3px;
-}
-
-.topbar-brand .brand-name span {
-    color: var(--accent);
-}
-
-.topbar-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
-    background: rgba(249,115,22,.15);
-    border: 1px solid rgba(249,115,22,.3);
-    border-radius: 20px;
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--accent);
-    letter-spacing: .5px;
-    text-transform: uppercase;
-}
-
-.topbar-nav {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* ─── PANEL IZQUIERDO ─────────────────────────────────────────────────── */
-.panel-left {
-    background: var(--white);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.panel-section {
-    padding: 1rem 1.2rem;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-}
-
-.panel-section:last-child { border-bottom: none; }
-
-.panel-label {
-    display: flex;
-    align-items: center;
-    gap: .4rem;
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 10px;
-    letter-spacing: .8px;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: .75rem;
-}
-
-.panel-label .step-num {
-    width: 18px;
-    height: 18px;
-    background: var(--accent);
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    font-size: 9px;
-    color: white;
-    font-weight: 700;
-    flex-shrink: 0;
-}
-
-/* Fecha */
-.date-input-wrap {
-    position: relative;
-}
-
-.date-input-wrap input[type="date"] {
-    width: 100%;
-    padding: .55rem .9rem;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    color: var(--ink);
-    background: var(--surface);
-    outline: none;
-    transition: border-color .15s, box-shadow .15s;
-    cursor: pointer;
-}
-
-.date-input-wrap input[type="date"]:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(249,115,22,.12);
-}
-
-/* Scrollables */
-.list-scroll {
-    overflow-y: auto;
-    flex: 1;
-    padding: .5rem 1.2rem;
-}
-
-.list-scroll::-webkit-scrollbar { width: 4px; }
-.list-scroll::-webkit-scrollbar-track { background: transparent; }
-.list-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-/* Vehículos */
-.vehicle-card {
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-    padding: .65rem .9rem;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    margin-bottom: .5rem;
-    cursor: pointer;
-    transition: all .15s;
-    background: var(--white);
-    user-select: none;
-}
-
-.vehicle-card:hover { border-color: var(--accent-2); background: #f0f9ff; }
-.vehicle-card.selected { border-color: var(--accent-2); background: #e0f2fe; }
-
-.vehicle-card input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    accent-color: var(--accent-2);
-    cursor: pointer;
-    flex-shrink: 0;
-}
-
-.vehicle-icon {
-    width: 34px;
-    height: 34px;
-    background: linear-gradient(135deg, #0ea5e9, #0284c7);
-    border-radius: 8px;
-    display: grid;
-    place-items: center;
-    color: white;
-    font-size: 14px;
-    flex-shrink: 0;
-}
-
-.vehicle-info .v-name {
-    font-family: 'Syne', sans-serif;
-    font-weight: 600;
-    font-size: 13px;
-    color: var(--ink);
-    line-height: 1.2;
-}
-
-.vehicle-info .v-specs {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 1px;
-}
-
-/* Envíos */
-.shipment-card {
-    display: flex;
-    align-items: flex-start;
-    gap: .75rem;
-    padding: .65rem .9rem;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    margin-bottom: .5rem;
-    cursor: pointer;
-    transition: all .15s;
-    background: var(--white);
-    user-select: none;
-}
-
-.shipment-card:hover { border-color: var(--warning); background: #fffbeb; }
-.shipment-card.selected { border-color: var(--warning); background: #fef9c3; }
-
-.shipment-card input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    accent-color: var(--warning);
-    cursor: pointer;
-    flex-shrink: 0;
-    margin-top: 3px;
-}
-
-.shipment-icon {
-    width: 34px;
-    height: 34px;
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    border-radius: 8px;
-    display: grid;
-    place-items: center;
-    color: white;
-    font-size: 12px;
-    flex-shrink: 0;
-}
-
-.shipment-info { flex: 1; min-width: 0; }
-
-.shipment-info .s-lugar {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 12px;
-    color: var(--ink);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.shipment-info .s-cliente {
-    font-size: 12px;
-    color: var(--muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.shipment-info .s-time {
-    font-size: 10px;
-    color: var(--muted);
-    margin-top: 2px;
-}
-
-.shipment-meta {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 3px;
-    flex-shrink: 0;
-}
-
-.meta-pill {
-    font-size: 10px;
-    font-weight: 600;
-    padding: 2px 6px;
-    border-radius: 6px;
-    background: var(--surface);
-    color: var(--muted);
-    border: 1px solid var(--border);
-    white-space: nowrap;
-}
-
-.badge-ruta-envio { display: block; margin-top: 4px; }
-
-/* ─── PANEL FOOTER ────────────────────────────────────────────────────── */
-.panel-footer {
-    padding: .9rem 1.2rem;
-    border-top: 1px solid var(--border);
-    background: var(--white);
-    flex-shrink: 0;
-}
-
-.btn-optimizar {
-    width: 100%;
-    padding: .8rem 1rem;
-    background: linear-gradient(135deg, var(--accent), #ea580c);
-    border: none;
-    border-radius: var(--radius);
-    color: white;
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-    letter-spacing: .5px;
-    cursor: pointer;
-    transition: all .2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: .5rem;
-    box-shadow: 0 4px 14px rgba(249,115,22,.35);
-}
-
-.btn-optimizar:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(249,115,22,.45);
-}
-
-.btn-optimizar:disabled {
-    opacity: .7;
-    cursor: not-allowed;
-    transform: none;
-}
-
-/* ─── MAPA ────────────────────────────────────────────────────────────── */
-.map-wrap {
-    position: relative;
-    overflow: hidden;
-}
-
-#map {
-    width: 100%;
-    height: 100%;
-}
-
-/* ─── PANEL DERECHO ───────────────────────────────────────────────────── */
-.panel-right {
-    background: var(--white);
-    border-left: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.panel-right-header {
-    padding: 1rem 1.2rem;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-}
-
-.panel-right-header h6 {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    color: var(--ink);
-    margin: 0;
-}
-
-.panel-right-scroll {
-    flex: 1;
-    overflow-y: auto;
-    padding: .75rem 1rem;
-}
-
-.panel-right-scroll::-webkit-scrollbar { width: 4px; }
-.panel-right-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-/* Rutas sugeridas */
-.route-item {
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-    padding: .65rem .9rem;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    margin-bottom: .5rem;
-    transition: all .15s;
-    background: var(--white);
-}
-
-.route-item:hover { border-color: var(--border); background: var(--surface); }
-
-.route-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-
-.route-item-info { flex: 1; }
-
-.route-item-name {
-    font-family: 'Syne', sans-serif;
-    font-weight: 600;
-    font-size: 12px;
-    color: var(--ink);
-}
-
-.route-item-stops {
-    font-size: 11px;
-    color: var(--muted);
-}
-
-.route-toggle.form-check-input { accent-color: var(--accent-2); }
-
-/* Edición manual */
-.manual-section { margin-top: .5rem; }
-
-.manual-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: .6rem .9rem;
-    background: #fef3c7;
-    border: 1.5px solid #fcd34d;
-    border-radius: var(--radius) var(--radius) 0 0;
-    border-bottom: none;
-}
-
-.manual-header-title {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 11px;
-    color: #92400e;
-    letter-spacing: .4px;
-    text-transform: uppercase;
-}
-
-.btn-trazar {
-    padding: 3px 10px;
-    background: var(--ink);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 10px;
-    letter-spacing: .5px;
-    cursor: pointer;
-    transition: background .15s;
-}
-
-.btn-trazar:hover { background: var(--accent); }
-
-.manual-body {
-    border: 1.5px solid #fcd34d;
-    border-radius: 0 0 var(--radius) var(--radius);
-    padding: .6rem;
-    background: var(--white);
-}
-
-.manual-item {
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    padding: .5rem .6rem;
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    margin-bottom: .35rem;
-    cursor: grab;
-    font-size: 11.5px;
-    background: var(--white);
-    transition: background .1s;
-}
-
-.manual-item:hover { background: var(--surface); }
-
-.manual-item:active { cursor: grabbing; }
-
-.manual-grip { color: var(--muted); font-size: 11px; }
-
-.manual-item-name { font-weight: 600; flex: 1; }
-
-.manual-actions {
-    display: flex;
-    gap: .4rem;
-    padding-top: .5rem;
-}
-
-.btn-save-manual {
-    flex: 1;
-    padding: .45rem;
-    background: var(--success);
-    color: white;
-    border: none;
-    border-radius: 7px;
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 11px;
-    cursor: pointer;
-    transition: all .15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-}
-
-.btn-clear-manual {
-    padding: .45rem .75rem;
-    background: var(--surface);
-    color: var(--danger);
-    border: 1.5px solid var(--border);
-    border-radius: 7px;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all .15s;
-}
-
-.btn-clear-manual:hover { background: #fef2f2; border-color: var(--danger); }
-
-/* Guardar rutas */
-.btn-save-routes {
-    width: 100%;
-    padding: .65rem;
-    background: var(--success);
-    color: white;
-    border: none;
-    border-radius: var(--radius);
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all .2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: .4rem;
-    box-shadow: 0 3px 10px rgba(16,185,129,.3);
-}
-
-.btn-save-routes:hover { transform: translateY(-1px); box-shadow: 0 5px 15px rgba(16,185,129,.4); }
-
-/* Estado vacío */
-.empty-state {
-    text-align: center;
-    padding: 1.5rem 1rem;
-    color: var(--muted);
-}
-
-.empty-state .empty-icon {
-    font-size: 28px;
-    margin-bottom: .5rem;
-    opacity: .4;
-}
-
-.empty-state p { font-size: 12px; margin: 0; }
-
-/* ─── RUTA BADGE ──────────────────────────────────────────────────────── */
-.ruta-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-size: 10px;
-    font-weight: 700;
-    color: white;
-    letter-spacing: .5px;
-    margin-top: 3px;
-    white-space: nowrap;  
-}
-
-/* ─── ESTADO PANEL ────────────────────────────────────────────────────── */
-#panel-resultados.d-none, #panel-orden-manual.d-none { display: none !important; }
-
-/* ─── COUNTER ─────────────────────────────────────────────────────────── */
-.selection-counter {
-    display: inline-flex;
-    align-items: center;
-    gap: .3rem;
-    font-size: 11px;
-    color: var(--muted);
-    font-weight: 500;
-    margin-left: auto;
-}
-
-.counter-bubble {
-    display: inline-grid;
-    place-items: center;
-    width: 18px;
-    height: 18px;
-    background: var(--accent);
-    color: white;
-    border-radius: 50%;
-    font-size: 9px;
-    font-weight: 700;
-}
-
-/* ─── SPINNER ─────────────────────────────────────────────────────────── */
-@keyframes spin { to { transform: rotate(360deg); } }
-.spin { animation: spin .7s linear infinite; display: inline-block; }
-
-/* ─── RESPONSIVE ──────────────────────────────────────────────────────── */
-
-/* Tablet */
-@media (max-width: 1200px) {
-    .main-grid { grid-template-columns: 300px 1fr; }
-    .panel-right { display: none; }
-}
-
-/* ── MÓVIL ──────────────────────────────────────────────────────────────── */
-@media (max-width: 768px) {
-
-    .app-shell {
-        grid-template-rows: auto 1fr auto;
-        height: 100dvh;
-    }
-
-    .topbar { height: 50px; padding: 0 1rem; }
-    .topbar-nav { display: none; }
-    .topbar-badge { display: none; }
-
-    /* Contenedor de pantallas */
-    .main-grid {
-        display: block;
-        position: relative;
-        overflow: hidden;
-        height: 100%;
-    }
-
-    /* Cada panel = pantalla completa, oculta por defecto */
-    .panel-left,
-    .map-wrap,
-    .panel-right {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        display: none !important;
-        flex-direction: column;
-        overflow: hidden;
-    }
-
-    /* Solo el panel activo es visible */
-    .panel-left.mob-visible,
-    .map-wrap.mob-visible,
-    .panel-right.mob-visible {
-        display: flex !important;
-    }
-
-    .panel-left  { background: var(--white); }
-    .map-wrap    { background: #e8e8e8; }
-    .panel-right { background: var(--white); overflow-y: auto; border-left: none; }
-
-    .panel-left .list-scroll { flex: 1; overflow-y: auto; min-height: 0; }
-    .panel-section { flex-shrink: 0; }
-
-    #map { width: 100%; height: 100%; display: block; }
-
-    .panel-footer {
-        padding: .75rem 1rem;
-        padding-bottom: calc(.75rem + env(safe-area-inset-bottom, 0px));
-        flex-shrink: 0;
-    }
-
-    .vehicle-card, .shipment-card { padding: .55rem .75rem; }
-    .vehicle-icon, .shipment-icon { width: 30px; height: 30px; font-size: 12px; }
-
-    /* Barra de navegación inferior */
-    .mobile-nav {
-        display: flex !important;
-        position: relative;
-        z-index: 100;
-        background: var(--white);
-        border-top: 1.5px solid var(--border);
-        padding-bottom: env(safe-area-inset-bottom, 0px);
-        flex-shrink: 0;
-    }
-
-    .mobile-nav-btn {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 3px;
-        padding: .6rem .5rem;
-        background: none;
-        border: none;
-        cursor: pointer;
-        color: var(--muted);
-        font-family: 'Syne', sans-serif;
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: .3px;
-        transition: color .15s;
-        position: relative;
-        -webkit-tap-highlight-color: transparent;
-    }
-
-    .mobile-nav-btn i { font-size: 20px; line-height: 1; }
-    .mobile-nav-btn.mob-active { color: var(--accent); }
-
-    .mobile-nav-btn .nav-badge {
-        position: absolute;
-        top: 5px;
-        right: calc(50% - 18px);
-        background: var(--accent);
-        color: white;
-        font-size: 9px;
-        font-weight: 700;
-        min-width: 16px;
-        height: 16px;
-        border-radius: 8px;
-        display: grid;
-        place-items: center;
-        padding: 0 3px;
-        line-height: 1;
-    }
-
-    /* FAB flotante sobre el mapa */
-    .map-fab {
-        position: absolute !important;
-        bottom: 1.2rem;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 20;
-        background: var(--accent);
-        color: white;
-        border: none;
-        border-radius: 50px;
-        padding: .75rem 1.5rem;
-        font-family: 'Syne', sans-serif;
-        font-weight: 700;
-        font-size: 13px;
-        cursor: pointer;
-        box-shadow: 0 4px 20px rgba(249,115,22,.5);
-        display: flex !important;
-        align-items: center;
-        gap: .5rem;
-        white-space: nowrap;
-        -webkit-tap-highlight-color: transparent;
-    }
-
-    #panel-resultados { padding-bottom: 1rem; }
-    #panel-vacio { flex: 1; }
-}
-</style>
+<link rel="stylesheet" href="css/route.css" />
 </head>
-
 <body>
-
-
-
+    
 <div class="app-shell">
 
     <!-- TOPBAR -->
     <header class="topbar">
-            <?php include_once 'nav.php'; ?>
         <div class="topbar-nav">
             <?php include_once 'nav.php'; ?>
         </div>
@@ -827,7 +51,7 @@ h1, h2, h3, h4, h5, h6,
                 <div class="panel-label">
                     <span class="step-num">0</span>
                     <i class="fas fa-calendar-alt"></i>
-                    Fecha de operación
+                    <?= Trd(1) ?>
                 </div>
                 <?php
                     $fecha_actual = isset($_GET['fecha']) ? $_GET['fecha'] : date('Y-m-d');
@@ -844,7 +68,7 @@ h1, h2, h3, h4, h5, h6,
                 <div class="panel-label">
                     <span class="step-num">1</span>
                     <i class="fas fa-truck"></i>
-                    Unidades disponibles
+                    <?= Trd(2) ?>
                     <span class="selection-counter">
                         <span class="counter-bubble" id="cnt-vehiculos">0</span>
                     </span>
@@ -857,7 +81,7 @@ h1, h2, h3, h4, h5, h6,
                 <div class="panel-label">
                     <span class="step-num">2</span>
                     <i class="fas fa-boxes"></i>
-                    Entregas del día
+                    <?= Trd(3) ?>
                     <span class="selection-counter">
                         <span class="counter-bubble" id="cnt-envios">0</span>
                     </span>
@@ -869,7 +93,7 @@ h1, h2, h3, h4, h5, h6,
             <div class="panel-footer">
                 <button id="btn-optimizar" class="btn-optimizar">
                     <i class="fas fa-route"></i>
-                    Armar Ruta Óptima
+                    <?= Trd(4) ?>
                 </button>
             </div>
 
@@ -880,7 +104,7 @@ h1, h2, h3, h4, h5, h6,
             <div id="map"></div>
             <!-- FAB móvil: optimizar desde vista mapa -->
             <button class="map-fab" id="map-fab-optimizar" style="display:none;" onclick="document.getElementById('btn-optimizar').click()">
-                <i class="fas fa-route"></i> Armar Ruta
+                <i class="fas fa-route"></i> <?= Trd(5) ?>
             </button>
         </main>
 
@@ -890,7 +114,7 @@ h1, h2, h3, h4, h5, h6,
             <!-- RUTAS SUGERIDAS -->
             <div id="panel-resultados" class="d-none" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
                 <div class="panel-right-header">
-                    <h6><i class="fas fa-map-marked-alt me-2" style="color:var(--accent-2)"></i>Rutas Sugeridas</h6>
+                    <h6><i class="fas fa-map-marked-alt me-2" style="color:var(--accent-2)"></i><?= Trd(6) ?></h6>
                 </div>
                 <div class="panel-right-scroll">
                     <div id="controles-rutas"></div>
@@ -898,7 +122,7 @@ h1, h2, h3, h4, h5, h6,
                 <div class="panel-footer">
                     <button class="btn-save-routes d-none" id="guardarRutaOptima" onclick="mostrarModalConfirmacion('optima')">
                         <i class="fas fa-floppy-disk"></i>
-                        Guardar Rutas
+                        <?= Trd(7) ?>
                     </button>
                 </div>
             </div>
@@ -907,24 +131,24 @@ h1, h2, h3, h4, h5, h6,
             <div id="panel-vacio" class="d-flex flex-column align-items-center justify-content-center" style="flex:1;">
                 <div class="empty-state">
                     <div class="empty-icon"><i class="fas fa-map-signs"></i></div>
-                    <p>Selecciona unidades y entregas,<br>luego presiona <strong>Armar Ruta</strong>.</p>
+                    <p><?= Trd(8) ?><br><?= Trd(9) ?> <strong><?= Trd(10) ?></strong>.</p>
                 </div>
             </div>
 
             <!-- EDICIÓN MANUAL -->
             <div id="panel-orden-manual" class="d-none" style="padding: .75rem 1rem; border-top: 1px solid var(--border);">
                 <div class="manual-header">
-                    <span class="manual-header-title"><i class="fas fa-grip-vertical me-1"></i>Orden Manual</span>
-                    <button class="btn-trazar" onclick="iniciarRutaManual()">TRAZAR</button>
+                    <span class="manual-header-title"><i class="fas fa-grip-vertical me-1"></i><?= Trd(11) ?></span>
+                    <button class="btn-trazar" onclick="iniciarRutaManual()"><?= Trd(12) ?></button>
                 </div>
                 <div class="manual-body">
                     <small class="text-muted" style="font-size:10px; display:block; margin-bottom:.4rem;">
-                        Arrastra para reordenar las paradas
+                        <?= Trd(13) ?>
                     </small>
                     <ul id="lista-orden-manual" class="mb-0 ps-0" style="list-style:none;"></ul>
                     <div class="manual-actions mt-2">
                         <button class="btn-save-manual d-none" id="guardarRutaManual" onclick="mostrarModalConfirmacion('manual')">
-                            <i class="fas fa-floppy-disk"></i> Guardar manual
+                            <i class="fas fa-floppy-disk"></i> <?= Trd(14) ?>
                         </button>
                         <button class="btn-clear-manual" id="limpiarRutaManual" onclick="limpiarRutaManual()">
                             <i class="fas fa-trash-can"></i>
@@ -941,16 +165,16 @@ h1, h2, h3, h4, h5, h6,
     <nav class="mobile-nav" style="display:none;">
         <button class="mobile-nav-btn mob-active" data-panel="left">
             <i class="fas fa-list-check"></i>
-            <span>Entregas</span>
+            <span><?= Trd(15) ?></span>
             <span class="nav-badge" id="nav-badge-sel" style="display:none;">0</span>
         </button>
         <button class="mobile-nav-btn" data-panel="map">
             <i class="fas fa-map"></i>
-            <span>Mapa</span>
+            <span><?= Trd(16) ?></span>
         </button>
         <button class="mobile-nav-btn" data-panel="right">
             <i class="fas fa-route"></i>
-            <span>Rutas</span>
+            <span><?= Trd(17) ?></span>
             <span class="nav-badge" id="nav-badge-rutas" style="display:none;">✓</span>
         </button>
     </nav>
@@ -961,15 +185,15 @@ h1, h2, h3, h4, h5, h6,
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Confirmar Guardado</h5>
+        <h5 class="modal-title"><?= Trd(18) ?></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <p id="textoConfirmacion">¿Desea guardar las rutas generadas en la base de datos?</p>
+        <p id="textoConfirmacion"><?= Trd(19) ?></p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-warning" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-success" id="btnAceptarGuardado">Guardar Rutas</button>
+        <button type="button" class="btn btn-warning" data-bs-dismiss="modal"><?= Trd(20) ?></button>
+        <button type="button" class="btn btn-success" id="btnAceptarGuardado"><?= Trd(21) ?></button>
       </div>
     </div>
   </div>
@@ -986,26 +210,9 @@ const LOGIN_URL   = '<?php echo URL_BASE; ?>/api/login';
 const API_BASE_URL = '<?php echo URL_BASE; ?>/api/';
 const TOKEN = localStorage.getItem('apiToken');
 
-/* ─── LOGIN ─────────────────────────────────────────────────────────── */
-/*
-function attemptLogin(username, password) {
-    $.ajax({
-        url: LOGIN_URL,
-        type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({ username, password }),
-        success: function(response) {
-            localStorage.setItem('apiToken', response.jwt);
-        },
-        error: function(xhr) {
-            console.error('Login error:', xhr.responseJSON?.message ?? 'Unknown error');
-        }
-    });
-}
-*/
+
 $(document).ready(function() {
-//    attemptLogin('admin', '1234');
-//    if (!TOKEN) console.warn('No token found. Login required.');
+
 });
 
 /* ─── CAMBIAR IDIOMA ─────────────────────────────────────────────────── */
@@ -1024,13 +231,13 @@ $('.lang-option').on('click', function(e) {
 
 function mostrarModalConfirmacion(tipo) {
     if (rutasParaGuardar.length === 0 && tipo == 'optima') {
-        mostrarToast("No hay rutas generadas para guardar", "warning");
+        mostrarToast("<?= Trd(22) ?>", "warning");
         return;
     }
 
     tipoG = tipo;
     // Actualizar el texto del modal dinámicamente
-    const mensaje = `¿Desea guardar la(s) ruta(s) generada(s)?`;
+    const mensaje = `<?= Trd(23) ?>`;
     $('#textoConfirmacion').html(mensaje);
 
     // Mostrar el modal
@@ -1043,7 +250,7 @@ $('#btnAceptarGuardado').on('click', function() {
     const btn = $(this);
     
     // Bloquear botón para evitar doble clic
-    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Guardando...');
+    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> <?= Trd(24) ?>');
 
     if (tipoG == 'optima'){
         guardarRutaOptima();
@@ -1272,7 +479,7 @@ function renderListas() {
     // Vehículos
     const $contV = $('#lista-vehiculos').empty();
     if (!dataVehiculos.length) {
-        $contV.html('<div class="empty-state"><div class="empty-icon"><i class="fas fa-truck-slash"></i></div><p>Sin unidades disponibles</p></div>');
+        $contV.html('<div class="empty-state"><div class="empty-icon"><i class="fas fa-truck-slash"></i></div><p><?= Trd(35) ?></p></div>');
     }
     dataVehiculos.forEach(v => {
         const card = $(`
@@ -1291,7 +498,7 @@ function renderListas() {
     // Envíos
     const $contE = $('#lista-envios').empty();
     if (!dataEnvios.length) {
-        $contE.html('<div class="empty-state"><div class="empty-icon"><i class="fas fa-box-open"></i></div><p>Sin entregas para esta fecha</p></div>');
+        $contE.html('<div class="empty-state"><div class="empty-icon"><i class="fas fa-box-open"></i></div><p><?= Trd(36) ?></p></div>');
     }
     dataEnvios.forEach(e => {
         const card = $(`
@@ -1337,7 +544,7 @@ $('#btn-optimizar').on('click', function() {
     const eSelected = $('.check-envio:checked').map(function() { return $(this).val(); }).get();
 
     if (!vSelected.length || !eSelected.length) {
-        mostrarToast('Selecciona al menos una unidad y una entrega.', 'warning');
+        mostrarToast('<?= Trd(25) ?>', 'warning');
         return;
     }
 
@@ -1363,11 +570,11 @@ $('#btn-optimizar').on('click', function() {
             const data = JSON.parse(response);
             localStorage.setItem(cacheID, response);
             procesarRespuesta(data);
-            $btn.html('<i class="fas fa-route me-2"></i>Armar Ruta Óptima').prop('disabled', false);
+            $btn.html('<i class="fas fa-route me-2"></i><?= Trd(26) ?>').prop('disabled', false);
         },
         error: () => {
-            mostrarToast('Error al consultar el servidor.', 'danger');
-            $btn.html('<i class="fas fa-route me-2"></i>Armar Ruta Óptima').prop('disabled', false);
+            mostrarToast('<?= Trd(34) ?>', 'danger');
+            $btn.html('<i class="fas fa-route me-2"></i><?= Trd(26) ?>Armar Ruta Óptima').prop('disabled', false);
         }
     });
 });
@@ -1564,8 +771,8 @@ function iniciarRutaManual() {
     const vehiculo = obtenerVehiculoSeleccionado();
     const envios   = obtenerEnviosSeleccionados2();
 
-    if (!vehiculo) { mostrarToast('Selecciona exactamente un vehículo.', 'warning'); return; }
-    if (!envios.length) { mostrarToast('Selecciona al menos un envío.', 'warning'); return; }
+    if (!vehiculo) { mostrarToast('<?= Trd(27) ?>', 'warning'); return; }
+    if (!envios.length) { mostrarToast('<?= Trd(28) ?>', 'warning'); return; }
 
     trazarRutaManual(vehiculo, envios);
     $('#guardarRutaManual').removeClass('d-none');
@@ -1608,7 +815,7 @@ function trazarRutaManual(vehiculo, envios) {
         optimizeWaypoints: false
     }, (result, status) => {
         if (status !== "OK") {
-            mostrarToast("No se pudo trazar la ruta: " + status, 'danger');
+            mostrarToast("<?= Trd(29) ?>: " + status, 'danger');
             return;
         }
 
@@ -1665,7 +872,7 @@ function guardarRutaOptima(){
             },
             success: function(res) {
                 console.log("Ruta guardada exitosamente");
-                mostrarToast("Todas las rutas han sido guardadas", "success");
+                mostrarToast("<?= Trd(30) ?>", "success");
                 setTimeout(function() {
                     location.reload();
                 }, 1000);
@@ -1700,7 +907,7 @@ function enviarRutaAlServidor(vehiculo, envios, datosRuta) {
         },
         success: function(response) {
             console.log("Ruta guardada exitosamente");
-            mostrarToast("Todas las rutas han sido guardadas", "success");
+            mostrarToast("<?= Trd(31) ?>", "success");
             setTimeout(function() {
                 location.reload();
             }, 1000);
@@ -1754,7 +961,7 @@ function mostrarRutaGuardada(polylineBase64, vehiculo, envios) {
 
         // Opcional: Actualizar los badges en la interfaz si aún existen los elementos
         $(`#badge-ruta-${e.id}`).html(
-            `<span class="ruta-badge" style="background:${COLOR_MANUAL}">${letra} · Manual (Cargada)</span>`
+            `<span class="ruta-badge" style="background:${COLOR_MANUAL}">${letra} · <?= Trd(32) ?></span>`
         );
     });
 
@@ -1928,7 +1135,7 @@ procesarRespuesta = async function(data) {
         $('#nav-badge-rutas').text('✓').show();
         const mapBtn = document.querySelector('.mobile-nav-btn[data-panel="map"]');
         mobileNav('map', mapBtn);
-        mostrarToast('¡Rutas listas! Toca Rutas para guardar.', 'success');
+        mostrarToast('<?= Trd(33) ?>', 'success');
     }
 };
 

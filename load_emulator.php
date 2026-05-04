@@ -7,109 +7,26 @@
     $database = new Database();
     $db = $database->getConnection();
 
+    $Idioma = $_SESSION['Idioma'];
+    $query = "select Traduccion FROM  programas_traduccion where Programa = 'load_emulator' AND Idioma = ? ORDER BY Id";            
+    $stmt = $db->prepare($query);
+    $stmt->bindValue(1, $Idioma);
+    $stmt->execute();
+    $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $Traducciones[]='';
+    if ($resultados) {
+        foreach ($resultados as $registro) {
+            $Traducciones[]=$registro['Traduccion'];
+        }
+    }    
+    function Trd($Id){
+        global $Traducciones;
+        return $Traducciones[$Id];
+    }    
+
     include_once 'head.php';
 ?>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Outfit:wght@300;400;500;600;700&display=swap');
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#f0f2f7;--s1:#ffffff;--s2:#f5f7fb;--s3:#eaecf3;
-  --bd:#d4d9e8;--bd2:#bcc4d8;
-  --t1:#1a2035;--t2:#4a5572;--t3:#8892aa;
-  --acc:#2563eb;--acc2:#059669;--acc3:#ea580c;
-  --p1:#dc2626;--p2:#ea580c;--p3:#ca8a04;--p4:#16a34a;--p5:#64748b;
-  --lifo:#7c3aed;--zone-door:#059669;--zone-mid:#2563eb;--zone-back:#ea580c;
-  --frag:#db2777;
-  --r:8px;--r2:12px;
-}
-body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
-.topbar{display:flex;align-items:center;gap:12px;padding:10px 18px;background:var(--s1);border-bottom:1px solid var(--bd);flex-shrink:0;z-index:20;box-shadow:0 1px 4px rgba(0,0,0,.06);}
-.brand{display:flex;align-items:center;gap:10px;}
-.brand-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--acc),var(--acc2));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
-.brand h1{font-size:14px;font-weight:700;letter-spacing:.2px;color:var(--t1);}
-.brand span{font-size:11px;color:var(--t3);font-family:'IBM Plex Mono',monospace;}
-.strategy-tabs{display:flex;gap:4px;margin-left:12px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:3px;}
-.stab{padding:5px 10px;border-radius:6px;border:none;font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;cursor:pointer;color:var(--t2);background:transparent;transition:all .18s;white-space:nowrap;}
-.stab:hover{color:var(--t1);background:var(--s3);}
-.stab.active{background:var(--acc);color:#fff;}
-.topstats{margin-left:auto;display:flex;gap:18px;align-items:center;}
-.tstat{text-align:right;}
-.tstat-v{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--t1);}
-.tstat-l{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;}
-.main{display:flex;flex:1;overflow:hidden;}
-.panel{width:290px;background:var(--s1);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;box-shadow:2px 0 8px rgba(0,0,0,.04);}
-.pblock{padding:12px 14px;border-bottom:1px solid var(--bd);}
-.pblock h2{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--t3);margin-bottom:8px;}
-.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
-.field label{display:block;font-size:10px;color:var(--t3);margin-bottom:3px;font-family:'IBM Plex Mono',monospace;}
-.field input,.field select{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:6px;color:var(--t1);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:5px 7px;outline:none;transition:border-color .15s;}
-.field input:focus{border-color:var(--acc);box-shadow:0 0 0 2px rgba(37,99,235,.1);}
-.field.full{grid-column:1/-1;}
-.btn{border:none;border-radius:var(--r);font-family:'Outfit',sans-serif;font-weight:600;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:5px;}
-.btn-acc{background:var(--acc);color:#fff;font-size:12px;padding:7px 14px;}
-.btn-acc:hover{background:#1d4ed8;}
-.btn-ghost{background:var(--s2);color:var(--t2);border:1px solid var(--bd);font-size:11px;padding:6px 10px;}
-.btn-ghost:hover{border-color:var(--acc);color:var(--acc);background:rgba(37,99,235,.05);}
-.btn-lifo{background:rgba(124,58,237,.08);color:var(--lifo);border:1px solid rgba(124,58,237,.25);font-size:11px;padding:6px 10px;}
-.btn-lifo:hover{background:rgba(124,58,237,.15);}
-.btn-danger{background:rgba(220,38,38,.06);color:var(--p1);border:1px solid rgba(220,38,38,.2);font-size:11px;padding:6px 8px;}
-.btn-danger:hover{background:rgba(220,38,38,.12);}
-.btn:disabled{opacity:.35;cursor:not-allowed;}
-.zone-legend{display:flex;gap:6px;flex-wrap:wrap;}
-.zone-tag{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:3px 7px;border-radius:5px;}
-.zone-tag.door{background:rgba(5,150,105,.08);color:var(--zone-door);border:1px solid rgba(5,150,105,.2);}
-.zone-tag.mid{background:rgba(37,99,235,.08);color:var(--zone-mid);border:1px solid rgba(37,99,235,.2);}
-.zone-tag.back{background:rgba(234,88,12,.08);color:var(--zone-back);border:1px solid rgba(234,88,12,.2);}
-.zone-tag.frag{background:rgba(219,39,119,.08);color:var(--frag);border:1px solid rgba(219,39,119,.2);}
-.items-scroll{flex:1;overflow-y:auto;padding:4px 0;}
-.items-scroll::-webkit-scrollbar{width:4px;}
-.items-scroll::-webkit-scrollbar-track{background:var(--s2);}
-.items-scroll::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px;}
-.item-row{display:flex;align-items:center;gap:7px;padding:7px 14px;cursor:pointer;border-left:3px solid transparent;transition:all .12s;}
-.item-row:hover{background:var(--s2);}
-.item-row.active{background:rgba(37,99,235,.06);border-left-color:var(--acc);}
-.item-row.done{opacity:.45;}
-.item-row.done .step-n{background:var(--s3);color:var(--t3);}
-.cdot{width:9px;height:9px;border-radius:3px;flex-shrink:0;}
-.iinfo{flex:1;min-width:0;}
-.iname{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--t1);}
-.imeta{font-size:10px;color:var(--t3);font-family:'IBM Plex Mono',monospace;display:flex;gap:6px;margin-top:1px;flex-wrap:wrap;}
-.zone-pip{font-size:9px;padding:1px 4px;border-radius:3px;font-weight:700;}
-.zone-pip.door{color:var(--zone-door);background:rgba(5,150,105,.1);}
-.zone-pip.mid{color:var(--zone-mid);background:rgba(37,99,235,.1);}
-.zone-pip.back{color:var(--zone-back);background:rgba(234,88,12,.1);}
-.step-n{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 5px;border-radius:4px;background:var(--s3);color:var(--t3);flex-shrink:0;}
-.step-n.active{background:var(--acc);color:#fff;}
-.controls{padding:12px 14px;border-top:1px solid var(--bd);flex-shrink:0;background:var(--s2);}
-.step-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-.step-ctr{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--t3);}
-.step-ctr strong{color:var(--acc2);}
-.step-name{font-size:11px;font-weight:600;color:var(--t1);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;}
-.prog-track{height:3px;background:var(--bd);border-radius:2px;margin-bottom:8px;overflow:hidden;}
-.prog-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:2px;transition:width .3s;}
-.occ-row{display:flex;justify-content:space-between;font-size:10px;color:var(--t3);margin-bottom:4px;}
-.occ-track{height:5px;background:var(--bd);border-radius:3px;overflow:hidden;margin-bottom:10px;}
-.occ-fill{height:100%;border-radius:3px;transition:width .35s,background .35s;}
-.btn-row{display:flex;gap:5px;margin-bottom:5px;}
-.no-fit{background:rgba(220,38,38,.05);border:1px solid rgba(220,38,38,.15);border-radius:var(--r);padding:7px 10px;margin-top:6px;}
-.no-fit-title{font-size:10px;color:var(--p1);font-weight:700;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;}
-.no-fit-item{font-size:10px;color:var(--t2);padding:2px 0;display:flex;align-items:center;gap:5px;}
-.viewport{flex:1;position:relative;overflow:hidden;background:radial-gradient(ellipse 80% 70% at 45% 30%,#e8edf8 0%,#dde3f0 100%);}
-#c{display:block;width:100%!important;height:100%!important;}
-#tip{position:absolute;background:var(--s1);border:1px solid var(--bd2);border-radius:var(--r);padding:10px 13px;font-size:11px;line-height:1.8;pointer-events:none;display:none;z-index:50;font-family:'IBM Plex Mono',monospace;box-shadow:0 6px 24px rgba(0,0,0,.12);max-width:210px;color:var(--t1);}
-#tip strong{color:var(--acc);font-size:12px;display:block;margin-bottom:3px;}
-#tip .tag{display:inline-flex;align-items:center;gap:3px;padding:1px 5px;border-radius:3px;font-size:10px;font-weight:700;margin-top:3px;}
-#tip .tag.door{background:rgba(5,150,105,.1);color:var(--zone-door);}
-#tip .tag.mid{background:rgba(37,99,235,.1);color:var(--zone-mid);}
-#tip .tag.back{background:rgba(234,88,12,.1);color:var(--zone-back);}
-#tip .tag.frag{background:rgba(219,39,119,.1);color:var(--frag);}
-.hint{position:absolute;bottom:14px;right:14px;font-size:10px;color:var(--t3);text-align:right;pointer-events:none;line-height:2;}
-.zone-overlay{position:absolute;bottom:0;left:0;right:0;height:4px;display:flex;pointer-events:none;}
-.zo-door{flex:1;background:var(--zone-door);opacity:.5;}
-.zo-mid{flex:1;background:var(--zone-mid);opacity:.5;}
-.zo-back{flex:1;background:var(--zone-back);opacity:.5;}
-.rot-badge{display:inline-flex;align-items:center;gap:2px;font-size:9px;padding:1px 4px;border-radius:3px;background:rgba(37,99,235,.08);color:var(--acc);border:1px solid rgba(37,99,235,.2);}
-</style>
+<link rel="stylesheet" href="css/emulator.css">
 </head>
 <body>
 <?php
@@ -229,26 +146,25 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;height
     $json = json_encode($productos_finales, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
     $js_obj = preg_replace('/"([^"]+)":/', '$1:', $json);
 ?>
-
 <!-- TOPBAR -->
 <header class="topbar">
   <div class="brand">
     <div class="brand-icon">🚛</div>
     <div>
-      <h1>Motor de Carga 3D</h1>
-      <span id="strat-label">LIFO + Prioridad activo</span>
+      <h1><?= Trd(1) ?></h1>
+      <span id="strat-label"><?= Trd(2) ?></span>
     </div>
   </div>
   <div class="strategy-tabs">
-    <button class="stab" data-s="BLF_VOLUME" onclick="setStrategy(this)">Volumen</button>
-    <button class="stab" data-s="LIFO" onclick="setStrategy(this)">LIFO</button>
-    <button class="stab" data-s="PRIORITY" onclick="setStrategy(this)">Prioridad</button>
-    <button class="stab active" data-s="LIFO_PRIORITY" onclick="setStrategy(this)">LIFO + P</button>
+    <button class="stab" data-s="BLF_VOLUME" onclick="setStrategy(this)"><?= Trd(3) ?></button>
+    <button class="stab" data-s="LIFO" onclick="setStrategy(this)"><?= Trd(4) ?></button>
+    <button class="stab" data-s="PRIORITY" onclick="setStrategy(this)"><?= Trd(5) ?></button>
+    <button class="stab active" data-s="LIFO_PRIORITY" onclick="setStrategy(this)"><?= Trd(6) ?></button>
   </div>
   <div class="topstats">
-    <div class="tstat"><div class="tstat-v" id="ts-occ">0%</div><div class="tstat-l">Ocupación</div></div>
-    <div class="tstat"><div class="tstat-v" id="ts-items" style="color:var(--acc2)">0/0</div><div class="tstat-l">Items</div></div>
-    <div class="tstat"><div class="tstat-v" id="ts-peso" style="color:var(--acc3)">0 kg</div><div class="tstat-l">Peso</div></div>
+    <div class="tstat"><div class="tstat-v" id="ts-occ">0%</div><div class="tstat-l"><?= Trd(7) ?></div></div>
+    <div class="tstat"><div class="tstat-v" id="ts-items" style="color:var(--acc2)">0/0</div><div class="tstat-l"><?= Trd(8) ?></div></div>
+    <div class="tstat"><div class="tstat-v" id="ts-peso" style="color:var(--acc3)">0 <?= Trd(42) ?></div><div class="tstat-l"><?= Trd(9) ?></div></div>
   </div>
 </header>
 
@@ -257,27 +173,27 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;height
 
 
 <div class="pblock" style="background: rgba(56, 189, 248, 0.03);">
-  <h2>Logística y Transporte</h2>
+  <h2><?= Trd(10) ?></h2>
   <div class="field" style="margin-bottom: 8px;">
-    <label>VEHÍCULO / PLACAS</label>
+    <label><?= Trd(11) ?></label>
     <input type="text" value="<?php echo $Vehiculo;?>" readonly style="color: var(--acc2);">
   </div>
   <div class="row3">
-    <div class="field full"><label>OPERADOR</label><input type="text" value="<?php echo $Operador;?>" readonly></div>
+    <div class="field full"><label><?= Trd(12) ?></label><input type="text" value="<?php echo $Operador;?>" readonly></div>
   </div>
   <div class="field" style="margin-top: 8px;">
-    <label>RUTA DESTINO</label>
+    <label><?= Trd(13) ?></label>
     <div style="font-size: 11px; color: var(--t2); padding: 5px; background: var(--s2); border-radius: 4px; border: 1px solid var(--bd);">
-      Total Paradas: <span id="info-paradas">0</span>
+      <?= Trd(14) ?> <span id="info-paradas">0</span>
     </div>
   </div>
 
   <div class="pblock">
-    <h2>Contenedor (cm)</h2>
+    <h2><?= Trd(15) ?></h2>
     <div class="row3">
-      <div class="field"><label>ALTO Y</label><input type="text" id="ch" readonly></div>
-      <div class="field"><label>ANCHO X</label><input type="text" id="cw" readonly></div>
-      <div class="field"><label>PROF Z</label><input type="text" id="cd"  readonly></div>
+      <div class="field"><label><?= Trd(16) ?></label><input type="text" id="ch" readonly></div>
+      <div class="field"><label><?= Trd(17) ?></label><input type="text" id="cw" readonly></div>
+      <div class="field"><label><?= Trd(18) ?></label><input type="text" id="cd"  readonly></div>
     </div>
   </div>
 
@@ -285,40 +201,40 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;height
 
 
   <div class="pblock">
-    <h2>Zonas de entrega</h2>
+    <h2><?= Trd(19) ?></h2>
     <div class="zone-legend">
-      <div class="zone-tag door">FONDO</div>
-      <div class="zone-tag mid">CENTRO</div>
-      <div class="zone-tag back">PUERTA</div>
-      <div class="zone-tag frag">Frágil</div>
+      <div class="zone-tag door"<?= Trd(20) ?>></div>
+      <div class="zone-tag mid"><?= Trd(21) ?></div>
+      <div class="zone-tag back"><?= Trd(22) ?></div>
+      <div class="zone-tag frag"><?= Trd(23) ?></div>
     </div>
   </div>
   <div style="padding:8px 14px 5px;border-bottom:1px solid var(--bd);flex-shrink:0;">
     <h2 style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--t3);">
-      Orden de carga
+      <?= Trd(24) ?>
     </h2>
   </div>
   <div class="items-scroll" id="item-list"></div>
   <div class="controls">
     <div class="step-row">
-      <span class="step-ctr">Paso <strong id="sc">0</strong> / <span id="st">0</span></span>
+      <span class="step-ctr"><?= Trd(25) ?> <strong id="sc">0</strong> / <span id="st">0</span></span>
       <span class="step-name" id="sn">—</span>
     </div>
     <div class="prog-track"><div class="prog-fill" id="pf" style="width:0%"></div></div>
-    <div class="occ-row"><span>Ocupación volumétrica</span><span id="op2">0%</span></div>
+    <div class="occ-row"><span><?= Trd(26) ?></span><span id="op2">0%</span></div>
     <div class="occ-track"><div class="occ-fill" id="of" style="width:0%"></div></div>
 <div class="btn-row">
   <button class="btn btn-ghost" id="bp" onclick="stepBack()" disabled>◀</button>
-  <button class="btn btn-acc" id="bn" onclick="stepForward()" style="flex:1">Siguiente ▶</button>
+  <button class="btn btn-acc" id="bn" onclick="stepForward()" style="flex:1"><?= Trd(27) ?> ▶</button>
 </div>
 <div class="btn-row">
-  <button class="btn btn-ghost" onclick="runAll()" style="flex:1;font-size:11px;">▶▶ Todo</button>
+  <button class="btn btn-ghost" onclick="runAll()" style="flex:1;font-size:11px;">▶▶ <?= Trd(28) ?></button>
   <button class="btn btn-danger" onclick="resetSim()">↺</button>
 </div>
 
 <button class="btn" id="btn-finalizar" disabled 
         style="width:100%; margin-top:8px; background: var(--s3); color: var(--t3); border: 1px solid var(--bd); transition: all 0.3s;">
-  VERIFICANDO CARGA...
+  <?= Trd(29) ?>
 </button>
     <div id="nf-zone" style="display:none;"></div>
   </div>
@@ -328,7 +244,7 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;height
   <canvas id="c"></canvas>
   <div id="tip"></div>
   <div class="zone-overlay"><div class="zo-door"></div><div class="zo-mid"></div><div class="zo-back"></div></div>
-  <div class="hint">🖱 Arrastrar: rotar · Rueda: zoom · Der: pan</div>
+  <div class="hint">🖱 <?= Trd(30) ?></div>
 </div>
 </div>
 
@@ -340,44 +256,6 @@ body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;height
     const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
     const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
     const TOKEN = localStorage.getItem('apiToken'); 
-/*
-    function attemptLogin(username, password) {
-        $.ajax({
-            url: LOGIN_URL,
-            type: 'POST',
-            contentType: 'application/json', // Indica que enviamos JSON
-            data: JSON.stringify({
-                username: username,
-                password: password
-            }),
-            success: function(response) {
-                // Éxito: Guardar el token para futuras llamadas
-                const jwtToken = response.jwt;
-                //console.log('Login exitoso. Token:', jwtToken);
-                
-                // *** Almacena el token de forma segura (ej: localStorage) ***
-                localStorage.setItem('apiToken', jwtToken); 
-                
-            },
-            error: function(xhr, status, error) {
-                // Error: Credenciales inválidas (401) o error del servidor
-                const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'Error desconocido.';
-                //console.error('Error de login:', errorMessage);
-                //alert('Fallo el inicio de sesión: ' + errorMessage);
-            }
-        });
-    }    
-*/
-/*
-    $(document).ready(function() {
-        attemptLogin('admin', '1234'); 
-        if (TOKEN) {
-            //getRecordData(1); 
-        } else {
-            console.warn('No se encontró el token. Necesita iniciar sesión primero.');
-        }
-    });
-*/
 
 // ═══════════════════════════════════════════════════════════════
 //  DATOS
@@ -828,17 +706,17 @@ cvs.addEventListener('mousemove', e=>{
     const zc=d.zona||'mid';
     tip.style.cssText=`display:block;left:${e.clientX-rect.left+16}px;top:${e.clientY-rect.top-8}px;`;
     tip.innerHTML=`<strong>${d.nombre}</strong>
-      Paso: ${d.paso} &nbsp;<span class="tag ${zc}">${d.zona}</span><br>
-      Pos: (${d.x.toFixed(1)}, ${d.y.toFixed(1)}, ${d.z.toFixed(1)}) cm<br>
-      Dim: ${d.w}×${d.h}×${d.d} cm<br>
+      <?= Trd(31) ?>: ${d.paso} &nbsp;<span class="tag ${zc}">${d.zona}</span><br>
+      <?= Trd(32) ?>: (${d.x.toFixed(1)}, ${d.y.toFixed(1)}, ${d.z.toFixed(1)}) <?= Trd(43) ?><br>
+      <?= Trd(33) ?>: ${d.w}×${d.h}×${d.d} <?= Trd(43) ?><br>
       ${d.ori_w!==undefined&&(d.ori_w!==d.w||d.ori_h!==d.h||d.ori_d!==d.d)
-        ? `<span style="color:var(--acc)">↻ Rotado: ${d.ori_w}×${d.ori_h}×${d.ori_d}</span><br>`:''}
-      Peso: ${d.peso} kg &nbsp;·&nbsp; Y-base: ${d.y.toFixed(1)} cm<br>
+        ? `<span style="color:var(--acc)">↻ <?= Trd(34) ?>: ${d.ori_w}×${d.ori_h}×${d.ori_d}</span><br>`:''}
+      <?= Trd(35) ?>: ${d.peso} <?= Trd(42) ?> &nbsp;·&nbsp; Y-base: ${d.y.toFixed(1)} <?= Trd(43) ?><br>
       <span style="color:${pc}">● P${d.prioridad}</span>
       ${d.entrega?`&nbsp;·&nbsp;📅 ${d.entrega}`:''}
-      ${d.fragil?`<span class="tag frag">🔺 frágil</span>`:''}
-      ${!d.apilable?`<span style="font-size:10px;color:#fb923c">⛔ no apilable</span>`:''}
-      ${d.girar?`<span class="rot-badge">↻ giro</span>`:''}`;
+      ${d.fragil?`<span class="tag frag">🔺 <?= Trd(36) ?></span>`:''}
+      ${!d.apilable?`<span style="font-size:10px;color:#fb923c">⛔ <?= Trd(37) ?></span>`:''}
+      ${d.girar?`<span class="rot-badge">↻ <?= Trd(38) ?></span>`:''}`;
   } else {
     tip.style.display='none';
   }
@@ -1066,13 +944,13 @@ function updateStepUI(){
     btnFinalizar.disabled = false;
     btnFinalizar.style.background = 'var(--acc2)'; // Verde esmeralda
     btnFinalizar.style.color = '#000';
-    btnFinalizar.innerHTML = '✅ CARGA COMPLETA';
+    btnFinalizar.innerHTML = '✅ <?= Trd(39) ?>';
     btnFinalizar.onclick = () => carga_completa();
   } else {
     btnFinalizar.disabled = true;
     btnFinalizar.style.background = 'var(--s3)';
     btnFinalizar.style.color = 'var(--t3)';
-    btnFinalizar.innerHTML = `FALTAN ${total - curStep} ITEMS`;
+    btnFinalizar.innerHTML = `<?= Trd(40) ?> ${total - curStep} <?= Trd(41) ?>`;
   }
   
   // Actualizar info de paradas en el nuevo panel
@@ -1089,7 +967,7 @@ function updateHeader(){
   const occ=vC>0?(vU/vC*100).toFixed(1):0;
   document.getElementById('ts-occ').textContent=occ+'%';
   document.getElementById('ts-items').textContent=`${curStep}/${total}`;
-  document.getElementById('ts-peso').textContent=pesoU.toFixed(1)+' kg';
+  document.getElementById('ts-peso').textContent=pesoU.toFixed(1)+' <?= Trd(42) ?>';
 }
 
 function renderList(){
@@ -1121,7 +999,7 @@ function renderList(){
     if (grpKey!==lastGrp){
       lastGrp=grpKey;
       const slot=simResult.slots?.find(s=>s.key===grpKey);
-      const slotInfo=slot?` Z ${slot.zStart.toFixed(0)}–${slot.zEnd.toFixed(0)} cm`:'';
+      const slotInfo=slot?` Z ${slot.zStart.toFixed(0)}–${slot.zEnd.toFixed(0)} <?= Trd(43) ?>`:'';
       const sep=document.createElement('div');
       sep.style.cssText=`padding:5px 14px 4px;font-size:9px;font-weight:700;
         text-transform:uppercase;letter-spacing:.8px;color:${grpCol};
@@ -1223,9 +1101,34 @@ function carga_completa(){
             }
         });        
 
-
-
 }
+
+    $('.lang-option').on('click', function(e) {
+        e.preventDefault();
+
+        $.ajax({
+            url: 'cambiar_idioma.php',
+            type: 'POST',
+            data: { lang: $(this).data('lang') },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    // Recargamos para que el servidor lea la nueva sesión de idioma
+                    location.reload(); 
+                }
+            }
+        });
+        
+    });
+
+    $(document).ajaxSuccess(function(event, xhr, settings) {
+        const nuevoToken = xhr.getResponseHeader('Authorization-Update');
+        if (nuevoToken) {
+            localStorage.setItem('apiToken', nuevoToken);
+            console.log("Token actualizado globalmente desde: " + settings.url);
+        }
+    }); 
+
 </script>
 </body>
 </html>

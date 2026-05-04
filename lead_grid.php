@@ -143,7 +143,7 @@
 
             <div class="row">
                 <div class='col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 col-xxl-12'>
-                    <label for="Referal" class="form-label">Fecha hora de entrega</label>
+                    <label for="Referal" class="form-label"><?= Trd(115) ?></label>
                     <div class="input-group input-group-sm mb-1">
                         <span class="input-group-text bg-light" style="width: 40px;"><i class="fa-regular fa-calendar-plus"></i></span>
                         <input type="datetime-local" class="form-control" id="fechahoraentrega" name="fechahoraentrega" value = "<?php  echo !empty($lead['DeliveryDateTime']) ? $lead['DeliveryDateTime'] : '';?>" onchange="aplicar_autosave()">
@@ -359,7 +359,7 @@
 
                             <tr>
                                 <td >
-                                    <?php echo 'Monto Pagado'?>
+                                    <?= Trd(116) ?>
                                 </td>
                                 <td ></td>
                                 <td  colspan="2">

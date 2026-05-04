@@ -2484,7 +2484,9 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
     $h = $data->header;
 
     $idLead = (!empty($h->IdLead)) ? $h->IdLead : null;
-
+    
+    $Status = '';
+    
     if ($h->Organization == "" AND  $h->Customer == "" AND $h->Venue == "" ){
         $Status = 'draft';
     }

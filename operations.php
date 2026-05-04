@@ -8,7 +8,24 @@
     $database = new Database();
     $db = $database->getConnection();
     define('ID_CLIENTE' , $_SESSION['id_cliente']);
-    //$_SESSION['Idioma'] = 'es';
+    
+    $Idioma = $_SESSION['Idioma'];
+    $query = "select Traduccion FROM  programas_traduccion where Programa = 'operations' AND Idioma = ? ORDER BY Id";            
+    $stmt = $db->prepare($query);
+    $stmt->bindValue(1, $Idioma);
+    $stmt->execute();
+    $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $Traducciones[]='';
+    if ($resultados) {
+        foreach ($resultados as $registro) {
+            $Traducciones[]=$registro['Traduccion'];
+        }
+    }    
+    function Trd($Id){
+        global $Traducciones;
+        return $Traducciones[$Id];
+    }    
+
     include_once 'head.php';    
 ?>
 
@@ -205,7 +222,7 @@ foreach ($rows as $row) {
 <div class="container my-4">
     <div class="card shadow border-0">
         <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
-            <h5 class="mb-0 fw-bold"><i class="fas fa-list-check me-2 text-warning"></i> Estatus actual [ <b id="current-stage"><?php echo $stage['status']?></b>  ] </h5>
+            <h5 class="mb-0 fw-bold"><i class="fas fa-list-check me-2 text-warning"></i> <?= Trd(1) ?> [ <b id="current-stage"><?php echo $stage['status']?></b>  ] </h5>
 
         </div>
 
@@ -214,21 +231,21 @@ foreach ($rows as $row) {
                 <table class="table align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th class="text-center" style="width: 70px;">OK</th>
-                            <th>Imagen</th>
-                            <th>Producto / Componente</th>
-                            <th class="text-center" style="width: 100px;">Pedido</th>
+                            <th class="text-center" style="width: 70px;"><?= Trd(2) ?></th>
+                            <th><?= Trd(3) ?></th>
+                            <th><?= Trd(4) ?></th>
+                            <th class="text-center" style="width: 100px;"><?= Trd(5) ?></th>
                             <?php if ($stage['status'] == 'RECOLECCION'): ?>
-                                <th class="text-center">Limpieza</th>
-                                <th class="text-center">Lavado</th>
-                                <th class="text-center">Reparación</th>
+                                <th class="text-center"><?= Trd(6) ?></th>
+                                <th class="text-center"><?= Trd(7) ?></th>
+                                <th class="text-center"><?= Trd(8) ?></th>
                             <?php else: ?>
 
                             <?php if ($stage['status'] == 'ENTREGA'): ?>
-                                    <th class="text-center">Dañado</th>
-                                    <th class="text-center">Surtido</th>
+                                    <th class="text-center"><?= Trd(9) ?></th>
+                                    <th class="text-center"><?= Trd(10) ?></th>
                             <?php else: ?>
-                                <th class="text-center">Surtido</th>
+                                <th class="text-center"><?= Trd(10) ?></th>
                             <?php endif; ?>
                             <?php endif; ?>
                         </tr>
@@ -246,7 +263,7 @@ foreach ($rows as $row) {
             </td>
             <td>
                 <div class="fw-bold"><?= $item['name'] ?></div>
-                <span class="badge bg-secondary x-small">PRODUCTO</span>
+                <span class="badge bg-secondary x-small"><?= Trd(11) ?></span>
             </td>
             <td>
                 <input type="number" class="form-control form-control-sm text-center bg-light fw-bold requested-qty" value="<?= $item['requested'] ?>" readonly>
@@ -380,30 +397,30 @@ foreach ($rows as $row) {
 
             <div class="row p-3">
                 <div class="col-md-4 mb-3">
-                    <label class="form-label small fw-bold"><i class="fas fa-camera me-1"></i> Foto de Evidencia</label>
+                    <label class="form-label small fw-bold"><i class="fas fa-camera me-1"></i> <?= Trd(12) ?></label>
                     <input type="file" id="evidence-file" class="form-control form-control-sm" accept="image/*" capture="environment">
                 </div>
 
                 <div class="col-md-4 mb-3">
-                    <label class="form-label small fw-bold"><i class="fas fa-map-marker-alt me-1"></i> Ubicación</label>
+                    <label class="form-label small fw-bold"><i class="fas fa-map-marker-alt me-1"></i> <?= Trd(13) ?></label>
                     <div class="input-group input-group-sm">
-                        <input type="text" id="geo-location" class="form-control bg-light" placeholder="Coordenadas..." readonly>
+                        <input type="text" id="geo-location" class="form-control bg-light" placeholder="<?= Trd(14) ?>" readonly>
                         <button class="btn btn-outline-secondary" type="button" id="btn-refresh-geo"><i class="fas fa-sync-alt"></i></button>
                     </div>
                 </div>
 <?php if ($stages[$nextIdx] == 'ENTREGA' AND $Balance > 0){?>
                 <div class="col-md-4 mb-3">
-                    <label class="form-label small fw-bold"><i class="fas fa-wallet me-1"></i> Saldo y Pago</label>
+                    <label class="form-label small fw-bold"><i class="fas fa-wallet me-1"></i><?= Trd(15) ?> </label>
                     <div class="card border-primary shadow-sm">
                         <div class="card-body p-2">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="small text-muted">Saldo Pendiente:</span>
+                                <span class="small text-muted"><?= Trd(16) ?>:</span>
                                 <span class="fw-bold text-danger" id="pending-balance">$<?php echo number_format($Balance, 2, '.', ',')?></span>
                             </div>
                             <button type="button" class="btn btn-primary btn-sm w-100" id="btn-confirm-payment"
                             
                             onclick="window.open('payments.php?IdLead=<?php echo $id_lead;?>', '_blank')">
-                                <i class="fas fa-check-circle me-1"></i> Realizar Pago
+                                <i class="fas fa-check-circle me-1"></i> <?= Trd(17) ?>
                             </button>
                         </div>
                     </div>
@@ -412,17 +429,17 @@ foreach ($rows as $row) {
 
 <?php if ($stages[$nextIdx] == 'RECOLECCION' AND $Balance > 0){?>
                 <div class="col-md-4 mb-3">
-                    <label class="form-label small fw-bold"><i class="fas fa-wallet me-1"></i> Saldo y Pago</label>
+                    <label class="form-label small fw-bold"><i class="fas fa-wallet me-1"></i><?= Trd(18) ?> </label>
                     <div class="card border-primary shadow-sm">
                         <div class="card-body p-2">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="small text-muted">Saldo Pendiente:</span>
+                                <span class="small text-muted"><?= Trd(19) ?>:</span>
                                 <span class="fw-bold text-danger" id="pending-balance">$<?php echo number_format($Balance, 2, '.', ',')?></span>
                             </div>
                             <button type="button" class="btn btn-primary btn-sm w-100" id="btn-confirm-payment"
                             
                             onclick="window.open('payments.php?IdLead=<?php echo $id_lead;?>', '_blank')">
-                                <i class="fas fa-check-circle me-1"></i> Realizar Pago
+                                <i class="fas fa-check-circle me-1"></i> <?= Trd(20) ?>
                             </button>
                         </div>
                     </div>
@@ -430,17 +447,17 @@ foreach ($rows as $row) {
 <?php }?>
 
                 <div class="col-md-6 mb-3">
-                    <label class="form-label small fw-bold"><i class="fas fa-sticky-note me-1"></i> Notas de la Etapa</label>
+                    <label class="form-label small fw-bold"><i class="fas fa-sticky-note me-1"></i><?= Trd(21) ?></label>
                     <textarea id="stage-notes" class="form-control form-control-sm" rows="5" placeholder="Observaciones..."></textarea>
                 </div>
 <?php if ($stages[$nextIdx] == 'ENTREGA'){?>
                 <div class="col-md-6 mb-3">
-                    <label class="form-label small fw-bold"><i class="fas fa-signature me-1"></i> Firma de Conformidad</label>
+                    <label class="form-label small fw-bold"><i class="fas fa-signature me-1"></i><?= Trd(22) ?> </label>
                     <div class="signature-wrapper border rounded bg-white shadow-sm" style="position: relative; height: 135px; overflow: hidden;">
                         <canvas id="signature-pad" style="width: 100%; height: 100%; cursor: crosshair; touch-action: none;"></canvas>
                         <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-clear-signature" 
                                 style="position: absolute; bottom: 5px; right: 5px; --bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;">
-                            <i class="fas fa-eraser"></i> Limpiar
+                            <i class="fas fa-eraser"></i> <?= Trd(23) ?>
                         </button>
                     </div>
                     <input type="hidden" id="signature-data">
@@ -454,10 +471,10 @@ foreach ($rows as $row) {
         <div class="card-footer bg-white py-3 border-0">
             <div class="d-flex justify-content-between align-items-center">
                 <div id="status-text" class="small text-muted">
-                    <i class="fas fa-info-circle me-1"></i> Completa el surtido para avanzar.
+                    <i class="fas fa-info-circle me-1"></i> <?= Trd(24) ?>
                 </div>
                 <button id="btn-update-stage" class="btn btn-success px-5 fw-bold shadow-sm" disabled>
-                    <span id="btn-text">MARCAR COMO <span id="next-stage-label">CARGA</span></span>
+                    <span id="btn-text"><?= Trd(25) ?> <span id="next-stage-label"> <?= Trd(26) ?></span></span>
                     <span id="btn-loader" class="spinner-border spinner-border-sm d-none" role="status"></span>
                 </button>
             </div>
@@ -474,7 +491,7 @@ foreach ($rows as $row) {
 <div class="toast-container position-fixed bottom-0 end-0 p-3">
   <div id="liveToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
     <div class="toast-header bg-primary text-white">
-      <strong class="me-auto"><i class="fas fa-bell me-2"></i> Notificación</strong>
+      <strong class="me-auto"><i class="fas fa-bell me-2"></i> <?= Trd(27) ?></strong>
       <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
     </div>
     <div class="toast-body" id="toast-message">
@@ -490,44 +507,6 @@ foreach ($rows as $row) {
     const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
     const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
     const TOKEN = localStorage.getItem('apiToken'); 
-/*
-    function attemptLogin(username, password) {
-        $.ajax({
-            url: LOGIN_URL,
-            type: 'POST',
-            contentType: 'application/json', // Indica que enviamos JSON
-            data: JSON.stringify({
-                username: username,
-                password: password
-            }),
-            success: function(response) {
-                // Éxito: Guardar el token para futuras llamadas
-                const jwtToken = response.jwt;
-                //console.log('Login exitoso. Token:', jwtToken);
-                
-                // *** Almacena el token de forma segura (ej: localStorage) ***
-                localStorage.setItem('apiToken', jwtToken); 
-                
-            },
-            error: function(xhr, status, error) {
-                // Error: Credenciales inválidas (401) o error del servidor
-                const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'Error desconocido.';
-                //console.error('Error de login:', errorMessage);
-                //alert('Fallo el inicio de sesión: ' + errorMessage);
-            }
-        });
-    }    
-*/
-/*
-    $(document).ready(function() {
-        attemptLogin('admin', '1234'); 
-        if (TOKEN) {
-            //getRecordData(1); 
-        } else {
-            console.warn('No se encontró el token. Necesita iniciar sesión primero.');
-        }
-    });
-*/
 
     $('.lang-option').on('click', function(e) {
         e.preventDefault();
@@ -594,7 +573,7 @@ $('.btn-plus, .btn-minus, .btn-plus_, .btn-minus_').on('click', function() {
         } else {
             // Feedback visual de error
             input.addClass('qty-limit-error');
-            mostrarToast("La suma total no puede exceder lo solicitado (" + max + ")", true);
+            mostrarToast("<?= Trd(28) ?>(" + max + ")", true);
             setTimeout(() => input.removeClass('qty-limit-error'), 400);
         }
     } else {
@@ -623,7 +602,7 @@ function validateLogic(row) {
 
     // Si el usuario escribe manualmente un número que hace que la suma exceda el total
     if (totalRow > req) {
-        mostrarToast("Cantidad ajustada al máximo permitido", true);
+        mostrarToast("<?= Trd(29) ?>", true);
         
         // Ajuste proporcional o simple: restamos el exceso al input que cambió
         // Para este ejemplo, ajustamos el input actual para que la suma sea exactamente 'req'
@@ -702,13 +681,13 @@ $('#btn-update-stage').on('click', function() {
 
         if(<?php echo $Balance?> > 0 && actualStage == 'RECOLECCION'){
             //alert("Error: Es necesario liquidar el saldo pendiente.");
-            mostrarToast("Es necesario liquidar el saldo pendiente.", true);
+            mostrarToast("<?= Trd(30) ?>", true);
             return;            
         }
 
         if (actualStage == 'ENTREGA' && !firmaUtilizada) {
             //alert("Error: La firma del cliente es obligatoria.");
-            mostrarToast("La firma del cliente es obligatoria.", true);
+            mostrarToast("<?= Trd(31) ?>", true);
             return;
         }        
 
@@ -795,7 +774,7 @@ $('#btn-update-stage').on('click', function() {
                 history.back();
             },
             error: function() {
-                showToast('Error al procesar el cambio', 'danger');
+                showToast('<?= Trd(32) ?>', 'danger');
                 btn.prop('disabled', false);
                 $('#btn-text').removeClass('d-none');
                 $('#btn-loader').addClass('d-none');

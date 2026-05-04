@@ -298,14 +298,14 @@ include_once 'head.php';
                         <p class="text-muted"><?php echo Trd(32)?></p>
                         <!-- Monto a pagar -->
                         <!--<h2 class="fw-bold text-dark" id="montoEfectivoModal">$0.00</h2>-->
-<input type="number" 
-       id="montoEfectivoModal" 
-       class="monto-input" 
-       step="any" 
-       min="0" 
-       max="<?php echo $saldoPendiente; ?>" 
-       placeholder="0.00" 
-       style="text-align: right; font-size: 1.5rem; padding: 0.75rem; width: 100%; border-radius: 8px; border: 1px solid #ccc;">
+                    <input type="number" 
+                        id="montoEfectivoModal" 
+                        class="monto-input" 
+                        step="any" 
+                        min="0" 
+                        max="<?php echo $saldoPendiente; ?>" 
+                        placeholder="0.00" 
+                        style="text-align: right; font-size: 1.5rem; padding: 0.75rem; width: 100%; border-radius: 8px; border: 1px solid #ccc;">
                     </div>
 
                     <!-- Opciones de pago -->
@@ -368,7 +368,7 @@ include_once 'head.php';
                                     </div>
 
                                     <button type="button" class="btn btn-outline-secondary flex-fill" id="btnConfirmarPagoT" onclick="ProcesarP('T')" >
-                                        <i class="bi bi-check-circle"></i> Procesar como transferencia
+                                        <i class="bi bi-check-circle"></i> <?php echo Trd(45)?>
                                     </button>                                        
 
                                 </div>
@@ -404,14 +404,14 @@ include_once 'head.php';
 
 <div id="close-window-container" style="display: none;" class="text-center mt-3">
     <button type="button" class="btn btn-danger" onclick="cerrarPestana()">
-        <i class="fas fa-times-circle me-1"></i> Cerrar Ventana y Volver
+        <i class="fas fa-times-circle me-1"></i><?php echo Trd(43)?> 
     </button>
 </div>
 
 <div class="toast-container position-fixed bottom-0 end-0 p-3">
   <div id="liveToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
     <div class="toast-header bg-primary text-white">
-      <strong class="me-auto"><i class="fas fa-bell me-2"></i> Notificación</strong>
+      <strong class="me-auto"><i class="fas fa-bell me-2"></i><?php echo Trd(44)?> </strong>
       <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
     </div>
     <div class="toast-body" id="toast-message">
@@ -426,44 +426,7 @@ include_once 'head.php';
     const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
     const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
     const TOKEN = localStorage.getItem('apiToken'); 
-/*
-    function attemptLogin(username, password) {
-        $.ajax({
-            url: LOGIN_URL,
-            type: 'POST',
-            contentType: 'application/json', // Indica que enviamos JSON
-            data: JSON.stringify({
-                username: username,
-                password: password
-            }),
-            success: function(response) {
-                // Éxito: Guardar el token para futuras llamadas
-                const jwtToken = response.jwt;
-                //console.log('Login exitoso. Token:', jwtToken);
-                
-                // *** Almacena el token de forma segura (ej: localStorage) ***
-                localStorage.setItem('apiToken', jwtToken); 
-                
-            },
-            error: function(xhr, status, error) {
-                // Error: Credenciales inválidas (401) o error del servidor
-                const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'Error desconocido.';
-                //console.error('Error de login:', errorMessage);
-                //alert('Fallo el inicio de sesión: ' + errorMessage);
-            }
-        });
-    }    
-*/
-/*
-    $(document).ready(function() {
-        attemptLogin('admin', '1234'); 
-        if (TOKEN) {
-            //getRecordData(1); 
-        } else {
-            console.warn('No se encontró el token. Necesita iniciar sesión primero.');
-        }
-    });
-*/
+
 
     $('.lang-option').on('click', function(e) {
         e.preventDefault();
@@ -533,9 +496,9 @@ $('#btnCopiar').on('click', function() {
     input.setSelectionRange(0, 99999);
     navigator.clipboard.writeText(input.value);
     
-    $(this).html('<i class="bi bi-check2"></i> ¡Copiado!').removeClass('btn-outline-primary').addClass('btn-primary');
+    $(this).html('<i class="bi bi-check2"></i> ¡<?php echo Trd(47)?>!').removeClass('btn-outline-primary').addClass('btn-primary');
     setTimeout(() => {
-        $(this).html('<i class="bi bi-clipboard"></i> Copiar').removeClass('btn-primary').addClass('btn-outline-primary');
+        $(this).html('<i class="bi bi-clipboard"></i> <?php echo Trd(46)?>').removeClass('btn-primary').addClass('btn-outline-primary');
     }, 2000);
 });
 

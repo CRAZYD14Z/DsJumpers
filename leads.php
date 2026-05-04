@@ -102,35 +102,6 @@ const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
 const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
 const TOKEN = localStorage.getItem('apiToken'); 
 
-/*
-function attemptLogin(username, password) {
-    $.ajax({
-        url: LOGIN_URL,
-        type: 'POST',
-        contentType: 'application/json', // Indica que enviamos JSON
-        data: JSON.stringify({
-            username: username,
-            password: password
-        }),
-        success: function(response) {
-            // Éxito: Guardar el token para futuras llamadas
-            const jwtToken = response.jwt;
-            //console.log('Login exitoso. Token:', jwtToken);
-            
-            // *** Almacena el token de forma segura (ej: localStorage) ***
-            localStorage.setItem('apiToken', jwtToken); 
-            
-        },
-        error: function(xhr, status, error) {
-            // Error: Credenciales inválidas (401) o error del servidor
-            const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'Error desconocido.';
-            //console.error('Error de login:', errorMessage);
-            //alert('Fallo el inicio de sesión: ' + errorMessage);
-        }
-    });
-}    
-*/
-
 $(document).ready(function() {
 /*
     attemptLogin('admin', '1234'); 

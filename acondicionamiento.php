@@ -8,6 +8,24 @@ include_once 'config/database.php';
 $database = new Database();
 $db = $database->getConnection();
 define('ID_CLIENTE' , $_SESSION['id_cliente']);
+
+$Idioma = $_SESSION['Idioma'];
+$query = "select Traduccion FROM  programas_traduccion where Programa = 'acondicionamiento' AND Idioma = ? ORDER BY Id";            
+$stmt = $db->prepare($query);
+$stmt->bindValue(1, $Idioma);
+$stmt->execute();
+$resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$Traducciones[]='';
+if ($resultados) {
+    foreach ($resultados as $registro) {
+        $Traducciones[]=$registro['Traduccion'];
+    }
+}    
+function Trd($Id){
+    global $Traducciones;
+    return $Traducciones[$Id];
+}
+
 include_once 'head.php';
 include_once 'nav.php';
 ?>
@@ -16,12 +34,12 @@ include_once 'nav.php';
 <div class="container my-5">
     <div class="card shadow mb-4">
         <div class="card-header bg-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0">Reporte de Mantenimiento</h4>
+            <h4 class="mb-0"><?= Trd(1) ?></h4>
             <div class="d-flex gap-2">
                 <!-- Selector de Agrupación -->
                 <select id="groupSelector" class="form-select form-select-sm" style="width: 200px;">
-                    <option value="operation">Agrupar por Operación</option>
-                    <option value="product">Agrupar por Producto</option>
+                    <option value="operation"><?= Trd(2) ?></option>
+                    <option value="product"><?= Trd(3) ?></option>
                 </select>
                 <button id="btnPDF" class="btn btn-danger btn-sm">PDF</button>
             </div>
@@ -33,9 +51,9 @@ include_once 'nav.php';
             <thead class="table-dark">
                 <tr>
                     <th style="width: 80px;"></th>
-                    <th>Detalle</th>
-                    <th class="text-center">Etapa</th>
-                    <th class="text-center">Cantidad</th>
+                    <th><?= Trd(4) ?></th>
+                    <th class="text-center"><?= Trd(5) ?></th>
+                    <th class="text-center"><?= Trd(6) ?></th>
                 </tr>
             </thead>
             <tbody id="tableBody">
@@ -62,7 +80,7 @@ $(document).ready(function() {
         const $tableBody = $('#tableBody');
 
         // Estado de carga
-        $tableBody.html('<tr><td colspan="4" class="text-center py-4">Cargando datos...</td></tr>');
+        $tableBody.html('<tr><td colspan="4" class="text-center py-4"><?= Trd(7) ?></td></tr>');
 
         $.ajax({
             url:  API_BASE_URL + 'acondicionamiento/',
@@ -74,7 +92,7 @@ $(document).ready(function() {
                 $tableBody.empty(); // Limpiar tabla
 
                 if (data.length === 0) {
-                    $tableBody.html('<tr><td colspan="4" class="text-center">No hay registros pendientes.</td></tr>');
+                    $tableBody.html('<tr><td colspan="4" class="text-center"><?= Trd(8) ?></td></tr>');
                     return;
                 }
 
@@ -124,7 +142,7 @@ $(document).ready(function() {
             },
             error: function(xhr, status, error) {
                 console.error("Error en la carga:", error);
-                $tableBody.html('<tr><td colspan="4" class="text-center text-danger">Error al cargar los datos.</td></tr>');
+                $tableBody.html('<tr><td colspan="4" class="text-center text-danger"><?= Trd(9) ?></td></tr>');
             }
         });
     }
@@ -168,7 +186,7 @@ function getStageColor($stage) {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(20);
         doc.setTextColor(40, 40, 40);
-        doc.text("REPORTE DE ACONDICIONAMIENTO", 40, 50);
+        doc.text("<?= Trd(1) ?>REPORTE DE ACONDICIONAMIENTO", 40, 50);
         
         // Línea decorativa sutil debajo del título
         doc.setDrawColor(230, 230, 230);
@@ -239,7 +257,7 @@ function getStageColor($stage) {
             doc.text(`Página ${i} de ${pageCount}`, 40, doc.internal.pageSize.height - 30);
         }
 
-        doc.save('Reporte_Minimalista.pdf');
+        doc.save('Report.pdf');
     });
 
 

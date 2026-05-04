@@ -46,20 +46,20 @@ include_once 'head.php';
         }
 
 
-#watermark {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(-45deg);
-    font-size: 10vw; /* Ajusta el tamaño según necesites */
-    color: rgba(200, 200, 200, 0.3); /* Transparente para no tapar el contenido */
-    pointer-events: none; /* Permite hacer clic a través de la marca */
-    z-index: 9999;
-    white-space: nowrap;
-    user-select: none;
-    font-weight: bold;
-    text-transform: uppercase;
-}        
+        #watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 10vw; /* Ajusta el tamaño según necesites */
+            color: rgba(200, 200, 200, 0.3); /* Transparente para no tapar el contenido */
+            pointer-events: none; /* Permite hacer clic a través de la marca */
+            z-index: 9999;
+            white-space: nowrap;
+            user-select: none;
+            font-weight: bold;
+            text-transform: uppercase;
+        }        
 
     </style>    
 
@@ -192,13 +192,13 @@ include_once 'head.php';
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-light">
-                <h5 class="modal-title fw-bold">¿Cancelar evento?</h5>
+                <h5 class="modal-title fw-bold"><?= Trd(105) ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-0">
                 <div class="row g-0">
                     <div class="col-md-7 p-4 border-end d-flex justify-content-center bg-white">
-                        Si el evento ya esta en proceso de ruta u operación, los registros serán retirados. 
+                        <?= Trd(100) ?>
                     </div>
 
                     <div class="col-md-5 p-4 bg-light">
@@ -206,13 +206,13 @@ include_once 'head.php';
                         <div class="form-check">
                         <input class="form-check-input" type="radio" name="candelationtype" id="GifCard" checked >
                         <label class="form-check-label" for="GifCard">
-                            Aplicar Tarjeta de regalo
+                            <?= Trd(101) ?>
                         </label>
                         </div>
                         <div class="form-check">
                         <input class="form-check-input" type="radio" name="candelationtype" id="Devolution" >
                         <label class="form-check-label" for="Devolution">
-                            Aplicar devolución
+                            <?= Trd(102) ?>
                         </label>
                         </div>
 
@@ -220,8 +220,8 @@ include_once 'head.php';
                 </div>
             </div>
             <div class="modal-footer bg-light border-0">
-                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Regresar</button>
-                <button type="button" id="btnCancelarEvnto" class="btn btn-primary px-4 fw-bold" onclick="btnCancelarEvnto()">Confirmar</button>
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><?= Trd(103) ?></button>
+                <button type="button" id="btnCancelarEvnto" class="btn btn-primary px-4 fw-bold" onclick="btnCancelarEvnto()"><?= Trd(104) ?></button>
             </div>
         </div>
     </div>
@@ -481,7 +481,7 @@ include_once 'head.php';
                 lanzarMensaje("<?php echo Trd(77)?>", "exito", 5000);
             },
             error: function () {
-                lanzarMensaje("No se pudo guardar la organización.",'alerta',4000);
+                lanzarMensaje("<?= Trd(106) ?>",'alerta',4000);
                 $('#Organization').val(null).trigger('change');
             }
         });
@@ -1131,9 +1131,9 @@ $(document).on("keypress", ".numbers-only", function (e) {
                     <tr id="loading-row">
                         <td colspan="100%" class="text-center py-5">
                             <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Cargando...</span>
+                                <span class="visually-hidden"><?= Trd(112) ?></span>
                             </div>
-                            <div class="mt-2 text-muted fw-bold">Buscando productos...</div>
+                            <div class="mt-2 text-muted fw-bold"><?= Trd(113) ?></div>
                         </td>
                     </tr>
                 `);        
@@ -1213,9 +1213,9 @@ $(document).on("keypress", ".numbers-only", function (e) {
                     <tr id="loading-row">
                         <td colspan="100%" class="text-center py-5">
                             <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Cargando...</span>
+                                <span class="visually-hidden"><?= Trd(112) ?></span>
                             </div>
-                            <div class="mt-2 text-muted fw-bold">Buscando productos...</div>
+                            <div class="mt-2 text-muted fw-bold"><?= Trd(113) ?></div>
                         </td>
                     </tr>
                 `);        
@@ -1275,7 +1275,7 @@ $(document).on("keypress", ".numbers-only", function (e) {
                         // Aquí renderizas tus filas con .append()
                         // Ejemplo: response.forEach(item => $tbody.append(...));
                     } else {
-                        $tbody.html('<tr><td colspan="100%" class="text-center text-muted">No se encontraron productos</td></tr>');
+                        $tbody.html('<tr><td colspan="100%" class="text-center text-muted"><?= Trd(114) ?></td></tr>');
                     }
 
                 },
@@ -2490,7 +2490,7 @@ function LoadDocument(DocumentType){
 
                 ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla, $filaPlantilla,$extrafilaPlantilla,datosGenerales, productos, descuentos, extras);
                 $('#ShareButton').hide();
-                lanzarMensaje("Picking cargado correctamente", "exito");                        
+                lanzarMensaje("<?= Trd(107) ?>", "exito");                        
 
             },
             error: function(xhr, status, error) {
@@ -2985,10 +2985,10 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
         data: JSON.stringify(dataGlobal),        
         success: function(data) {    
 
-                lanzarMensaje("Procesado sin pago!", "exito", 5000);
+                lanzarMensaje("<?= Trd(108) ?>", "exito", 5000);
             },
             error: function () {
-                lanzarMensaje("No se pudo procesar!",'error',5000);
+                lanzarMensaje("<?= Trd(109) ?>",'error',5000);
                 $('#Organization').val(null).trigger('change');
             }
         });
@@ -3016,10 +3016,10 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
         headers: misHeaders,
         data: JSON.stringify(dataGlobal),        
         success: function(data) {
-                lanzarMensaje("Evento canelado!", "exito", 5000);
+                lanzarMensaje("<?= Trd(110) ?>", "exito", 5000);
             },
             error: function () {
-                lanzarMensaje("No se pudo cancelar!",'error',5000);
+                lanzarMensaje("<?= Trd(111) ?>",'error',5000);
                 $('#Organization').val(null).trigger('change');
             }
         });

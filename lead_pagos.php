@@ -5,9 +5,9 @@
 ?>
     <script type="text/javascript" src="https://openpay.s3.amazonaws.com/openpay.v1.min.js"></script>
     <script type='text/javascript' src="https://openpay.s3.amazonaws.com/openpay-data.v1.min.js"></script>
-<b> PAGOS </b>
+<b> <?= Trd(117) ?> </b>
 <button id="btn_toggle_pagos" class="btn btn-link">
-    [ <span id="texto_boton">Mostrar</span> ]
+    [ <span id="texto_boton"><?= Trd(118) ?></span> ]
 </button>    
 
 <!-- Contenedor Principal -->
@@ -17,10 +17,10 @@
         <div class="col-12 mb-4">
             <div class="border p-3">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="m-0">Historial de Pagos</h5>
+                    <h5 class="m-0"><?= Trd(119) ?></h5>
                     <!-- Botón para mostrar el formulario -->
                     <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseForm">
-                        + Nuevo Pago
+                        + <?= Trd(120) ?>
                     </button>
                 </div>
                 
@@ -28,13 +28,13 @@
                     <table class="table table-sm table-bordered">
                         <thead>
                             <tr>
-                                <th>IdPago</th>
-                                <th>Fecha</th>
-                                <th>Tipo</th>
-                                <th>Monto</th>
-                                <th>Moneda</th>
-                                <th>Transacción</th>
-                                <th>Usuario</th>
+                                <th><?= Trd(121) ?></th>
+                                <th><?= Trd(122) ?></th>
+                                <th><?= Trd(123) ?></th>
+                                <th><?= Trd(124) ?></th>
+                                <th><?= Trd(125) ?></th>
+                                <th><?= Trd(126) ?></th>
+                                <th><?= Trd(127) ?></th>
                             </tr>
                         </thead>
                         <tbody id="listado_pagos">
@@ -69,17 +69,17 @@
         <!-- SECCIÓN 2: Formulario Oculto (Collapse) -->
         <div class="col-12 col-lg-6 mx-auto collapse mt-3" id="collapseForm">
             <div class="border p-4 bg-light">
-                <h6 class="mb-3">Registrar Información de Pago</h6>
+                <h6 class="mb-3"><?= Trd(128) ?></h6>
                 
                     <div class="row">
                         <!-- Selección de Método -->
                         <div class="col-md-4 mb-3">
-                            <label class="form-label small fw-bold">Método de Pago</label>
+                            <label class="form-label small fw-bold"><?= Trd(129) ?></label>
                             <select class="form-select form-select-sm" id="tipo_pago" required>
-                                <option value="">Seleccionar...</option>
-                                <option value="efectivo">Efectivo</option>
-                                <option value="tarjeta">Tarjeta</option>
-                                <option value="transferencia">Transferencia</option>
+                                <option value=""><?= Trd(130) ?></option>
+                                <option value="efectivo"><?= Trd(131) ?></option>
+                                <option value="tarjeta"><?= Trd(132) ?></option>
+                                <option value="transferencia"><?= Trd(133) ?></option>
                             </select>
                         </div>
 
@@ -92,11 +92,11 @@
                                 id="monto_pago" 
                                 required>
                             <!-- Contenedor para mensaje de error -->
-                            <div id="monto_error" class="text-danger small d-none">El monto no puede ser mayor al saldo pendiente.</div>
+                            <div id="monto_error" class="text-danger small d-none"><?= Trd(134) ?></div>
                         </div>
                         <!-- Referencia (Efectivo/Transferencia) -->
                         <div class="col-md-4 mb-3 d-none" id="div_referencia">
-                            <label class="form-label small fw-bold">Referencia</label>
+                            <label class="form-label small fw-bold"><?= Trd(135) ?></label>
                             <input id="refcia" type="text" class="form-control form-control-sm" placeholder="Número de folio">
                         </div>
                     </div>
@@ -112,23 +112,23 @@
                     <input type="hidden" name="tipo-pago" id="tipo-pago" value="">
                     
                         <?php if ($PayPlatform == 'OPAY'){?>
-                        <h6 class="fw-bold mb-3">Datos de Tarjeta</h6>
+                        <h6 class="fw-bold mb-3"><?= Trd(136) ?></h6>
 
                         <div class="mb-2">
-                            <label class="form-label small fw-bold">Nombre en la tarjeta</label>
+                            <label class="form-label small fw-bold"><?= Trd(137) ?></label>
                             <input type="text" class="form-control form-control-sm" placeholder="Como aparece en la tarjeta" data-openpay-card="holder_name">
                         </div>
                         <div class="mb-2">
-                            <label class="form-label small fw-bold">Número de tarjeta</label>
+                            <label class="form-label small fw-bold"><?= Trd(138) ?></label>
                             <input type="text" class="form-control form-control-sm only-numbers" placeholder="0000 0000 0000 0000" data-openpay-card="card_number" maxlength="16">
                         </div>
                         <div class="row g-2 mb-3">
                             <div class="col-4">
-                                <label class="form-label small fw-bold">Mes (MM)</label>
+                                <label class="form-label small fw-bold"><?= Trd(139) ?></label>
                                 <input type="text" class="form-control form-control-sm only-numbers" placeholder="MM" data-openpay-card="expiration_month" maxlength="2">
                             </div>
                             <div class="col-4">
-                                <label class="form-label small fw-bold">Año (AA)</label>
+                                <label class="form-label small fw-bold"><?= Trd(140) ?></label>
                                 <input type="text" class="form-control form-control-sm only-numbers" placeholder="AA" data-openpay-card="expiration_year" maxlength="2">
                             </div>
                             <div class="col-4">
@@ -139,7 +139,7 @@
                         <?php }
                         else{
                         ?>
-                        <h6 class="fw-bold mb-3">Datos de Tarjeta</h6>
+                        <h6 class="fw-bold mb-3"><?= Trd(141) ?></h6>
                             <div id="card-container" class="mb-3"></div>
                         <?php
                         }
@@ -178,12 +178,12 @@
                     </div>
 
             <div class="d-flex justify-content-between align-items-center mb-2 opacity-75">
-                <span class="text-muted">Saldo:</span>
+                <span class="text-muted"><?= Trd(142) ?>:</span>
                 <span class="fw-bold"  id="display-saldo-hoy" >$0.00</span>
             </div>
 
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="text-muted">Saldo pendiente (después del pago):</span>
+                <span class="text-muted"><?= Trd(143) ?>:</span>
                 <span class="fw-bold"  id="display-saldo-pago">$0.00</span>
             </div>
 
@@ -192,15 +192,15 @@
             <div class="p-3 bg-light border rounded">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <span class="fw-bold d-block text-primary">Monto a pagar</span>
+                        <span class="fw-bold d-block text-primary"><?= Trd(144) ?></span>
                     </div>
                     <h2 class="fw-bold mb-0 text-primary" id="display-pago-hoy">$0.00</h2>
                 </div>
             </div>                    
 
             <div class="text-center border-top pt-3">
-                <button type="submit" class="btn btn-dark w-100" id="pay-button">Aplicar Pago</button>
-                <button type="button" class="btn btn-link btn-sm text-secondary mt-2" data-bs-toggle="collapse" data-bs-target="#collapseForm">Cancelar</button>
+                <button type="submit" class="btn btn-dark w-100" id="pay-button"><?= Trd(145) ?></button>
+                <button type="button" class="btn btn-link btn-sm text-secondary mt-2" data-bs-toggle="collapse" data-bs-target="#collapseForm"><?= Trd(153) ?></button>
             </div>                        
 
 
@@ -271,11 +271,11 @@ document.getElementById('btn_toggle_pagos').addEventListener('click', function(e
     if (divPagos.style.display === 'none') {
         // Mostrar
         divPagos.style.display = 'block';
-        textoBoton.textContent = 'Ocultar';
+        textoBoton.textContent = '<?= Trd(99) ?>';
     } else {
         // Ocultar
         divPagos.style.display = 'none';
-        textoBoton.textContent = 'Mostrar';
+        textoBoton.textContent = '<?= Trd(118) ?>';
     }
 });
 
@@ -295,17 +295,17 @@ $('#pay-button').on('click', function(e) {
     // 1. Validaciones básicas de negocio
     if (!tipoPago) {
         //alert("Por favor seleccione un método de pago.");
-        lanzarMensaje("Por favor seleccione un método de pago.","alerta",5000);
+        lanzarMensaje("<?= Trd(146) ?>","alerta",5000);
         return;
     }
     if (monto <= 0 || monto > balance) {
         //alert("Monto inválido o excede el saldo pendiente.");
-        lanzarMensaje("Monto inválido o excede el saldo pendiente.","alerta",5000);
+        lanzarMensaje("<?= Trd(147) ?>","alerta",5000);
         return;
     }
 
     // Bloquear botón para evitar múltiples clics
-    btn.prop('disabled', true).text('Procesando...');
+    btn.prop('disabled', true).text('<?= Trd(152) ?>');
 
     // 2. Lógica según el tipo de pago
     if (tipoPago === 'tarjeta') {
@@ -338,7 +338,7 @@ function enviarPagoAlServidor(tokenId) {
                     // Lógica de éxito
                     $('#collapseForm').collapse('hide');
                     //alert("Pago procesado");
-                    lanzarMensaje("Pago procesado","exito",5000);
+                    lanzarMensaje("<?= Trd(148) ?>","exito",5000);
                     render_pagos(respuestaBackend)
                     $btn.prop("disabled", false).text("Aplicar Pago");
                 }
@@ -423,7 +423,7 @@ function render_pagos(response){
 
                 if (!valid) {
                     //alert("Por favor completa los datos del cliente marcados como obligatorios.");
-                    lanzarMensaje("Por favor completa los datos del cliente marcados como obligatorios.","alerta",5000);
+                    lanzarMensaje("<?= Trd(149) ?>","alerta",5000);
                     $btn.prop("disabled", false).text("Aplicar Pago");
                     return;
                 }
@@ -448,7 +448,7 @@ function render_pagos(response){
                                 //alert("¡Pago Exitoso! ID de transacción: " + respuestaBackend.transaction_id);
                                 $('#collapseForm').collapse('hide');
                                 //alert("Pago procesado");
-                                lanzarMensaje("Pago procesado","exito",5000);
+                                lanzarMensaje("<?= Trd(150) ?>","exito",5000);
                                 render_pagos(respuestaBackend)
                                 $btn.prop("disabled", false).text("Aplicar Pago");
                             //} else if (respuestaBackend.status === 'pending') {
@@ -521,7 +521,7 @@ function render_pagos(response){
                 success: function(respuestaBackend) {
                     if(respuestaBackend.status === 'success') {
                         $('#collapseForm').collapse('hide');
-                        lanzarMensaje("Pago procesado","exito",5000);
+                        lanzarMensaje("<?= Trd(151) ?>","exito",5000);
                         render_pagos(respuestaBackend)
                         $btn.prop("disabled", false).text("Aplicar Pago");
                     }
