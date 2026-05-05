@@ -200,12 +200,112 @@ include_once 'head.php';
   </div>
 </div>
 
+<div class="modal fade" id="modalEventoExtra" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> Evento Extraordinario</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="formEventoExtra">
+        <div class="modal-body">
+          
+          <div class="mb-3">
+            <label class="form-label">Título del evento</label>
+            <input type="text" id="eventTitulo" name="eventTitulo" class="form-control" placeholder="Ej. Retén vial o Avería" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Descripción</label>
+            <textarea id="eventDesc" name="eventDesc" class="form-control" rows="3" placeholder="Detalles de lo ocurrido..." required></textarea>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Gasto extra ($)</label>
+              <input type="number" id="eventGasto" name="eventGasto" class="form-control" step="0.01" value="0.00">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Evidencia (Foto)</label>
+              <input type="file" id="eventFoto" name="eventFoto" class="form-control" accept="image/*" capture="environment">
+            </div>
+          </div>
+          
+          <!-- Vista previa de la foto -->
+          <div class="text-center">
+            <img id="previewFoto" src="#" alt="Previsualización" class="img-fluid rounded d-none" style="max-height: 200px;">
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Registrar Evento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para mostrar la imagen -->
+<div class="modal fade" id="modalImagen" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Evidencia del Evento</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img src="" id="imgModal" class="img-fluid" alt="Cargando...">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalConfirmarBorradoRuta" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header ">
+                <h5 class="modal-title">¿Eliminar registro?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p>Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="btnConfirmarBorradoRuta">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalConfirmarBorrado" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header ">
+                <h5 class="modal-title">¿Eliminar registro?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p>Esta acción no se puede deshacer.</p>
+                <!-- Input oculto para guardar el ID del registro a borrar -->
+                <input type="hidden" id="idParaBorrar">
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="btnConfirmarBorrado">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
 
 const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
 const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
 const TOKEN = localStorage.getItem('apiToken'); 
+let vehiculo_ev ='';
+let date_ev ='';
 let grupos = {};
 
 $(document).on('click', '.btn-ejecutar-carga', function(e) {
@@ -232,8 +332,32 @@ $(document).on('click', '.btn-chofer-ruta', function(e) {
     abrirModalAsignacion(vehiculoId, parts[0])
 });
 
+$(document).on('click', '.btn-evento', function(e) {
+    e.stopPropagation();
+    const vehiculoId = $(this).data('vid');
+    const listaFechas = $(this).data('fechas'); // Es el array de StartDateTime
+    const fechaInicial = listaFechas.length > 0 ? listaFechas[0] : '';
+    var parts = fechaInicial.split(" ");     
+    vehiculo_ev = vehiculoId;
+    date_ev = parts[0];
+
+    $('#modalEventoExtra').modal('show');
+
+    //abrirModalAsignacion(vehiculoId, parts[0])
+});
+
 $(document).on('click', '.btn-eliminar-ruta', function(e) {
     e.stopPropagation();
+
+    const vehiculoId = $(this).data('vid');
+    const listaFechas = $(this).data('fechas'); // Es el array de StartDateTime
+    const fechaInicial = listaFechas.length > 0 ? listaFechas[0] : '';
+    var parts = fechaInicial.split(" ");     
+    vehiculo_ev = vehiculoId;
+    date_ev = parts[0];    
+
+     $('#modalConfirmarBorradoRuta').modal('show');
+/*
     const vehiculoId = $(this).data('vid');
     const listaFechas = $(this).data('fechas'); // Es el array de StartDateTime
     const fechaInicial = listaFechas.length > 0 ? listaFechas[0] : '';
@@ -253,7 +377,8 @@ $(document).on('click', '.btn-eliminar-ruta', function(e) {
         },
         error: function() {
         }
-    });        
+    });
+*/            
 });
 
 // Datos iniciales
@@ -643,6 +768,9 @@ function abrirRutaEnMaps_(event, destLat, destLng) {
 
 
 function renderTable(data) {
+    data_org = data; 
+    data = data.operations;
+    events = data.extra_events
     let rows = '';
     grupos = {};
     
@@ -721,11 +849,18 @@ function renderTable(data) {
             botonChofer = todosParaChofer ? `<button class="btn btn-sm btn-primary ms-3 btn-chofer-ruta" 
                         data-vid="${grupo.id_vehicle}" 
                         data-fechas='${JSON.stringify(fechasCarga)}'>
-                    <i class="fa-solid fa-user"></i><?=  Trd(34) ?> 
+                    <i class="fa-solid fa-user"></i> <?=  Trd(34) ?> 
                 </button>`:'';        
 
         }
 
+        let  botonEvento= '';
+
+            botonEvento = `<button class="btn btn-sm btn-warning ms-3 btn-evento " 
+                        data-vid="${grupo.id_vehicle}" 
+                        data-fechas='${JSON.stringify(fechasCarga)}'>
+                    <i class="fa-solid fa-stopwatch"></i> Agregar evento externo
+                </button>`;           
 
         // Fila de encabezado de grupo
         rows += `
@@ -742,6 +877,7 @@ function renderTable(data) {
                         ${botonCargar}
                         ${botonEliminar}
                         ${botonChofer}
+                        ${botonEvento}
 
                         <span class="badge bg-secondary ms-auto me-4">
                             ${grupo.organizacion > 0 ? 'Org: ' + grupo.organizacion : 'Particular'}
@@ -814,11 +950,174 @@ rows += `
         <td><span class="badge rounded-pill ${badgeClass}">${item.Status}</span></td>
         <td class="text-end pe-4 fw-bold text-dark">$${parseFloat(item.Total).toFixed(2)}</td>
     </tr>`;
+
+            // Filtramos todos los eventos que pertenecen a la ruta actual
+            const eventosDeEstaRuta = data_org.extra_events.filter(event => event.id_route == item.id_route);
+
+            // Iteramos solo sobre los resultados filtrados
+            eventosDeEstaRuta.forEach(evento => {
+                //console.log("Evento encontrado:", evento);
+                //alert("ID de ruta: " + evento.id_route);
+                botton = '';
+                if (evento.imagen && evento.imagen.trim() !== "") {
+                    botton += `
+                        <button type="button" 
+                                class="btn btn-primary btn-sm" 
+                                onclick="verImagen('${evento.imagen}')">
+                            <i class="fa fa-camera"></i>
+                        </button>`;
+                }                
+
+                rows += `
+                <tr class="${statusClass} ${clickClass}"  style="cursor: ${cursorStyle};">
+                    <td class="ps-5">
+                        <div class="small text-muted">Evento extra #${evento.id_event}</div>
+                        <div class="fw-semibold">${evento.fechahora}</div>
+                    </td>
+                    <td>
+                        <div class="fw-bold text-dark">${evento.titulo}</div>
+                    </td>
+                    <td >
+                        <div class="small text-secondary">${evento.descripcion}</div>
+                    </td>
+                    <td>
+                    
+                <button class="btn btn-sm btn-danger ms-3" onclick="prepararBorrado(${evento.id_event})">
+                
+                   <i class="fa-solid fa-trash-can"></i>
+                </button>                    
+
+                        ${botton}
+                    </td>
+                    <td class="text-end pe-4 fw-bold text-dark">$${parseFloat(evento.gasto).toFixed(2)}</td>
+                </tr>`;    
+            });        
+
         });
+
+
+
     });
 
     $('#leadsData').append(rows);
 }
+
+// Mostrar vista previa de la foto seleccionada
+document.getElementById('eventFoto').onchange = function (evt) {
+    const [file] = this.files;
+    if (file) {
+        const preview = document.getElementById('previewFoto');
+        preview.src = URL.createObjectURL(file);
+        preview.classList.remove('d-none');
+    }
+};
+
+    $('#formEventoExtra').on('submit', function(e) {
+        e.preventDefault();
+        // 1. Crear el objeto FormData con los datos del formulario
+        var formData = new FormData(this);
+         formData.append('vehiculo', vehiculo_ev);
+          formData.append('fecha', date_ev);
+        // Si los campos no tienen el atributo "name", puedes agregarlos manualmente:
+        // formData.append('titulo', $('#eventTitulo').val());
+        // ... pero es mejor ponerle 'name' a los inputs en el HTML.
+
+        $.ajax({
+
+            url: API_BASE_URL + 'api/extra_event',
+            method: 'POST',
+            data: formData,
+            headers: { 'Authorization': 'Bearer ' + TOKEN },            
+            cache: false,
+            contentType: false, // Obligatorio para enviar archivos
+            processData: false, // Obligatorio para enviar archivos
+            dataType: 'json',
+            beforeSend: function() {
+                // Opcional: Bloquear el botón para evitar múltiples clics
+                $('button[type="submit"]').prop('disabled', true).text('Enviando...');
+            },
+            success: function(data) {
+                // Asumiendo que tu PHP devuelve un JSON
+                //var data = JSON.parse(data);
+                
+                if (data.status === 'success') {
+                    //$('#modalEventoExtra').modal('hide');
+                    //alert('Evento guardado con éxito');
+                    // Aquí podrías recargar la tabla de la ruta o limpiar el form
+                    //$('#formEventoExtra')[0].reset();
+                    //$('#previewFoto').addClass('d-none');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            },
+            error: function() {
+                alert('Hubo un error crítico en el servidor.');
+            },
+            complete: function() {
+                $('button[type="submit"]').prop('disabled', false).text('Registrar Evento');
+            }
+        });
+    });
+
+    function verImagen(url) {
+        // 1. Asignamos la URL al src de la imagen dentro del modal
+        $('#imgModal').attr('src', url);
+        
+        // 2. Abrimos el modal manualmente con jQuery
+        $('#modalImagen').modal('show');
+    }
+
+function prepararBorrado(id) {
+    $('#idParaBorrar').val(id); // Guardamos el ID en el input oculto
+    $('#modalConfirmarBorrado').modal('show');
+}    
+
+// 2. Al hacer clic en el botón de eliminar del modal
+$('#btnConfirmarBorrado').click(function() {
+    const id = $('#idParaBorrar').val();
+    // Aquí tu petición AJAX
+    $.ajax({
+        url: API_BASE_URL + 'api/extra_event_delete',
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + TOKEN },
+        data: { id: id },
+        dataType: 'json',
+        success: function(response) {
+            //$('#modalConfirmarBorrado').modal('hide');
+            // Aquí puedes recargar la tabla o mostrar un mensaje de éxito
+            //alert("Registro eliminado con éxito");
+            location.reload(); 
+        },
+        error: function() {
+            alert("Error al eliminar el registro");
+        }
+    });
+});
+
+$('#btnConfirmarBorradoRuta').click(function() {
+    let formData = new FormData();
+    formData.append('vehiculoId', vehiculo_ev);
+    formData.append('fecha', date_ev);
+    $.ajax({
+        url: API_BASE_URL + 'api/delete_route',
+        method: 'POST',
+        data: formData,
+        headers: { 'Authorization': 'Bearer ' + TOKEN },            
+        processData: false, // Vital para FormData
+        contentType: false, // Vital para FormData
+        success: function(response) {
+            location.reload();
+        },
+        error: function() {
+        }
+    });
+
+
+});
+
+
+
 
     $('.lang-option').on('click', function(e) {
         e.preventDefault();

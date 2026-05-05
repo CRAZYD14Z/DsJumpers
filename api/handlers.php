@@ -2753,14 +2753,36 @@ function operation($table_name,$db, $method, $id, $data){
 
             $stmt = $db->prepare($sql);
             $stmt->bindValue(':s', "%$search%", PDO::PARAM_STR);
-            //$stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-            //$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
             $stmt->execute();            
+            $v_operations = $stmt->fetchAll();
 
+            $all_ids = array_column($v_operations, 'id_route');
+            $unique_ids = array_unique($all_ids);
+
+            // Si el array está vacío, evitamos la consulta
+            if (empty($unique_ids)) {
+                $extra_events = [];
+            } else {
+                // Paso 2: Consulta única con WHERE IN
+                // Creamos una cadena de placeholders (?,?,?) según la cantidad de IDs
+                $placeholders = implode(',', array_fill(0, count($unique_ids), '?'));
+                
+                $sql = "SELECT * FROM extra_event WHERE id_route IN ($placeholders)";
+                $stmt_extra = $db->prepare($sql);
+                
+                // Ejecutamos pasando los valores únicos
+                $stmt_extra->execute(array_values($unique_ids));
+                $extra_events = $stmt_extra->fetchAll();
+}            
 
             if ($stmt) {
                 http_response_code(200);
-                echo json_encode($stmt->fetchAll());
+                $response = [
+                    "status" => "success",
+                    "operations" => $v_operations,
+                    "extra_events" => $extra_events
+                ];                
+                echo json_encode($response);
             } else {
                 http_response_code(404);
                 echo json_encode(array("message" => "Registro no encontrado."));
@@ -2846,7 +2868,7 @@ function process_stage_change($table_name,$db, $method, $id, $data){
                 $ext = pathinfo($_FILES['evidence_img']['name'], PATHINFO_EXTENSION);
                 $fileName = "evidencia_" . time() . "_" . uniqid();
                 $origen = "../ajax/tmp/evidencias/" . $fileName. "." . $ext;
-                echo $fileName;
+                //echo $fileName;
                 if (move_uploaded_file($_FILES['evidence_img']['tmp_name'], $origen)) {
                     $destinot  = "../ajax/tmp/thumbnail_" . $fileName . ".avif";
                     $destino   = "../ajax/tmp/" . $fileName . ".avif";
@@ -2856,30 +2878,22 @@ function process_stage_change($table_name,$db, $method, $id, $data){
                     $miniatura  = "thumbnail_" . $fileName . ".avif";
                     $miniaturaj = "thumbnail_" . $fileName . ".jpg";
 
-
                     $imgOriginal = cargarImagen($origen);
-
 
                     if ($imgOriginal) {
                         generarThumbnailAVIF($imgOriginal, $destinot, 150);
                         generarNormalAVIF($imgOriginal, $destino, 1200);
                         generarThumbnailJPG($imgOriginal, $destinot2, 150);
 
-                        
-
                         imagedestroy($imgOriginal);
                         unlink($origen);
 
-                        //Cargar AWS
                         $client = ID_CLIENTE;
                         $gallery = 'evidence';
 
                         $fileName = CFPUBLICURL . "/".$client."/".$gallery."/originals/". $fileName. ".avif";
-                        //die('Imagenes generadas');                        
+
                         upload_Aws($client,$gallery,$normal,$miniatura,$miniaturaj);
-                        //unlink($destinot);
-                        //unlink($destino);
-                        //unlink($destinot2);
 
                     } else {
                         //echo "Formato no soportado.";
@@ -3181,9 +3195,9 @@ function delete_route($table_name,$db, $method, $id, $data){
 
                         $db->prepare("UPDATE operation_master SET status = 'BODEGA', id_vehicle=0, id_driver=0 WHERE id_operation = ?")->execute([$registro['id_operation']]);
 
-                        $db->prepare("UPDATE operation_checklist SET stage = 'SURTIDO', assorted_quantity=0 WHERE id_operation = ?")->execute([$registro['id_operation']]);                    
-
                         $db->prepare("DELETE FROM operation_checklist WHERE id_operation = ? AND stage <> 'SURTIDO'")->execute([$registro['id_operation']]);
+                        
+                        $db->prepare("UPDATE operation_checklist SET stage = 'SURTIDO', assorted_quantity=0 WHERE id_operation = ?")->execute([$registro['id_operation']]);                    
 
                         $db->prepare("DELETE FROM operation_evidence WHERE id_operation = ?")->execute([$registro['id_operation']]);                        
                     }
@@ -3890,6 +3904,113 @@ function cancel_lead($table_name,$db, $method, $id, $data){
 }     
 
 
+function extra_event($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+            $vehiculoId = $_POST['vehiculo'] ?? '';
+            $fecha = $_POST['fecha'] ?? '';
+            $titulo = $_POST['eventTitulo'] ?? '';
+            $desc   = $_POST['eventDesc'] ?? '';
+            $gasto  = $_POST['eventGasto'] ?? 0;
+            
+            $nombreFoto = "";
+
+            $fileName = '';
+            $imagePath = null;
+            if (isset($_FILES['eventFoto']) && $_FILES['eventFoto']['error'] === UPLOAD_ERR_OK) {
+
+                $ext = pathinfo($_FILES['eventFoto']['name'], PATHINFO_EXTENSION);
+                $fileName = "event_" . time() . "_" . uniqid();
+                $origen = "../ajax/tmp/events/" . $fileName. "." . $ext;
+                //echo $fileName;
+                if (move_uploaded_file($_FILES['eventFoto']['tmp_name'], $origen)) {
+                    $destinot  = "../ajax/tmp/thumbnail_" . $fileName . ".avif";
+                    $destino   = "../ajax/tmp/" . $fileName . ".avif";
+                    $destinot2 = "../ajax/tmp/thumbnail_" . $fileName . ".jpg";
+                    
+                    $normal   =  $fileName . ".avif";
+                    $miniatura  = "thumbnail_" . $fileName . ".avif";
+                    $miniaturaj = "thumbnail_" . $fileName . ".jpg";
+
+                    $imgOriginal = cargarImagen($origen);
+
+                    if ($imgOriginal) {
+                        generarThumbnailAVIF($imgOriginal, $destinot, 150);
+                        generarNormalAVIF($imgOriginal, $destino, 1200);
+                        generarThumbnailJPG($imgOriginal, $destinot2, 150);
+
+                        imagedestroy($imgOriginal);
+                        unlink($origen);
+
+                        $client = ID_CLIENTE;
+                        $gallery = 'events';
+
+                        $fileName = CFPUBLICURL . "/".$client."/".$gallery."/originals/". $fileName. ".avif";
+
+                        upload_Aws($client,$gallery,$normal,$miniatura,$miniaturaj);
+
+                    } else {
+                        //echo "Formato no soportado.";
+                    }
+                }                
+            }   
+
+                $queryI = "SELECT id_route FROM daily_route WHERE date = :date AND id_vehicle = :id_vehicle";
+
+                $stmtI = $db->prepare($queryI);
+                $stmtI->bindValue(":date", $fecha);
+                $stmtI->bindValue(":id_vehicle", $vehiculoId);
+                $stmtI->execute();      
+                $resultado = $stmtI->fetch(PDO::FETCH_ASSOC);       
+                if ($resultado) {
+                    
+                    $queryI ="INSERT INTO extra_event (id_route,titulo,descripcion,gasto,imagen,fechahora) VALUES(:id_route,:titulo,:descripcion,:gasto,:imagen,now())";
+                    //echo $queryI;
+                    $stmtI = $db->prepare($queryI);
+                    $stmtI->bindValue(":id_route", $resultado['id_route']);
+                    $stmtI->bindValue(":titulo", $titulo);
+                    $stmtI->bindValue(":descripcion", $desc);
+                    $stmtI->bindValue(":gasto", $gasto);
+                    $stmtI->bindValue(":imagen", $fileName);
+                    $stmtI->execute();                
+                }
+
+            http_response_code(200);
+            echo json_encode(array("status" => "success", "message" => "Evento agregado."));
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+}     
+
+function extra_event_delete($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+
+            $queryI ="DELETE FROM extra_event WHERE id_event = :id";
+            //echo $queryI;
+            $stmtI = $db->prepare($queryI);
+            $stmtI->bindValue(":id", $_POST['id']);
+            $stmtI->execute();
+
+            http_response_code(200);
+            echo json_encode(array("status" => "success", "message" => "Evento borrado."));
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+}     
+
 function generar_uuid_v4() {
     // Generamos 16 bytes de datos aleatorios
     $data = random_bytes(16);
@@ -3903,50 +4024,7 @@ function generar_uuid_v4() {
     return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 }
 
-function get_distance($ORG,$DST){
 
-    $apiKey = GOOGLE_API_KEY;
-    $cpOrigen = urlencode($ORG);
-    $cpDestino = urlencode($DST);
-
-    // Construir URL
-    $url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={$cpOrigen}&destinations={$cpDestino}&units=imperial&key={$apiKey}";
-
-    //echo "--- Iniciando prueba de conexión ---\n";
-
-    // Realizar la petición
-    $response = file_get_contents($url);
-    $data = json_decode($response, true);
-
-    // 1. Verificar errores de conexión o API Key
-    if ($data['status'] !== 'OK') {
-        //echo "❌ ERROR DE CONFIGURACIÓN:\n";
-        //echo "Estado: " . $data['status'] . "\n";
-        //if (isset($data['error_message'])) {
-        //    echo "Mensaje: " . $data['error_message'] . "\n";
-        //}
-        //echo "Revisa: Que la API Key sea correcta y la 'Distance Matrix API' esté habilitada.\n";
-        return 'Error al llamar la API';
-    }
-
-    // 2. Verificar si encontró la ruta
-    $elemento = $data['rows'][0]['elements'][0];
-
-    if ($elemento['status'] === 'OK') {
-        //echo "✅ ¡CONEXIÓN EXITOSA!\n";
-        //echo "------------------------------\n";
-        //echo "Origen: " . $data['origin_addresses'][0] . "\n";
-        //echo "Destino: " . $data['destination_addresses'][0] . "\n";
-        //echo "Distancia en carretera: " . $elemento['distance']['text'] . "\n";
-        //echo "Tiempo estimado: " . $elemento['duration']['text'] . "\n";
-        //echo "------------------------------\n";
-        return $elemento['distance']['text'];
-    } else {
-        //echo "❌ ERROR DE RUTA: " . $elemento['status'] . "\n";
-        return "Error los códigos postales no existen o no hay ruta terrestre entre ellos.";
-    }
-
-}
 
 function sendmail($table_name,$db, $method, $id, $data){
     global $IDS;

@@ -422,6 +422,12 @@ switch ($resource) {
     case 'cancel_lead':
         cancel_lead($resource,$db, $method, $id, $data);
     break;    
+    case 'extra_event':
+        extra_event($resource,$db, $method, $id, $data);
+    break;   
+    case 'extra_event_delete':
+        extra_event_delete($resource,$db, $method, $id, $data);
+    break;        
     
 
     default:

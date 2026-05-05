@@ -239,8 +239,9 @@ switch ($resource) {
     case 'tnks_square':
         tnks($resource,$db, $method, $id, $data);
     break;        
-    
-
+    case 'distance_charge':
+        distance_charge($resource,$db, $method, $id, $data);
+    break;        
     default:
         // Manejar rutas no definidas
         http_response_code(404);
@@ -1230,12 +1231,19 @@ function products($table_name,$db, $method, $id, $data){
     switch ($method) {
         case 'POST': 
 
-            
+            /*
             $sql = "SELECT * FROM products WHERE Name = :name";
             $stmt = $db->prepare($sql);
             $stmt->bindValue(":name", $data->Product); 
             $stmt->execute();
             $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            */
+
+            $sql = "SELECT * FROM products WHERE Id = :id";
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(":id", $data->IdP); 
+            $stmt->execute();
+            $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);            
 
             foreach ($productos as $product) {
                 $sql = "SELECT Image FROM products_images WHERE Product = :idproduct AND Orden = 1";
@@ -1698,6 +1706,10 @@ try {
 //    $pdo = new PDO("mysql:host=localhost;dbname=tu_base_de_datos", "usuario", "password");
     //$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
+    $stmtCheck = $db->prepare("SELECT * FROM account");
+    $stmtCheck->execute();
+    $account = $stmtCheck->fetch(PDO::FETCH_ASSOC);    
+
     // 1. Verificar si el cliente ya existe (usualmente por Correo)
     
     $stmtCheck = $db->prepare("SELECT Id FROM customers WHERE Correo = ? LIMIT 1");
@@ -1738,7 +1750,7 @@ try {
         $sqlIns = "INSERT INTO customers (
                     Nombres, Apellidos, NombreEmpresa, Correo, TelefonoCelular, 
                     Direccion, Direccion2, Ciudad, CP, Pais, Lenguaje,Estatus,FechaCreacion,FechaCambio
-                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'MX', 'es', 'A',now(),now())";
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'es', 'A',now(),now())";
         
         $stmtIns = $db->prepare($sqlIns);
         $stmtIns->execute([
@@ -1750,7 +1762,8 @@ try {
             $data->cliente->direccion,
             $data->cliente->colonia,
             $data->cliente->ciudad,
-            $data->cliente->cp
+            $data->cliente->cp,
+            $account['Pais']
         ]);
         
         $idCliente = $db->lastInsertId();
@@ -1791,7 +1804,7 @@ try {
             $data->lugar->colonia, // Mapeado a Direccion2
             $data->lugar->ciudad ?? 'Guadalajara', // Valor por defecto o del array
             $data->lugar->estado ?? 'Jalisco',
-            'MX',
+            $account['Pais'],
             $idVenue
         ]);
     } else {
@@ -1808,7 +1821,7 @@ try {
             $data->lugar->ciudad ?? 'Guadalajara',
             $data->lugar->cp,
             $data->lugar->estado ?? 'Jalisco',
-            'MX'
+            $account['Pais']
         ]);
         
         $idVenue = $db->lastInsertId();
@@ -1821,7 +1834,28 @@ try {
     die("Error al procesar el lugar: " . $e->getMessage());
 }
 
+    //{"ZIPO":"45640","CONO":"MX","ZIPD":"44840","COND":"MX"}
+    //$data_dst =json_encode(["ZIPO" =>$account['CP'],"CONO" =>$account['Pais'],"ZIPD" => $data->lugar->cp,"COND" => $account['Pais']]);
 
+$arreglo = [
+    "ZIPO" => $account['CP'],
+    "CONO" => $account['Pais'],
+    "ZIPD" => $data->lugar->cp, // (asumiendo que $data venía de otro lado)
+    "COND" => $account['Pais']
+];
+
+// Convertimos el arreglo a objeto
+    $data_dst = (object) $arreglo;    
+
+    $Costo_Distancia = 0;
+    $Distance = '';
+
+    $Distance = distance_charge($table_name,$db, $method, $id, $data_dst);
+    
+    $Distance = json_decode($Distance);
+
+    // Acceder al valor
+    $Costo_Distancia = $Distance->cost->costo_total;
 /*
             $data['lugar']['direccion'],
             $data['lugar']['colonia'],
@@ -1842,10 +1876,6 @@ try {
                     }
                 }
             }
-
-
-
-            
 
             $Folio = 0;    
             $IdBranch = 1;
@@ -1878,7 +1908,7 @@ try {
             }                
             //}
 
-            $Subtotal = $Total - $MontoCupon;
+            $Subtotal = ($Total + $Costo_Distancia) - $MontoCupon;
 
 /*
             $data['reserva']['fecha'],
@@ -1906,7 +1936,7 @@ try {
                 $Nt2 = ''; 
                 $Item_Totals = $Total; 
                 $ChkDstC = 1; 
-                $DstC = 0; 
+                $DstC = $Costo_Distancia; 
                 $ChkStCs = 0; 
                 $StCs = 0; 
                 $ChkDsc = 0; 
@@ -1923,7 +1953,7 @@ try {
                 $IdBranch = 1;
                 //$Folio  = '';
 
-
+/*
             // --- MODO INSERT --
             $sqlLead = "INSERT INTO lead (
                 StartDateTime, EndDateTime,DeliveryDateTime, Organization, Customer, Referal, 
@@ -1946,6 +1976,42 @@ try {
                 $StCs, $ChkDsc, $Dsc, $SubT, $TaxId, $TaxPc, 
                 $TaxAm, $Total, $Depo,$DepoA, $BalDue, $Status,$IdBranch,$Folio,$Total
             ]);
+*/
+
+            $sqlLead = "INSERT INTO lead (
+                StartDateTime, EndDateTime, DeliveryDateTime, Organization, Customer, 
+                Referal, OkT, WA, AE, ME, 
+                CustomerNote, Venue, EventName, Surface, Delivery, 
+                Note1, Note2, ItemTotals, ChkDstC, DistanceCharges, 
+                ChkStCs, StafCost, ChkDsc, Discount, SubTotal, 
+                TaxId, TaxPc, TaxAmount, Total, Deposit, 
+                DepositAmount, Balance, Status, FechaCreacion, FechaCambio, 
+                IdBranch, Folio, TotalBT
+            ) VALUES (
+                ?, ?, ?, ?, ?, 
+                ?, ?, ?, ?, ?, 
+                ?, ?, ?, ?, ?, 
+                ?, ?, ?, ?, ?, 
+                ?, ?, ?, ?, ?, 
+                ?, ?, ?, ?, ?, 
+                ?, ?, ?, now(), now(), 
+                ?, ?, ?
+            )";
+
+            $stmtLead = $db->prepare($sqlLead);
+
+            // El array debe tener exactamente 36 elementos (los ? en el SQL)
+            $stmtLead->execute([
+                $FHI, $FHF, $FHI, $Organization, $Customer,        // 1-5
+                $Referal, $OkT, $WA, $AE, $ME,                     // 6-10
+                $CusNt, $Venue, $EventName, $Surface, $Delivety,   // 11-15
+                $Nt1, $Nt2, $Item_Totals, $ChkDstC, $DstC,         // 16-20
+                $ChkStCs, $StCs, $ChkDsc, $Dsc, $SubT,             // 21-25
+                $TaxId, $TaxPc, $TaxAm, $Total, $Depo,             // 26-30
+                $DepoA, $BalDue, $Status,                          // 31-33
+                $IdBranch, $Folio, $Total                          // 34-36
+            ]);
+
             $idLead = $db->lastInsertId();
 
             
@@ -2606,6 +2672,146 @@ function verificarPagoLink(SquareClient $square, string $orderId): array
         'monto'          => 0,
         'moneda'         => null
     ];      
+}
+
+function distance_charge($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+            $ZIPO = $data->{'ZIPO'};
+            $CONO = $data->{'CONO'};
+            $ZIPD = $data->{'ZIPD'};
+            $COND = $data->{'COND'};
+            if ($ZIPD!="" AND $ZIPD != $ZIPO){
+                    //RECUPERAMOS EL COSTO EXTRA POR MILLA
+                    $query = "SELECT Rate, Zip, Distance, State, Total, Restriction FROM distance_charges  LIMIT 1";
+                    
+                    $stmt = $db->prepare($query);
+                    $stmt->execute();
+                    //$costo_extra = $stmt->fetchColumn();
+                    $data = $stmt->fetch(PDO::FETCH_ASSOC);
+                    
+                    if ($data) {
+                        // Ahora accedes a cada valor por su nombre
+                        $costo_extra =  $data['Rate'];
+                        $Zip =  $data['Zip'];
+                        $Distance =  $data['Distance'];
+                        
+                    }           
+                    //echo " ** $Distance **";
+                    $total_millas = 0;
+                    if ($Distance==1){
+                        //die("$ZIPO,$CONO $ZIPD,$COND");
+                        $total_millas = get_distance("$ZIPO,$CONO","$ZIPD,$COND");                        
+                        if (str_starts_with($total_millas, 'Error')) {
+                            echo "Se detectó un error.";
+                        }
+                        else{
+                            $total_millas = str_replace(" mi", "", $total_millas);
+                            $total_millas = $total_millas * 1;
+                        }
+                        //$total_millas = 35; //AQUI VA LA FUNCION DE GOOGLE MAPS PARA SABER LAS MILLAS
+                        //die( $total_millas);
+
+                    // 1. Consultamos los rangos ordenados
+                        $query = "SELECT MinM, MaxM, ChargeD, ChargeType 
+                                FROM distance_charges_distance 
+                                ORDER BY MinM ASC";
+                    //echo $query;    
+                        $stmt = $db->prepare($query);
+                        $stmt->execute();
+                        $rangos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                        $costo_total = 0;
+                        $max_milla_cubierta = 0;
+
+                        // 2. Procesamos cada tramo
+                        foreach ($rangos as $rango) {
+                            $min = (float)$rango['MinM'];
+                            $max = (float)$rango['MaxM'];
+                            $cargo = (float)$rango['ChargeD'];
+                            $tipo = strtoupper($rango['ChargeType']);
+
+                            // Si el viaje no llega ni al inicio de este rango, lo ignoramos
+                            if ($total_millas < $min) {
+                                continue;
+                            }
+
+                            // Determinamos el final del tramo actual
+                            $milla_final_en_tramo = min($total_millas, $max);
+                            
+                            if ($tipo === 'F') {
+                                // Cargo FIJO: Se suma el monto completo si el envío toca este rango
+                                $costo_total += $cargo;
+                            } elseif ($tipo === 'M') {
+                                // Cargo POR MILLA: Calculamos cuántas millas del total caen en este rango
+                                $millas_a_cobrar = $milla_final_en_tramo - ($min - 1); 
+                                $costo_total += ($millas_a_cobrar * $cargo);
+                            }
+
+                            // Guardamos hasta dónde llega la cobertura de la tabla
+                            $max_milla_cubierta = max($max_milla_cubierta, $max);
+                        }
+
+                        // 3. Si hay millas excedentes fuera de la tabla, aplicamos el costo extra
+                        if ($total_millas > $max_milla_cubierta) {
+                            $millas_excedentes = $total_millas - $max_milla_cubierta;
+                            $costo_total += ($millas_excedentes * $costo_extra);
+                        }
+                        //$costo_total;
+                        
+
+
+                    }
+
+                    $TaxRate = 0;
+                    $query = "SELECT EstimatedCombineRate FROM taxrates_zip WHERE Zip = :zip";
+                    
+                    $stmt = $db->prepare($query);
+                    $stmt->bindParam(':zip', $ZIPD, PDO::PARAM_STR);
+                    $stmt->execute();
+                    //$costo_extra = $stmt->fetchColumn();
+                    $data = $stmt->fetch(PDO::FETCH_ASSOC);
+                    
+                    if ($data) {
+                        // Ahora accedes a cada valor por su nombre
+                        $TaxRate =  $data['EstimatedCombineRate'];
+                    }
+
+                    $respuesta = [
+                        "status" => "success",
+                        "total_millas" => $total_millas,
+                        "costo_total" => round($costo_total, 2),
+                        "taxrate" => $TaxRate
+                    ];
+
+                    return json_encode(array(
+                        "cost" => $respuesta
+                    ));  
+                }
+                else{
+
+                    $respuesta = [
+                        "status" => "success",
+                        "total_millas" => 0,
+                        "costo_total" => 0,
+                        "taxrate" => 0
+                    ];
+
+                    return json_encode(array(
+                        "cost" => $respuesta
+                    ));                 
+
+                }
+        break;
+
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }      
+    
 }
 
 ?>
