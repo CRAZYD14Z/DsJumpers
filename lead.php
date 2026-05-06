@@ -28,7 +28,7 @@ function Trd($Id){
 
 include_once 'head.php';
 
-    $query = "select Logo,WebSite, NombreCompania, Direccion,Direccion2, Ciudad,CP,Estado,Pais,TelefonoCelular FROM account";
+    $query = "select Logo,WebSite, NombreCompania, Direccion,Direccion2, Ciudad,CP,Estado,Pais,TelefonoCelular,Pay_platform FROM account";
     $stmt = $db->prepare($query);
     $stmt->execute();
     $account = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -2014,8 +2014,8 @@ function load_venue(Id){
             $('#EventCountry').val( data.Pais);
             $('#EventCountry').trigger('change');
             $('#EventState').val( data.Estado);
-            $('#EventStreet').val( data.Direccion+' '+data.Direccion2);
-            $('#EventStreet').val( data.Direccion+' '+data.Direccion2);
+            $('#EventStreet').val( data.Direccion);
+            //$('#EventStreet').val( data.Direccion+' '+data.Direccion2);
             $('#EventCity').val( data.Ciudad);
             $('#EventZip').val( data.CP);
             distance_charge(data.CP,data.Pais)
@@ -2063,8 +2063,8 @@ function get_venue(CusT,IdCus,NameVenue){
             $('#EventCountry').val( data.Pais);
             $('#EventCountry').trigger('change');
             $('#EventState').val( data.Estado);
-            $('#EventStreet').val( data.Direccion+' '+data.Direccion2);
-            $('#EventStreet').val( data.Direccion+' '+data.Direccion2);
+            $('#EventStreet').val( data.Direccion);
+            //$('#EventStreet').val( data.Direccion+' '+data.Direccion2);
             $('#EventCity').val( data.Ciudad);
             $('#EventZip').val( data.CP);
             distance_charge(data.CP,data.Pais)
@@ -2147,8 +2147,11 @@ function distance_charge(zip,ctry){
 //ABRIR RUTA EN GOOGLE
 function abrirRutaGoogleMaps() {
     // 1. Limpiar y codificar los textos para la URL
-    const origenURL = encodeURIComponent('villa Fontana Poniente 1379, tlaquepaque, jalisco, 45615');
-    const destinoURL = encodeURIComponent('ramon lopez velarde 1023, guadalajara, jalisco, 44840');
+
+    const origenURL = encodeURIComponent('<?= $account['Direccion'].", ". $account['Ciudad'].", ".$account['Estado'].", ".$account['CP'] ?>');
+    //const destinoURL = encodeURIComponent('ramon lopez velarde 1023, guadalajara, jalisco, 44840');
+    Destiny = $('#EventStreet').val() + ', ' + $('#EventCity').val()+', ' + $('#EventState option:selected').text()+', '+ $('#EventZip').val()
+    const destinoURL = encodeURIComponent(Destiny);
 
     // 2. Construir la URL usando template literals (backticks)
     const url = `https://www.google.com/maps/dir/?api=1&origin=${origenURL}&destination=${destinoURL}&travelmode=driving&layer=traffic`;

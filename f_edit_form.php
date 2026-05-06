@@ -183,7 +183,7 @@ function armar_formulario_edit($tabla,$etiqueta,$idioma){
                                 $SoloLectura = "disabled";
                             echo "<label for='$Campo' class='form-label'>$Titulo</label>";
                             if ($TablaDts2!= "")
-                                echo '<select name="'.$Campo.'" id="'.$Campo.'" class="'.$form_select.'" style=""  onChange="change_send2(this.value,'.$aps. str_replace("edit_","",$Campo).$aps.','.$aps.$Receptor.$aps.','.$aps.$tabla.$aps.')" '.$Requerido.' '.$SoloLectura.'>';
+                                echo '<select name="'.$Campo.'" id="'.$Campo.'" class="'.$form_select.'" style=""  onChange="change_send2(this.value,'.$aps. str_replace("edit_","",$Campo).$aps.','.$aps.$Receptor.$aps.','.$aps.$tabla.$aps.', $('.$aps. '#'.$Receptor.$aps.').val() )" '.$Requerido.' '.$SoloLectura.'>';
                             else
                                 echo '<select name="'.$Campo.'" id="'.$Campo.'" class="'.$form_select.'" style="" '.$Requerido.' '.$SoloLectura.'>';
 

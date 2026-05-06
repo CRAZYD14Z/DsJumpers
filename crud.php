@@ -809,7 +809,7 @@ session_start();
 <script>
     const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
     const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
-    const TOKEN = '<?= $_SESSION['apiToken']; ?>'; 
+    const TOKEN = localStorage.getItem('apiToken'); 
     const ID_CLIENTE = '<?= $_SESSION['id_cliente']; ?>'; 
     const CFPUBLICURL = '<?= CFPUBLICURL ?>'; 
     
@@ -1828,25 +1828,28 @@ function deleteRecord(Id,IdTabla) {
         }
 
 
-        function change_send2(valor,campo,receptor,tabla){
-            var parametros = {"action":"ajax","valor":valor,'campo':campo,'receptor':receptor,'tabla':tabla};
+        function change_send2(valor,campo,receptor,tabla,valor2){
+            var parametros = {"action":"ajax","valor":valor,'campo':campo,'receptor':receptor,'tabla':tabla,"valor2":valor2};
             $.ajax({
                 type: "POST",
                 url:'ajax/buscarvalor2.php',
                 data: parametros,
+                dataType: 'json', 
                 beforeSend: function(objeto){
                     //$('#loadModal').show();
                     //$('.modal-backdrop').show();
                 },
                 success:function(data){
+                    valor = data.Valor;
+                    data = data.Registros;
                     $('#'+receptor+' option').remove();
-                    var obj = JSON.parse(JSON.stringify(data));
-                    $.each(obj, function(key,value) {
+                    //var obj = JSON.parse(JSON.stringify(data));
+                    $.each(data, function(key,value) {
                         $('#'+receptor).append($('<option>', { 
                             value: value.Id,
-                            text : value.Descripcion 
-                        }));                    
-
+                            text : value.Descripcion ,
+                            selected: value.Id == valor
+                        }));
                     });
                 }
             }).fail( function( jqXHR, textStatus, errorThrown ) {

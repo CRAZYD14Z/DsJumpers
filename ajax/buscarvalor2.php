@@ -1,7 +1,8 @@
 <?php
     ob_start();
     session_start(); 
-    include_once '../config/database.php'; 
+    include_once '../config/config.php';     
+    include_once '../config/database.php';    
     $database = new Database();
     $conexion = $database->getConnection();
 
@@ -13,7 +14,8 @@
         $campo    = strip_tags($_REQUEST['campo']);
         $receptor = strip_tags($_REQUEST['receptor']);
         $tabla    = strip_tags($_REQUEST['tabla']);
-        
+        $valor2    = strip_tags($_REQUEST['valor2']);
+
         $sql = "SELECT TablaDts2, CampoFiltro2, CampoValor2, CampoDescripcion2, Filtro2 
                 FROM modal_add 
                 WHERE Tabla = :tabla AND Campo = :campo";
@@ -51,7 +53,7 @@
 
     }
     header('Content-Type: application/json; charset=utf-8');
-    echo json_encode($myArray);
+    echo json_encode([ "Registros"  => $myArray,"Valor" => $valor2]);
     exit();    
     //echo $Respuesta;
 ?>

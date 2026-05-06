@@ -130,11 +130,13 @@ if ($resource !== 'login') {
 
         $now = time();
         // Si faltan menos de 600 segundos (10 minutos) para que expire
-        //echo $decoded_token->exp- $now;
+        //echo $decoded_token->exp - $now;
         if (($decoded_token->exp - $now) < 600) {
             // Generar un nuevo token con el mismo payload
+            
+            //die("NEW:". time() + 3600);
             $decoded_token->exp = time() + 3600;
-
+            
             $nuevoToken = JWT::encode((array)$decoded_token, SECRET_KEY, 'HS256');
             // Enviar el nuevo token en un header para que el cliente lo actualice
             header("Authorization-Update: " . $nuevoToken);
@@ -428,7 +430,12 @@ switch ($resource) {
     case 'extra_event_delete':
         extra_event_delete($resource,$db, $method, $id, $data);
     break;        
-    
+    case 'get_pay_platform':
+        get_pay_platform($resource,$db, $method, $id, $data);
+    break;            
+    case 'update_pay_platform':
+        update_pay_platform($resource,$db, $method, $id, $data);
+    break;                
 
     default:
         // Manejar rutas no definidas

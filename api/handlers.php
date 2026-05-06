@@ -373,7 +373,7 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                     unset($TCampos);
                     foreach ($resultados as $registro) {
                         $LCampos[]=$registro['Campo'];
-                        if ($registro['TipoCampo'] == 'img'){
+                        if ($registro['TipoCampo'] == 'img' || $registro['TipoCampo'] == 'imglst'){
                             $LLCampos[]=$registro['Campo'];
                             $TCampos[]=$registro['TipoCampo'];
                         }
@@ -547,10 +547,13 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                         $indice = array_search($columna, $LLCampos);
                         
                         // Si existe y el tipo asociado es 'img'
-                        if ($indice !== false && $TCampos[$indice] === 'img') {
+                        if ($indice !== false && ($TCampos[$indice] === 'img' || $TCampos[$indice] === 'imglst')) {
                             // Reemplazamos el valor por el tag HTML (ajusta la ruta según necesites)
                             //$row[$columna] = '<img src="ajax/tmp/' . htmlspecialchars($valor) . '" alt="imagen" style="width:50px;">';
-                            $row[$columna] = '<img src="'.CFPUBLICURL.'/'.ID_CLIENTE.'/'.$table_name.'/thumbnails/'.htmlspecialchars($valor) . '" alt="imagen" style="width:50px;">';
+                            $img_folder = $table_name ;
+                            if ($table_name == "related_products" OR $table_name == "upselling_products")
+                                $img_folder = "products_images";
+                            $row[$columna] = '<img src="'.CFPUBLICURL.'/'.ID_CLIENTE.'/'.$img_folder.'/thumbnails/'.htmlspecialchars($valor) . '" alt="imagen" style="width:50px;">';
                         }
                     }
                 }                    
@@ -3795,19 +3798,19 @@ function acondicionamiento($table_name,$db, $method, $id, $data){
                             $esEventoEnPuerta = true;
                         }
                     }
-
-                    $itemData = [
-                        'name'      => $row['id_accesory_base'] || $row['id_accesory'] ? ($row['Base'] ?? $row['Accesory']) : $row['Product'],
-                        'image'     => CFPUBLICURL.'/'.ID_CLIENTE.'/products_images/thumbnails/'.$img,
-                        'stage'     => $row['stage'],
-                        'assorted'  => $row['assorted_quantity'],
-                        'tipo'      => $tipo,
-                        'IdOp'     => $op['Id_operation'],
-                        'folio'     => $op['Folio'],
-                        'cliente'   => $op['NombreOrganizacion'] ?: ($op['NombreCliente'] . " " . $op['ApellidosCliente']),
-                        'urgente'   => $esEventoEnPuerta 
-                    ];
-
+                    if ($tipo != 'BASE'){
+                        $itemData = [
+                            'name'      => $row['id_accesory_base'] || $row['id_accesory'] ? ($row['Base'] ?? $row['Accesory']) : $row['Product'],
+                            'image'     => CFPUBLICURL.'/'.ID_CLIENTE.'/products_images/thumbnails/'.$img,
+                            'stage'     => $row['stage'],
+                            'assorted'  => $row['assorted_quantity'],
+                            'tipo'      => $tipo,
+                            'IdOp'     => $op['Id_operation'],
+                            'folio'     => $op['Folio'],
+                            'cliente'   => $op['NombreOrganizacion'] ?: ($op['NombreCliente'] . " " . $op['ApellidosCliente']),
+                            'urgente'   => $esEventoEnPuerta 
+                        ];
+                    }
                     if ($groupBy === 'product') {
                         // Agrupar por Nombre de Producto
                         $key = $itemData['name'];
@@ -4010,6 +4013,82 @@ function extra_event_delete($table_name,$db, $method, $id, $data){
         break;
     }
 }     
+
+function get_pay_platform($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+
+            // Obtenemos la plataforma activa
+            $acc = $db->query("SELECT pay_platform FROM account LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+            
+            // Obtenemos datos de OPAY
+            $opay = $db->query("SELECT Id, SecretKey, PublicKey FROM opay_account LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+            
+            // Obtenemos datos de SQUARE
+            $square = $db->query("SELECT Id, LocalId, Token FROM square_account LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+            http_response_code(200);
+            echo json_encode([
+                'pay_platform' => $acc['pay_platform'] ?? '',
+                'opay' => $opay ?: ['Id'=>'', 'SecretKey'=>'', 'PublicKey'=>''],
+                'square' => $square ?: ['Id'=>'', 'LocalId'=>'', 'Token'=>'']
+            ]);            
+
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+} 
+
+function update_pay_platform($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+
+            $platform = $_POST['pay_platform'] ?? '';
+
+            if (empty($platform)) {
+                echo json_encode(['status' => 'error', 'message' => 'Plataforma no seleccionada']);
+                exit;
+            }            
+
+            $stmt1 = $db->prepare("UPDATE account SET pay_platform = ? LIMIT 1");
+            $stmt1->execute([$platform]);
+
+            // 2. Actualizar la tabla específica
+            if ($platform === 'OPAY') {
+                $stmt2 = $db->prepare("UPDATE opay_account SET Id = ?, SecretKey = ?, PublicKey = ? LIMIT 1");
+                $stmt2->execute([
+                    $_POST['opay_id'],
+                    $_POST['opay_secret'],
+                    $_POST['opay_public']
+                ]);
+            } else if ($platform === 'SQUARE') {
+                $stmt2 = $db->prepare("UPDATE square_account SET Id = ?, LocalId = ?, Token = ? LIMIT 1");
+                $stmt2->execute([
+                    $_POST['square_id'],
+                    $_POST['square_local'],
+                    $_POST['square_token']
+                ]);
+            }
+            http_response_code(200);
+            echo json_encode(['status' => 'success']);
+
+    
+    
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+} 
 
 function generar_uuid_v4() {
     // Generamos 16 bytes de datos aleatorios

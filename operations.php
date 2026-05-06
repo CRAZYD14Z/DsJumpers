@@ -470,6 +470,12 @@ foreach ($rows as $row) {
 
         <div class="card-footer bg-white py-3 border-0">
             <div class="d-flex justify-content-between align-items-center">
+
+                <?php if ($stage['status'] != 'RECOLECCION'): ?>
+            <button id="marcar-todo" class="btn btn-warning px-5 fw-bold shadow-sm" onclick="fillMaxAssorted()">
+                <i class="fa-regular fa-square-check"></i> MARCAR TODO
+            </button>
+                <?php endif; ?>
                 <div id="status-text" class="small text-muted">
                     <i class="fas fa-info-circle me-1"></i> <?= Trd(24) ?>
                 </div>
@@ -634,7 +640,6 @@ $(document).on('change keyup', '.assorted-qty, .cleaning-qty, .washing-qty, .rep
 function checkGlobalStatus() {
     const total = $('.row-check').length;
     const ready = $('.row-check:checked').length;
-    
     // Actualización de progreso visual (opcional)
     const percent = total > 0 ? (ready / total) * 100 : 0;
     $('.progress-bar').css('width', percent + '%');
@@ -654,7 +659,7 @@ function checkGlobalStatus() {
 
 
 }
-
+    window.checkGlobalStatus = checkGlobalStatus;
 
     $('.assorted-qty').on('change keyup', function() {
         validateLogic($(this).closest('tr'));
@@ -679,11 +684,11 @@ $('#btn-update-stage').on('click', function() {
              nextStage = stages[stages.indexOf(currentStage) + 2];            
         }
 
-        if(<?php echo $Balance?> > 0 && actualStage == 'RECOLECCION'){
-            //alert("Error: Es necesario liquidar el saldo pendiente.");
-            mostrarToast("<?= Trd(30) ?>", true);
-            return;            
-        }
+        //if(<?php echo $Balance?> > 0 && actualStage == 'RECOLECCION'){
+        //    //alert("Error: Es necesario liquidar el saldo pendiente.");
+        //    mostrarToast("<?= Trd(30) ?>", true);
+        //    return;            
+        //}
 
         if (actualStage == 'ENTREGA' && !firmaUtilizada) {
             //alert("Error: La firma del cliente es obligatoria.");
@@ -917,6 +922,26 @@ function generarJsonStages() {
     });
 
     return JSON.stringify(stagesData);
+}
+
+function fillMaxAssorted() {
+    // 1. Seleccionamos todos los inputs con la clase específica
+    const inputs = document.querySelectorAll('.assorted-qty');
+
+    
+    
+    inputs.forEach(input => {
+        const maxValue = input.getAttribute('max');
+        if (maxValue !== null) {
+            input.value = maxValue;
+        }
+    });
+
+    const inputsc = document.querySelectorAll('.row-check');    
+    inputsc.forEach(input => {
+        input.checked = true; // Forma nativa de marcar un checkbox
+    });
+    window.checkGlobalStatus()
 }
 
 

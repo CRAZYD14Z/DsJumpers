@@ -40,8 +40,6 @@
                         <li><a class="dropdown-item" href="operation.php">Operación General</a></li>
                         <li><a class="dropdown-item" href="acondicionamiento.php">Acondicionamiento</a></li>
                         <li><a class="dropdown-item" href="monitor.php">Monitor</a></li>
-                        <li><a class="dropdown-item" href="crud.php?Id=wharehouses">Almacenes</a></li>                                                
-                        <li><a class="dropdown-item" href="crud.php?Id=inventory_stock">Inventario / Stock</a></li>
                     </ul>
                 </li>
 
@@ -53,6 +51,7 @@
                     <ul class="dropdown-menu scrollable-menu" style="max-height: 600px; overflow-y: auto;">
                         <li><h6 class="dropdown-header">Administración</h6></li>
                         <li><a class="dropdown-item" href="crud.php?Id=account">Cuenta</a></li>
+                        <li><a class="dropdown-item" href="pay_platform.php">Plataforma de pago</a></li>
                         <li><a class="dropdown-item" href="crud.php?Id=customers">Clientes</a></li>
                         <li><a class="dropdown-item" href="crud.php?Id=customer_type">Tipo Cliente</a></li>
                         <li><a class="dropdown-item" href="crud.php?Id=organizations">Organizaciones</a></li>
@@ -72,6 +71,7 @@
                         <li><hr class="dropdown-divider"></li>
                         <li><h6 class="dropdown-header">Logística</h6></li>
                         <li><a class="dropdown-item" href="crud.php?Id=wharehouses">Almacenes</a></li>
+                        <li><a class="dropdown-item" href="crud.php?Id=inventory_stock">Inventario</a></li>
                         <li><a class="dropdown-item" href="crud.php?Id=venues">Lugares</a></li>
                         <li><a class="dropdown-item" href="crud.php?Id=distance_charges">Cargos Distancia</a></li>
                         <li><hr class="dropdown-divider"></li>

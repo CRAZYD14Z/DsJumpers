@@ -94,7 +94,14 @@ include_once 'head.php';
 ?>
 <div class="container-fluid px-3">
 <?php
-    $PayPlatform ='OPAY';
+
+    $query = "select Logo,WebSite, NombreCompania, Direccion,Direccion2, Ciudad,CP,Estado,Pais,TelefonoCelular,Pay_platform FROM account";
+    $stmt = $db->prepare($query);
+    $stmt->execute();
+    $account = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    $PayPlatform = $account['Pay_platform'];
+
     if ($PayPlatform == 'OPAY')
         $URLGenerate_Link = 'ajax_generar_link.php';
     else
@@ -318,7 +325,7 @@ include_once 'head.php';
                                     <p class="card-text small text-muted"><?php echo Trd(34)?></p>
 
                                     <button type="button" class="btn btn-outline-secondary flex-fill" id="btnConfirmarPago" onclick="ProcesarP('E')" >
-                                        <i class="bi bi-check-circle"></i> <?php echo Trd(39)?>
+                                        <i class="bi bi-check-circle"></i> <?php echo Trd(35)?>
                                     </button>                                    
                                 </div>
                             </div>

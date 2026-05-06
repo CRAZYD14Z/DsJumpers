@@ -1,7 +1,5 @@
 <?php 
-    $PayPlatform ='OPAY';
-    //$PayPlatform ='SQUARE';
-
+    $PayPlatform = $account['Pay_platform'];
 ?>
     <script type="text/javascript" src="https://openpay.s3.amazonaws.com/openpay.v1.min.js"></script>
     <script type='text/javascript' src="https://openpay.s3.amazonaws.com/openpay-data.v1.min.js"></script>
