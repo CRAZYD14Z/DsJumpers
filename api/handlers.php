@@ -2743,21 +2743,82 @@ function operation($table_name,$db, $method, $id, $data){
             $search = isset($_GET['search']) ? $_GET['search'] : '';
 
             // Consulta con lógica de negocio integrada
-            $sql = "SELECT *, 
+            $sql = "
+                SELECT
+                    v_operations.Id_operation, 
+                    v_operations.Id, 
+                    v_operations.StartDateTime, 
+                    v_operations.EndDateTime, 
+                    v_operations.DeliveryDateTime, 
+                    v_operations.Organization, 
+                    v_operations.Customer, 
+                    v_operations.Venue, 
+                    v_operations.Total, 
+                    v_operations.IdBranch, 
+                    v_operations.Folio, 
+                    v_operations.NombreOrganizacion, 
+                    v_operations.OPhone, 
+                    v_operations.NombreCliente, 
+                    v_operations.ApellidosCliente, 
+                    v_operations.CPhone, 
+                    v_operations.Lugar, 
+                    v_operations.Ciudad, 
+                    v_operations.Estado, 
+                    v_operations.id_vehicle, 
+                    v_operations.vehiculo, 
+                    v_operations.placas, 
+                    v_operations.id_driver, 
+                    v_operations.NombresChofer, 
+                    v_operations.ApellidosChofer, 
+                    v_operations.Lat, 
+                    v_operations.Lng, 
+                    v_operations.orden, 
+                    v_operations.id_route, 
                     CASE 
-                        WHEN Organization > 0 THEN NombreOrganizacion 
-                        WHEN Customer > 0 THEN CONCAT(NombreCliente, ' ', ApellidosCliente)
-                        ELSE 'Sin identificar'
-                    END AS NombreMostrar
-                    FROM v_operations
-                    WHERE (NombreOrganizacion LIKE :s OR NombreCliente LIKE :s OR ApellidosCliente LIKE :s) and id_vehicle > 0  AND Status <> 'ALMACENADO'                 
-                    ORDER BY  StartDateTime,id_vehicle, orden  ASC"; 
-//                    LIMIT :limit OFFSET :offset";
+                            WHEN Organization > 0 THEN NombreOrganizacion 
+                            WHEN Customer > 0 THEN CONCAT(NombreCliente, ' ', ApellidosCliente)
+                            ELSE 'Sin identificar'
+                    END AS NombreMostrar,
+                    
+                    CASE 
+                            WHEN ISNULL(Status) THEN 'EVENTO'
+                            ELSE Status
+                    END AS Status,	
+                    v_operations.id_event, 	
+                    extra_event.titulo, 
+                    extra_event.descripcion, 
+                    extra_event.gasto, 
+                    extra_event.imagen,
+                    extra_event.fechahora
+                FROM
+                    v_operations
+                    left JOIN
+                    extra_event
+                    ON 
+                        v_operations.id_event = extra_event.id_event
+                WHERE
+                    id_vehicle > 0 AND
+                    (
+                        `Status` <> 'ALMACENADO' OR
+                        ISNULL(Status )
+                    )            
 
+                    ORDER BY  StartDateTime,id_vehicle, orden  ASC"; 
             $stmt = $db->prepare($sql);
-            $stmt->bindValue(':s', "%$search%", PDO::PARAM_STR);
             $stmt->execute();            
             $v_operations = $stmt->fetchAll();
+
+            $client = ID_CLIENTE;
+            $gallery = 'events';
+
+            //$URLBASE = CFPUBLICURL . "/".$client."/".$gallery."/originals/";            
+
+            foreach ($v_operations as &$op) {
+                // Ejemplo: Si quieres añadir la ruta completa a la imagen
+                if ($op['imagen'] != "")
+                    $op['imagen'] = CFPUBLICURL . "/".$client."/".$gallery."/originals/" . $op['imagen'];
+            }
+            unset($op);            
 
             $all_ids = array_column($v_operations, 'id_route');
             $unique_ids = array_unique($all_ids);
@@ -3949,7 +4010,8 @@ function extra_event($table_name,$db, $method, $id, $data){
                         $client = ID_CLIENTE;
                         $gallery = 'events';
 
-                        $fileName = CFPUBLICURL . "/".$client."/".$gallery."/originals/". $fileName. ".avif";
+                        //$fileName = CFPUBLICURL . "/".$client."/".$gallery."/originals/". $fileName. ".avif";
+                        $fileName =  $fileName. ".avif";
 
                         upload_Aws($client,$gallery,$normal,$miniatura,$miniaturaj);
 
@@ -3959,7 +4021,7 @@ function extra_event($table_name,$db, $method, $id, $data){
                 }                
             }   
 
-                $queryI = "SELECT id_route FROM daily_route WHERE date = :date AND id_vehicle = :id_vehicle";
+                $queryI = "SELECT id_route, id_vehicle, id_driver FROM daily_route WHERE date = :date AND id_vehicle = :id_vehicle";
 
                 $stmtI = $db->prepare($queryI);
                 $stmtI->bindValue(":date", $fecha);
@@ -3967,16 +4029,46 @@ function extra_event($table_name,$db, $method, $id, $data){
                 $stmtI->execute();      
                 $resultado = $stmtI->fetch(PDO::FETCH_ASSOC);       
                 if ($resultado) {
-                    
+                    $id_route   = $resultado['id_route'];
+                    $id_vehicle = $resultado['id_vehicle'];
+                    $id_driver  = $resultado['id_driver'];
                     $queryI ="INSERT INTO extra_event (id_route,titulo,descripcion,gasto,imagen,fechahora) VALUES(:id_route,:titulo,:descripcion,:gasto,:imagen,now())";
-                    //echo $queryI;
                     $stmtI = $db->prepare($queryI);
-                    $stmtI->bindValue(":id_route", $resultado['id_route']);
+                    $stmtI->bindValue(":id_route", $id_route);
                     $stmtI->bindValue(":titulo", $titulo);
                     $stmtI->bindValue(":descripcion", $desc);
                     $stmtI->bindValue(":gasto", $gasto);
                     $stmtI->bindValue(":imagen", $fileName);
                     $stmtI->execute();                
+                    $Id_Event = $db->lastInsertId();
+
+                    $queryI = "SELECT Id as Lead, MAX(orden) + 1 as orden FROM v_operations WHERE id_route = :id_route";
+                    $stmtI = $db->prepare($queryI);
+                    $stmtI->bindValue(":id_route", $id_route);                
+                    $stmtI->execute();      
+                    $resultado = $stmtI->fetch(PDO::FETCH_ASSOC);
+                    if ($resultado) {
+                        $Lead   = $resultado['Lead'];
+                        $orden = $resultado['orden'];
+                    }
+
+                    $queryI ="INSERT INTO operation_master (id_lead,id_vehicle,id_driver,orden,id_event) VALUES(:id_lead,:id_vehicle,:id_driver,:orden,:id_event)";
+                    $stmtI = $db->prepare($queryI);
+                    $stmtI->bindValue(":id_lead", $Lead);
+                    $stmtI->bindValue(":id_vehicle", $id_vehicle);
+                    $stmtI->bindValue(":id_driver", $id_driver);
+                    $stmtI->bindValue(":orden", $orden);
+                    $stmtI->bindValue(":id_event", $Id_Event);
+                    $stmtI->execute(); 
+                    $id_operation = $db->lastInsertId(); 
+
+                    $queryI ="INSERT INTO route_stops (id_route,id_operation,visit_order) VALUES(:id_route,:id_operation,:orden)";
+                    $stmtI = $db->prepare($queryI);
+                    $stmtI->bindValue(":id_route", $id_route);
+                    $stmtI->bindValue(":id_operation", $id_operation);
+                    $stmtI->bindValue(":orden", $orden);
+                    $stmtI->execute();                     
+
                 }
 
             http_response_code(200);
@@ -3996,11 +4088,37 @@ function extra_event_delete($table_name,$db, $method, $id, $data){
     switch ($method) {
         case 'POST': 
 
+            $id_event = $_POST['id'];
+
+            $stmt = $db->prepare("SELECT id_route FROM extra_event WHERE id_event = ?");
+            $stmt->execute([$id_event]);
+            $id_route = $stmt->fetchColumn();            
+
+            $stmt = $db->prepare("SELECT id_operation FROM operation_master WHERE id_event = ?");
+            $stmt->execute([$id_event]);
+            $id_operation = $stmt->fetchColumn();            
+
+            $stmt = $db->prepare("SELECT imagen FROM extra_event WHERE id_event = ?");
+            $stmt->execute([$id_event]);
+            $imagen = $stmt->fetchColumn();             
+
             $queryI ="DELETE FROM extra_event WHERE id_event = :id";
-            //echo $queryI;
             $stmtI = $db->prepare($queryI);
-            $stmtI->bindValue(":id", $_POST['id']);
+            $stmtI->bindValue(":id", $id_event);
             $stmtI->execute();
+
+            $queryI ="DELETE FROM operation_master WHERE id_event = :id";
+            $stmtI = $db->prepare($queryI);
+            $stmtI->bindValue(":id", $id_event);
+            $stmtI->execute();
+
+            $queryI ="DELETE FROM route_stops WHERE id_route = :id_route AND id_operation = :id_operation";
+            $stmtI = $db->prepare($queryI);
+            $stmtI->bindValue(":id_route", $id_route);
+            $stmtI->bindValue(":id_operation", $id_operation);
+            $stmtI->execute();  
+
+            delete_Aws(ID_CLIENTE,'events',$imagen);
 
             http_response_code(200);
             echo json_encode(array("status" => "success", "message" => "Evento borrado."));

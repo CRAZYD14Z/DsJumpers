@@ -900,57 +900,89 @@ const cursorStyle = isDisabled ? "default" : "pointer";
 
 const isFirst = (j === 0);
 const isLast = (j === grupo.items.length - 1)
+// Definir el botón de imagen fuera para mantener limpio el template
+let bottonImagen = (item.Status === 'EVENTO' && item.imagen && item.imagen.trim() !== "") 
+    ? `<button type="button" class="btn btn-primary btn-sm ms-2" onclick="verImagen('${item.imagen}')">
+            <i class="fa fa-camera"></i>
+       </button>` 
+    : '';
 
-rows += `
+if (item.Status === 'EVENTO') {
+    rows += `
+    <tr class="${statusClass} ${clickClass}" style="cursor: ${cursorStyle};">
+        <!-- Columna 1: Folio/ID y Fecha -->
+        <td class="ps-5">
+            <div class="small text-muted">Evento extra #${item.id_event}</div>
+            <div class="fw-semibold">${item.fechahora}</div>
+        </td>
+        <!-- Columna 2: Título y Descripción -->
+        <td>
+            <div class="fw-bold text-dark">${item.titulo}</div>
+            <div class="small text-secondary">${item.descripcion}</div>
+        </td>
+        <!-- Columna 3: Controles de Orden y Acción -->
+        <td>
+            <div class="d-flex align-items-center">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" ${isFirst ? 'disabled' : ''} onclick="cambiarOrden(event, '${key}', ${j}, 'up')">
+                        <i class="fa-solid fa-chevron-up"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" ${isLast ? 'disabled' : ''} onclick="cambiarOrden(event, '${key}', ${j}, 'down')">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                </div>
+                <button class="btn btn-sm btn-danger ms-3" onclick="prepararBorrado(${item.id_event})">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+                ${bottonImagen}
+            </div>
+        </td>
+        <!-- Columna 4: Status -->
+        <td><span class="badge rounded-pill bg-info text-dark">EVENTO</span></td>
+        <!-- Columna 5: Monto -->
+        <td class="text-end pe-4 fw-bold text-dark">$${parseFloat(item.gasto).toFixed(2)}</td>
+    </tr>`;
+
+} else {
+    rows += `
     <tr class="${statusClass} ${clickClass}" data-id="${item.Id_operation}" data-status="${item.Status}" style="cursor: ${cursorStyle};">
+        <!-- Columna 1: Folio/ID y Fecha -->
         <td class="ps-5">
             <div class="small text-muted">#${item.Folio}</div>
             <div class="fw-semibold">${item.DeliveryDateTime}</div>
         </td>
+        <!-- Columna 2: Título y Descripción -->
         <td>
             <div class="fw-bold text-dark">${item.NombreMostrar}</div>
             <div class="small text-muted italic">${item.Organization > 0 ? '<?php echo Trd(10)?>' : '<?php echo Trd(11)?>'}</div>
+            <div class="small text-secondary">${item.Lugar} - ${item.Ciudad}</div>
         </td>
+        <!-- Columna 3: Controles de Orden y Acción -->
         <td>
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div>${item.Lugar}</div>
-                    <div class="small text-secondary">${item.Ciudad}, ${item.Estado}</div>
-                </div>
-
-                <div class="btn-group ms-2">
-                    <!-- Botón UP -->
-                    <button type="button" class="btn btn-sm btn-outline-secondary" 
-                        ${isFirst ? 'disabled' : ''} 
-                        onclick="cambiarOrden(event, '${key}', ${j}, 'up')">
+            <div class="d-flex align-items-center">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" ${isFirst ? 'disabled' : ''} onclick="cambiarOrden(event, '${key}', ${j}, 'up')">
                         <i class="fa-solid fa-chevron-up"></i>
                     </button>
-                    
-                    <!-- Botón DOWN -->
-                    <button type="button" class="btn btn-sm btn-outline-secondary" 
-                        ${isLast ? 'disabled' : ''} 
-                        onclick="cambiarOrden(event, '${key}', ${j}, 'down')">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" ${isLast ? 'disabled' : ''} onclick="cambiarOrden(event, '${key}', ${j}, 'down')">
                         <i class="fa-solid fa-chevron-down"></i>
                     </button>
-                </div>                
-
-                <button type="button" 
-                        class="btn btn-sm btn-outline-primary ms-2"
-                        onclick="abrirAsignacion(event,'${item.StartDateTime}','${item.id_route}','${item.Id_operation}')">
-                        <i class="fa-solid fa-up-down"></i> <?= Trd(35) ?>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary ms-2" onclick="abrirAsignacion(event,'${item.StartDateTime}','${item.id_route}','${item.Id_operation}')">
+                    <i class="fa-solid fa-up-down"></i> <?= Trd(35) ?>
                 </button>
-
-                <button type="button" 
-                        class="btn btn-sm btn-outline-info ms-2  ${iddisplay}" 
-                        onclick="abrirRutaEnMaps(event, '${item.Lat}', '${item.Lng}')">
-                        <i class="fa-solid fa-route"></i> <?= Trd(36) ?>
+                <button type="button" class="btn btn-sm btn-outline-info ms-2 ${iddisplay}" onclick="abrirRutaEnMaps(event, '${item.Lat}', '${item.Lng}')">
+                    <i class="fa-solid fa-route"></i> <?= Trd(36) ?>
                 </button>
             </div>
         </td>
+        <!-- Columna 4: Status -->
         <td><span class="badge rounded-pill ${badgeClass}">${item.Status}</span></td>
+        <!-- Columna 5: Monto -->
         <td class="text-end pe-4 fw-bold text-dark">$${parseFloat(item.Total).toFixed(2)}</td>
     </tr>`;
-
+}
+/*
             // Filtramos todos los eventos que pertenecen a la ruta actual
             const eventosDeEstaRuta = data_org.extra_events.filter(event => event.id_route == item.id_route);
 
@@ -992,7 +1024,7 @@ rows += `
                     <td class="text-end pe-4 fw-bold text-dark">$${parseFloat(evento.gasto).toFixed(2)}</td>
                 </tr>`;    
             });        
-
+*/
         });
 
 
