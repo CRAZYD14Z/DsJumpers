@@ -28,7 +28,7 @@ function Trd($Id){
 
 include_once 'head.php';
 
-    $query = "select Logo,WebSite, NombreCompania, Direccion,Direccion2, Ciudad,CP,Estado,Pais,TelefonoCelular,Pay_platform FROM account";
+    $query = "select * FROM account";
     $stmt = $db->prepare($query);
     $stmt->execute();
     $account = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -2374,9 +2374,16 @@ function LoadDocument(DocumentType){
         salestax: TaxAm.toFixed(2),
         tip: 0,
         total: $('#Total').val(),
-        apayment: $('#Deposit').val(),
-        ctr_balance_due: $('#Balance').val(),
-        balancedue: $('#Balance').val(),
+        apayment: $('#DepositAmount').val(),
+        <?php  if ($account['Deposit'] == 1){?>                
+            ctr_balance_due: $('#Total').val() - $('#DepositAmount').val(),
+            balancedue: $('#Total').val() - $('#DepositAmount').val(),
+        <?php  } else {?>
+            ctr_balance_due: $('#Total').val(),
+            balancedue: $('#Total').val(),        
+
+        <?php  }?>
+
 
         electric:"",
         signature:"",
@@ -2561,6 +2568,14 @@ function ejecutarRenderizadoContract($contenedor, $cuerpoTabla, $filaPlantilla, 
         $contenedor.html(contenidoActual.replace(regex, val ?? ''));
     });
 
+    <?php
+        if ($account['Deposit'] == 0){
+    ?>
+        $('#tr-apay').hide();    
+    <?php   
+        }
+    ?>    
+
     const miModal = new bootstrap.Modal(document.getElementById('modalContrato'));
     miModal.show();
 }
@@ -2614,6 +2629,30 @@ function ejecutarRenderizadoQuote($contenedor, $cuerpoTabla, $filaPlantilla, dat
         let contenidoActual = $contenedor.html();
         $contenedor.html(contenidoActual.replace(regex, val ?? ''));
     });
+
+
+        <?php
+        if ($account['Deposit'] == 1){
+            if ($account['DepositType'] == 'percentage'){
+            ?>
+                $('#tip-adv-pay-qnt').hide();
+            <?php
+            }
+            else{
+            ?>
+                $('#tip-adv-pay-pct').hide();
+                $('#pay-qnt').html('$'+ $('#DepositAmount').val());
+            <?php
+            }
+        }else{
+        ?>
+           $('#tr-apay').hide();
+           $('#tip-adv-pay-qnt').hide();
+           $('#tip-adv-pay-pct').hide();
+        <?php                        
+        }
+        ?>    
+
 
     const miModal = new bootstrap.Modal(document.getElementById('modalContrato'));
     miModal.show();

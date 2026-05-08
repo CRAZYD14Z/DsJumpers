@@ -2484,6 +2484,12 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
         exit;
     }
 
+    $sql = "SELECT * FROM account";
+    $stmt = $db->prepare($sql);
+    //$stmt->bindValue(":name", $data->Product); 
+    $stmt->execute();
+    $account = $stmt->fetch(PDO::FETCH_ASSOC);    
+
     $h = $data->header;
 
     $idLead = (!empty($h->IdLead)) ? $h->IdLead : null;
@@ -2535,6 +2541,16 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
             $Folio = $Payments['Folio'];
         }
         $Folio+=1;
+
+
+        
+        if ($account['DepositType'] == 'percentage'){
+            $h->Depo = $account['DepositAmount'];
+            $h->DepoA = ($h->Total * ($h->Depo / 100)); 
+        }else{
+            $h->Depo = 0;
+            $h->DepoA = $account['DepositAmount']; 
+        }        
 
         // --- MODO INSERT --
         $sqlLead = "INSERT INTO lead (

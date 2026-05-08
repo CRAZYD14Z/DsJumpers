@@ -927,11 +927,15 @@ function quote_data($table_name,$db, $method, $id, $data){
 
 function tip_deposit($table_name,$db, $method, $id, $data){
     global $IDS;
+
+
     switch ($method) {
         case 'POST': 
             $Tip = $data->tip;
             $APay = $data->apay;
             $Cotizacion = $data->quote;
+            $Pq = $data->pq;
+
             if ($Tip > 0){
                 $query = "UPDATE lead SET Tip = ?, Total = TotalBT + ? WHERE Id = ? ";        
                 $stmt = $db->prepare($query);
@@ -951,20 +955,46 @@ function tip_deposit($table_name,$db, $method, $id, $data){
                 $stmt->execute();            
             }
             
-            if ($APay > 0){
-                $query = "UPDATE lead SET Deposit = ?, DepositAmount = Total * ( ? / 100) WHERE Id = ? ";
-                $stmt = $db->prepare($query);
-                $stmt->bindParam(1, $APay);
-                $stmt->bindParam(2, $APay);
-                $stmt->bindParam(3, $Cotizacion);
-                $stmt->execute();
 
-                $query = "UPDATE lead SET Balance = Total - DepositAmount  WHERE Id = ? ";        
-                $stmt = $db->prepare($query);
-                $stmt->bindParam(1, $Cotizacion);
-                $stmt->execute();            
+            $sql = "select * FROM account";
+            $stmt = $db->prepare($sql);
+            //$stmt->bindValue(":uuid", $data->token); 
+            $stmt->execute();
+            $account = $stmt->fetch(PDO::FETCH_ASSOC);   
+            
+            //http_response_code(200);
+            //echo json_encode($account);
+            //die();            
+            
+            if ($account['DepositType'] == 'percentage'){
+                if ($APay > 0){
+                    $query = "UPDATE lead SET Deposit = ?, DepositAmount = Total * ( ? / 100) WHERE Id = ? ";
+                    $stmt = $db->prepare($query);
+                    $stmt->bindParam(1, $APay);
+                    $stmt->bindParam(2, $APay);
+                    $stmt->bindParam(3, $Cotizacion);
+                    $stmt->execute();
 
-            }            
+                    $query = "UPDATE lead SET BalanceQ = Total - DepositAmount  WHERE Id = ? ";        
+                    $stmt = $db->prepare($query);
+                    $stmt->bindParam(1, $Cotizacion);
+                    $stmt->execute();
+                }
+            }else{
+                if ($Pq > 0){
+                    $query = "UPDATE lead SET Deposit = 0, DepositAmount = ? WHERE Id = ? ";
+                    $stmt = $db->prepare($query);
+                    //$stmt->bindParam(1, 0);
+                    $stmt->bindParam(1, $Pq);
+                    $stmt->bindParam(2, $Cotizacion);
+                    $stmt->execute();
+
+                    $query = "UPDATE lead SET BalanceQ = Total - DepositAmount  WHERE Id = ? ";        
+                    $stmt = $db->prepare($query);
+                    $stmt->bindParam(1, $Cotizacion);
+                    $stmt->execute();
+                }            
+            }
             http_response_code(200);
             //echo json_encode($account);
         break;
@@ -1946,8 +1976,16 @@ $arreglo = [
                 $TaxPc = 0; 
                 $TaxAm = 0; 
                 $Total = $Subtotal; 
-                $Depo = 20;
-                $DepoA = ($Subtotal * (20 / 100)); 
+
+                if ($account['DepositType'] == 'percentage'){
+                    $Depo = $account['DepositAmount'];
+                    $DepoA = ($Subtotal * ($Depo / 100)); 
+                }else{
+                    $Depo = 0;
+                    $DepoA = $account['DepositAmount']; 
+                }
+
+
                 $BalDue = $Subtotal - ($Subtotal * (20 / 100)); 
                 $Status = 'Pending';
                 $IdBranch = 1;

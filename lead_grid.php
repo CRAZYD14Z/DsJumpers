@@ -343,7 +343,8 @@
                                     </div>                            
                                 </td>
                             </tr>
-                            <tr>
+
+                            <tr <?php if( $account['Deposit'] == 0) {echo 'style="display: none;"';} ?>>
                                 <td >
                                     <?php echo Trd(28)?>
                                 </td>
@@ -351,8 +352,21 @@
                                 <td  colspan="2">
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text bg-light">$</span>
-                                        <input type="hidden" class="form-control text-end" placeholder="0.00" id="Deposit" name="Depopsit" value = "<?php  echo !empty($lead['Deposit']) ? $lead['Deposit'] : '0.00';?>" readonly>
-                                        <input type="text" class="form-control text-end" placeholder="0.00" id="DepositAmount" name="DepositAmount" value = "<?php  echo !empty($lead['DepositAmount']) ? ($lead['Total'] * ($lead['Deposit'] / 100))   : '0.00';?>" readonly>
+                                        <?php 
+                                            if( $account['Deposit'] == 1 AND $account['DepositType'] == 'percentage'){
+                                        ?>
+                                            <input type="hidden" class="form-control text-end" placeholder="0.00" id="Deposit" name="Depopsit" value = "<?php  echo !empty($lead['Deposit']) ? $lead['Deposit'] : '0.00';?>" readonly>
+                                            <input type="text" class="form-control text-end" placeholder="0.00" id="DepositAmount" name="DepositAmount" value = "<?php  echo !empty($lead['DepositAmount']) ? ($lead['Total'] * ($lead['Deposit'] / 100))   : '0.00';?>" readonly>                                        
+                                        <?php
+                                            } 
+                                            else{
+                                        ?>
+                                            <input type="hidden" class="form-control text-end" placeholder="0.00" id="Deposit" name="Depopsit" value = "0" readonly>
+                                            <input type="text" class="form-control text-end" placeholder="0.00" id="DepositAmount" name="DepositAmount" value = "<?php  echo !empty($lead['DepositAmount']) ? ($account['DepositAmount'])   : '0.00';?>" readonly>                                        
+                                        <?php
+                                            }
+                                        ?>
+
                                     </div>                            
                                 </td>
                             </tr>
