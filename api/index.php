@@ -435,7 +435,10 @@ switch ($resource) {
     break;            
     case 'update_pay_platform':
         update_pay_platform($resource,$db, $method, $id, $data);
-    break;                
+    break;  
+    case 'get_gif_card':
+        get_gif_card($resource,$db, $method, $id, $data);
+    break;                    
 
     default:
         // Manejar rutas no definidas

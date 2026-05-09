@@ -241,7 +241,10 @@ switch ($resource) {
     break;        
     case 'distance_charge':
         distance_charge($resource,$db, $method, $id, $data);
-    break;        
+    break;    
+    case 'validate_gifcard':
+        validate_gifcard($resource,$db, $method, $id, $data);
+    break;            
     default:
         // Manejar rutas no definidas
         http_response_code(404);
@@ -902,6 +905,11 @@ function quote_data($table_name,$db, $method, $id, $data){
             $stmt->execute();
             $discounts = $stmt->fetchAll(PDO::FETCH_ASSOC);                
 
+            $query = "SELECT * FROM lead_discounts WHERE IdLead = ".$lead['Id']." AND Type = 'gifcard'";
+
+            $stmt = $db->prepare($query);
+            $stmt->execute();
+            $gifcrds = $stmt->fetchAll(PDO::FETCH_ASSOC);               
 
             $respuesta = [
                 'lead'         => $lead,
@@ -910,7 +918,8 @@ function quote_data($table_name,$db, $method, $id, $data){
                 'organization' => $organization,
                 'venue'        => $venue,
                 'script_push'  => $push,
-                'discounts' => $discounts
+                'discounts' => $discounts,
+                'gifcrds' => $gifcrds
             ];            
 
             http_response_code(200);
@@ -1731,82 +1740,95 @@ function process_quote($table_name,$db, $method, $id, $data){
                         $data['cliente']['colonia'],
                         $data['cliente']['cp'],
             */
-
-try {
-//    $pdo = new PDO("mysql:host=localhost;dbname=tu_base_de_datos", "usuario", "password");
-    //$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
     $stmtCheck = $db->prepare("SELECT * FROM account");
     $stmtCheck->execute();
     $account = $stmtCheck->fetch(PDO::FETCH_ASSOC);    
+    if ($data->cliente->Id == ""){
 
-    // 1. Verificar si el cliente ya existe (usualmente por Correo)
-    
-    $stmtCheck = $db->prepare("SELECT Id FROM customers WHERE Correo = ? LIMIT 1");
-    $stmtCheck->execute([$data->cliente->correo]);
-    $clienteExistente = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+        try {
 
-    if ($clienteExistente) {
-        // --- ACTUALIZAR CLIENTE ---
-        $idCliente = $clienteExistente['Id'];
-        $sqlUpd = "UPDATE customers SET 
-                    Nombres = ?, 
-                    Apellidos = ?, 
-                    NombreEmpresa = ?, 
-                    TelefonoCelular = ?, 
-                    Direccion = ?, 
-                    Direccion2 = ?, 
-                    Ciudad = ?, 
-                    CP = ?,
-                    FechaCambio = now() 
-                   WHERE Id = ?";
-        
-        $stmtUpd = $db->prepare($sqlUpd);
-        $stmtUpd->execute([
-            $data->cliente->nombre,
-            $data->cliente->apellidos ?? '', // Evitar nulls
-            $data->cliente->organizacion,
-            $data->cliente->telefono,
-            $data->cliente->direccion,
-            $data->cliente->colonia, // Usado como Direccion2
-            $data->cliente->ciudad,
-            $data->cliente->cp,
-            $idCliente
-        ]);
-        
-        $mensaje = "Cliente actualizado correctamente.";
-    } else {
-        // --- INSERTAR CLIENTE ---
-        $sqlIns = "INSERT INTO customers (
-                    Nombres, Apellidos, NombreEmpresa, Correo, TelefonoCelular, 
-                    Direccion, Direccion2, Ciudad, CP, Pais, Lenguaje,Estatus,FechaCreacion,FechaCambio
-                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'es', 'A',now(),now())";
-        
-        $stmtIns = $db->prepare($sqlIns);
-        $stmtIns->execute([
-            $data->cliente->nombre,
-            $data->cliente->apellidos ?? '',
-            $data->cliente->organizacion,
-            $data->cliente->correo,
-            $data->cliente->telefono,
-            $data->cliente->direccion,
-            $data->cliente->colonia,
-            $data->cliente->ciudad,
-            $data->cliente->cp,
-            $account['Pais']
-        ]);
-        
-        $idCliente = $db->lastInsertId();
-        //$mensaje = "Nuevo cliente registrado.";
+            $stmtCheck = $db->prepare("SELECT Id FROM customers WHERE Correo = ? LIMIT 1");
+            $stmtCheck->execute([$data->cliente->correo]);
+            $clienteExistente = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+
+            if ($clienteExistente) {
+                // --- ACTUALIZAR CLIENTE ---
+                $idCliente = $clienteExistente['Id'];
+                $sqlUpd = "UPDATE customers SET 
+                            Nombres = ?, 
+                            Apellidos = ?, 
+                            NombreEmpresa = ?, 
+                            TelefonoCelular = ?, 
+                            Direccion = ?, 
+                            Direccion2 = ?, 
+                            Ciudad = ?, 
+                            CP = ?,
+                            FechaCambio = now() 
+                        WHERE Id = ?";
+                
+                $stmtUpd = $db->prepare($sqlUpd);
+                $stmtUpd->execute([
+                    $data->cliente->nombre,
+                    $data->cliente->apellidos ?? '', // Evitar nulls
+                    $data->cliente->organizacion,
+                    $data->cliente->telefono,
+                    $data->cliente->direccion,
+                    $data->cliente->colonia, // Usado como Direccion2
+                    $data->cliente->ciudad,
+                    $data->cliente->cp,
+                    $idCliente
+                ]);
+                
+                $mensaje = "Cliente actualizado correctamente.";
+            } else {
+                // --- INSERTAR CLIENTE ---
+                $sqlIns = "INSERT INTO customers (
+                            Nombres, Apellidos, NombreEmpresa, Correo, TelefonoCelular, 
+                            Direccion, Direccion2, Ciudad, CP, Pais, Lenguaje,Estatus,FechaCreacion,FechaCambio
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'es', 'A',now(),now())";
+                
+                $stmtIns = $db->prepare($sqlIns);
+                $stmtIns->execute([
+                    $data->cliente->nombre,
+                    $data->cliente->apellidos ?? '',
+                    $data->cliente->organizacion,
+                    $data->cliente->correo,
+                    $data->cliente->telefono,
+                    $data->cliente->direccion,
+                    $data->cliente->colonia,
+                    $data->cliente->ciudad,
+                    $data->cliente->cp,
+                    $account['Pais']
+                ]);
+                
+                $idCliente = $db->lastInsertId();
+                
+                $Organization = ''; 
+                $Customer = $idCliente;                 
+
+            }
+
+            // Ahora ya tienes el $idCliente listo para usarlo en la tabla de reservaciones
+            //echo "ID del cliente: " . $idCliente;
+
+        } catch (PDOException $e) {
+            die("Error en la base de datos: " . $e->getMessage());
+        }
     }
+    else{
+        $idCliente = $data->cliente->Id;
+        if ($data->cliente->Type == 'O' ){
+            $Organization = $idCliente;
+            $Customer = 0; 
+        }
+        else{
 
-    // Ahora ya tienes el $idCliente listo para usarlo en la tabla de reservaciones
-    //echo "ID del cliente: " . $idCliente;
+            $Organization = 0; 
+            $Customer = $idCliente;        
 
-} catch (PDOException $e) {
-    die("Error en la base de datos: " . $e->getMessage());
-}            
+        }
 
+    }
 
 try {
     // 1. Verificar si el lugar ya existe por Dirección y CP
@@ -1939,7 +1961,14 @@ $arreglo = [
             //}
 
             $Subtotal = ($Total + $Costo_Distancia) - $MontoCupon;
+        
+            $MontoGC= 0;
+            if ($data->cupon->idgfc != ""){
+                $MontoGC = $data->cupon->agfc;
 
+            }
+
+            $Subtotal = $Subtotal - $MontoGC;
 /*
             $data['reserva']['fecha'],
             $data['reserva']['hInicio'],
@@ -1950,8 +1979,7 @@ $arreglo = [
 
                 $FHI = $fechas[0] .' '. $data->reserva->hInicio; 
                 $FHF = $fechas[1] .' '. $data->reserva->hFin;                 
-                $Organization = ''; 
-                $Customer = $idCliente; 
+
                 $Referal = '';
                 $OkT = 0; 
                 $WA = 0; 
@@ -1989,32 +2017,6 @@ $arreglo = [
                 $BalDue = $Subtotal - ($Subtotal * (20 / 100)); 
                 $Status = 'Pending';
                 $IdBranch = 1;
-                //$Folio  = '';
-
-/*
-            // --- MODO INSERT --
-            $sqlLead = "INSERT INTO lead (
-                StartDateTime, EndDateTime,DeliveryDateTime, Organization, Customer, Referal, 
-                OkT, WA, AE, ME, CustomerNote, Venue, EventName, Surface, 
-                Delivery, Note1, Note2, ItemTotals, ChkDstC, DistanceCharges, ChkStCs, 
-                StafCost, ChkDsc, Discount, SubTotal, TaxId, TaxPc, 
-                TaxAmount, Total, Deposit,DepositAmount, Balance, Status,FechaCreacion,FechaCambio,IdBranch,Folio,TotalBT
-            ) VALUES (?,?,?,?,?,
-                    ?,?,?,?,?,
-                    ?,?,?,?,?,
-                    ?,?,?,?,?,
-                    ?,?,?,?,?,
-                    ?,?,?,?,?,?,?,now(),now(),?,?,?)";
-
-            $stmtLead = $db->prepare($sqlLead);
-            $stmtLead->execute([
-                $FHI, $FHF, $FHI, $Organization, $Customer, $Referal,
-                $OkT, $WA, $AE, $ME, $CusNt, $Venue, $EventName, $Surface,
-                $Delivety, $Nt1, $Nt2, $Item_Totals, $ChkDstC, $DstC, $ChkStCs, 
-                $StCs, $ChkDsc, $Dsc, $SubT, $TaxId, $TaxPc, 
-                $TaxAm, $Total, $Depo,$DepoA, $BalDue, $Status,$IdBranch,$Folio,$Total
-            ]);
-*/
 
             $sqlLead = "INSERT INTO lead (
                 StartDateTime, EndDateTime, DeliveryDateTime, Organization, Customer, 
@@ -2122,6 +2124,24 @@ $arreglo = [
             ]);
 
         }
+
+        if ($data->cupon->idgfc != ""){
+
+            $sqlDiscounts = "INSERT INTO lead_discounts (IdLead, IdDiscount, Type, Amount,AmountVal,Descript) 
+                        VALUES (?, ?, ?, ?, ?, ?)";
+            $stmtDiscounts = $db->prepare($sqlDiscounts);
+
+            $stmtDiscounts->execute([
+                $idLead, 
+                $data->cupon->idgfc,
+                'gifcard', 
+                '0',
+                $data->cupon->agfc,
+                $data->cupon->gfc
+            ]);        
+
+        }
+
 
         $stmt = $db->prepare("select UUID FROM quotes WHERE IdQuote = ?");
         $stmt->execute([$idLead]);
@@ -2851,5 +2871,159 @@ function distance_charge($table_name,$db, $method, $id, $data){
     }      
     
 }
+function validate_gifcard($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'PUT':  
+            //echo $data->tel;
+            //echo $data->email;
+            //echo $data->code;
+            $Tipo = '';
+            if ($data->tel!=""){
 
+                $query = "SELECT * FROM organizations WHERE TelefonoCelular = :tel";
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(':tel', $data->tel, PDO::PARAM_STR);
+                $stmt->execute();                    
+                $organization = $stmt->fetch(PDO::FETCH_ASSOC);
+                if (!$organization){
+
+                    $query = "SELECT * FROM customers WHERE TelefonoCelular = :tel";
+                    $stmt = $db->prepare($query);
+                    $stmt->bindParam(':tel', $data->tel, PDO::PARAM_STR);
+                    $stmt->execute();                    
+                    $customer = $stmt->fetch(PDO::FETCH_ASSOC);
+                    if ($customer){
+                        $Tipo = 'C';
+                    }                    
+
+                }         
+                else{
+                    $Tipo = 'O';
+                }
+            }
+            else{
+
+                $query = "SELECT * FROM organizations WHERE Correo = :email";
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(':email', $data->email, PDO::PARAM_STR);
+                $stmt->execute();                    
+                $organization = $stmt->fetch(PDO::FETCH_ASSOC);
+                if (!$organization){
+
+                    $query = "SELECT * FROM customers WHERE Correo = :email";
+                    $stmt = $db->prepare($query);
+                    $stmt->bindParam(':email', $data->email, PDO::PARAM_STR);
+                    $stmt->execute();                    
+                    $customer = $stmt->fetch(PDO::FETCH_ASSOC);
+                    if ($customer){
+                        $Tipo = 'C';
+                    }                        
+
+                }else{
+                    $Tipo = 'O';
+                }            
+
+            }
+ 
+
+
+
+            if ($Tipo == 'C'){
+                $query = "SELECT * FROM gifcard  WHERE Code = :code AND CusType = :tipo AND Customer = :id AND Estatus = 1";
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(':code', $data->code, PDO::PARAM_STR);
+                $stmt->bindParam(':tipo', $Tipo, PDO::PARAM_STR);
+                $stmt->bindParam(':id', $customer['Id'], PDO::PARAM_INT);
+                $stmt->execute();   
+                $gifcard = $stmt->fetch(PDO::FETCH_ASSOC);
+                if (!$gifcard){
+
+                    http_response_code(200);
+                    echo json_encode(array("status"=>'error',"message" => "Los datos ingresados no tienen relacion con una tarjeta de regalo $Tipo ."));                        
+
+                }else{
+
+                    $fechaActual = new DateTime(); // Fecha de hoy
+                    $fechaExpiracion = new DateTime($gifcard['FechaExpiracion']); // Fecha desde la DB
+
+                    if ($fechaActual > $fechaExpiracion) {
+                        // La tarjeta ya caducó
+                        http_response_code(200);
+                        echo json_encode(array(
+                            "status" => "error", 
+                            "message" => "La tarjeta de regalo expiró el día " . $fechaExpiracion->format('d/m/Y') . "."
+                        ));
+                    } else {
+                        // La tarjeta es válida y está vigente
+                        http_response_code(200);
+                        echo json_encode(array(
+                            "status" => "success",
+                            "message" => "Tarjeta válida.",
+                            "data" => $gifcard, 
+                            "tipo"=> $Tipo,
+                            "customer" => $customer,
+                        ));
+                    }
+
+                }
+            }
+            else if ($Tipo == 'O'){
+                $query = "SELECT * FROM gifcard  WHERE Code = :code AND CusType = :tipo AND Customer = :id AND Estatus = 1";
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(':code', $data->code, PDO::PARAM_STR);
+                $stmt->bindParam(':tipo', $Tipo, PDO::PARAM_STR);
+                $stmt->bindParam(':id', $organization['Id'], PDO::PARAM_INT);
+                $stmt->execute();
+                $gifcard = $stmt->fetch(PDO::FETCH_ASSOC);   
+                if (!$gifcard){
+
+                    http_response_code(200);
+                    echo json_encode(array("status"=>'error',"message" => "Los datos ingresados no tienen relacion con una tarjeta de regalo $Tipo."));                        
+
+                }else{
+
+                    $fechaActual = new DateTime(); // Fecha de hoy
+                    $fechaExpiracion = new DateTime($gifcard['FechaExpiracion']); // Fecha desde la DB
+
+                    if ($fechaActual > $fechaExpiracion) {
+                        // La tarjeta ya caducó
+                        http_response_code(200);
+                        echo json_encode(array(
+                            "status" => "error", 
+                            "message" => "La tarjeta de regalo expiró el día " . $fechaExpiracion->format('d/m/Y') . "."
+                        ));
+                    } else {
+                        // La tarjeta es válida y está vigente
+                        http_response_code(200);
+                        echo json_encode(array(
+                            "status" => "success",
+                            "message" => "Tarjeta válida.",
+                            "data" => $gifcard, 
+                            "tipo"=> $Tipo,
+                            "customer" => $organization,
+                        ));
+                    }                        
+
+                }                        
+            }
+            else{
+
+                http_response_code(200);
+                echo json_encode(array("status"=>'error',"message" => "No se tiene cliente teléfono o correo registrado."));
+
+            }
+
+
+
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }      
+    
+}            
 ?>

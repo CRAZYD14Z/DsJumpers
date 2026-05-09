@@ -334,6 +334,99 @@ include_once 'head.php';
     }
 
 
+function inicializarSelectDescuento(selector) {
+    let IdTyp = '';
+    let IdCst = '';
+    if ($('#IdOrganization').val() > 0){
+        IdTyp =  'O';
+        IdCst = $('#Organization').val();
+    }
+    else{
+        IdTyp =  'C';
+        IdCst = $('#Customer').val();
+    }
+        
+    $(selector).select2({
+        theme: "bootstrap-5",
+        width: '100%',
+        allowClear: true,
+        placeholder: "Enter Gift Card Code",
+        ajax: {
+            url: API_BASE_URL + "get_gif_card/",
+            type: 'GET',
+            dataType: 'json',
+            headers: {
+                'Authorization': 'Bearer ' + TOKEN 
+            },
+            delay: 300,
+            data: function (params) {
+                return {
+                    q: params.term,
+                    Tp: IdTyp,
+                    Id:IdCst
+                };
+            },
+            processResults: function (data) {
+                // 1. Accedemos a la propiedad 'items' de tu JSON
+                // Si 'items' no existe, usamos un array vacío
+                var items = data.items;
+
+                if (!items) {
+                    return { results: [] };
+                }
+
+                // 2. Si 'items' es un objeto único (como el que mostraste), lo metemos en un array [].
+                // Si ya es un array, lo dejamos como está.
+                var listaItems = Array.isArray(items) ? items : [items];
+
+                // 3. Ahora sí podemos usar .map con seguridad
+                return {
+                    results: listaItems.map(item => ({
+                        id: item.Id,
+                        text: item.Code,
+                        amount: item.Amount
+                    }))
+                };
+            },
+            cache: true
+        },
+        // --- MANEJO DE MENSAJES ---
+        language: {
+            noResults: function () {
+                return "No se encontraron resultados para este código";
+            },
+            searching: function () {
+                return "Buscando...";
+            },
+            errorLoading: function () {
+                return "Error al conectar con el servidor";
+            }
+        }
+    }).on('select2:select', function (e) {
+        // 1. Obtenemos la data del item seleccionado
+        const data = e.params.data; 
+
+        // 2. Obtenemos el ID dinámico del atributo data-idgc del select
+        const idDinamico = $(this).data('idgc'); 
+
+        // 3. Buscamos el campo de destino y le asignamos el valor de amount
+        const targetInput = $(`#Discount_Amount_${idDinamico}`);
+        
+        if (data.amount) {
+            targetInput.val(data.amount);
+            // Si usas algún plugin de máscaras de dinero, dispara el evento change
+            targetInput.trigger('change');
+            recalculate_totals() 
+        }
+    })
+    .on('select2:unselect', function() {
+        // Opcional: Limpiar el campo si el usuario borra la selección
+        const idDinamico = $(this).data('idgc');
+        $(`#Discount_Amount_${idDinamico}`).val('');
+    });
+}
+
+
 
     //let Codes = [];
     const inventario = new ProductCounter();
@@ -1002,10 +1095,36 @@ include_once 'head.php';
                             //echo "$('#Discount_Amount_$DiscCnt').val('".$lead_discount['AmountVal']."');";
                         }
                         else{
-                            //echo "//DESCUENTO APLICADO ".$lead_discount['IdDiscount']." - ".$lead_discount['AmountVal'];
-                            echo "$('#DiscountType').val('Cupon');Add_Discount();";
-                            echo "$('#Discount_Desc_$DiscCnt').val('".$lead_discount['IdDiscount']."');";
-                            echo "$('#Discount_Amount_$DiscCnt').val('".$lead_discount['AmountVal']."');";                            
+                            if ($lead_discount['Type'] == 'gifcard' ){
+                                echo "$('#DiscountType').val('GifCard');Add_Discount();";
+                                echo "
+                                        var example_$DiscCnt = $('#Discount_Desc_$DiscCnt').select2();
+
+                                        // Datos simulados que vendrían de tu lógica
+                                        var data_$DiscCnt = {
+                                            id: ".$lead_discount['IdDiscount'].",
+                                            text: '".$lead_discount['Descript']."',
+                                            amount: '".$lead_discount['AmountVal']."'
+                                        };
+
+                                        // Crear la opción si no existe
+                                        var newOption_$DiscCnt = new Option(data_$DiscCnt.text, data_$DiscCnt.id, true, true);
+
+                                        // Añadir, disparar cambio y actualizar el input de monto
+                                        example_$DiscCnt.append(newOption_$DiscCnt).trigger('change');                                
+
+                                ";
+                                //echo "$('#Discount_Desc_$DiscCnt').val('".$lead_discount['IdDiscount']."');";
+
+                                echo "$('#Discount_Amount_$DiscCnt').val('".$lead_discount['AmountVal']."');";
+                            }
+                            else{
+                                //echo "//DESCUENTO APLICADO ".$lead_discount['IdDiscount']." - ".$lead_discount['AmountVal'];
+                                echo "$('#DiscountType').val('Cupon');Add_Discount();";
+                                echo "$('#Discount_Desc_$DiscCnt').val('".$lead_discount['IdDiscount']."');";
+                                echo "$('#Discount_Amount_$DiscCnt').val('".$lead_discount['AmountVal']."');";                            
+                            }
+
                         }
                     }
                 }              
@@ -1881,8 +2000,15 @@ function recalculate_totals(){
         const $el = $(`#Discount_Amount_${i}`);
         if ($el.length > 0 ) {    
             if ($(`#Discount_Charges_check_${i}`).prop('checked')){
-                if ($(`#Discount_Amount_${i}`).data('type') == 'fee'){
+
+                //alert($(`#Discount_Amount_${i}`).data('type'))
+            
+                if ($(`#Discount_Amount_${i}`).data('type') == 'gifcard'){
+                    //alert($(`#Discount_Amount_${i}`).val() * 1)
                     SubT-= $(`#Discount_Amount_${i}`).val() * 1;
+                }            
+                else if ($(`#Discount_Amount_${i}`).data('type') == 'fee'){
+                    SubT+= $(`#Discount_Amount_${i}`).val() * 1;
                 }
                 else{
                     if ($(`#Discount_Desc_${i} option:selected`).data('type') == 'amount'){
@@ -2165,12 +2291,16 @@ function Add_Discount(){
         //alert('No selecciono tipo descuento')
         lanzarMensaje("<?php echo Trd(91)?>", "alert", 5000);
     }
-    if ($('#DiscountType').val()=='Fee'){
+    if ($('#DiscountType').val()=='GifCard'){
         TrDsc+=1;
             let Discount = `
                 <tr id="tr_discount_${TrDsc}">
                     <td>
-                        <input type="text" class="form-control" id="Discount_Desc_${TrDsc}" name="Discount_Desc_${TrDsc}" value="Fee"  readonly >
+
+                        <select class="form-select select-auto" id="Discount_Desc_${TrDsc}" name="Discount_Desc_${TrDsc}" onchange="" data-idgc="${TrDsc}" placeholder= "Enter Gif Card Code">
+                            <option></option>
+                        </select>                    
+
                     </td>
                     <td class="text-center">
                         <input class="form-check-input" type="checkbox" id="Discount_Charges_check_${TrDsc}" name="Discount_Charges_check_${TrDsc}" checked onchange="recalculate_totals()">
@@ -2178,6 +2308,33 @@ function Add_Discount(){
                     <td>
                         <div class="input-group input-group-sm">
                             <span class="input-group-text bg-light">$-</span>
+                            <input type="text" data-type="gifcard" class="form-control text-end decimals" placeholder="0.00" id="Discount_Amount_${TrDsc}" name="Discount_Amount_${TrDsc}" onchange="ApplyDsc(${TrDsc})" readonly>
+                        </div>                            
+                    </td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="$('#tr_discount_${TrDsc}').remove();recalculate_totals()">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>    
+                    </td>
+                </tr>`;
+
+            $('#tr_discount').before(Discount);
+            inicializarSelectDescuento(`#Discount_Desc_${TrDsc}`);
+
+    }    
+    else if ($('#DiscountType').val()=='Fee'){
+        TrDsc+=1;
+            let Discount = `
+                <tr id="tr_discount_${TrDsc}">
+                    <td>
+                        <input type="text" class="form-control" id="Discount_Desc_${TrDsc}" name="Discount_Desc_${TrDsc}" value="Fee" >
+                    </td>
+                    <td class="text-center">
+                        <input class="form-check-input" type="checkbox" id="Discount_Charges_check_${TrDsc}" name="Discount_Charges_check_${TrDsc}" checked onchange="recalculate_totals()">
+                    </td>
+                    <td>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light">$</span>
                             <input type="text" data-type="fee" class="form-control text-end decimals" placeholder="0.00" id="Discount_Amount_${TrDsc}" name="Discount_Amount_${TrDsc}" onchange="ApplyDsc(${TrDsc})">
                         </div>                            
                     </td>
@@ -2543,8 +2700,17 @@ function ejecutarRenderizadoContract($contenedor, $cuerpoTabla, $filaPlantilla, 
         $contenedorDescuentos.empty(); // Limpiamos después de copiar la plantilla
 
         descuentos.forEach(desc => {
+
+            let gfcrd  ='';
+            const codigo = desc.concepto;
+            const regex = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
+            if (regex.test(codigo)) {
+                gfcrd = '<?= Trd(155) ?><br>'
+              
+            }            
+
             let filaDescHtml = htmlPlantillaDesc
-                .replace('*conceptdiscount*', desc.concepto)
+                .replace('*conceptdiscount*', gfcrd+desc.concepto)
                 .replace('*discountconcept*', desc.monto);
             $contenedorDescuentos.append(filaDescHtml);
         });
@@ -2605,8 +2771,16 @@ function ejecutarRenderizadoQuote($contenedor, $cuerpoTabla, $filaPlantilla, dat
         $contenedorDescuentos.empty(); // Limpiamos después de copiar la plantilla
 
         descuentos.forEach(desc => {
+            let gfcrd  ='';
+            const codigo = desc.concepto;
+            const regex = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
+            if (regex.test(codigo)) {
+                gfcrd = '<?= Trd(155) ?><br>'
+              
+            } 
+
             let filaDescHtml = htmlPlantillaDesc
-                .replace('*conceptdiscount*', desc.concepto)
+                .replace('*conceptdiscount*', gfcrd+desc.concepto)
                 .replace('*discountconcept*', desc.monto);
             $contenedorDescuentos.append(filaDescHtml);
         });
@@ -2845,15 +3019,29 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
                             IdDiscount:0 ,
                             Type:  'fee',
                             Amount: '0',
-                            AmountVal: $(`#Discount_Amount_${i}`).val()
+                            AmountVal: $(`#Discount_Amount_${i}`).val(),
+                            Descript:''
                         });
                     }
+                    else if ($(`#Discount_Amount_${i}`).data('type') == 'gifcard'){
+                        //alert($(`#Discount_Amount_${i}`).data('type'));
+                        //alert($(`#Discount_Amount_${i}`).val());
+                        //alert($(`#Discount_Desc_${i} option:selected`).text())
+                        discounts.push({
+                            IdDiscount:$(`#Discount_Desc_${i}`).val() ,
+                            Type:  $(`#Discount_Amount_${i}`).data('type'),
+                            Amount: '',
+                            AmountVal: $(`#Discount_Amount_${i}`).val(),
+                            Descript: $(`#Discount_Desc_${i} option:selected`).text()
+                        });
+                    }                    
                     else{
                         discounts.push({
                             IdDiscount:$(`#Discount_Desc_${i} option:selected`).data('id') ,
                             Type:  $(`#Discount_Desc_${i} option:selected`).data('type'),
                             Amount:  $(`#Discount_Desc_${i} option:selected`).data('amount'),
-                            AmountVal: $(`#Discount_Amount_${i}`).val()
+                            AmountVal: $(`#Discount_Amount_${i}`).val(),
+                            Descript: $(`#Discount_Desc_${i} option:selected`).text()
                         });
                     }
                 }

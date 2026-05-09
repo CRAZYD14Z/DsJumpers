@@ -2602,9 +2602,10 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
         ]);
     }
 
-    // --- 4. INSERTAR DESCUENTOS (detalle es un array de objetos) ---
-    $sqlDiscounts = "INSERT INTO lead_discounts (IdLead, IdDiscount, Type, Amount,AmountVal) 
-                  VALUES (?, ?, ?, ?, ?)";
+    // --- 4. INSERTAR DESCUENTOS (detall,e es un array de objetos) ---
+    // --- 4. INSERTAR DESCUENTOS (detall,e es un array de objetos) Descr
+    $sqlDiscounts = "INSERT INTO lead_discounts (IdLead, IdDiscount, Type, Amount,AmountVal,Descript) 
+                  VALUES (?, ?, ?, ?, ?, ?)";
     $stmtDiscounts = $db->prepare($sqlDiscounts);
 
     foreach ($data->descuentos as $item) {
@@ -2613,7 +2614,8 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
             $item->IdDiscount,
             $item->Type, 
             $item->Amount,
-            $item->AmountVal
+            $item->AmountVal,
+            $item->Descript
         ]);
     }    
 
@@ -4215,6 +4217,36 @@ function update_pay_platform($table_name,$db, $method, $id, $data){
     
     
 
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+} 
+
+function get_gif_card($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+            $q = $_GET['q'] ;
+            $Tp = $_GET['Tp'] ;
+            $Id = $_GET['Id'] ;
+
+            $queryI = "SELECT Id, Code, Amount FROM gifcard WHERE Code LIKE :q  AND CusType = :tp AND Customer = :id AND Estatus = 1 AND now()  <= FechaExpiracion";
+            $stmt = $db->prepare($queryI);
+            $searchTerm = "%" . $q . "%";
+            $stmt->bindParam(':q', $searchTerm, PDO::PARAM_STR);
+            $stmt->bindValue(":tp", $Tp);
+            $stmt->bindValue(":id", $Id);
+            $stmt->execute();      
+            $resultados_p = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            http_response_code(200);
+            echo json_encode(array(
+                "items" => $resultados_p
+            ));
         break;
         default:
         // ------------------------------------------------------------------

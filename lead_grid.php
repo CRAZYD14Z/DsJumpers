@@ -284,6 +284,7 @@
                                             <option value=""><?php echo Trd(21)?></option>
                                             <option value="Fee"> <?php echo Trd(22)?></option>
                                             <option value="Cupon"> <?php echo Trd(23)?></option>
+                                            <option value="GifCard"> <?php echo Trd(155)?></option>
                                     </select>
                                 </td>
                                 <td >

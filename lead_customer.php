@@ -3,8 +3,8 @@
     <div class="row">
         <div class='col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8 col-xxl-8'>
             <label for="Organization" class="form-label"><?php echo Trd(34)?></label>
-            <input type="hidden" id="IdOrganization" name="IdOrganization">
-            <select class="form-select select-auto" id="Organization" name="Organization"  onchange="" placeho>
+            <input type="hidden" id="IdOrganization" name="IdOrganization" <?php  //if (isset($lead['Organization'])  AND $lead['Organization'] > 0 ) echo "value = '".$lead['Organization']."'" ;?>>
+            <select class="form-select select-auto" id="Organization" name="Organization"  onchange="" >
                 <option></option>
             </select>    
             
@@ -37,7 +37,7 @@
     <div class="row">
         <div class='col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8 col-xxl-8'>
             <label for="Customer" class="form-label"><?php echo Trd(37)?></label>
-            <input type="hidden" id="IdCustomer" name="IdCustomer" >
+            <input type="hidden" id="IdCustomer" name="IdCustomer" <?php  //if (isset($lead['Customer'])  AND $lead['Customer'] > 0 ) echo "value = '".$lead['Customer']."'" ;?>>
             <select class="form-select select-auto select-custom-template" id="Customer" name="Customer" onchange="">
                 <option></option>
             </select>    
