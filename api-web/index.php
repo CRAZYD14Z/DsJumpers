@@ -219,10 +219,12 @@ switch ($resource) {
     case 'processpayment':
         processpayment($resource,$db, $method, $id, $data);
     break;  
-
     case 'processpayment_square':
         processpayment_square($resource,$db, $method, $id, $data);
     break;
+    case 'gifcard_pay':
+        gifcard_pay($resource,$db, $method, $id, $data);
+    break;    
 
     case 'OPAY':
         OPAY($resource,$db, $method, $id, $data);
@@ -288,7 +290,216 @@ function SQUARE($table_name,$db, $method, $id, $data){
             echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
         break;
     }      
-} 
+}
+
+function gifcard_pay($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+
+            $token = $data->token ?? null;
+            $ahora = date("Y-m-d H:i:s");
+            $stmt = $db->prepare("SELECT * FROM quotes WHERE UUID = ? AND Status = 'A'");
+            $stmt->execute([$token]);
+            $cotizacion = $stmt->fetch();
+            if ($cotizacion) {
+                // Verificar si la fecha actual es mayor a la de expiración
+                if ($ahora > $cotizacion['ExpDate']) {
+                    echo "Lo sentimos, esta cotización ha caducado el " . $cotizacion['ExpDate']." $ahora";
+                    die();
+                }
+            } else {
+                echo "Enlace no válido.";
+                die();
+            }        
+
+            $sql = "SELECT * FROM account ";
+            $stmt = $db->prepare($sql);
+            $stmt->execute();
+            $account = $stmt->fetch(PDO::FETCH_ASSOC);                
+
+            $stmt = $db->prepare("SELECT * FROM lead WHERE Id = ? ");
+            $stmt->execute([$cotizacion['IdQuote']]);
+            $lead = $stmt->fetch();    
+
+            //TOTAL GENERAL
+            $TotalG = $lead['SubTotal'] + $lead['TaxAmount'] + $lead['Tip'];            
+
+            //RECUPERAMOS LOS DATOS DEL GIFCARD
+            $stmt = $db->prepare("SELECT * FROM lead_discounts WHERE IdLead = ? AND Type = 'gifcard'");
+            $stmt->execute([$lead['Id']]);
+            $lead_discounts = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($lead_discounts){
+                $stmt = $db->prepare("SELECT * FROM gifcard WHERE Code = ? ");
+                $stmt->execute([$lead_discounts['Descript']]);
+                $gifcard = $stmt->fetch(PDO::FETCH_ASSOC);
+                //ACTUALIZAMOS El descuento del gifcard en lead_discounts
+                $stmt = $db->prepare(" UPDATE lead_discounts SET AmountVal = ? WHERE Id = ?");
+                $stmt->execute([$TotalG,$lead_discounts['Id']]);               
+            }
+
+
+
+            // MONTO DE GIFCARD
+            $GCAmount = $gifcard['Amount'];
+            // SALDO DE GIFCARD
+            $GCRemain = $GCAmount - $TotalG;
+            
+
+
+            //RECUPERAMOS EL FOLIO DEL EVENTO
+            $Folio = 0;    
+            $stmt = $db->prepare("select MAX(Folio) as Folio FROM folios WHERE IdBranch = ? AND Type = 'Pay'");
+            $stmt->execute([$lead['IdBranch']]);
+            $Payments = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($Payments){
+                $Folio = $Payments['Folio'];
+            }
+            $Folio+=1;
+            
+            $stmt = $db->prepare(" UPDATE folios sET Folio = ? WHERE IdBranch = ? AND Type = 'Pay'");
+            $stmt->execute([$Folio,$lead['IdBranch']]);              
+
+            
+            //INSERTAMOS EL PAGO
+            $paymentid = $lead_discounts['Descript'];
+            $currency = $account['Currency'];
+            $sqlPay = "INSERT INTO payments (IdLead,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus,Usuario) 
+                                    VALUES  (?,?,now(),'GifCard',?,?,?,'A','Web')";
+            $stmtPay = $db->prepare($sqlPay);
+            $stmtPay->execute([$cotizacion['IdQuote'],$Folio,$TotalG,$currency,$paymentid]);    
+
+            //ACTUALIAMOS EL ESTATUS DEL EVENTO
+            $stmt = $db->prepare(" UPDATE lead SET Status = ? WHERE Id = ?");
+            $stmt->execute(['confirmed', $cotizacion['IdQuote']]);
+
+            //ACTUALIZAMOS EL SALDO DEL GIFCARD
+            $stmt = $db->prepare(" UPDATE gifcard SET Amount = ? WHERE Id = ?");
+            $stmt->execute([$GCRemain,$gifcard['Id']]);              
+
+            //METEMOS EL EVENTO A PROCESO
+            process_op($cotizacion['IdQuote'],$db);            
+
+
+            //RECUPERAR PLANTILLA
+            $sql = "SELECT Nombre, Template FROM document_center WHERE Tipo = 'email' AND IdTemplate = '8' AND Idioma = 'es'";
+            $stmt = $db->prepare($sql);
+            //$stmt->bindValue(":name", $data->Product); 
+            $stmt->execute();
+            $Template = $stmt->fetch(PDO::FETCH_ASSOC);             
+
+                    //RECUPERAR Customer
+                    $sql = "SELECT * FROM customers WHERE Id = :id";
+                    $stmt = $db->prepare($sql);
+                    $stmt->bindValue(":id", $lead['Customer']); 
+                    $stmt->execute();
+                    $customer = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                    $query = "select * FROM organizations WHERE Id = ".$lead['Organization'];
+                    $stmt = $db->prepare($query);
+                    $stmt->execute();
+                    $organization = $stmt->fetch(PDO::FETCH_ASSOC);            
+
+
+                    //RECUPERAR venue
+                    $sql = "SELECT * FROM venues WHERE Id = :id";
+                    $stmt = $db->prepare($sql);
+                    $stmt->bindValue(":id", $lead['Venue']); 
+                    $stmt->execute();
+                    $venue = $stmt->fetch(PDO::FETCH_ASSOC);       
+
+                    $header = "";
+                    //$header = "MIME-Version: 1.0\r\n";
+                    //$header .= "Content-Type: text/html; charset=UTF-8\r\n";
+                    $header .= $Template['Nombre']."\r\n";            
+                                // Incluimos el teléfono en el cuerpo del correo
+                    $cuerpo = "<html>".$Template['Template']."</html>";
+
+                    if ($customer){
+                        $nombreCliente = $customer['Nombres'];
+                        $correoCliente =$customer['Correo'];
+                    }
+                    else{
+                        $nombreCliente = $organization['Nombre'];
+                        $correoCliente =$organization['Correo'];
+
+                    }    
+                    $aviso_gifcard0 = '';
+                    $aviso_gifcard = '';
+                    if ($GCRemain > 0){
+                        $aviso_gifcard0 = 'display: none';
+                    }
+                    else{
+                        $aviso_gifcard = 'display: none';
+                    }
+                    $valores = [
+                        'company_logo'      => $account['Logo'],
+                        'company_name' => $account['NombreCompania'],
+                        'ctfirstname'  => $nombreCliente,
+                        'leadid'       => $lead['Folio'],
+                        'total'  => $TotalG,
+                        'apayment'  => $TotalG,
+                        'balancedue'  => '0.00',
+                        'link_to_accept'  => '',
+                        'eventstreet' => $venue['Direccion'],
+                        'eventcity'    => $venue['Ciudad'],
+                        'startdate'  => $lead['StartDateTime'],
+                        'company_name'  => $account['NombreCompania'],
+                        'company_phone'  => $account['TelefonoOficina'],
+                        'company_city'  => $account['Ciudad'],
+                        'aviso_gifcard0' => $aviso_gifcard0,
+                        'aviso_gifcard' => $aviso_gifcard,
+                        'gifcard' => $lead_discounts['Descript'],
+                        'balancegifcard' => $GCRemain,
+                        'fechagifcard' => $gifcard['FechaExpiracion'], 
+                        'aviso_saldo' => 'display: none'
+
+                    ];       
+
+                    $cuerpo = generarHtmlCotizacion($cuerpo, $valores);
+
+                    $datosConexion = [
+                        'host'             => $account['ServidorS'],
+                        'username'         => $account['UsuarioS'],
+                        'password'         => $account['PasswordS'],
+                        'port'             => $account['PortS'],
+                        'encryption'       => '',
+                        'nombre_remitente' => $account['NombreCompania']
+                    ];
+                    $archivos = [];
+
+                    $resultado = enviarEmail(
+                        $datosConexion, 
+                        $correoCliente, 
+                        $header,
+                        $cuerpo,
+                        $archivos,
+                        $cotizacion['Contrato'],
+                        $cotizacion['UUID'].".PDF"
+                    );                        
+                //
+                echo json_encode([
+                    'success'    => true,
+                    'payment_id' => "",
+                    'status'     => 'success',
+                    'amount'     => $TotalG,
+                    'currency'   => $currency,
+                    'status' => 'success',
+                    'message' => '¡Pago realizado con éxito!',
+                    'transaction_id' => '',
+                    'url' => 'successpayment.php?Id='.$token
+                ]);            
+
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }      
+}
+
 function processpayment_square($table_name,$db, $method, $id, $data){
     global $IDS;
     switch ($method) {
@@ -349,6 +560,9 @@ function processpayment_square($table_name,$db, $method, $id, $data){
                 }
                 $Folio+=1;
 
+                $stmt = $db->prepare(" UPDATE folios sET Folio = ? WHERE IdBranch = ? AND Type = 'Pay'");
+                $stmt->execute([$Folio,$lead['IdBranch']]);                      
+
                 // Datos del cliente
                 $customerData = [
                     'name' => $data->name,
@@ -386,16 +600,44 @@ function processpayment_square($table_name,$db, $method, $id, $data){
                 $stmtPay = $db->prepare($sqlPay);
                 $stmtPay->execute([$cotizacion['IdQuote'],$Folio,$amount/100,Currency::Usd->value,$payment->getId()]);    
 
-                $stmt = $db->prepare(" UPDATE folios sET Folio = ? WHERE IdBranch = ? AND Type = 'Pay'");
-                $stmt->execute([$Folio,$lead['IdBranch']]);        
+                $stmt = $db->prepare(" UPDATE lead SET Status = ? WHERE Id = ?");
+                $stmt->execute(['confirmed', $cotizacion['IdQuote']]);
 
-                //if ($amount == 0){
 
-                //}
-                //else{
-                    $stmt = $db->prepare(" UPDATE lead SET Status = ? WHERE Id = ?");
-                    $stmt->execute(['confirmed', $cotizacion['IdQuote']]);
-                //}    
+                //RECUPERAMOS LOS DATOS DEL GIFCARD
+                $stmt = $db->prepare("SELECT * FROM lead_discounts WHERE IdLead = ? AND Type = 'gifcard'");
+                $stmt->execute([$cotizacion['IdQuote']]);
+                $lead_discounts = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($lead_discounts){
+                    $stmt = $db->prepare("SELECT * FROM gifcard WHERE Code = ? ");
+                    $stmt->execute([$lead_discounts['Descript']]);
+                    $gifcard = $stmt->fetch(PDO::FETCH_ASSOC);
+                    //ACTUALIZAMOS EL SALDO DEL GIFCARD
+                    $stmt = $db->prepare(" UPDATE gifcard SET Amount = 0, Estatus = 0 WHERE Id = ?");
+                    $stmt->execute([$gifcard['Id']]);
+                    
+                    //METER PAGO DE GIFCARD                    
+                    $Folio = 0;    
+                    $stmt = $db->prepare("select MAX(Folio) as Folio FROM folios WHERE IdBranch = ? AND Type = 'Pay'");
+                    $stmt->execute([$lead['IdBranch']]);
+                    $Payments = $stmt->fetch(PDO::FETCH_ASSOC);
+                    if ($Payments){
+                        $Folio = $Payments['Folio'];
+                    }
+                    $Folio+=1;
+
+                    $stmt = $db->prepare(" UPDATE folios sET Folio = ? WHERE IdBranch = ? AND Type = 'Pay'");
+                    $stmt->execute([$Folio,$lead['IdBranch']]);                        
+
+                    $paymentid = $lead_discounts['Descript'];                    
+                    $sqlPay = "INSERT INTO payments (IdLead,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus,Usuario) 
+                                            VALUES  (?,?,now(),'GifCard',?,?,?,'A','Web')";
+                    $stmtPay = $db->prepare($sqlPay);
+                    $stmtPay->execute([$cotizacion['IdQuote'],$Folio,$lead_discounts['AmountVal'],Currency::Usd->value,$paymentid]);                        
+
+                }
+
+            
 
                     process_op($cotizacion['IdQuote'],$db);
 
@@ -602,6 +844,9 @@ function processpayment($table_name,$db, $method, $id, $data){
             }
             $Folio+=1;
 
+            $stmt = $db->prepare(" UPDATE folios sET Folio = ? WHERE IdBranch = ? AND Type = 'Pay'");
+            $stmt->execute([$Folio,$lead['IdBranch']]);                
+
             // Datos del cliente
             $customerData = [
                 'name' => $data->name,
@@ -639,16 +884,42 @@ function processpayment($table_name,$db, $method, $id, $data){
                 $stmtPay = $db->prepare($sqlPay);
                 $stmtPay->execute([$cotizacion['IdQuote'],$Folio,$amount,$Currency,$charge->id]);    
 
-                $stmt = $db->prepare(" UPDATE folios sET Folio = ? WHERE IdBranch = ? AND Type = 'Pay'");
-                $stmt->execute([$Folio,$lead['IdBranch']]);        
+                $stmt = $db->prepare(" UPDATE lead SET Status = ? WHERE Id = ?");
+                $stmt->execute(['confirmed', $cotizacion['IdQuote']]);
 
-                //if ($amount == 0){
 
-                //}
-                //else{
-                    $stmt = $db->prepare(" UPDATE lead SET Status = ? WHERE Id = ?");
-                    $stmt->execute(['confirmed', $cotizacion['IdQuote']]);
-                //}
+                //RECUPERAMOS LOS DATOS DEL GIFCARD
+                $stmt = $db->prepare("SELECT * FROM lead_discounts WHERE IdLead = ? AND Type = 'gifcard'");
+                $stmt->execute([$cotizacion['IdQuote']]);
+                $lead_discounts = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($lead_discounts){
+                    $stmt = $db->prepare("SELECT * FROM gifcard WHERE Code = ? ");
+                    $stmt->execute([$lead_discounts['Descript']]);
+                    $gifcard = $stmt->fetch(PDO::FETCH_ASSOC);
+                    //ACTUALIZAMOS EL SALDO DEL GIFCARD
+                    $stmt = $db->prepare(" UPDATE gifcard SET Amount = 0, Estatus = 0 WHERE Id = ?");
+                    $stmt->execute([$gifcard['Id']]);     
+                    
+                   //METER PAGO DE GIFCARD                    
+                    $Folio = 0;    
+                    $stmt = $db->prepare("select MAX(Folio) as Folio FROM folios WHERE IdBranch = ? AND Type = 'Pay'");
+                    $stmt->execute([$lead['IdBranch']]);
+                    $Payments = $stmt->fetch(PDO::FETCH_ASSOC);
+                    if ($Payments){
+                        $Folio = $Payments['Folio'];
+                    }
+                    $Folio+=1;
+
+                    $stmt = $db->prepare(" UPDATE folios sET Folio = ? WHERE IdBranch = ? AND Type = 'Pay'");
+                    $stmt->execute([$Folio,$lead['IdBranch']]);                        
+
+                    $paymentid = $lead_discounts['Descript'];                    
+                    $sqlPay = "INSERT INTO payments (IdLead,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus,Usuario) 
+                                            VALUES  (?,?,now(),'GifCard',?,?,?,'A','Web')";
+                    $stmtPay = $db->prepare($sqlPay);
+                    $stmtPay->execute([$cotizacion['IdQuote'],$Folio,$lead_discounts['AmountVal'],$Currency,$paymentid]);                        
+
+                }                
 
                 process_op($cotizacion['IdQuote'],$db);
 
@@ -905,7 +1176,26 @@ function quote_data($table_name,$db, $method, $id, $data){
             $stmt->execute();
             $discounts = $stmt->fetchAll(PDO::FETCH_ASSOC);                
 
-            $query = "SELECT * FROM lead_discounts WHERE IdLead = ".$lead['Id']." AND Type = 'gifcard'";
+            //$query = "SELECT * FROM lead_discounts WHERE IdLead = ".$lead['Id']." AND Type = 'gifcard'";
+
+            $query= "            
+                SELECT
+                    lead_discounts.Id, 
+                    lead_discounts.IdLead, 
+                    lead_discounts.IdDiscount, 
+                    lead_discounts.Type, 
+                    lead_discounts.Amount, 
+                    lead_discounts.AmountVal, 
+                    lead_discounts.Descript, 
+                    gifcard.Amount as gifcardAmount
+                FROM
+                    lead_discounts
+                    INNER JOIN
+                    gifcard
+                    ON 
+                        lead_discounts.Descript = gifcard.`Code`
+                WHERE  lead_discounts.IdLead = ".$lead['Id']." AND lead_discounts.Type = 'gifcard'
+            ";
 
             $stmt = $db->prepare($query);
             $stmt->execute();
@@ -944,37 +1234,64 @@ function tip_deposit($table_name,$db, $method, $id, $data){
             $APay = $data->apay;
             $Cotizacion = $data->quote;
             $Pq = $data->pq;
-
-            if ($Tip > 0){
-                $query = "UPDATE lead SET Tip = ?, Total = TotalBT + ? WHERE Id = ? ";        
-                $stmt = $db->prepare($query);
-                $stmt->bindParam(1, $Tip);
-                $stmt->bindParam(2, $Tip);
-                $stmt->bindParam(3, $Cotizacion);
-                $stmt->execute();
-            }else{
-                $query = "UPDATE lead SET  Total = TotalBT WHERE Id = ? ";        
-                $stmt = $db->prepare($query);
-                $stmt->bindParam(1, $Cotizacion);
-                $stmt->execute();
-
-                $query = "UPDATE lead SET Tip = 0 WHERE Id = ? ";        
-                $stmt = $db->prepare($query);
-                $stmt->bindParam(1, $Cotizacion);
-                $stmt->execute();            
-            }
             
-
             $sql = "select * FROM account";
             $stmt = $db->prepare($sql);
-            //$stmt->bindValue(":uuid", $data->token); 
             $stmt->execute();
-            $account = $stmt->fetch(PDO::FETCH_ASSOC);   
+            $account = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $DiscuountVal = 0;
+            $sql = "select SUM(AmountVal) as AmountVal FROM lead_discounts WHERE IdLead = :id";
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(":id", $Cotizacion); 
+            $stmt->execute();
+            $AmountVal = $stmt->fetch(PDO::FETCH_ASSOC);   
+            if ($AmountVal)
+                $DiscuountVal = $AmountVal['AmountVal'];
+
+            $sql = "select (Subtotal + TaxAmount) as Total, DepositAmount, Balance FROM lead WHERE Id = :id";
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(":id", $Cotizacion); 
+            $stmt->execute();
+            $Lead = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $Total = $Lead['Total'];
+            $Total+= $Tip;
+
+            if ($DiscuountVal > $Total)
+                $Total = 0;
+            else
+                $Total = $Total - $DiscuountVal;
+
+            //RECALCULAR EL DEPOSIT AMOUNT
+
+            $DepoA = $Lead['DepositAmount'];;
+            $BalDue = $Lead['Balance'];;
             
-            //http_response_code(200);
-            //echo json_encode($account);
-            //die();            
-            
+            if ($Total > 0){
+                if ($account['DepositType'] == 'percentage'){
+                    $Depo = $account['DepositAmount'];
+                    $DepoA = ($Total * ($Depo / 100)); 
+                }else{
+                    $Depo = 0;
+                    $DepoA = $account['DepositAmount']; 
+                }
+
+                if ($DepoA > $Total)
+                    $DepoA = $Total;
+
+                $BalDue = $Total - $DepoA;
+            }            
+
+            $query = "UPDATE lead SET Tip = ?, Total = ?, DepositAmount = ?, Balance = ? WHERE Id = ? ";        
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(1, $Tip);
+            $stmt->bindParam(2, $Total);
+            $stmt->bindParam(3, $DepoA);
+            $stmt->bindParam(4, $BalDue);
+            $stmt->bindParam(5, $Cotizacion);
+            $stmt->execute();
+
             if ($account['DepositType'] == 'percentage'){
                 if ($APay > 0){
                     $query = "UPDATE lead SET Deposit = ?, DepositAmount = Total * ( ? / 100) WHERE Id = ? ";
@@ -1728,18 +2045,6 @@ function process_quote($table_name,$db, $method, $id, $data){
                 exit;
             }            
 
-
-            /*
-                        $data['cliente']['nombre'],
-                        $data['cliente']['apellidos'],
-                        $data['cliente']['organizacion'],
-                        $data['cliente']['telefono'],
-                        $data['cliente']['correo'],            
-                        $data['cliente']['direccion'],
-                        $data['cliente']['ciudad'],
-                        $data['cliente']['colonia'],
-                        $data['cliente']['cp'],
-            */
     $stmtCheck = $db->prepare("SELECT * FROM account");
     $stmtCheck->execute();
     $account = $stmtCheck->fetch(PDO::FETCH_ASSOC);    
@@ -1849,7 +2154,7 @@ try {
                         Estado = ?, 
                         Pais = ? ,
                         FechaCambio = now()
-                       WHERE Id = ?";
+                        WHERE Id = ?";
         
         $stmtUpdVenue = $db->prepare($sqlUpdVenue);
         $stmtUpdVenue->execute([
@@ -1886,49 +2191,58 @@ try {
     die("Error al procesar el lugar: " . $e->getMessage());
 }
 
-    //{"ZIPO":"45640","CONO":"MX","ZIPD":"44840","COND":"MX"}
-    //$data_dst =json_encode(["ZIPO" =>$account['CP'],"CONO" =>$account['Pais'],"ZIPD" => $data->lugar->cp,"COND" => $account['Pais']]);
+            //{"ZIPO":"45640","CONO":"MX","ZIPD":"44840","COND":"MX"}
+            //$data_dst =json_encode(["ZIPO" =>$account['CP'],"CONO" =>$account['Pais'],"ZIPD" => $data->lugar->cp,"COND" => $account['Pais']]);
 
-$arreglo = [
-    "ZIPO" => $account['CP'],
-    "CONO" => $account['Pais'],
-    "ZIPD" => $data->lugar->cp, // (asumiendo que $data venía de otro lado)
-    "COND" => $account['Pais']
-];
+            $arreglo = [
+                "ZIPO" => $account['CP'],
+                "CONO" => $account['Pais'],
+                "ZIPD" => $data->lugar->cp, // (asumiendo que $data venía de otro lado)
+                "COND" => $account['Pais']
+            ];
 
-// Convertimos el arreglo a objeto
-    $data_dst = (object) $arreglo;    
+            // Convertimos el arreglo a objeto
+            $data_dst = (object) $arreglo;    
 
-    $Costo_Distancia = 0;
-    $Distance = '';
+            $Costo_Distancia = 0;
+            $Distance = '';
 
-    $Distance = distance_charge($table_name,$db, $method, $id, $data_dst);
-    
-    $Distance = json_decode($Distance);
-
-    // Acceder al valor
-    $Costo_Distancia = $Distance->cost->costo_total;
-/*
-            $data['lugar']['direccion'],
-            $data['lugar']['colonia'],
-            $data['lugar']['cp'],
-            $data['lugar']['referencias'],
-            $data['lugar']['superficie'],
-            $data['lugar']['tipo_entrega'],
-            $data['lugar']['tax'],
-            $data['lugar']['cupon'],
-*/
-            $Total = 0;
+            $Distance = distance_charge($table_name,$db, $method, $id, $data_dst);
             
+            $Distance = json_decode($Distance);
+
+            // Acceder al valor
+            $Costo_Distancia = $Distance->cost->costo_total;
+            //TOTAL DE ITEMS
+            $TotalI = 0;
+            //TOTAL QUE APLICA A PROPINA
+            $TotalTip = 0;
+            //Costo de Operacion!
+            $StaffCost = 0;
+
+            $stmt = $db->prepare("SELECT OperationCost, TipApply FROM products WHERE id = :id LIMIT 1");
             foreach ($data->reserva->items as $item) {
-                $Total+= $item->cantidad * $item->precio;
+                $TotalI+= $item->cantidad * $item->precio;
+
+                $stmt->execute(['id' => $item->id]);
+                $product = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($product && $product['TipApply'] == 1) {
+                    $TotalTip+= $item->cantidad * $item->precio;
+                }
                 if (!empty($item->adicionales)) {
                     foreach ($item->adicionales as $extra) {
-                        $Total+= $extra->precio * $item->cantidad ;
+                        $TotalI+= $extra->precio * $item->cantidad ;
+
+                        $stmt->execute(['id' => $extra->id]);
+                        $product = $stmt->fetch(PDO::FETCH_ASSOC);
+                        if ($product && $product['TipApply'] == 1) {
+                            $TotalTip+= $extra->precio * $item->cantidad ;
+                        }
                     }
                 }
             }
 
+            //FOLIO DE RESERVA
             $Folio = 0;    
             $IdBranch = 1;
             $stmt = $db->prepare("select MAX(Folio) as Folio FROM folios WHERE IdBranch = ? AND Type = 'Lead'");
@@ -1939,72 +2253,83 @@ $arreglo = [
             }
             $Folio+=1;            
 
-            
+            $stmt = $db->prepare(" UPDATE folios SET Folio = ? WHERE IdBranch = ? AND Type = 'Lead'");
+            $stmt->execute([$Folio,$IdBranch]);            
+
+
+            $SubtotalGral = ($TotalI + $Costo_Distancia + $StaffCost);
+
+            //SI APLICA ALGUN CUPON
             $Cupon = $data->cupon->cupon;
             $TipoCupon = $data->cupon->tipocupon;
             $DescuentoCupon = $data->cupon->descuento;
             $MontoCupon= 0;
-            //print_r($data->cupon);
-            //echo $data->cupon->cupon."*";
-            //foreach ($data->cupon as $cpn) {
-            //    $Cupon =  $cupon->cupon;
-            //    $TipoCupon =  $cupon->tipocupon;
-            //    $DescuentoCupon =  $cupon->descuento;
             if ($Cupon != ""){
                 if ($TipoCupon == 'percentage' ){
-                    $MontoCupon = $Total * ($DescuentoCupon / 100);
+                    $MontoCupon = $SubtotalGral * ($DescuentoCupon / 100);
                 }
                 else{
                     $MontoCupon = $DescuentoCupon;
                 }
             }                
-            //}
 
-            $Subtotal = ($Total + $Costo_Distancia) - $MontoCupon;
+            $Subtotal = $SubtotalGral - $MontoCupon;
         
+            //RECUPERA EL GIFCARD
             $MontoGC= 0;
             if ($data->cupon->idgfc != ""){
                 $MontoGC = $data->cupon->agfc;
-
             }
 
-            $Subtotal = $Subtotal - $MontoGC;
-/*
-            $data['reserva']['fecha'],
-            $data['reserva']['hInicio'],
-            $data['reserva']['hFin'],
-*/
-                //$Total = 0;
-                $fechas = explode(' to ', $data->reserva->fecha);
+            if ($MontoGC > $Subtotal ){
+                $Subtotal = 0;
+            }
+            else{
+                $Subtotal = $Subtotal - $MontoGC;
+            }
 
-                $FHI = $fechas[0] .' '. $data->reserva->hInicio; 
-                $FHF = $fechas[1] .' '. $data->reserva->hFin;                 
+            //IMPUESTOS APLICABLES!!
+            $TaxId = ''; 
+            $TaxPc = 0; 
+            $TaxAm = 0; 
 
-                $Referal = '';
-                $OkT = 0; 
-                $WA = 0; 
-                $AE = 0; 
-                $ME = 0; 
-                $CusNt = ''; 
-                $Venue = $idVenue; 
-                $EventName = ''; 
-                $Surface = $data->lugar->superficie;
-                $Delivety = $data->lugar->tipo_entrega; 
-                $Nt1 = ''; 
-                $Nt2 = ''; 
-                $Item_Totals = $Total; 
-                $ChkDstC = 1; 
-                $DstC = $Costo_Distancia; 
-                $ChkStCs = 0; 
-                $StCs = 0; 
-                $ChkDsc = 0; 
-                $Dsc = 0; 
-                $SubT = $Subtotal; 
-                $TaxId = ''; 
-                $TaxPc = 0; 
-                $TaxAm = 0; 
-                $Total = $Subtotal; 
 
+            //$Total = 0;
+            $fechas = explode(' to ', $data->reserva->fecha);
+            $FHI = $fechas[0] .' '. $data->reserva->hInicio; 
+            $FHF = $fechas[1] .' '. $data->reserva->hFin;                 
+
+            $Referal = '';
+            $OkT = 0; 
+            $WA = 0; 
+            $AE = 0; 
+            $ME = 0; 
+            $CusNt = ''; 
+            $Venue = $idVenue; 
+            $EventName = ''; 
+            $Surface = $data->lugar->superficie;
+            $Delivety = $data->lugar->tipo_entrega; 
+            $Nt1 = ''; 
+            $Nt2 = ''; 
+            $Item_Totals = $TotalI; 
+
+            $ChkDstC = 1; 
+            $DstC = $Costo_Distancia; 
+
+            $ChkStCs = 1; 
+            $StCs = $StaffCost; 
+
+            $ChkDsc = 0; 
+            $Dsc = 0;
+
+            $SubT = $SubtotalGral; 
+
+            $Total = $Subtotal; 
+
+            //SECCION PARA ANTICIPO
+            $BalDue = 0;
+            $DepoA = 0;            
+            if ($Total > 0){
                 if ($account['DepositType'] == 'percentage'){
                     $Depo = $account['DepositAmount'];
                     $DepoA = ($Subtotal * ($Depo / 100)); 
@@ -2013,10 +2338,14 @@ $arreglo = [
                     $DepoA = $account['DepositAmount']; 
                 }
 
+                if ($DepoA > $Subtotal)
+                    $DepoA = $Subtotal;
 
-                $BalDue = $Subtotal - ($Subtotal * (20 / 100)); 
-                $Status = 'Pending';
-                $IdBranch = 1;
+                $BalDue = $Subtotal - $DepoA;
+            }
+
+            $Status = 'Pending';
+            $IdBranch = 1;
 
             $sqlLead = "INSERT INTO lead (
                 StartDateTime, EndDateTime, DeliveryDateTime, Organization, Customer, 
@@ -2049,27 +2378,19 @@ $arreglo = [
                 $ChkStCs, $StCs, $ChkDsc, $Dsc, $SubT,             // 21-25
                 $TaxId, $TaxPc, $TaxAm, $Total, $Depo,             // 26-30
                 $DepoA, $BalDue, $Status,                          // 31-33
-                $IdBranch, $Folio, $Total                          // 34-36
+                $IdBranch, $Folio, $TotalTip                          // 34-36
             ]);
 
             $idLead = $db->lastInsertId();
 
-            
-
-            $stmt = $db->prepare(" UPDATE folios SET Folio = ? WHERE IdBranch = ? AND Type = 'Lead'");
-            $stmt->execute([$Folio,$IdBranch]);
             $UUID = generar_uuid_v4();
             //$stmt = $db->prepare("INSERT INTO quotes (UUID,IdQuote,ExpDate,Status) VALUES (?,?,NOW() + INTERVAL '2 days',?)");
             $stmt = $db->prepare("INSERT INTO quotes (UUID,IdQuote,ExpDate,Status) VALUES (?,?, NOW() + INTERVAL 2 DAY, ?)");
             $stmt->execute([$UUID,$idLead,'A']);
 
-
-
-
             $sqlDetail = "INSERT INTO lead_detail (IdLead, IdProduct, IdProductRel, Quantity, Discount, Tax, Price, OrgPrice) 
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             $stmtDetail = $db->prepare($sqlDetail);
-
 
             foreach ($data->reserva->items as $item) {
                 $stmtDetail->execute([
