@@ -1015,8 +1015,8 @@ function process_pay($table_name,$db, $method, $id, $data) {
                 else
                     $Tipo ='Transfer';
 
-                $sqlPay = "INSERT INTO payments (IdLead,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus,Usuario) 
-                                        VALUES  (?,?,now(),?,?,?,?,'A',?)";
+                $sqlPay = "INSERT INTO payments (IdLead,Type,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus,Usuario) 
+                                        VALUES  (?,'Pay',?,now(),?,?,?,?,'A',?)";
                 $stmtPay = $db->prepare($sqlPay);
                 $stmtPay->execute([$idLead,$Folio,$Tipo,$amount,$Currency,'',$Usuario]);    
 
@@ -2981,8 +2981,6 @@ function process_stage_change($table_name,$db, $method, $id, $data){
                         //echo "Formato no soportado.";
                     }
                 }                
-
-
             }            
             //die();
             if  ($currentStage == 'ENTREGA'){
@@ -3927,13 +3925,142 @@ function cancel_lead($table_name,$db, $method, $id, $data){
     global $IDS;
     switch ($method) {
         case 'POST': 
-            $Id = $data->Lead;
-            $Type = $data->Type;
 
-            $queryI ="UPDATE lead SET Status = 'canceled', Balance = Total, FechaCambio = now()  WHERE Id = :id";
+            $Id     = $_POST['Lead'];
+            $Type = $_POST['Type'];
+            $Cargo = $_POST['Cargo'];            
+
+            //echo $Id;
+
+            $query = "SELECT * FROM account";
+            $stmt = $db->prepare($query);
+            $stmt->execute();
+            $account = $stmt->fetch(PDO::FETCH_ASSOC);            
+
+
+            $query = "SELECT * FROM lead WHERE Id = :q";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':q', $Id, PDO::PARAM_INT);
+            $stmt->execute();
+            $lead = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            $query = "SELECT SUM(Amount) as Amount FROM payments WHERE IdLead = :q AND Type = 'Pay'";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':q', $Id, PDO::PARAM_INT);
+            $stmt->execute();
+            $payments = $stmt->fetch(PDO::FETCH_ASSOC);            
+
+            $MontoPagado = $payments['Amount'];
+            $MontoCargo = 0;
+
+
+
+            // 2. Manejar la imagen (opcional)
+            $fileName = '';
+            $imagePath = null;
+            if (isset($_FILES['evidence_img']) && $_FILES['evidence_img']['error'] === UPLOAD_ERR_OK) {
+
+                $ext = pathinfo($_FILES['evidence_img']['name'], PATHINFO_EXTENSION);
+                $fileName = "evidencia_" . time() . "_" . uniqid();
+                $origen = "../ajax/tmp/evidencias/" . $fileName. "." . $ext;
+                //echo $fileName;
+                if (move_uploaded_file($_FILES['evidence_img']['tmp_name'], $origen)) {
+                    $destinot  = "../ajax/tmp/thumbnail_" . $fileName . ".avif";
+                    $destino   = "../ajax/tmp/" . $fileName . ".avif";
+                    $destinot2 = "../ajax/tmp/thumbnail_" . $fileName . ".jpg";
+                    
+                    $normal   =  $fileName . ".avif";
+                    $miniatura  = "thumbnail_" . $fileName . ".avif";
+                    $miniaturaj = "thumbnail_" . $fileName . ".jpg";
+
+                    $imgOriginal = cargarImagen($origen);
+
+                    if ($imgOriginal) {
+                        generarThumbnailAVIF($imgOriginal, $destinot, 150);
+                        generarNormalAVIF($imgOriginal, $destino, 1200);
+                        generarThumbnailJPG($imgOriginal, $destinot2, 150);
+
+                        imagedestroy($imgOriginal);
+                        unlink($origen);
+
+                        $client = ID_CLIENTE;
+                        $gallery = 'evidence';
+
+                        $fileName = CFPUBLICURL . "/".$client."/".$gallery."/originals/". $fileName. ".avif";
+
+                        upload_Aws($client,$gallery,$normal,$miniatura,$miniaturaj);
+
+                    } else {
+                        //echo "Formato no soportado.";
+                    }
+                }                
+            }                 
+
+
+
+            if ($Cargo==1){
+                if ($account['DepositType'] == 'amount'){
+                    $MontoCargo = $account['DepositAmount'];
+                }
+                else{
+                    $Total = $lead['SubTotal'] + $lead['TaxAmount'] + $lead['Tip'];
+                    $MontoCargo = $Total *  ($account['DepositAmount'] / 100);
+                }
+            }
+
+            $MontoDev = $MontoPagado  - $MontoCargo;
+            $GifCard = '';
+            if ($Type == 'GC'){
+                //GIFCARD
+                $CusType = '';
+                $Customer = '';
+                if ($lead['Customer'] > 0){
+                    $CusType = 'C';
+                    $Customer = $lead['Customer'];
+                }
+                else{
+                    $CusType = 'O';
+                    $Customer = $lead['Organization'];
+                }
+                $GifCard = generarGifCarf();
+                
+                $stmt = $db->prepare("INSERT INTO gifcard (Code,CusType,Customer,Amount,FechaExpiracion,Estatus,FechaCreacion,FechaCambio) VALUES (?,?,?,?, NOW() + INTERVAL 30 DAY ,1,now(),now())");
+                $stmt->execute([$GifCard,$CusType,$Customer,$MontoDev]);                
+                $Tipo = 'GifCard';
+            }
+            else{
+                //DEVOLUCION
+                $Tipo = 'Cash';
+            }            
+
+            $MontoDev= $MontoDev * -1;
+
+            $Folio = 0;    
+            $stmt = $db->prepare("SELECT MAX(Folio) as Folio FROM folios WHERE IdBranch = ? AND Type = 'Dev'");
+            $stmt->bindParam(1, $lead['IdBranch']);  // Usa bindParam también aquí
+            $stmt->execute();
+            $Payments = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($Payments){
+                $Folio = $Payments['Folio'];
+            }
+            $Folio += 1;
+
+            $sqlPay = "INSERT INTO payments (IdLead,Type,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus,evidencia,Usuario) 
+                                    VALUES  (     ?,'Dev',   ?,   now(),       ?,     ?,       ?,            ?,    'A',        ?,      ?)";
+            $stmtPay = $db->prepare($sqlPay);
+            $stmtPay->execute([$Id,$Folio,$Tipo,$MontoDev,$account['Currency'],$GifCard,$fileName,'']);    
+
+            $stmt = $db->prepare(" UPDATE folios SET Folio = ? WHERE IdBranch = ? AND Type = 'Dev'");
+            $stmt->execute([$Folio,$lead['IdBranch']]);
+
+            //$queryI ="UPDATE lead SET Status = 'canceled', Balance = SubTotal + TaxAmout + Tip , FechaCambio = now()  WHERE Id = :id";
+            $queryI ="UPDATE lead SET Status = 'canceled',  FechaCambio = now()  WHERE Id = :id";
             $stmtI = $db->prepare($queryI);
             $stmtI->bindValue(":id", $Id);
-            $stmtI->execute();        
+            $stmtI->execute();
+
+            //$stmt = $db->prepare("DELETE FROM lead_discounts WHERE IdLead = ? ");
+            //$stmt->execute([$Id]);
 
             $query = "SELECT * FROM operation_master WHERE id_lead = :q";
             $stmt = $db->prepare($query);
@@ -3964,14 +4091,8 @@ function cancel_lead($table_name,$db, $method, $id, $data){
                 $stmtI->bindValue(":id_op", $id_op);
                 $stmtI->execute();
 
-            //PAYMENTS
 
-            if ($Type == 'GC'){
-                //GIFCARD
-            }
-            else{
-                //DEVOLUCION
-            }
+
 
             http_response_code(200);
             echo json_encode(array("message" => "Evento cancelado."));
@@ -4267,6 +4388,24 @@ function generar_uuid_v4() {
 
     // Formateamos en el estándar 8-4-4-4-12
     return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+}
+
+
+function generarGifCarf($bloques = 4, $longitudBloque = 4) {
+    $caracteres = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $resultado = [];
+
+    for ($i = 0; $i < $bloques; $i++) {
+        $segmento = '';
+        for ($j = 0; $j < $longitudBloque; $j++) {
+            // Usamos random_int para mayor seguridad
+            $indice = random_int(0, strlen($caracteres) - 1);
+            $segmento .= $caracteres[$indice];
+        }
+        $resultado[] = $segmento;
+    }
+
+    return implode('-', $resultado);
 }
 
 

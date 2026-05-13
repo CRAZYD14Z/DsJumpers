@@ -61,6 +61,21 @@ include_once 'head.php';
             text-transform: uppercase;
         }        
 
+        #watermark_cancel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 10vw; /* Ajusta el tamaño según necesites */
+            color: rgba(253, 3, 3, 0.3); /* Transparente para no tapar el contenido */
+            pointer-events: none; /* Permite hacer clic a través de la marca */
+            z-index: 9999;
+            white-space: nowrap;
+            user-select: none;
+            font-weight: bold;
+            text-transform: uppercase;
+        }         
+
     </style>    
 
 </head>
@@ -114,8 +129,10 @@ include_once 'head.php';
 
         
             if (isset($lead) AND $lead['Status'] == 'confirmed')
-                echo "<div id='watermark'>CONFIRMADO</div>";
-        
+                echo "<div id='watermark'>".Trd(158)."</div>";
+            if (isset($lead) AND $lead['Status'] == 'canceled')
+                echo "<div id='watermark_cancel'>".Trd(159)."</div>";        
+
 
     ?>
 
@@ -200,23 +217,33 @@ include_once 'head.php';
                     <div class="col-md-7 p-4 border-end d-flex justify-content-center bg-white">
                         <?= Trd(100) ?>
                     </div>
-
                     <div class="col-md-5 p-4 bg-light">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="candelationtype" id="GifCard" checked >
+                            <label class="form-check-label" for="GifCard">
+                                <?= Trd(101) ?>
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="candelationtype" id="Devolution" >
+                            <label class="form-check-label" for="Devolution">
+                                <?= Trd(102) ?>
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="checkcargo" id="checkcargo" >
+                            <label class="form-check-label" for="checkcargo">
+                                <?= Trd(156) ?>
+                            </label>
+                        </div>
 
-                        <div class="form-check">
-                        <input class="form-check-input" type="radio" name="candelationtype" id="GifCard" checked >
-                        <label class="form-check-label" for="GifCard">
-                            <?= Trd(101) ?>
-                        </label>
-                        </div>
-                        <div class="form-check">
-                        <input class="form-check-input" type="radio" name="candelationtype" id="Devolution" >
-                        <label class="form-check-label" for="Devolution">
-                            <?= Trd(102) ?>
-                        </label>
-                        </div>
+                            <div >
+                                <label class="form-label small fw-bold"><i class="fas fa-camera me-1"></i><?= Trd(157) ?></label>
+                                <input type="file" id="evidence-file" class="form-control form-control-sm" accept="image/*" capture="environment">
+                            </div>                        
 
                     </div>
+
                 </div>
             </div>
             <div class="modal-footer bg-light border-0">
@@ -933,9 +960,8 @@ function inicializarSelectDescuento(selector) {
                     ";
                 }            
 
-                if (isset($lead) AND $lead['Status'] == 'confirmed'){
-                    
-                }
+                //if (isset($lead) AND $lead['Status'] == 'confirmed'){
+                //}
 
                 if ($lead['Customer']>0){
 
@@ -2940,7 +2966,7 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
 
     function autosave_lead(){
         <?php 
-            if (isset($lead) AND $lead['Status'] == 'confirmed')
+            if (isset($lead) AND ( $lead['Status'] == 'confirmed' OR $lead['Status'] == 'canceled'))
                 echo "return;";
         ?>
 
@@ -3226,31 +3252,51 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
 
 
     function btnCancelarEvnto(){
+
+        let formData = new FormData();        
         var misHeaders = {
             'Authorization': 'Bearer ' + TOKEN
         };
+
         let TipoC = '';
+        let Cargo = '0';
         if ($('#GifCard').prop('checked'))
             TipoC = 'GC'
         else
             TipoC = 'DV'
-        const dataGlobal = {
-            Lead: $('#IdLead').val(),
-            Type: TipoC
 
-        };
+        if ($('#checkcargo').prop('checked'))
+            Cargo = 1;
+
+        // Datos básicos
+        formData.append('Lead', $('#IdLead').val());
+        formData.append('Type', TipoC);
+        formData.append('Cargo',Cargo);    
+
+
+        // Archivo de imagen (si existe)
+        const fileInput = $('#evidence-file')[0].files[0];
+        if (fileInput) {
+            formData.append('evidence_img', fileInput);
+        }
+
+
+
+
         $.ajax({
         url: API_BASE_URL + 'cancel_lead',
-        type: 'POST',
-        dataType: 'json', // Indica que esperamos JSON
-        headers: misHeaders,
-        data: JSON.stringify(dataGlobal),        
+        method: 'POST',
+        data: formData,
+        headers: { 'Authorization': 'Bearer ' + TOKEN },            
+        processData: false, // Vital para FormData
+        contentType: false, // Vital para FormData  
         success: function(data) {
                 lanzarMensaje("<?= Trd(110) ?>", "exito", 5000);
+                location.reload(); 
             },
             error: function () {
                 lanzarMensaje("<?= Trd(111) ?>",'error',5000);
-                $('#Organization').val(null).trigger('change');
+                //$('#Organization').val(null).trigger('change');
             }
         });
     }    
@@ -3258,16 +3304,28 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
 
 <?php 
 if (isset($lead) AND $lead['Status'] == 'confirmed'){
-
-echo "
-$(window).on('scroll', function() {
-    var scrollTop = $(this).scrollTop();
-    // Ajustamos la posición vertical basada en el scroll
-    $('#watermark').css({
-        'margin-top': -(scrollTop * 0.2) + 'px' 
+    echo "
+    $(window).on('scroll', function() {
+        var scrollTop = $(this).scrollTop();
+        // Ajustamos la posición vertical basada en el scroll
+        $('#watermark').css({
+            'margin-top': -(scrollTop * 0.2) + 'px' 
+        });
     });
-});
-";
+    ";
+}
+
+if (isset($lead) AND $lead['Status'] == 'canceled'){
+
+    echo "
+    $(window).on('scroll', function() {
+        var scrollTop = $(this).scrollTop();
+        // Ajustamos la posición vertical basada en el scroll
+        $('#watermark_cancel').css({
+            'margin-top': -(scrollTop * 0.2) + 'px' 
+        });
+    });
+    ";
 
 }
 

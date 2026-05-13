@@ -1,11 +1,18 @@
 <div id="barra-inferior" class="fixed-bottom barra-minimalista">
     <div class="container-fluid d-flex justify-content-center align-items-center py-2"> <div class="button-group">
-            <button class="btn-minimal" onclick="LoadDocument('Quote')"><?php echo Trd(65)?></button>
-            <button class="btn-minimal" onclick="LoadDocument('Contract')"><?php echo Trd(66)?></button>
-            <button class="btn-minimal" onclick="LoadDocument('Invoice')"><?php echo Trd(67)?></button>
-            <button class="btn-minimal" onclick="LoadDocument('Picking')"><?php echo Trd(68)?></button>
-            <button class="btn-minimal" onclick="ProcesarSinPago()"><?= Trd(154) ?></button>
-            <button class="btn-minimalr" onclick="Cancelar()"><?= Trd(153) ?></button>
+            <?php if (isset($lead) AND $lead['Status'] != 'canceled'){?>
+                <button class="btn-minimal" onclick="LoadDocument('Quote')"><?php echo Trd(65)?></button>
+                <button class="btn-minimal" onclick="LoadDocument('Contract')"><?php echo Trd(66)?></button>
+                <button class="btn-minimal" onclick="LoadDocument('Invoice')"><?php echo Trd(67)?></button>
+                <button class="btn-minimal" onclick="LoadDocument('Picking')"><?php echo Trd(68)?></button>            
+                <button class="btn-minimal" onclick="ProcesarSinPago()"><?= Trd(154) ?></button>
+                <button class="btn-minimalr" onclick="Cancelar()"><?= Trd(153) ?></button>            
+            <?php }else{
+                ?>
+                    <button class="btn-minimalr" onclick="Reactive()"><?= Trd(160) ?></button>            
+                <?php
+            } ?>            
+                
         </div>
     </div>
 </div>

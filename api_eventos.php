@@ -16,11 +16,11 @@ $anio = isset($_GET['anio']) ? (int)$_GET['anio'] : (int)date('Y');
 // Catálogo de estatus
 // ---------------------------------------------------------------------------
 $estatus = [
-    'quoted'  => ['label' => 'Confirmado',   'color' => '#10b981'],
-    'pending'   => ['label' => 'Pendiente',    'color' => '#f59e0b'],
-    'cancelado'   => ['label' => 'Cancelado',    'color' => '#ef4444'],
-    'en_curso'    => ['label' => 'En curso',     'color' => '#3b82f6'],
-    'completado'  => ['label' => 'Completado',   'color' => '#8b5cf6'],
+    'confirmed'  => ['label' => 'Confirmado',   'color' => '#10b981'],
+    'pending'    => ['label' => 'Pendiente',    'color' => '#f59e0b'],
+    'canceled'   => ['label' => 'Cancelado',    'color' => '#ef4444'],
+    'quoted'     => ['label' => 'Cotizado',     'color' => '#3b82f6'],
+    'completado' => ['label' => 'Completado',   'color' => '#8b5cf6'],
     'reprogramado'=> ['label' => 'Reprogramado', 'color' => '#ec4899'],
 ];
 
