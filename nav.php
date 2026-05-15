@@ -86,8 +86,8 @@
             <div class="d-flex align-items-center">
                 <form class="me-3" role="search">
                     <div class="input-group input-group-sm">
-                        <input class="form-control" type="search" placeholder="Buscar...">
-                        <button class="btn btn-outline-light" type="submit"><i class="fas fa-search"></i></button>
+                        <input class="form-control" type="search" id="search_text" placeholder="Buscar...">
+                        <button class="btn btn-outline-light" id="SearchButton" type="button"><i class="fas fa-search"></i></button>
                     </div>
                 </form>
 

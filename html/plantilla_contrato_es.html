@@ -1,0 +1,240 @@
+<div id="contrato-dsj" style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #333; max-width: 900px; margin: 20px auto; line-height: 1.4; font-size: 13px; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+
+    <table class="responsive-table" width="100%" style="border-collapse: collapse; margin-bottom: 30px;">
+        <tr>
+            <td class="stack-column" style="vertical-align: top; width: 60%; padding-bottom: 15px;">
+                <img src="*company_logo*" style="width: 180px; max-width: 100%; margin-bottom: 15px;">
+                <div style="font-size: 12px; color: #555;">
+                    <strong style="font-size: 16px; color: #000; display: block; margin-bottom: 4px;">*company_name*</strong>
+                    *company_address*<br>
+                    *company_city*<br>
+                    *company_state*<br>
+                    <strong>Teléfono:</strong> *company_phone*
+                </div>
+            </td>
+            <td class="stack-column" style="vertical-align: top; text-align: left; width: 40%;">
+                <div style="background-color: #f9f9f9; border: 1px solid #eee; padding: 15px; border-radius: 4px;">
+                    <p style="margin: 0; font-size: 14px;"><strong>Factura:</strong> #*leadid*</p>
+                    <p style="margin: 5px 0 0; color: #777;"><strong>Fecha de Pedido:</strong> *contractsentdate*</p>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <table class="responsive-table" width="100%" style="border-collapse: collapse; margin-bottom: 25px; border: 1px solid #eee;">
+        <tr>
+            <td class="stack-column" style="width: 55%; padding: 15px; border-right: 1px solid #eee; vertical-align: top;">
+                <h4 style="margin: 0 0 10px 0; font-size: 11px; text-transform: uppercase; color: #999; letter-spacing: 1px;">Arrendatario y Ubicación</h4>
+                <strong style="font-size: 14px; display: block; margin-bottom: 3px;">*organization*</strong>
+                <strong>*ctfirstname* *ctlastname*</strong><br>
+                *eventstreet*<br>
+                *eventcity*, *eventstate* *eventzip*<br>
+                <span style="color: #666;">*phones*</span>
+            </td>
+            <td class="stack-column" style="width: 45%; padding: 15px; vertical-align: top; background-color: #fafafa;">
+                <h4 style="margin: 0 0 10px 0; font-size: 11px; text-transform: uppercase; color: #999; letter-spacing: 1px;">Horarios del Evento</h4>
+                <p style="margin: 0 0 5px 0;"><strong>Inicio:</strong> *startdate* *starttime*</p>
+                <p style="margin: 0 0 5px 0;"><strong>Fin:</strong> *enddate* *endtime*</p>
+                <p style="margin: 0;"><strong>Tipo:</strong> *deliverytype*</p>
+            </td>
+        </tr>
+    </table>
+
+    <div style="overflow-x: auto;">
+        <table width="100%" style="border-collapse: collapse; margin-bottom: 20px; min-width: 500px;">
+            <thead>
+                <tr style="border-bottom: 2px solid #333;">
+                    <th style="text-align: left; padding: 10px; font-weight: 600; width: 80px;"></th>
+                    <th style="text-align: left; padding: 10px; font-weight: 600;">Descripción del Artículo de Renta</th>
+                    <th style="text-align: center; padding: 10px; font-weight: 600; width: 60px;">Desc.</th>
+                    <th style="text-align: center; padding: 10px; font-weight: 600; width: 60px;">Cant.</th>
+                    <th style="text-align: right; padding: 10px; font-weight: 600; width: 100px;">Total</th>
+                </tr>
+            </thead>
+            <tbody id="lista-productos">
+                <tr class="item-fila" style="border-bottom: 1px solid #eee; display: none;">
+                    <td style="padding: 12px 10px; text-align: center;"> 
+                        <img src="*rentalname_url_photo*" width="60" style="border-radius: 4px;" alt="*rentalname*"> 
+                    </td>
+                    <td style="padding: 12px 10px;">
+                        <div style="font-weight: 500;">*rentalname*</div>
+                        <div style="font-size: 11px; color: #777;">*fullrentaltime*</div>
+                    </td>
+                    <td style="padding: 12px 10px; text-align: center;">*discount*</td>
+                    <td style="padding: 12px 10px; text-align: center;">*rentalqty*</td>
+                    <td style="padding: 12px 10px; text-align: right; font-weight: 600;">$*rentaltotalprice*</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 30px;">
+        <table class="total-table" style="width: 100%; max-width: 300px; border-collapse: collapse;">
+            <tr id="itemtotals">
+                <td style="padding: 6px 0; color: #666;">Totales de Artículos</td>
+                <td style="padding: 6px 0; text-align: right;">$*itemtotals*</td>
+            </tr>
+            <tr id="distanecharges">
+                <td style="padding: 6px 0; color: #666;">Cargos por Distancia</td>
+                <td style="padding: 6px 0; text-align: right;">$*distanecharges*</td>
+            </tr>
+            <tr id="staffcosts">
+                <td style="padding: 6px 0; color: #666;">Costos de Personal</td>
+                <td style="padding: 6px 0; text-align: right;">$*staffcosts*</td>
+            </tr>
+            <tr id="discount">
+                <td style="padding: 6px 0; color: #666;">Descuento</td>
+                <td style="padding: 6px 0; text-align: right;">$-*discount*</td>
+            </tr>
+            <tbody id="extra_discounts">
+                <tr>
+                    <td style="padding: 6px 0; color: #666;">*conceptdiscount*</td>
+                    <td style="padding: 6px 0; text-align: right;">$-*discountconcept*</td>
+                </tr>
+            </tbody>            
+            <tr style="border-top: 1px solid #eee;">
+                <td style="padding: 6px 0; color: #666;">Subtotal</td>
+                <td style="padding: 6px 0; text-align: right;">$*subtotal*</td>
+            </tr>            
+            <tr id="salestax">
+                <td style="padding: 6px 0; color: #666;">Impuesto sobre Ventas (*taxrate*%)</td>
+                <td style="padding: 6px 0; text-align: right;">$*salestax*</td>
+            </tr>
+            <tbody id="tips">
+                <tr>
+                    <td style="padding: 6px 0; color: #666;">Propina</td>
+                    <td style="padding: 6px 0; text-align: right;">$*tip*</td>
+                </tr>
+            </tbody>  
+
+            <tr style="color: #002d72; font-size: 15px;">
+                <td style="padding: 10px 0;"><strong>Total</strong></td>
+                <td style="padding: 10px 0; text-align: right;"><strong>$*total*</strong></td>
+            </tr>
+
+            <tr style="color: #00722f; font-size: 15px;" id="tr-apay">
+                <td style="padding: 10px 0;"><strong>Pago Anticipado</strong></td>
+                <td style="padding: 10px 0; text-align: right;"><strong>$-*apayment*</strong></td>
+            </tr>            
+
+
+            <tr style="color: #c0392b; font-size: 15px;">
+                <td style="padding: 10px 0;"><strong>Saldo Pendiente</strong></td>
+                <td style="padding: 10px 0; text-align: right;"><strong>$*ctr_balance_due*</strong></td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="border-bottom: 1px dashed #eee; margin: 40px 0;"></div>
+
+    <div style="font-size: 10.5px; text-align: justify; color: #444; line-height: 1.3;">
+        <h3 style="text-align: center; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; color: #000;">Contrato de Arrendamiento y Políticas</h3>
+        
+        <div class="policy-columns" style="column-count: 2; column-gap: 30px; widows: 2; orphans: 2;">
+
+        <ol>
+			<li style="list-style-type:decimal;"><strong>Identidad de las partes:</strong> Para este Contrato de Arrendamiento, "Compañía" significará *company_name*, sus propietarios, oficiales, directores, empleados, contratistas y agentes. "Cliente" significará la(s) persona(s) que figura(n) en la sección "Arrendatario y Ubicación" en la página de factura de este acuerdo, así como la persona que firma el acuerdo (si es diferente), y sus agentes y/o empleados.</li>
+			<br>
+			<li style="list-style-type:decimal;"><strong>Equipo, Alquiler, Pago y Plazo del Contrato:</strong> El Cliente alquila de la Compañía ciertos equipos descritos en la página de factura de este acuerdo. La tarifa de alquiler establecida es pagadera, en su totalidad, por adelantado, y el plazo de alquiler será el que figure como "Hora de Inicio" en la página de factura, pero todas las obligaciones del Cliente que surjan bajo los términos y condiciones de este Contrato correrán desde la entrega real del equipo de alquiler hasta la recolección real del equipo por parte de la Compañía. Si el equipo es entregado y aceptado por el Cliente, el Cliente no tendrá derecho a ningún reembolso en absoluto si decide no utilizar el equipo por razones no cubiertas en otras disposiciones de este acuerdo.</li>
+			<br>
+			<li style="list-style-type:decimal;"><strong>Operación:</strong> El Cliente acepta proporcionar <span style="text-decoration:underline;">&nbsp; *electric* &nbsp;</span> toma(s) de corriente eléctrica de 115 voltios con una capacidad de 20 amperios por unidad de motor a menos de 50 pies de cada equipo. No se deben utilizar cables eléctricos que no sean suministrados por la Compañía. Si el soplador se detiene o la presión de aire es baja, retire a todos los usuarios inmediatamente y verifique el problema. El cable eléctrico debe estar enchufado a una toma de corriente y ser lo único que funcione en ese circuito eléctrico. También se deben revisar los interruptores de circuito. El cliente está sujeto a un cargo adicional por todas las llamadas de servicio debido a problemas eléctricos.</li>
+			<br>
+			<li style="list-style-type:decimal;"><strong>Clima:</strong> La Compañía no garantiza las condiciones climáticas. Nos reservamos el derecho de cancelar o reprogramar su alquiler antes de la entrega si se avecinan condiciones climáticas severas o si tenemos razones para creer que el equipo y/o sus usuarios pueden estar en peligro. También nos reservamos el derecho de retirar el equipo anticipadamente si las condiciones climáticas cambian. Si retiramos el equipo anticipadamente, el Cliente tendrá derecho a reprogramar el alquiler para otro día dentro de los 30 días siguientes. Algunos ejemplos de condiciones climáticas severas son temperaturas extremas, vientos fuertes, lluvia, nieve, truenos y/o relámpagos. <strong>En caso de clima severo durante un alquiler, el Cliente acepta que desenchufará el inflable, permitirá que se desinfle y no usará el equipo hasta que termine el clima severo.</strong></li>
+			<br>
+			<li style="list-style-type:decimal;"><strong>Política de Cheques Devueltos:</strong> Si un cheque es devuelto a la Compañía por falta de fondos, el Cliente acepta pagar el saldo total del alquiler, así como una tarifa adicional de $75.00 por devolución.
+				<br>
+				<br>
+			</li>
+			<li style="list-style-type:decimal;"><strong>Cuidado del Equipo de Alquiler:</strong> El Cliente será responsable de cualquier daño a cualquiera de los Equipos de Alquiler que no sea causado por el desgaste ordinario. "Desgaste ordinario" significará únicamente el deterioro normal del equipo causado por el uso ordinario, razonable y adecuado. El Cliente será responsable ante la Compañía de todos los daños que no sean "desgaste ordinario", incluyendo, pero no limitado a, cortes o roturas de vinilo o redes, daños por vuelcos, sobrecarga, exceder las capacidades nominales, rotura, uso inadecuado, abuso, falta de limpieza, contaminación o suciedad del equipo con artículos no aprobados como químicos, comida, pintura, confeti de serpentina (silly string), lodo, arcilla u otros materiales. El Cliente también será responsable de los daños causados por el clima si el daño pudo haber sido evitado por el Cliente al desinflar el equipo como se indica en el artículo tres (3) anterior.</li>
+			<br>
+			<li style="list-style-type:decimal;"><strong>Garantías:</strong> La Compañía no ofrece garantías, ya sean expresas o implícitas, en cuanto a la condición o el rendimiento de cualquier equipo y/o propiedad arrendada por el Cliente. Al firmar este contrato, el Cliente acepta que cualquier garantía de comerciabilidad o idoneidad para un propósito particular queda rechazada. El Cliente entiende que las únicas garantías sobre dicho equipo y/o propiedad son las indicadas en el manual de instrucciones, del cual el Cliente ha recibido una copia.</li>
+			<br>
+			<li style="list-style-type:decimal;"><strong>Posesión:</strong> El derecho del Cliente a la posesión del Equipo de Alquiler comienza tras la entrega de los artículos en las instalaciones del Cliente y termina en la recolección real por parte de la Compañía. La retención de la posesión o cualquier impedimento para la recolección del equipo al final o después del "Periodo de alquiler" especificado constituye un incumplimiento material de este acuerdo. Si el equipo no es devuelto por cualquier motivo, incluyendo robo, el Cliente está obligado a pagar a la Compañía el valor total de reemplazo de dicho equipo indicado en la página de factura, más todos los costos incidentales asociados con el intento de recolección o recuperación por parte de la Compañía. El Cliente no causará ni permitirá que estos artículos sean subarrendados, alquilados, vendidos o retirados de la dirección de entrega. Si los artículos no son devueltos, la Compañía puede tomar posesión de dichos artículos sin previo aviso o proceso legal y usar la fuerza que sea necesaria para hacerlo. El Cliente acepta indemnizar y eximir de responsabilidad a la Compañía de todas las reclamaciones y costos derivados de dicha recuperación.</li>
+				<br>
+				<br>
+
+				<ol>
+					<li style="list-style-type:upper-alpha;"><strong>Mal Uso General:</strong> No permita que los usuarios jueguen o escalen en las paredes, lados o techo de los inflables. No permita agua ni mangueras cerca de un inflable seco. Si el inflable se moja, un adulto debe secar el equipo antes de que los usuarios regresen. Asegúrese de que el equipo no esté mojado al regresar los usuarios, con la excepción de las unidades diseñadas para áreas húmedas como toboganes de agua, tanques de inmersión, etc.</li>
+					<br>
+					<li style="list-style-type:upper-alpha;"><strong>Negligencia o Abuso:</strong> Se pueden aplicar las siguientes tarifas por negligencia o abuso del inflable: &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+
+						<ol style="margin-top:0;margin-bottom:0;padding-inline-start:48px;">
+							<li style="list-style-type:lower-roman;">Comida derramada, bebida o uso de sustancias extrañas: $50</li>
+							<li style="list-style-type:lower-roman;">Negligencia o daño al equipo: Costo total de reparación</li>
+							<li style="list-style-type:lower-roman;">Daño irreparable: Costo total de reemplazo</li>
+							<li style="list-style-type:lower-roman;">Limpieza excesiva: $50</li>
+							<br>
+						</ol>
+					</li>
+				</ol>
+			</li>
+			<li style="list-style-type:decimal;"><strong>Reglas de Operación:</strong> El equipo debe operarse sobre una superficie lisa y compatible, como césped o superficie dura. El equipo NO puede operarse sobre superficies rugosas como rocas, ladrillos, vidrios o cualquier objeto puntiagudo. El equipo tampoco puede operarse sobre líneas de riego o servicios públicos expuestos. El equipo no puede ser movido por el Cliente después de haber sido colocado por el personal de la Compañía. El equipo DEBE ESTAR debidamente anclado antes de su uso. Nunca intente reubicar o ajustar un soplador. Nunca use el equipo durante vientos fuertes, tormentas eléctricas o relámpagos.</li>
+			<br>
+			<li style="list-style-type:decimal;"><strong>Alquiler Nocturno:</strong> A menos que se acuerde lo contrario, el equipo se recogerá el mismo día de la entrega. El Cliente acepta que cualquier alquiler nocturno será en un lugar seguro y que el equipo será desinflado, cubierto y los sopladores guardados en un lugar interior seguro cuando no se usen.</li>
+			<br>
+			<li style="list-style-type:decimal;"><strong>Problemas con el Equipo:</strong> Si algún equipo desarrolla un problema o no funciona correctamente, el Cliente acepta cesar inmediatamente su uso. En particular, si el inflable comienza a desinflarse, el Cliente hará que los usuarios salgan inmediatamente y verificará: 1) Si el motor se detuvo (revisar conexión eléctrica); 2) Si el motor sigue funcionando, revisar si hay obstrucciones en la entrada de aire o si los tubos de aire están bien sujetos; 3) Si estos pasos corrigen el problema, infle completamente antes de permitir su uso; 4) Si no puede corregirlo, llame a nuestra oficina.</li>
+			<br>
+			<li style="list-style-type:decimal;"><strong>Inspección de Recogida:</strong> Si el Cliente decide desinflar el equipo antes de la llegada del personal de recogida, este debe ser inflado nuevamente para su inspección antes de ser empacado.</li>
+			<br>
+			<li style="list-style-type:decimal;"><strong>Política de Cancelación/Reembolso:</strong> El Cliente solo recibirá un reembolso total del depósito si cancela debido a lluvia o condiciones climáticas adversas antes de la entrega (límite 8:00 AM del día del alquiler). No se emitirán reembolsos por ninguna otra razón. Si el equipo falla, es responsabilidad del Cliente notificar a la Compañía inmediatamente para intentar corregirlo; de lo contrario, no se emitirá reembolso.</li>
+			<br>
+			<li style="list-style-type:decimal;"><strong>Exención de Responsabilidad:</strong> El Cliente reconoce que el juego en un dispositivo de entretenimiento conlleva riesgos conocidos y desconocidos, incluyendo lesiones físicas, parálisis o muerte. El Cliente acepta indemnizar y eximir de responsabilidad a la Compañía por cualquier reclamación, costo o daño que surja del uso, posesión u operación del equipo alquilado. La Compañía no se hace responsable por lesiones resultantes del uso inapropiado, causas naturales o condiciones fuera de su control.</li>
+			<br>
+			<li style="list-style-type:decimal;"><strong>Reglas y Supervisión:</strong> Los participantes deben estar supervisados en TODO momento. El Cliente asume el papel de operador mientras el equipo esté en su posesión. 
+				<br>
+				<br>
+
+				<ol>
+					<li style="list-style-type:upper-alpha;">El Cliente es responsable de asegurar que el número de personas no exceda la capacidad máxima del fabricante.</li>
+					<br>
+					<li style="list-style-type:upper-alpha;">El Cliente acepta tener al menos 1 persona responsable presente en todo momento por cada equipo.</li>
+					<br>
+					<li style="list-style-type:upper-alpha;">Instrucciones de seguridad:
+						<ol>
+							<li style="list-style-type:lower-roman;">SIN ZAPATOS en los inflables.</li>
+							<li style="list-style-type:lower-roman;">CALCETINES REQUERIDOS cuando se indique.</li>
+							<li style="list-style-type:lower-roman;">Retirar lentes, joyas, cinturones y objetos afilados.</li>
+							<li style="list-style-type:lower-roman;">PROHIBIDO volteretas o saltos mortales.</li>
+							<li style="list-style-type:lower-roman;">PROHIBIDO juegos bruscos o peleas.</li>
+							<li style="list-style-type:lower-roman;">PROHIBIDO trepar por las paredes o redes.</li>
+							<li style="list-style-type:lower-roman;">PROHIBIDO comida, bebidas, mascotas o confeti de serpentina.</li>
+						</ol>
+					</li>
+				</ol>
+			</li>
+			<br>
+			<li style="list-style-type:decimal;"><strong>Reconocimiento del Cliente:</strong> El Cliente certifica que ha tenido la oportunidad de leer este Acuerdo completo y acepta estar sujeto a todos los términos y condiciones libremente y sin coacción.</li>
+			<br>
+			<li style="list-style-type:decimal;"><strong>Acuerdo Completo:</strong> Este Acuerdo constituye el contrato total entre la Compañía y el Cliente. Cualquier acuerdo previo, verbal o escrito, no tendrá validez.</li>
+		</ol>            
+
+AL FIRMAR MI NOMBRE EN ESTE CONTRATO, RECONOZCO QUE HE LEÍDO Y ENTIENDO COMPLETAMENTE ESTE CONTRATO, ACEPTO SER INSTRUIDO POR EL PERSONAL DE LA COMPAÑÍA COMO OPERADOR CAPACITADO PARA EL EQUIPO MENCIONADO Y QUE TODAS MIS PREGUNTAS HAN SIDO RESPONDIDAS A MI SATISFACCIÓN. ENTIENDO QUE SOY MUTUAMENTE RESPONSABLE DE ADHERIRME A LOS TÉRMINOS DE ESTE ACUERDO.                
+
+        </div>
+
+        <p style="margin-top: 20px; font-weight: bold; text-align: center; border: 1px solid #333; padding: 15px; text-transform: uppercase; background-color: #fcfcfc;">
+            Confirmo que he leído, entendido y aceptado todos los términos y reglas de seguridad.
+        </p>
+    </div>
+
+    <table class="responsive-table" width="100%" style="margin-top: 40px; border-collapse: collapse;">
+        <tr>
+            <td class="stack-column signature-box" style="width: 45%;  padding-top: 8px; text-align: center;">
+                <div style="font-family: 'Courier New', Courier, monospace; font-size: 18px; min-height: 40px; color: #002d72;">
+                    <img id="img-firma-tabla" alt="*signature*" style="max-height: 80px;width: auto;">                    
+                </div>                
+                <hr>
+                <div style="font-size: 10px; color: #999;">*customerdsname*</div>
+                <div style="font-size: 10px; color: #999; text-transform: uppercase;">Firma Digital del Cliente</div>
+            </td>
+            
+            <td class="stack-column" style="width: 10%; height: 20px;"></td>
+
+            <td class="stack-column signature-box" style="width: 45%;  padding-top: 8px; text-align: center; vertical-align: top;">
+                <div style="font-size: 13px; min-height: 40px; padding-top: 10px;">*signeddate*</div>
+                <hr>
+                <div style="font-size: 10px; color: #999; text-transform: uppercase;">Fecha de Firma</div>
+            </td>
+        </tr>
+    </table>
+</div>

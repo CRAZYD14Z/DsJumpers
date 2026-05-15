@@ -57,7 +57,7 @@ header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS"); // Incluir OPTIONS para CORS
 header("Access-Control-Max-Age: 3600");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, ID2,ID3,ID4,X-ID-CLIENT");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, ID2,ID3,ID4,X-ID-CLIENT,LNG");
 // Manejo de solicitudes OPTIONS (preflight requests de CORS)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
@@ -66,6 +66,7 @@ $headers = getallheaders();
 $authHeader = $headers['Authorization'] ?? '';
 $token = str_replace('Bearer ', '', $authHeader);
 $clienteId = $_SERVER['HTTP_X_ID_CLIENT'] ?? null;
+$lng = $_SERVER['HTTP_LNG'] ?? 'es';
 //$clienteId = $headers['X-ID-CLIENT'] ?? '';
 $database = new DatabaseLogin();
 $db = $database->getConnection();
@@ -74,7 +75,7 @@ $stmt = $db->prepare($sql);
 $stmt->bindValue(":id", $clienteId); 
 $stmt->execute();
 $account = $stmt->fetch(PDO::FETCH_ASSOC);
-$lng = 'es';
+//$lng = 'es';
 $Traducciones = Traducciones('index',$lng,$db);
 if ($account){
     $fecha_hoy = date('Y-m-d');
@@ -100,8 +101,8 @@ else{
     die();
 }
 $db = null;
-//$clienteId = $decoded->cliente_id;
-    //die($clienteId);
+
+
 // ----------------------------------------------------
 // 4. INICIALIZACIÓN Y LECTURA DE LA SOLICITUD
 // ----------------------------------------------------
@@ -109,9 +110,8 @@ $database = new Database();
 $db = $database->getConnection();
 $method = $_SERVER['REQUEST_METHOD'];
 $data = json_decode(file_get_contents("php://input"));
-//echo $data->token_id."***";
-//die();
-// Obtener y limpiar los segmentos de la URI (ej: /api/clientes/123 -> clientes, 123)
+
+
 $request_uri = $_SERVER['REQUEST_URI'];
 // Determinar la base para eliminarla de la URI
 $base_path = '/api-web'; 
@@ -130,38 +130,51 @@ if (isset($_SERVER['HTTP_ID4']))
     $IDS[] = $_SERVER['HTTP_ID4'] ?? '';
 if (isset($_SERVER['HTTP_ID5']))
     $IDS[] = $_SERVER['HTTP_ID5'] ?? '';
-//print_r($IDS);
-//die($resource);
+
 
 
 
 
 switch ($resource) {
+    case 'Traducciones_web':
+	    $Traducciones = Traducciones_web($data->program,$lng,$db);     
+        http_response_code(200);
+        echo json_encode($Traducciones);        
+    break;        
     case 'discounts':
+	    $Traducciones = Traducciones('get_discounts',$lng,$db);        
         get_discounts($resource,$db, $method, $id, $data);
     break;    
     case 'products':
+	    $Traducciones = Traducciones('products',$lng,$db);            
         products($resource,$db, $method, $id, $data);
     break;
     case 'categories':
+	    $Traducciones = Traducciones('categories',$lng,$db);            
         categories($resource,$db, $method, $id, $data);
     break;
     case 'surfaces':
+	    $Traducciones = Traducciones('surfaces',$lng,$db);        
         surfaces($resource,$db, $method, $id, $data);
     break;    
     case 'products_categories':
+	    $Traducciones = Traducciones('products_categories',$lng,$db);            
         products_categories($resource,$db, $method, $id, $data);
     break;
     case 'get_accesories':
+	    $Traducciones = Traducciones('get_accesories',$lng,$db);            
         get_accesories($resource,$db, $method, $id, $data);
     break;    
     case 'process_quote':
+	    $Traducciones = Traducciones('process_quote',$lng,$db);            
         process_quote($resource,$db, $method, $id, $data);
     break;
     case 'account':
+	    $Traducciones = Traducciones('account',$lng,$db);            
         account($resource,$db, $method, $id, $data);
     break;   
     case 'sendmail':
+	    $Traducciones = Traducciones('sendmail',$lng,$db);        
         sendmail($resource,$db, $method, $id, $data);
     break;
     case 'sendbook':
@@ -171,47 +184,65 @@ switch ($resource) {
         cart_update($resource,$db, $method, $id, $data);
     break;
     case 'quotes':
+	    $Traducciones = Traducciones('quotes',$lng,$db);            
         quotes($resource,$db, $method, $id, $data);
     break;    
     case 'document_center':
+	    $Traducciones = Traducciones('document_center',$lng,$db);        
         document_center($resource,$db, $method, $id, $data);
     break;   
     case 'quote_account':
+	    $Traducciones = Traducciones('quote_account',$lng,$db);            
         quote_account($resource,$db, $method, $id, $data);
     break;        
     case 'tip_deposit':
+	    $Traducciones = Traducciones('tip_deposit',$lng,$db);            
         tip_deposit($resource,$db, $method, $id, $data);
     break; 
     case 'quote_data':
+	    $Traducciones = Traducciones('quote_data',$lng,$db);            
         quote_data($resource,$db, $method, $id, $data);
     break;     
     case 'processpayment':
+	    $Traducciones = Traducciones('processpayment',$lng,$db);            
         processpayment($resource,$db, $method, $id, $data);
     break;  
     case 'processpayment_square':
+        $Traducciones = Traducciones('processpayment_square',$lng,$db);
         processpayment_square($resource,$db, $method, $id, $data);
     break;
     case 'gifcard_pay':
+        $Traducciones = Traducciones('gifcard_pay',$lng,$db);         
         gifcard_pay($resource,$db, $method, $id, $data);
     break;    
     case 'OPAY':
+        $Traducciones = Traducciones('OPAY',$lng,$db);        
         OPAY($resource,$db, $method, $id, $data);
     break;
     case 'SQUARE':
+        $Traducciones = Traducciones('SQUARE',$lng,$db);        
         SQUARE($resource,$db, $method, $id, $data);
     break;    
     case 'tnks':
+	    $Traducciones = Traducciones('tnks',$lng,$db);           
         tnks($resource,$db, $method, $id, $data);
     break;    
     case 'tnks_square':
-        tnks($resource,$db, $method, $id, $data);
+	    $Traducciones = Traducciones('tnks_square',$lng,$db);            
+        tnks_square($resource,$db, $method, $id, $data);
     break;        
     case 'distance_charge':
+	    $Traducciones = Traducciones('distance_charge',$lng,$db);           
         distance_charge($resource,$db, $method, $id, $data);
     break;    
     case 'validate_gifcard':
+	    $Traducciones = Traducciones('validate_gifcard',$lng,$db);        
         validate_gifcard($resource,$db, $method, $id, $data);
-    break;            
+    break;   
+    case 'validate_coupon':
+	    $Traducciones = Traducciones('validate_coupon',$lng,$db);        
+        validate_coupon($resource,$db, $method, $id, $data);
+    break;                
     default:
         // Manejar rutas no definidas
         http_response_code(404);
@@ -221,8 +252,6 @@ switch ($resource) {
 $db = null;
 function OPAY($table_name,$db, $method, $id, $data){
     global $IDS;
-    global $lng;
-    $Traducciones = Traducciones('OPAY',$lng,$db);
     switch ($method) {
         case 'GET': 
             $sql = "select Id,PublicKey FROM opay_account";
@@ -241,8 +270,6 @@ function OPAY($table_name,$db, $method, $id, $data){
 } 
 function SQUARE($table_name,$db, $method, $id, $data){
     global $IDS;
-    global $lng;
-    $Traducciones = Traducciones('SQUARE',$lng,$db);
     switch ($method) {
         case 'GET': 
             $sql = "select Id, LocalId FROM square_account";
@@ -262,7 +289,6 @@ function SQUARE($table_name,$db, $method, $id, $data){
 function gifcard_pay($table_name,$db, $method, $id, $data){
     global $IDS;
     global $lng;
-    $Traducciones = Traducciones('gifcard_pay',$lng,$db);    
     switch ($method) {
         case 'POST': 
             $token = $data->token ?? null;
@@ -332,7 +358,7 @@ function gifcard_pay($table_name,$db, $method, $id, $data){
             //METEMOS EL EVENTO A PROCESO
             process_op($cotizacion['IdQuote'],$db);            
             //RECUPERAR PLANTILLA
-            $sql = "SELECT Nombre, Template FROM document_center WHERE Tipo = 'email' AND IdTemplate = '8' AND Idioma = 'es'";
+            $sql = "SELECT Nombre, Template FROM document_center WHERE Tipo = 'email' AND IdTemplate = '8' AND Idioma = '$lng'";
             $stmt = $db->prepare($sql);
             //$stmt->bindValue(":name", $data->Product); 
             $stmt->execute();
@@ -439,7 +465,6 @@ function gifcard_pay($table_name,$db, $method, $id, $data){
 function processpayment_square($table_name,$db, $method, $id, $data){
     global $IDS;
     global $lng;
-    $Traducciones = Traducciones('processpayment_square',$lng,$db);      
     switch ($method) {
         case 'POST': 
             $stmt = $db->prepare("SELECT * FROM  square_account");
@@ -558,7 +583,7 @@ function processpayment_square($table_name,$db, $method, $id, $data){
                     $stmt->execute();
                     $account = $stmt->fetch(PDO::FETCH_ASSOC);                
                     //RECUPERAR PLANTILLA
-                    $sql = "SELECT Nombre, Template FROM document_center WHERE Tipo = 'email' AND IdTemplate = '8' AND Idioma = 'es'";
+                    $sql = "SELECT Nombre, Template FROM document_center WHERE Tipo = 'email' AND IdTemplate = '8' AND Idioma = '$lng'";
                     $stmt = $db->prepare($sql);
                     //$stmt->bindValue(":name", $data->Product); 
                     $stmt->execute();
@@ -679,7 +704,6 @@ function processpayment_square($table_name,$db, $method, $id, $data){
 function processpayment($table_name,$db, $method, $id, $data){
     global $IDS;
     global $lng;
-	$Traducciones = Traducciones('processpayment',$lng,$db);    
     switch ($method) {
         case 'POST': 
         $stmt = $db->prepare("SELECT * FROM  opay_account");
@@ -795,7 +819,7 @@ function processpayment($table_name,$db, $method, $id, $data){
                     $stmt->execute();
                     $account = $stmt->fetch(PDO::FETCH_ASSOC);                
                     //RECUPERAR PLANTILLA
-                    $sql = "SELECT Nombre, Template FROM document_center WHERE Tipo = 'email' AND IdTemplate = '8' AND Idioma = 'es'";
+                    $sql = "SELECT Nombre, Template FROM document_center WHERE Tipo = 'email' AND IdTemplate = '8' AND Idioma = '$lng'";
                     $stmt = $db->prepare($sql);
                     //$stmt->bindValue(":name", $data->Product); 
                     $stmt->execute();
@@ -871,7 +895,6 @@ function processpayment($table_name,$db, $method, $id, $data){
                         $cotizacion['Contrato'],
                         $cotizacion['UUID'].".PDF"
                     );                        
-                //                
                 echo json_encode([
                     'status' => 'success',
                     'message' => Trd(5),
@@ -911,8 +934,6 @@ function processpayment($table_name,$db, $method, $id, $data){
 }   
 function quote_data($table_name,$db, $method, $id, $data){
     global $IDS;
-    global $lng;
-	$Traducciones = Traducciones('quote_data',$lng,$db);    
     global $clienteId;
     switch ($method) {
         case 'GET': 
@@ -1044,8 +1065,6 @@ function quote_data($table_name,$db, $method, $id, $data){
 }   
 function tip_deposit($table_name,$db, $method, $id, $data){
     global $IDS;
-    global $lng;
-	$Traducciones = Traducciones('tip_deposit',$lng,$db);    
     switch ($method) {
         case 'POST': 
             $Tip = $data->tip;
@@ -1137,8 +1156,6 @@ function tip_deposit($table_name,$db, $method, $id, $data){
 }     
 function quote_account($table_name,$db, $method, $id, $data){
     global $IDS;
-    global $lng;
-	$Traducciones = Traducciones('quote_account',$lng,$db);    
     switch ($method) {
         case 'GET': 
             $sql = "select * FROM account";
@@ -1157,9 +1174,7 @@ function quote_account($table_name,$db, $method, $id, $data){
     }      
 }     
 function document_center($table_name,$db, $method, $id, $data){
-    global $IDS;
-    global $lng;
-	$Traducciones = Traducciones('document_center',$lng,$db);    
+    global $IDS;    
     switch ($method) {
         case 'GET': 
             $sql = "select Template FROM document_center WHERE Tipo = :tipo AND IdTemplate = :template AND Activo = 1 AND Idioma = :idioma";
@@ -1181,8 +1196,6 @@ function document_center($table_name,$db, $method, $id, $data){
 }      
 function quotes($table_name,$db, $method, $id, $data){
     global $IDS;
-    global $lng;
-	$Traducciones = Traducciones('quotes',$lng,$db);    
     switch ($method) {
         case 'GET': 
             $sql = "SELECT UUID,IdQuote,ExpDate,Status,Contrato FROM quotes WHERE UUID = :uuid AND Status = 'A'";
@@ -1206,8 +1219,6 @@ function quotes($table_name,$db, $method, $id, $data){
 }      
 function account($table_name,$db, $method, $id, $data){
     global $IDS;
-    global $lng;
-	$Traducciones = Traducciones('account',$lng,$db);    
     switch ($method) {
         case 'GET': 
             $sql = "SELECT * FROM account";
@@ -1230,6 +1241,7 @@ function account($table_name,$db, $method, $id, $data){
 }            
 function sendbook($table_name,$db, $method, $id, $data){
     global $IDS;
+    global $lng;
     switch ($method) {
         case 'POST': 
             $sql = "SELECT * FROM account ";
@@ -1238,7 +1250,7 @@ function sendbook($table_name,$db, $method, $id, $data){
             $stmt->execute();
             $account = $stmt->fetch(PDO::FETCH_ASSOC);                
             //RECUPERAR PLANTILLA
-            $sql = "SELECT Nombre, Template FROM document_center WHERE Tipo = 'email' AND IdTemplate = '7' AND Idioma = 'es'";
+            $sql = "SELECT Nombre, Template FROM document_center WHERE Tipo = 'email' AND IdTemplate = '7' AND Idioma = '$lng'";
             $stmt = $db->prepare($sql);
             //$stmt->bindValue(":name", $data->Product); 
             $stmt->execute();
@@ -1311,8 +1323,6 @@ function sendbook($table_name,$db, $method, $id, $data){
 }            
 function sendmail($table_name,$db, $method, $id, $data){
     global $IDS;
-    global $lng;
-	$Traducciones = Traducciones('sendmail',$lng,$db);
     switch ($method) {
         case 'POST': 
         try{
@@ -1367,8 +1377,6 @@ function sendmail($table_name,$db, $method, $id, $data){
 }
 function products($table_name,$db, $method, $id, $data){
     global $IDS;
-    global $lng;
-	$Traducciones = Traducciones('products',$lng,$db);    
     switch ($method) {
         case 'POST': 
             /*
@@ -1470,12 +1478,10 @@ function products($table_name,$db, $method, $id, $data){
 }
 function get_discounts($table_name,$db, $method, $id, $data){
     global $IDS;
-    global $lng;
-	$Traducciones = Traducciones('get_discounts',$lng,$db);
     switch ($method) {
         case 'GET': 
             // 1. Definimos el SQL como un simple string (texto)
-            $sql = "select * FROM discounts WHERE DateExp > now() AND Active = 1 AND (Used < Quantity OR Unlimited = 1) ORDER BY Name";
+            $sql = "select * FROM discounts WHERE DateExp > now() AND Active = 1 AND (Used < Quantity OR Unlimited = 1) AND IntExt = '1' ORDER BY Name";
             // 2. Preparamos la consulta
             $stmt = $db->prepare($sql);
             // 3. Vinculamos el valor (asegúrate que $data->Product exista)
@@ -1500,8 +1506,6 @@ function get_discounts($table_name,$db, $method, $id, $data){
 }
 function categories($table_name,$db, $method, $id, $data){
     global $IDS;
-    global $lng;
-	$Traducciones = Traducciones('categories',$lng,$db);    
     switch ($method) {
         case 'POST': 
             // 1. Definimos el SQL como un simple string (texto)
@@ -1530,9 +1534,7 @@ function categories($table_name,$db, $method, $id, $data){
     }      
 }
 function surfaces($table_name,$db, $method, $id, $data){
-    global $IDS;
-    global $lng;
-	$Traducciones = Traducciones('surfaces',$lng,$db);    
+    global $IDS;    
     switch ($method) {
         case 'POST': 
             // 1. Definimos el SQL como un simple string (texto)
@@ -1562,8 +1564,6 @@ function surfaces($table_name,$db, $method, $id, $data){
 }
 function products_categories($table_name,$db, $method, $id, $data){
     global $IDS;
-    global $lng;
-	$Traducciones = Traducciones('products_categories',$lng,$db);    
     switch ($method) {
         case 'POST': 
 /*
@@ -1723,8 +1723,6 @@ function products_categories($table_name,$db, $method, $id, $data){
 }
 function get_accesories($table_name,$db, $method, $id, $data){
     global $IDS;
-    global $lng;
-	$Traducciones = Traducciones('get_accesories',$lng,$db);    
     switch ($method) {
         case 'GET': 
             $productoId = $_GET['producto_id'] ?? 0;
@@ -1749,7 +1747,6 @@ function get_accesories($table_name,$db, $method, $id, $data){
 function process_quote($table_name,$db, $method, $id, $data){
     global $IDS;
     global $lng;
-	$Traducciones = Traducciones('process_quote',$lng,$db);    
     switch ($method) {
         case 'POST': 
             if (!$data) {
@@ -1791,12 +1788,14 @@ function process_quote($table_name,$db, $method, $id, $data){
                     $idCliente
                 ]);
                 $mensaje = Trd(2);
+                $Organization = ''; 
+                $Customer = $idCliente;                    
             } else {
                 // --- INSERTAR CLIENTE ---
                 $sqlIns = "INSERT INTO customers (
                             Nombres, Apellidos, NombreEmpresa, Correo, TelefonoCelular, 
                             Direccion, Direccion2, Ciudad, CP, Pais, Lenguaje,Estatus,FechaCreacion,FechaCambio
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'es', 'A',now(),now())";
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '$lng', 'A',now(),now())";
                 $stmtIns = $db->prepare($sqlIns);
                 $stmtIns->execute([
                     $data->cliente->nombre,
@@ -1831,6 +1830,7 @@ function process_quote($table_name,$db, $method, $id, $data){
             $Customer = $idCliente;        
         }
     }
+
 try {
     // 1. Verificar si el lugar ya existe por Dirección y CP
     // Esto evita duplicar el mismo domicilio en la base de datos
@@ -2115,7 +2115,7 @@ try {
             $stmt->execute();
             $account = $stmt->fetch(PDO::FETCH_ASSOC);                
             //RECUPERAR PLANTILLA
-            $sql = "SELECT Nombre, Template FROM document_center WHERE Tipo = 'email' AND IdTemplate = '6' AND Idioma = 'es'";
+            $sql = "SELECT Nombre, Template FROM document_center WHERE Tipo = 'email' AND IdTemplate = '6' AND Idioma = '$lng'";
             $stmt = $db->prepare($sql);
             //$stmt->bindValue(":name", $data->Product); 
             $stmt->execute();
@@ -2369,9 +2369,7 @@ function cart_update($resource,$db, $method, $id, $data){
     ]);     
 }
 function tnks($table_name,$db, $method, $id, $data){
-    global $IDS;
-    global $lng;
-	$Traducciones = Traducciones('tnks',$lng,$db);    
+    global $IDS; 
     switch ($method) {
         case 'GET': 
             //echo $data->idLead;
@@ -2481,8 +2479,6 @@ function tnks($table_name,$db, $method, $id, $data){
 }
 function tnks_square($table_name,$db, $method, $id, $data){
     global $IDS;
-    global $lng;
-	$Traducciones = Traducciones('tnks_square',$lng,$db);    
     switch ($method) {
         case 'GET': 
             $idLead = $data->idLead;
@@ -2585,9 +2581,7 @@ function verificarPagoLink(SquareClient $square, string $orderId,$db): array
     ];      
 }
 function distance_charge($table_name,$db, $method, $id, $data){
-    global $IDS;
-    global $lng;
-	$Traducciones = Traducciones('distance_charge',$lng,$db);    
+    global $IDS; 
     switch ($method) {
         case 'POST': 
             $ZIPO = $data->{'ZIPO'};
@@ -2703,10 +2697,8 @@ function distance_charge($table_name,$db, $method, $id, $data){
 }
 function validate_gifcard($table_name,$db, $method, $id, $data){
     global $IDS;
-    global $lng;
-	$Traducciones = Traducciones('validate_gifcard',$lng,$db);
     switch ($method) {
-        case 'PUT':  
+        case 'POST':  
             //echo $data->tel;
             //echo $data->email;
             //echo $data->code;
@@ -2830,6 +2822,43 @@ function validate_gifcard($table_name,$db, $method, $id, $data){
         break;
     }      
 }
+function validate_coupon($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST':  
+                //echo $data->IdCupon;
+                $query = "SELECT Code, Type, Amount, Quantity, Used, Unlimited FROM discounts WHERE Code = :code AND Active = 1 AND now() <= DateExp ";
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(':code', $data->IdCupon, PDO::PARAM_STR);
+                $stmt->execute();                    
+                $discount = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($discount){
+                    http_response_code(200);
+                    if ($discount['Unlimited'] == 1){
+                        echo json_encode(array("status"=>'true',"Message" => Trd(1),"code" => $discount['Code'],"type" => $discount['Type'],"val" => $discount['Amount']));
+                    }
+                    else{
+                        if($discount['Used'] < $discount['Quantity']){
+                            echo json_encode(array("status"=>'true',"Message" => Trd(1),"code" => $discount['Code'],"type" => $discount['Type'],"val" => $discount['Amount']));
+                        }
+                        else{
+                            echo json_encode(array("status"=>'error',"Message" => Trd(2)));
+                        }
+                    }
+                }
+                else{
+                    echo json_encode(array("status"=>'error',"Message" => Trd(2)));
+                }
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(3)));
+        break;
+    }      
+}
+
 
 function Traducciones($fnc,$lgn,$db){
     $query = "select Traduccion FROM  api_web_traduccion where Programa = ? AND Idioma = ? ORDER BY Id";            
@@ -2847,9 +2876,25 @@ function Traducciones($fnc,$lgn,$db){
     return $Traducciones;
 }
 
-function Trd($Id){
+function Traducciones_web($fnc,$lgn,$db){
+    $query = "select Traduccion FROM  web_traduccion where Programa = ? AND Idioma = ? ORDER BY Id";            
+    $stmt = $db->prepare($query);
+    $stmt->bindValue(1, $fnc);
+    $stmt->bindValue(2, $lgn);
+    $stmt->execute();
+    $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $Traducciones[]='';
+    if ($resultados) {
+        foreach ($resultados as $registro) {
+            $Traducciones[]=$registro['Traduccion'];
+        }
+    }
+    return $Traducciones;
+}
+
+function Trd($Idt){
     global $Traducciones;
-    return $Traducciones[$Id];
+    return $Traducciones[$Idt];
 }
 
 

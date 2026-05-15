@@ -11,7 +11,7 @@ header('Access-Control-Allow-Origin: *');
 
 $mes  = isset($_GET['mes'])  ? (int)$_GET['mes']  : (int)date('m');
 $anio = isset($_GET['anio']) ? (int)$_GET['anio'] : (int)date('Y');
-
+$busqueda = isset($_GET['busqueda']) ? $_GET['busqueda'] :'';
 // ---------------------------------------------------------------------------
 // Catálogo de estatus
 // ---------------------------------------------------------------------------
@@ -24,8 +24,38 @@ $estatus = [
     'reprogramado'=> ['label' => 'Reprogramado', 'color' => '#ec4899'],
 ];
 
+if ($busqueda != ""){
+$searchTerm = "%" . $busqueda . "%";
+
+$sql = "SELECT 
+                v.id as idev,
+                DATE(v.StartDateTime) as fecha,
+                CASE 
+                    WHEN v.Organization > 0 THEN v.NombreOrganizacion 
+                    WHEN v.Customer > 0 THEN CONCAT(v.NombreCliente, ' ', v.ApellidosCliente)
+                    ELSE 'Sin identificar'
+                END AS titulo,
+                DATE_FORMAT(v.StartDateTime, '%H:%i') as hora,
+                TIMESTAMPDIFF(HOUR, v.StartDateTime, v.EndDateTime) AS duracion,
+                v.`Status` AS estatus,
+                v.lugar as lugar,
+                v.Note1 as `desc`
+            FROM v_leads v
+            INNER JOIN v_leads_detail d ON v.id = d.Id
+            WHERE MONTH(v.StartDateTime) = :mes 
+              AND YEAR(v.StartDateTime) = :anio
+              AND d.Name LIKE :busqueda
+            GROUP BY v.id";
+//echo $sql." $searchTerm";
+            $stmt = $db->prepare($sql);
+
+            $stmt->bindValue(':mes', $mes, PDO::PARAM_INT);
+            $stmt->bindValue(':anio', $anio, PDO::PARAM_INT);    
+            $stmt->bindValue(':busqueda', $searchTerm, PDO::PARAM_STR);    
+
+
+}else{
             $sql = "
-            
                 SELECT 
                 id as idev,
                 date(StartDateTime) as fecha,
@@ -40,13 +70,13 @@ $estatus = [
                 lugar as lugar,
                 Note1 as `desc`
                 FROM v_leads  where MONTH(StartDateTime) = :mes AND YEAR(StartDateTime) = :anio
-
             ";
-
             $stmt = $db->prepare($sql);
-
             $stmt->bindValue(':mes', $mes, PDO::PARAM_INT);
             $stmt->bindValue(':anio', $anio, PDO::PARAM_INT);
+}
+
+
             $stmt->execute();
             $banco = $stmt->fetchAll(); 
 

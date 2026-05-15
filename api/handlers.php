@@ -3844,6 +3844,11 @@ function acondicionamiento($table_name,$db, $method, $id, $data){
                 
                 $rows = $db->query("SELECT * FROM v_operation_checklist WHERE `stage` IN ('LAVADO', 'LIMPIEZA', 'REPARACION') AND assorted_quantity > '0' AND id_operation = ".$op['Id_operation'])->fetchAll();
 
+                $rows = array_filter($rows, function($row) {
+                    // We keep the row ONLY if it DOES NOT meet your removal criteria
+                    return !($row['id_accesory'] > 0 && $row['load_accesory'] == 0);
+                });                
+
                 foreach ($rows as $row) {
 
 

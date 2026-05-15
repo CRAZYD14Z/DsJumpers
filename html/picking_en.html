@@ -1,0 +1,93 @@
+<div id="picking-list-dsj" style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #333; max-width: 900px; margin: 20px auto; line-height: 1.4; font-size: 13px; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin-bottom: 20px;">
+        <tr>
+            <td style="vertical-align: top; width: 50%;">
+                <img src="https://rental.software/users/DsJumpers/images/LOGO - DSJUMPERS_979149.jpg" style="width: 150px; margin-bottom: 10px;">
+                <div style="font-size: 12px;">
+                    <strong style="font-size: 16px;">PICKING LIST</strong><br>
+                    <span>Event ID: <strong>#*leadid*</strong></span>
+                </div>
+            </td>
+            <td style="vertical-align: top; text-align: right;">
+                <div style="background-color: #333; color: #fff; padding: 10px; border-radius: 4px; display: inline-block; text-align: left;">
+                    <p style="margin: 0; font-size: 11px; text-transform: uppercase;">Loading Date</p>
+                    <p style="margin: 0; font-size: 14px; font-weight: bold;">*startdate*</p>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <table width="100%" style="border-collapse: collapse; margin-bottom: 20px; background-color: #f9f9f9; border: 1px solid #eee;">
+        <tr>
+            <td style="padding: 10px; width: 50%; border-right: 1px solid #eee;">
+                <strong style="font-size: 11px; text-transform: uppercase; color: #777;">Customer / Organization:</strong><br>
+                <span style="font-size: 14px; font-weight: bold;">*organization*</span><br>
+                *ctfirstname* *ctlastname*
+            </td>
+            <td style="padding: 10px;">
+                <strong style="font-size: 11px; text-transform: uppercase; color: #777;">Delivery Address:</strong><br>
+                *eventstreet*, *eventcity*, *eventstate*
+            </td>
+        </tr>
+    </table>
+
+    <h3 style="border-bottom: 2px solid #333; padding-bottom: 5px; text-transform: uppercase; font-size: 14px;">Rentals to Load</h3>
+    <table width="100%" style="border-collapse: collapse; margin-bottom: 30px;">
+        <thead>
+            <tr style="background-color: #eee;">
+                <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ccc;">Rental Item</th>
+                <th style="padding: 8px; text-align: center; border-bottom: 1px solid #ccc; width: 80px;">Qty</th>
+                <th style="padding: 8px; text-align: center; border-bottom: 1px solid #ccc; width: 100px;">Checked</th>
+            </tr>
+        </thead>
+        <tbody id="lista-picking">
+            <tr class="item-fila" style="border-bottom: 1px solid #eee; display: none;">
+                <td style="padding: 8px;">
+                    <div style="font-weight: bold;">*rentalname*</div>
+                    <div style="font-size: 11px; color: #666;">Note: *rentalnote*</div>
+                </td>
+                <td style="padding: 8px; text-align: center; font-weight: bold; font-size: 15px;">*rentalqty*</td>
+                <td style="padding: 8px; text-align: center;">
+                    <div style="width: 30px; height: 30px; border: 2px solid #333; margin: auto; border-radius: 4px;"></div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3 style="border-bottom: 2px solid #333; padding-bottom: 5px; text-transform: uppercase; font-size: 14px;">Additional Items / Accessories</h3>
+    <table width="100%" style="border-collapse: collapse; margin-bottom: 20px;">
+        <thead>
+            <tr style="background-color: #f4f4f4;">
+                <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ccc;">Description</th>
+                <th style="padding: 8px; text-align: center; border-bottom: 1px solid #ccc; width: 80px;">Qty</th>
+                <th style="padding: 8px; text-align: center; border-bottom: 1px solid #ccc; width: 100px;">Status</th>
+            </tr>
+        </thead>
+        <tbody id="lista-extras">
+            <tr style="border-bottom: 1px solid #eee; display: none;">
+                <td style="padding: 8px;">*extra_name*</td>
+                <td style="padding: 8px; text-align: center;">*extra_qty*</td>
+                <td style="padding: 8px; text-align: center;"><div style="width: 50px; height: 25px; border: 1px dashed #ccc; margin: auto;"></div></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div style="margin-top: 20px; padding: 15px; border: 1px solid #eee; background-color: #fcfcfc;">
+        <strong style="font-size: 11px; text-transform: uppercase; color: #777;">Picker's Notes:</strong>
+        <div style="margin-top: 10px; border-bottom: 1px solid #ddd; height: 20px;"></div>
+        <div style="margin-top: 10px; border-bottom: 1px solid #ddd; height: 20px;"></div>
+    </div>
+
+    <table width="100%" style="margin-top: 30px; border-collapse: collapse;">
+        <tr>
+            <td style="width: 33%; text-align: center; padding: 10px;">
+                <div style="border-top: 1px solid #333; padding-top: 5px; font-size: 11px;">Loading Supervisor</div>
+            </td>
+            <td style="width: 33%;"></td>
+            <td style="width: 33%; text-align: center; padding: 10px;">
+                <div style="border-top: 1px solid #333; padding-top: 5px; font-size: 11px;">Driver / Delivery Person</div>
+            </td>
+        </tr>
+    </table>
+</div>

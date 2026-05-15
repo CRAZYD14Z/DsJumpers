@@ -162,6 +162,13 @@ let eventoModal  = null;
 let modalBS      = null;
 let IdLead = 0;
 
+$(document).ready(function() {
+    $("#SearchButton").on("click", function() {
+        busqueda = $('#search_text').val();
+        cargarEventos(mesActual, anioActual, busqueda)
+    });
+});
+
 // ── Utilidades ───────────────────────────────────────────────
 const today = new Date();
 const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
@@ -185,14 +192,14 @@ function minToHHMM(min) {
 }
 
 // ── Cargar eventos vía AJAX ───────────────────────────────────
-function cargarEventos(mes, anio) {
+function cargarEventos(mes, anio, busqueda) {
     $('#cal-spinner').addClass('show');
     $('#cal-grid').find('.cal-cell').remove();
 
     $.ajax({
         url: API_URL,
         method: 'GET',
-        data: { mes, anio },
+        data: { mes, anio, busqueda },
         dataType: 'json',
         success(resp) {
             if (resp.ok) {
@@ -413,7 +420,8 @@ function irMes(mes, anio) {
     mesActual  = mes;
     anioActual = anio;
     actualizarLabel();
-    cargarEventos(mes, anio);
+    busqueda = $('#search_text').val();
+    cargarEventos(mes, anio, busqueda);
 }
 
 $('#btn-prev').on('click', () => {
@@ -449,7 +457,8 @@ $('#cal-grid').on('click', () => {
 // ── INIT ──────────────────────────────────────────────────────
 $(function() {
     actualizarLabel();
-    cargarEventos(mesActual, anioActual);
+    busqueda = $('#search_text').val();
+    cargarEventos(mesActual, anioActual,busqueda);
 });
 
 
