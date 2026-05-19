@@ -629,7 +629,7 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
         case 'POST': 
         // ------------------------------------------------------------------
         // INSERTA UN NUEVO REGISTRO
-            $query = "SELECT Campo, Requerido,TipoCampo FROM modal_add WHERE Tabla = ? AND TipoCampo <> 'auto' AND TipoCampo <> 'insert' AND TipoCampo <> 'Lst' AND TipoCampo <> 'button' AND TipoCampo <> 'option' AND TipoCampo <> 'titulo' ORDER BY Id";
+            $query = "SELECT Campo, Requerido,TipoCampo FROM modal_add WHERE Tabla = ? AND TipoCampo <> 'auto' AND TipoCampo <> 'insert' AND TipoCampo <> 'Lst' AND TipoCampo <> 'button' AND TipoCampo <> 'option' AND TipoCampo <> 'titulo' and TipoCampo <> 'imglst' ORDER BY Id";
             $stmt = $db->prepare($query);
             $stmt->bindParam(1, $table_name);
             $stmt->execute();

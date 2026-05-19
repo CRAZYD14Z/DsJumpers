@@ -1509,7 +1509,7 @@ function categories($table_name,$db, $method, $id, $data){
     switch ($method) {
         case 'POST': 
             // 1. Definimos el SQL como un simple string (texto)
-            $sql = "SELECT Id, Nombre, Imagen FROM categories ";
+            $sql = "SELECT Id, Nombre, Imagen FROM categories WHERE IntExt = 1 ";
             // 2. Preparamos la consulta
             $stmt = $db->prepare($sql);
             // 3. Vinculamos el valor (asegúrate que $data->Product exista)
