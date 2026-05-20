@@ -158,7 +158,10 @@ session_start();
             'document_center',
             'price_lists',
             'discounts',
-            'inventory_stock'
+            'inventory_stock',
+            'operators',
+            'referals',
+            'vehicles'
         ];
         if (!in_array($IdTabla, $allowed_tables)) {
             die("<h3>".Trd(3)."</h3></div></body></html>");
@@ -1524,11 +1527,11 @@ function deleteRecord(Id,IdTabla) {
                         html += `<td style="text-align: ${alineaciones[idx]}" ><a href="ajax/tmp/${row[col] || ''}" target="_blank" rel="noopener noreferrer">${row[col] || ''}</a></td>`;
                 }                
                 else{
-                    if (col != 'Id' && col != 'IId' && col != 'Producto_rup' && col != 'Producto_rsp')
+                    if (col != 'Id' && col != 'IId' && col != 'Producto_rup' && col != 'Producto_rsp' && col != 'id_vehicle' )
                         html += `<td style="text-align: ${alineaciones[idx]}" >${row[col] || ''}</td>`;
                 }
 
-                    if (col == 'Id' || col == 'IId' || col == 'IdWhareHouse')
+                    if (col == 'Id' || col == 'IId' || col == 'IdWhareHouse' || col ==  'id_vehicle')
                         Id = row[col];
                     idx=idx+1;
                 });

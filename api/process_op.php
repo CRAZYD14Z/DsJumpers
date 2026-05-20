@@ -1,6 +1,14 @@
 <?php
 function process_op($Lead,$db){
-                $queryI ="SELECT Venue, Surface FROM lead WHERE Id = :lead";
+
+
+            $queryI ="UPDATE lead SET Status = 'confirmed' WHERE Id = :lead";
+            $stmtI = $db->prepare($queryI);
+            $stmtI->bindValue(":lead", $Lead);
+            $stmtI->execute();
+
+
+            $queryI ="SELECT Venue, Surface FROM lead WHERE Id = :lead";
             $stmtI = $db->prepare($queryI);
             $stmtI->bindValue(":lead", $Lead);
             $stmtI->execute();      

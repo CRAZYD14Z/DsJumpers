@@ -31,62 +31,71 @@
                 </li>
 
                 <!-- OPERACIÓN Y LOGÍSTICA -->
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-truck"></i> <?php echo ($_SESSION['Idioma']== 'en') ? "Operation" : "Operación"; ?>
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="route.php">Armado de rutas</a></li>
-                        <li><a class="dropdown-item" href="operation.php">Operación General</a></li>
-                        <li><a class="dropdown-item" href="acondicionamiento.php">Acondicionamiento</a></li>
-                        <li><a class="dropdown-item" href="monitor.php">Monitor</a></li>
-                    </ul>
-                </li>
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+        <i class="fas fa-truck"></i> <?php echo ($_SESSION['Idioma'] == 'en') ? "Operation" : "Operación"; ?>
+    </a>
+    <ul class="dropdown-menu">
+        <li><a class="dropdown-item" href="route.php"><?php echo ($_SESSION['Idioma'] == 'en') ? "Route Mapping" : "Armado de rutas"; ?></a></li>
+        <li><a class="dropdown-item" href="operation.php"><?php echo ($_SESSION['Idioma'] == 'en') ? "General Operation" : "Operación General"; ?></a></li>
+        <li><a class="dropdown-item" href="acondicionamiento.php"><?php echo ($_SESSION['Idioma'] == 'en') ? "Conditioning" : "Acondicionamiento"; ?></a></li>
+        <li><a class="dropdown-item" href="monitor.php"><?php echo ($_SESSION['Idioma'] == 'en') ? "Monitor" : "Monitor"; ?></a></li>
+    </ul>
+</li>
 
-                <!-- CATÁLOGOS / CONFIGURACIÓN -->
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-cogs"></i> <?php echo ($_SESSION['Idioma']== 'en') ? "Settings" : "Configuración"; ?>
-                    </a>
-                    <ul class="dropdown-menu scrollable-menu" style="max-height: 600px; overflow-y: auto;">
-                        <li><h6 class="dropdown-header">Administración</h6></li>
-                        <li><a class="dropdown-item" href="crud.php?Id=account">Cuenta</a></li>
-                        <li><a class="dropdown-item" href="pay_platform.php">Plataforma de pago</a></li>
-                        <li><a class="dropdown-item" href="crud.php?Id=customers">Clientes</a></li>
-                        <li><a class="dropdown-item" href="crud.php?Id=customer_type">Tipo Cliente</a></li>
-                        <li><a class="dropdown-item" href="crud.php?Id=organizations">Organizaciones</a></li>
-                        <li><a class="dropdown-item" href="crud.php?Id=venues">Lugares de eventos</a></li>
-                        <li><a class="dropdown-item" href="crud.php?Id=referals">Referidos</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="crud.php?Id=products">Productos</a></li>
-                        <li><a class="dropdown-item" href="crud.php?Id=categories">Categorias</a></li>                        
-                        <li><a class="dropdown-item" href="crud.php?Id=price_lists">Listas de Precios</a></li>                        
-                        <li><a class="dropdown-item" href="crud.php?Id=item_prices">Item Prices</a></li>                        
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="crud.php?Id=discounts">Descuentos-Cupones-Tarifas</a></li>
-                        <li><a class="dropdown-item" href="crud.php?Id=distance_charges">Cargos por distancia</a></li>
-                        <li><a class="dropdown-item" href="documentcenter.php">Centro de Documentos</a></li>
-                        <li><a class="dropdown-item" href="crud.php?Id=gifcard">Tarjetas de regalo</a></li>                
-                        <li><a class="dropdown-item" href="crud.php?Id=surfaces">Superficies</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><h6 class="dropdown-header">Logística</h6></li>
-                        <li><a class="dropdown-item" href="crud.php?Id=wharehouses">Almacenes</a></li>
-                        <li><a class="dropdown-item" href="crud.php?Id=inventory_stock">Inventario</a></li>
-                        <li><a class="dropdown-item" href="crud.php?Id=venues">Lugares</a></li>
-                        <li><a class="dropdown-item" href="crud.php?Id=distance_charges">Cargos Distancia</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="#" id="logout-link">
-                            <i class="fas fa-sign-out-alt me-2"></i><?php echo ($_SESSION['Idioma']== 'en') ? "Sign Out" : "Salir"; ?>
-                        </a></li>
-                    </ul>
-                </li>
+<!-- CATÁLOGOS / CONFIGURACIÓN -->
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+        <i class="fas fa-cogs"></i> <?php echo ($_SESSION['Idioma'] == 'en') ? "Settings" : "Configuración"; ?>
+    </a>
+    <ul class="dropdown-menu scrollable-menu" style="max-height: 600px; overflow-y: auto;">
+        <li><h6 class="dropdown-header"><?php echo ($_SESSION['Idioma'] == 'en') ? "Administration" : "Administración"; ?></h6></li>
+        <li><a class="dropdown-item" href="crud.php?Id=account"><?php echo ($_SESSION['Idioma'] == 'en') ? "Account" : "Cuenta"; ?></a></li>
+        <li><a class="dropdown-item" href="pay_platform.php"><?php echo ($_SESSION['Idioma'] == 'en') ? "Payment Platform" : "Plataforma de pago"; ?></a></li>
+        <li><a class="dropdown-item" href="crud.php?Id=customers"><?php echo ($_SESSION['Idioma'] == 'en') ? "Customers" : "Clientes"; ?></a></li>
+        <li><a class="dropdown-item" href="crud.php?Id=customer_type"><?php echo ($_SESSION['Idioma'] == 'en') ? "Customer Type" : "Tipo Cliente"; ?></a></li>
+        <li><a class="dropdown-item" href="crud.php?Id=organizations"><?php echo ($_SESSION['Idioma'] == 'en') ? "Organizations" : "Organizaciones"; ?></a></li>
+        <li><a class="dropdown-item" href="crud.php?Id=venues"><?php echo ($_SESSION['Idioma'] == 'en') ? "Venues" : "Lugares de eventos"; ?></a></li>
+        <li><a class="dropdown-item" href="crud.php?Id=referals"><?php echo ($_SESSION['Idioma'] == 'en') ? "Referrals" : "Referidos"; ?></a></li>
+        <li><a class="dropdown-item" href="crud.php?Id=operators"><?php echo ($_SESSION['Idioma'] == 'en') ? "Operators" : "Operadores"; ?></a></li>
+        
+        <li><hr class="dropdown-divider"></li>
+        
+        <li><a class="dropdown-item" href="crud.php?Id=products"><?php echo ($_SESSION['Idioma'] == 'en') ? "Products" : "Productos"; ?></a></li>
+        <li><a class="dropdown-item" href="crud.php?Id=categories"><?php echo ($_SESSION['Idioma'] == 'en') ? "Categories" : "Categorías"; ?></a></li>                        
+        <li><a class="dropdown-item" href="crud.php?Id=price_lists"><?php echo ($_SESSION['Idioma'] == 'en') ? "Price Lists" : "Listas de Precios"; ?></a></li>                        
+        <li><a class="dropdown-item" href="crud.php?Id=item_prices"><?php echo ($_SESSION['Idioma'] == 'en') ? "Item Prices" : "Precios de Artículos"; ?></a></li>                        
+        
+        <li><hr class="dropdown-divider"></li>
+        
+        <li><a class="dropdown-item" href="crud.php?Id=discounts"><?php echo ($_SESSION['Idioma'] == 'en') ? "Discounts-Coupons-Rates" : "Descuentos-Cupones-Tarifas"; ?></a></li>
+        <li><a class="dropdown-item" href="documentcenter.php"><?php echo ($_SESSION['Idioma'] == 'en') ? "Document Center" : "Centro de Documentos"; ?></a></li>
+        <li><a class="dropdown-item" href="crud.php?Id=gifcard"><?php echo ($_SESSION['Idioma'] == 'en') ? "Gift Cards" : "Tarjetas de regalo"; ?></a></li>                
+        <li><a class="dropdown-item" href="crud.php?Id=surfaces"><?php echo ($_SESSION['Idioma'] == 'en') ? "Surfaces" : "Superficies"; ?></a></li>
+        
+        <li><hr class="dropdown-divider"></li>
+        
+        <li><h6 class="dropdown-header"><?php echo ($_SESSION['Idioma'] == 'en') ? "Logistics" : "Logística"; ?></h6></li>
+        <li><a class="dropdown-item" href="crud.php?Id=wharehouses"><?php echo ($_SESSION['Idioma'] == 'en') ? "Warehouses" : "Almacenes"; ?></a></li>
+        <li><a class="dropdown-item" href="crud.php?Id=inventory_stock"><?php echo ($_SESSION['Idioma'] == 'en') ? "Inventory" : "Inventario"; ?></a></li>
+        <li><a class="dropdown-item" href="crud.php?Id=venues"><?php echo ($_SESSION['Idioma'] == 'en') ? "Locations" : "Lugares"; ?></a></li>
+        <li><a class="dropdown-item" href="crud.php?Id=vehicles"><?php echo ($_SESSION['Idioma'] == 'en') ? "Vehicles" : "Vehículos"; ?></a></li>
+        <li><a class="dropdown-item" href="crud.php?Id=distance_charges"><?php echo ($_SESSION['Idioma'] == 'en') ? "Distance Charges" : "Cargos Distancia"; ?></a></li>
+        
+        <li><hr class="dropdown-divider"></li>
+        
+        <li><a class="dropdown-item text-danger" href="#" id="logout-link">
+            <i class="fas fa-sign-out-alt me-2"></i><?php echo ($_SESSION['Idioma'] == 'en') ? "Sign Out" : "Salir"; ?>
+        </a></li>
+    </ul>
+</li>
             </ul>
 
             <!-- BUSCADOR E IDIOMA A LA DERECHA -->
             <div class="d-flex align-items-center">
                 <form class="me-3" role="search">
                     <div class="input-group input-group-sm">
-                        <input class="form-control" type="search" id="search_text" placeholder="Buscar...">
+                        <input class="form-control" type="search" id="search_text" placeholder="<?php echo ($_SESSION['Idioma']== 'en') ? "Search..." : "Buscar..."; ?>">
                         <button class="btn btn-outline-light" id="SearchButton" type="button"><i class="fas fa-search"></i></button>
                     </div>
                 </form>

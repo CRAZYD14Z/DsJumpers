@@ -9,6 +9,22 @@ $database = new Database();
 $db = $database->getConnection();
 $Idioma = $_SESSION['Idioma'];
 
+$query = "select Traduccion FROM  programas_traduccion where Programa = 'payment_report' AND Idioma = ? ORDER BY Id";            
+$stmt = $db->prepare($query);
+$stmt->bindValue(1, $Idioma);
+$stmt->execute();
+$resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$Traducciones[]='';
+if ($resultados) {
+    foreach ($resultados as $registro) {
+        $Traducciones[]=$registro['Traduccion'];
+    }
+}    
+function Trd($Id){
+    global $Traducciones;
+    return $Traducciones[$Id];
+}
+
 include_once 'head.php';
 ?>
 
@@ -38,7 +54,7 @@ include_once 'head.php';
 <div class="container my-5">
     <div class="card shadow">
         <div class="card-header text-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0 text-black">Reporte de Operaciones: Lavado, Limpieza y Reparación</h4>
+            <h4 class="mb-0 text-black"><?= Trd(1) ?></h4>
         </div>
     </div>  
 
@@ -46,8 +62,8 @@ include_once 'head.php';
         <div class="row g-3 mb-4">
             <div class="col-md-3"><input type="date" id="fInicio" class="form-control"></div>
             <div class="col-md-3"><input type="date" id="fFin" class="form-control"></div>
-            <div class="col-md-3"><input type="text" id="filtroUsuario" class="form-control" placeholder="Nombre Usuario"></div>
-            <div class="col-md-3"><button id="btnBuscar" class="btn btn-primary w-100">Consultar</button></div>
+            <div class="col-md-3"><input type="text" id="filtroUsuario" class="form-control" placeholder="<?= Trd(2) ?>"></div>
+            <div class="col-md-3"><button id="btnBuscar" class="btn btn-primary w-100"><?= Trd(3) ?></button></div>
         </div>
     </div>
 
@@ -59,10 +75,10 @@ include_once 'head.php';
         <table class="table table-hover align-middle m-0">
             <thead class="table-light">
                 <tr>
-                    <th>Folio</th>
-                    <th>Cliente</th>
-                    <th>Plataforma</th>
-                    <th class="text-end">Monto</th>
+                    <th><?= Trd(4) ?></th>
+                    <th><?= Trd(5) ?></th>
+                    <th><?= Trd(6) ?></th>
+                    <th class="text-end"><?= Trd(7) ?></th>
                 </tr>
             </thead>
             <tbody id="tablaPagos">
@@ -147,15 +163,15 @@ for (let usuario in reportData) {
             Resumen ${usuario}: 
             <span class="ms-3">Cash: $${grupo.plataformas['Cash'].toFixed(2)}</span> | 
             <span class="ms-3">Transfer: $${grupo.plataformas['Transfer'].toFixed(2)}</span> | 
-            <span class="ms-3">Otra: $${grupo.plataformas['Otra'].toFixed(2)}</span> | 
-            <span class="ms-3 text-primary">Total Usuario: $${grupo.subtotal.toFixed(2)}</span>
+            <span class="ms-3"><?= Trd(8) ?>: $${grupo.plataformas['Otra'].toFixed(2)}</span> | 
+            <span class="ms-3 text-primary"><?= Trd(9) ?>: $${grupo.subtotal.toFixed(2)}</span>
         </td>
     </tr>`;
 }
 
 // 3. Fila de Gran Total
 html += `<tr class="table-dark text-white fw-bold">
-    <td colspan="3" class="text-end">GRAN TOTAL ACUMULADO:</td>
+    <td colspan="3" class="text-end"><?= Trd(10) ?>:</td>
     <td class="text-end">$${granTotal.toFixed(2)}</td>
 </tr>`;
 

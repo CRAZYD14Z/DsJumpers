@@ -14,11 +14,21 @@
 $mesActual  = (int)date('m');
 $anioActual = (int)date('Y');
 
-$meses = [
-    1=>'Enero',2=>'Febrero',3=>'Marzo',4=>'Abril',
-    5=>'Mayo',6=>'Junio',7=>'Julio',8=>'Agosto',
-    9=>'Septiembre',10=>'Octubre',11=>'Noviembre',12=>'Diciembre'
-];
+if ($_SESSION['Idioma'] == 'en'){
+    $meses = [
+        1=>'January', 2=>'February', 3=>'March', 4=>'April',
+        5=>'May',     6=>'June',     7=>'July',  8=>'August',
+        9=>'September', 10=>'October', 11=>'November', 12=>'December'
+    ];
+}
+else{
+    $meses = [
+        1=>'Enero',2=>'Febrero',3=>'Marzo',4=>'Abril',
+        5=>'Mayo',6=>'Junio',7=>'Julio',8=>'Agosto',
+        9=>'Septiembre',10=>'Octubre',11=>'Noviembre',12=>'Diciembre'
+    ];
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -47,33 +57,45 @@ $meses = [
     include_once 'nav.php';
 ?>
 
-
 <!-- ═══════════════════════ HEADER ═══════════════════════════ -->
 <div id="cal-header">
-    <button id="btn-toggle-sidebar" title="Ver agenda">
+    <button id="btn-toggle-sidebar" title="<?php echo ($_SESSION['Idioma'] == 'en') ? "View agenda" : "Ver agenda"; ?>">
         <i class="bi bi-list-ul"></i>
     </button>
 
-    <span class="brand"><i class="bi bi-calendar3 me-1" style="color:var(--accent)"></i>Agenda</span>
+    <span class="brand">
+        <i class="bi bi-calendar3 me-1" style="color:var(--accent)"></i>
+        <?php echo ($_SESSION['Idioma'] == 'en') ? "Calendar" : "Agenda"; ?>
+    </span>
 
     <div id="nav-mes">
-        <button id="btn-prev" title="Mes anterior"><i class="bi bi-chevron-left"></i></button>
+        <button id="btn-prev" title="<?php echo ($_SESSION['Idioma'] == 'en') ? "Previous month" : "Mes anterior"; ?>">
+            <i class="bi bi-chevron-left"></i>
+        </button>
         <span id="lbl-mes">—</span>
-        <button id="btn-next" title="Mes siguiente"><i class="bi bi-chevron-right"></i></button>
+        <button id="btn-next" title="<?php echo ($_SESSION['Idioma'] == 'en') ? "Next month" : "Mes siguiente"; ?>">
+            <i class="bi bi-chevron-right"></i>
+        </button>
     </div>
 
-    <button id="btn-hoy"><i class="bi bi-record-circle me-1"></i>Hoy</button>
+    <button id="btn-hoy">
+        <i class="bi bi-record-circle me-1"></i>
+        <?php echo ($_SESSION['Idioma'] == 'en') ? "Today" : "Hoy"; ?>
+    </button>
 
-    <!-- Leyenda 
-        <span class="leyenda-item"><span class="leyenda-dot" style="background:#3b82f6"></span>En curso</span>
-        <span class="leyenda-item"><span class="leyenda-dot" style="background:#8b5cf6"></span>Completado</span>
-        <span class="leyenda-item"><span class="leyenda-dot" style="background:#ec4899"></span>Reprogramado</span>     
-    -->
     <div class="leyenda-wrap" id="leyenda-wrap">
-        <span class="leyenda-item"><span class="leyenda-dot" style="background:#10b981"></span>Confirmado</span>
-        <span class="leyenda-item"><span class="leyenda-dot" style="background:#f59e0b"></span>Pendiente</span>
-        <span class="leyenda-item"><span class="leyenda-dot" style="background:#ef4444"></span>Cancelado</span>
-
+        <span class="leyenda-item">
+            <span class="leyenda-dot" style="background:#10b981"></span>
+            <?php echo ($_SESSION['Idioma'] == 'en') ? "Confirmed" : "Confirmado"; ?>
+        </span>
+        <span class="leyenda-item">
+            <span class="leyenda-dot" style="background:#f59e0b"></span>
+            <?php echo ($_SESSION['Idioma'] == 'en') ? "Pending" : "Pendiente"; ?>
+        </span>
+        <span class="leyenda-item">
+            <span class="leyenda-dot" style="background:#ef4444"></span>
+            <?php echo ($_SESSION['Idioma'] == 'en') ? "Cancelled" : "Cancelado"; ?>
+        </span>
     </div>
 </div>
 
@@ -82,9 +104,15 @@ $meses = [
 
     <!-- ── SIDEBAR ── -->
     <div id="sidebar">
-        <div id="sidebar-title"><i class="bi bi-calendar-event me-1"></i>Eventos del mes</div>
+        <div id="sidebar-title">
+            <i class="bi bi-calendar-event me-1"></i>
+            <?php echo ($_SESSION['Idioma'] == 'en') ? "Events of the month" : "Eventos del mes"; ?>
+        </div>
         <div id="lista-eventos">
-            <div class="sidebar-empty"><i class="bi bi-hourglass-split d-block fs-2 mb-2"></i>Cargando…</div>
+            <div class="sidebar-empty">
+                <i class="bi bi-hourglass-split d-block fs-2 mb-2"></i>
+                <?php echo ($_SESSION['Idioma'] == 'en') ? "Loading..." : "Cargando…"; ?>
+            </div>
         </div>
         <div id="sidebar-count">—</div>
     </div>
@@ -92,13 +120,18 @@ $meses = [
     <!-- ── CALENDARIO ── -->
     <div id="cal-wrap">
         <div id="days-header">
-            <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div>
-            <div>Jue</div><div>Vie</div><div>Sáb</div>
+            <?php if ($_SESSION['Idioma'] == 'en'): ?>
+                <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+            <?php else: ?>
+                <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div>
+            <?php endif; ?>
         </div>
         <div id="cal-grid">
             <div id="cal-spinner">
                 <div class="spin-ring"></div>
-                <span class="spin-label">Cargando eventos…</span>
+                <span class="spin-label">
+                    <?php echo ($_SESSION['Idioma'] == 'en') ? "Loading events..." : "Cargando eventos…"; ?>
+                </span>
             </div>
         </div>
     </div>
@@ -120,13 +153,14 @@ $meses = [
                 <div id="modal-desc"    class="detail-row"></div>
             </div>
             <div class="modal-footer">
-                <!-- El botón cargado a la izquierda -->
-                <a id="btn-abrir-evento" href="#" class="btn btn-sm btn-primary me-auto" onclick="window.location.href = 'lead.php?IdLead='+IdLead">
-                    <i class="bi bi-box-arrow-up-right"></i> Abrir evento
+                <a id="btn-abrir-evento" href="#" class="btn btn-sm btn-primary me-auto">
+                    <i class="bi bi-box-arrow-up-right"></i> 
+                    <?php echo ($_SESSION['Idioma'] == 'en') ? "Open event" : "Abrir evento"; ?>
                 </a>
 
-                <!-- Botón de cerrar (se mantiene a la derecha) -->
-                <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">
+                    <?php echo ($_SESSION['Idioma'] == 'en') ? "Close" : "Cerrar"; ?>
+                </button>
             </div>
         </div>
     </div>
@@ -148,8 +182,11 @@ $meses = [
 /* ══════════════════════════════════════════════════════════════
    AGENDA CALENDARIO  —  lógica completa
 ══════════════════════════════════════════════════════════════ */
-const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
-               'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    const IDIOMA_SISTEMA = "<?php echo isset($_SESSION['Idioma']) ? $_SESSION['Idioma'] : 'es'; ?>";
+    
+    const MESES = IDIOMA_SISTEMA === 'en' 
+        ? ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+        : ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
 // API endpoint (relativo al mismo servidor)
 const API_URL = 'api_eventos.php';
@@ -388,24 +425,26 @@ function abrirModal(ev) {
     );
     $('#modal-fecha').html(
         `<i class="bi bi-calendar3"></i>
-         <div><span class="detail-label">Fecha</span>
+         <div><span class="detail-label"><?php echo ($_SESSION['Idioma'] == 'en') ? "Date" : "Fecha"; ?></span>
               <span class="detail-val">${formatFechaLarga(ev.fecha)}</span></div>`
     );
     $('#modal-hora').html(
         `<i class="bi bi-clock"></i>
-         <div><span class="detail-label">Horas del evento</span>
+         <div><span class="detail-label"><?php echo ($_SESSION['Idioma'] == 'en') ? "Event hours" : "Horas de evento"; ?></span>
               <span class="detail-val">(${ev.duracion} hrs)</span></div>`
     );
     $('#modal-lugar').html(
         `<i class="bi bi-geo-alt"></i>
-         <div><span class="detail-label">Lugar</span>
+         <div><span class="detail-label"><?php echo ($_SESSION['Idioma'] == 'en') ? "Venue" : "Lugar"; ?></span>
               <span class="detail-val">${ev.lugar}</span></div>`
     );
     $('#modal-desc').html(
         `<i class="bi bi-card-text"></i>
-         <div><span class="detail-label">Descripción</span>
+         <div><span class="detail-label"><?php echo ($_SESSION['Idioma'] == 'en') ? "Description" : "Descripción"; ?></span>
               <span class="detail-val">${ev.desc}</span></div>`
     );
+
+    $('#btn-abrir-evento').attr('href', 'lead.php?IdLead=' + ev.idev);    
 
     if (!modalBS) modalBS = new bootstrap.Modal(document.getElementById('modalEvento'));
     modalBS.show();

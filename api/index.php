@@ -230,6 +230,18 @@ switch ($resource) {
         
         handle_generic_crud($resource,$db, $method, $id, $data);
         break;
+    case 'operators':
+        
+        handle_generic_crud($resource,$db, $method, $id, $data);
+        break;
+    case 'referals':
+        
+        handle_generic_crud($resource,$db, $method, $id, $data);
+        break;      
+    case 'vehicles':
+        
+        handle_generic_crud($resource,$db, $method, $id, $data);
+        break;                  
     case 'customers':
         
         handle_generic_crud($resource,$db, $method, $id, $data);

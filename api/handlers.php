@@ -95,7 +95,10 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
         'price_lists',
         'detail_price_lists',
         'discounts',
-        'inventory_stock'
+        'inventory_stock',
+        'operators',
+        'referals',
+        'vehicles'
     ];
     if (!in_array($table_name, $allowed_tables)) {
         http_response_code(400);
@@ -3470,14 +3473,14 @@ function process_operation($table_name,$db, $method, $id, $data){
         case 'POST': 
             $Lead     = $data->{'Lead'};
             process_op($Lead,$db);
-
+/*
             if($data->{'From'} == 'Lead'){
                 $queryI ="UPDATE lead SET Status = 'pending' WHERE Id = :lead";
                 $stmtI = $db->prepare($queryI);
                 $stmtI->bindValue(":lead", $Lead);
                 $stmtI->execute();
             }            
-
+*/
             http_response_code(200);
             echo json_encode(array("message" => "Registro actualizado."));
 

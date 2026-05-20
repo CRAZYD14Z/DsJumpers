@@ -204,29 +204,29 @@ include_once 'head.php';
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header bg-warning text-dark">
-        <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> Evento Extraordinario</h5>
+        <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle-fill"></i><?= Trd(39) ?> </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form id="formEventoExtra">
         <div class="modal-body">
           
           <div class="mb-3">
-            <label class="form-label">Título del evento</label>
-            <input type="text" id="eventTitulo" name="eventTitulo" class="form-control" placeholder="Ej. Retén vial o Avería" required>
+            <label class="form-label"><?= Trd(40) ?></label>
+            <input type="text" id="eventTitulo" name="eventTitulo" class="form-control" placeholder="" required>
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Descripción</label>
-            <textarea id="eventDesc" name="eventDesc" class="form-control" rows="3" placeholder="Detalles de lo ocurrido..." required></textarea>
+            <label class="form-label"><?= Trd(41) ?></label>
+            <textarea id="eventDesc" name="eventDesc" class="form-control" rows="3" placeholder="<?= Trd(42) ?>..." required></textarea>
           </div>
 
           <div class="row">
             <div class="col-md-6 mb-3">
-              <label class="form-label">Gasto extra ($)</label>
+              <label class="form-label"><?= Trd(43) ?></label>
               <input type="number" id="eventGasto" name="eventGasto" class="form-control" step="0.01" value="0.00">
             </div>
             <div class="col-md-6 mb-3">
-              <label class="form-label">Evidencia (Foto)</label>
+              <label class="form-label"><?= Trd(44) ?></label>
               <input type="file" id="eventFoto" name="eventFoto" class="form-control" accept="image/*" capture="environment">
             </div>
           </div>
@@ -238,8 +238,8 @@ include_once 'head.php';
 
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Registrar Evento</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= Trd(45) ?></button>
+          <button type="submit" class="btn btn-primary"><?= Trd(46) ?></button>
         </div>
       </form>
     </div>
@@ -251,11 +251,11 @@ include_once 'head.php';
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Evidencia del Evento</h5>
+        <h5 class="modal-title"><?= Trd(47) ?></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body text-center">
-        <img src="" id="imgModal" class="img-fluid" alt="Cargando...">
+        <img src="" id="imgModal" class="img-fluid" alt="<?= Trd(48) ?>...">
       </div>
     </div>
   </div>
@@ -265,15 +265,15 @@ include_once 'head.php';
     <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header ">
-                <h5 class="modal-title">¿Eliminar registro?</h5>
+                <h5 class="modal-title"><?= Trd(49) ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center">
-                <p>Esta acción no se puede deshacer.</p>
+                <p><?= Trd(50) ?></p>
             </div>
             <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-danger" id="btnConfirmarBorradoRuta">Eliminar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= Trd(51) ?></button>
+                <button type="button" class="btn btn-danger" id="btnConfirmarBorradoRuta"><?= Trd(52) ?></button>
             </div>
         </div>
     </div>
@@ -283,17 +283,16 @@ include_once 'head.php';
     <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header ">
-                <h5 class="modal-title">¿Eliminar registro?</h5>
+                <h5 class="modal-title"><?= Trd(49) ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center">
-                <p>Esta acción no se puede deshacer.</p>
-                <!-- Input oculto para guardar el ID del registro a borrar -->
+                <p><?= Trd(50) ?></p>
                 <input type="hidden" id="idParaBorrar">
             </div>
             <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-danger" id="btnConfirmarBorrado">Eliminar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= Trd(51) ?></button>
+                <button type="button" class="btn btn-danger" id="btnConfirmarBorrado"><?= Trd(52) ?></button>
             </div>
         </div>
     </div>
@@ -859,7 +858,7 @@ function renderTable(data) {
             botonEvento = `<button class="btn btn-sm btn-warning ms-3 btn-evento " 
                         data-vid="${grupo.id_vehicle}" 
                         data-fechas='${JSON.stringify(fechasCarga)}'>
-                    <i class="fa-solid fa-stopwatch"></i> Agregar evento externo
+                    <i class="fa-solid fa-stopwatch"></i> <?= Trd(53) ?>
                 </button>`;           
 
         // Fila de encabezado de grupo

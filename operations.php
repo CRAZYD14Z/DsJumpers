@@ -448,7 +448,7 @@ foreach ($rows as $row) {
 
                 <div class="col-md-6 mb-3">
                     <label class="form-label small fw-bold"><i class="fas fa-sticky-note me-1"></i><?= Trd(21) ?></label>
-                    <textarea id="stage-notes" class="form-control form-control-sm" rows="5" placeholder="Observaciones..."></textarea>
+                    <textarea id="stage-notes" class="form-control form-control-sm" rows="5" placeholder="<?= Trd(33) ?>"></textarea>
                 </div>
 <?php if ($stages[$nextIdx] == 'ENTREGA'){?>
                 <div class="col-md-6 mb-3">
@@ -473,7 +473,7 @@ foreach ($rows as $row) {
 
                 <?php if ($stage['status'] != 'RECOLECCION'): ?>
             <button id="marcar-todo" class="btn btn-warning px-5 fw-bold shadow-sm" onclick="fillMaxAssorted()">
-                <i class="fa-regular fa-square-check"></i> MARCAR TODO
+                <i class="fa-regular fa-square-check"></i> <?= Trd(34) ?>
             </button>
                 <?php endif; ?>
                 <div id="status-text" class="small text-muted">
@@ -774,9 +774,11 @@ $('#btn-update-stage').on('click', function() {
             processData: false, // Vital para FormData
             contentType: false, // Vital para FormData
             success: function(response) {
-                //showToast('Etapa ' + nextStage + ' registrada correctamente', 'success');
-                //setTimeout(() => location.reload(), 1500);
-                history.back();
+if (document.referrer) {
+        window.location.href = document.referrer;
+    } else {
+        history.back(); // Respaldo si no hay historial previo registrado
+    }
             },
             error: function() {
                 showToast('<?= Trd(32) ?>', 'danger');
