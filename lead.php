@@ -113,8 +113,13 @@ include_once 'head.php';
             $stmt = $db->prepare($query);
             $stmt->bindParam(1, $IdLead);
             $stmt->execute();
-            $UUID = $stmt->fetch(PDO::FETCH_ASSOC);            
+            $UUID = $stmt->fetch(PDO::FETCH_ASSOC);      
 
+            $query = "select SUM(amount) as Monto FROM payments WHERE IdLead = ?";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(1, $IdLead);
+            $stmt->execute();
+            $Pagado = $stmt->fetch(PDO::FETCH_ASSOC);            
 
         }
 
@@ -275,6 +280,10 @@ include_once 'head.php';
     // Variable para controlar el tiempo de espera (debounce)
     let autoSaveTimer;
     let autoSaveTimerQuant;    
+
+    let StartEvent =0
+    let EndEvent =0
+    let DeliveryDate =0
 
     let CurrentOrganization = 0;
     let CurrentCustomer = 0;
@@ -993,7 +1002,7 @@ function inicializarSelectDescuento(selector) {
                     $venue = $stmt->fetch(PDO::FETCH_ASSOC);                
 
                     echo "
-                    load_venue(".$lead['Venue'].");
+                    load_venue(".$lead['Venue'].",true);
                         var datavenue = {
                             id: ".$lead['Venue'].",
                             text: '".$venue['Nombre']."',
@@ -2151,7 +2160,7 @@ function load_customer(Id){
 }
 
 //CARGA DATOS DE LUGAR DE EVENTO
-function load_venue(Id){
+function load_venue(Id,isFromReady = false){
         var misHeaders = {
             'Authorization': 'Bearer ' + TOKEN
         };
@@ -2170,7 +2179,14 @@ function load_venue(Id){
             //$('#EventStreet').val( data.Direccion+' '+data.Direccion2);
             $('#EventCity').val( data.Ciudad);
             $('#EventZip').val( data.CP);
-            distance_charge(data.CP,data.Pais)
+            //distance_charge(data.CP,data.Pais)
+
+            if (!isFromReady) {
+                distance_charge(data.CP, data.Pais);
+            } else {
+                console.log('distance_charge omitido por llamada desde document.ready');
+            }            
+
             aplicar_autosave();
         },
         error: function(xhr, status, error) {
@@ -2469,6 +2485,15 @@ function Cancelar(){
 //FUNCION PARA CARGAR CONTRATO 
 
 function LoadDocument(DocumentType){
+    if (!StartEvent || !EndEvent){
+        lanzarMensaje('<?= Trd(161) ?>','alerta',4000)
+        return;
+    }
+
+    if (!DeliveryDate) {
+        lanzarMensaje('<?= Trd(162) ?>','alerta',4000)
+        return;
+    }    
 
     if (!CurrentOrganization && !CurrentCustomer){
         lanzarMensaje('<?= Trd(95) ?>','alerta',4000)
@@ -3010,6 +3035,11 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
             Nt1:        $('#Note_1').val(),
             Nt2:        $('#Note_2').val()
         };
+
+
+        StartEvent  =$('#fechahorainicio').val();
+        EndEvent    =$('#fechahorafin').val();
+        DeliveryDate = $('#fechahoraentrega').val();        
 
         CurrentOrganization = $('#IdOrganization').val() || $('#Organization').val();
         CurrentCustomer = $('#IdCustomer').val() || $('#Customer').val();

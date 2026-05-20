@@ -55,7 +55,7 @@
                         <tbody id="Categories_List" name="Categories_List">
                             <?php
                                 // TU CÓDIGO PHP ORIGINAL
-                                $query = "select Id,Nombre FROM categories ORDER BY Nombre";
+                                $query = "select Id,Nombre FROM categories WHERE  IntExt = 1 ORDER BY Nombre";
                                 $stmt = $db->prepare($query);
                                 $stmt->execute();
                                 $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -221,7 +221,7 @@
                                 <td >
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text bg-light">$</span>
-                                        <input type="text" class="form-control text-end decimals" value="0.00" id="Distance_Charges_Total" name="Distance_Charges_Total" onchange="recalculate_totals()" 
+                                        <input type="text" class="form-control text-end decimals" id="Distance_Charges_Total" name="Distance_Charges_Total" onchange="recalculate_totals()" 
                                         value = "<?php  echo !empty($lead['DistanceCharges']) ? $lead['DistanceCharges'] : '0.00';?>"
                                         >
                                     </div>                            
@@ -244,7 +244,7 @@
                                 <td >
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text bg-light">$</span>
-                                        <input type="text" class="form-control text-end decimals" value="0.00" id="Staff_Charges_Total" name="Staff_Charges_Total"  onchange="recalculate_totals()"
+                                        <input type="text" class="form-control text-end decimals"  id="Staff_Charges_Total" name="Staff_Charges_Total"  onchange="recalculate_totals()"
                                         value = "<?php  echo !empty($lead['StafCost']) ? $lead['StafCost'] : '0.00';?>"
                                         >
                                     </div>                            
@@ -267,7 +267,7 @@
                                 <td >
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text bg-light">$ -</span>
-                                        <input type="text" class="form-control text-end decimals" value="0.00" id="Discount_Charges_Total" name="Discount_Charges_Total" onchange="recalculate_totals()"
+                                        <input type="text" class="form-control text-end decimals" id="Discount_Charges_Total" name="Discount_Charges_Total" onchange="recalculate_totals()"
                                         value = "<?php  echo !empty($lead['Discount']) ? $lead['Discount'] : '0.00';?>"
                                         >
                                     </div>                            
@@ -323,11 +323,11 @@
 
                                     <div class="input-group input-group-sm" id="NoExcempt1">
                                         <span class="input-group-text bg-light">%</span>
-                                        <input type="text" class="form-control text-end" value="0.00" id="TaxPc" name="TaxPc" value = "<?php  echo !empty($lead['TaxPc']) ? $lead['TaxPc'] : '0.00';?>"readonly>
+                                        <input type="text" class="form-control text-end"  id="TaxPc" name="TaxPc" value = "<?php  echo !empty($lead['TaxPc']) ? $lead['TaxPc'] : '0.00';?>"readonly>
                                     </div>                            
                                     <div class="input-group input-group-sm" id="NoExcempt2">
                                         <span class="input-group-text bg-light">$</span>
-                                        <input type="text" class="form-control text-end" value="0.00" id="TaxAm" name="TaxAm" value = "<?php  echo !empty($lead['TaxAmount']) ? $lead['TaxAmount'] : '0.00';?>" readonly>
+                                        <input type="text" class="form-control text-end"  id="TaxAm" name="TaxAm" value = "<?php  echo !empty($lead['TaxAmount']) ? $lead['TaxAmount'] : '0.00';?>" readonly>
                                     </div>
                                 </td>
                             </tr>                     
@@ -380,7 +380,7 @@
                                 <td  colspan="2">
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text bg-light">$</span>
-                                        <input type="text" class="form-control text-end" placeholder="0.00" id="AmountPaid" name="AmountPaid" value = "<?php  echo !empty($lead['Balance']) ? $lead['Total'] - $lead['Balance'] : '0.00';?>" readonly>
+                                        <input type="text" class="form-control text-end" placeholder="0.00" id="AmountPaid" name="AmountPaid" value = "<?php  echo !empty($Pagado['Monto']) ? $Pagado['Monto'] : '0.00';?>" readonly>
                                     </div>                            
                                 </td>
                             </tr>                               
@@ -393,7 +393,7 @@
                                 <td  colspan="2">
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text bg-light">$</span>
-                                        <input type="text" class="form-control text-end" placeholder="0.00" id="Balance" name="Balance" value = "<?php  echo !empty($lead['Balance']) ? $lead['Balance'] : '0.00';?>" readonly>
+                                        <input type="text" class="form-control text-end" placeholder="0.00" id="Balance" name="Balance" value = "<?php  echo !empty($lead['Total']) ? ($lead['Total'] - $Pagado['Monto']) : '0.00';?>" readonly>
                                     </div>                            
                                 </td>
                             </tr>                     

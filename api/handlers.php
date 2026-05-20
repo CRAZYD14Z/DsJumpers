@@ -2277,12 +2277,13 @@ function distance_charge($table_name,$db, $method, $id, $data){
                     $total_millas = 0;
                     if ($Distance==1){
                         //die("$ZIPO,$CONO $ZIPD,$COND");
-                        $total_millas = get_distance("$ZIPO,$CONO","$ZIPD,$COND");                        
+                        $total_millas = get_distance("$ZIPO,$CONO","$ZIPD,$COND");
                         if (str_starts_with($total_millas, 'Error')) {
                             echo "Se detectó un error.";
                         }
                         else{
                             $total_millas = str_replace(" mi", "", $total_millas);
+                            $total_millas = str_replace(",", "", $total_millas);
                             $total_millas = $total_millas * 1;
                         }
                         //$total_millas = 35; //AQUI VA LA FUNCION DE GOOGLE MAPS PARA SABER LAS MILLAS
