@@ -1638,7 +1638,7 @@ function get_products_categories($table_name,$db, $method, $id, $data){
             $query = "
                 SELECT IdProduct, SUM(Quantity) as Quantity 
                 FROM v_leads_detail 
-                WHERE Status = 'confirmed' 
+                WHERE Status = 'quoted' OR Status = 'confirmed' 
                 AND (StartDateTime < :DateE AND EndDateTime > :DateS)
                 AND Unlimited = 0
                 GROUP BY IdProduct
@@ -1655,7 +1655,7 @@ function get_products_categories($table_name,$db, $method, $id, $data){
                     ON 
                         v_leads_detail.IdProduct = relationship_products.Producto_sp
                         
-                WHERE v_leads_detail.Status = 'quoted' 
+                WHERE v_leads_detail.Status = 'quoted'  OR  v_leads_detail.Status = 'confirmed' 
                 AND (v_leads_detail.StartDateTime < :DateEE AND v_leads_detail.EndDateTime > :DateSS)
                 AND v_leads_detail.Unlimited = 0
                 GROUP BY relationship_products.Producto_rsp		                

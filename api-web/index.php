@@ -1641,7 +1641,7 @@ function products_categories($table_name,$db, $method, $id, $data){
             $query = "
                 SELECT IdProduct, SUM(Quantity) as Quantity 
                 FROM v_leads_detail 
-                WHERE Status = 'quoted' 
+                WHERE Status = 'quoted' OR Status = 'confirmed'  
                 AND (StartDateTime < :DateE AND EndDateTime > :DateS)
                 AND Unlimited = 0
                 GROUP BY IdProduct
@@ -1655,7 +1655,7 @@ function products_categories($table_name,$db, $method, $id, $data){
                     relationship_products
                     ON 
                         v_leads_detail.IdProduct = relationship_products.Producto_sp
-                WHERE v_leads_detail.Status = 'quoted' 
+                WHERE v_leads_detail.Status = 'quoted' OR v_leads_detail.Status = 'confirmed' 
                 AND (v_leads_detail.StartDateTime < :DateEE AND v_leads_detail.EndDateTime > :DateSS)
                 AND v_leads_detail.Unlimited = 0
                 GROUP BY relationship_products.Producto_rsp		                
@@ -1794,7 +1794,7 @@ function process_quote($table_name,$db, $method, $id, $data){
                 // --- INSERTAR CLIENTE ---
                 $sqlIns = "INSERT INTO customers (
                             Nombres, Apellidos, NombreEmpresa, Correo, TelefonoCelular, 
-                            Direccion, Direccion2, Ciudad, CP, Pais, Lenguaje,Estatus,FechaCreacion,FechaCambio
+                            Direccion, Direccion2, Ciudad, CP, Pais,Estado, Lenguaje,Estatus,FechaCreacion,FechaCambio
                         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '$lng', 'A',now(),now())";
                 $stmtIns = $db->prepare($sqlIns);
                 $stmtIns->execute([
@@ -1807,6 +1807,7 @@ function process_quote($table_name,$db, $method, $id, $data){
                     $data->cliente->colonia,
                     $data->cliente->ciudad,
                     $data->cliente->cp,
+                    $account['Estado'],
                     $account['Pais']
                 ]);
                 $idCliente = $db->lastInsertId();
@@ -1853,8 +1854,8 @@ try {
         $stmtUpdVenue = $db->prepare($sqlUpdVenue);
         $stmtUpdVenue->execute([
             $data->lugar->colonia, // Mapeado a Direccion2
-            $data->lugar->ciudad ?? 'Guadalajara', // Valor por defecto o del array
-            $data->lugar->estado ?? 'Jalisco',
+            $data->lugar->ciudad , // Valor por defecto o del array
+            $account['Estado'],
             $account['Pais'],
             $idVenue
         ]);
@@ -1868,9 +1869,9 @@ try {
             Trd(5) . $data->cliente->nombre, // Nombre descriptivo temporal
             $data->lugar->direccion,
             $data->lugar->colonia,
-            $data->lugar->ciudad ?? 'Guadalajara',
+            $data->lugar->ciudad,
             $data->lugar->cp,
-            $data->lugar->estado ?? 'Jalisco',
+            $account['Estado'],
             $account['Pais']
         ]);
         $idVenue = $db->lastInsertId();
@@ -2282,7 +2283,7 @@ function precios($data,$product){
     $query = "
         SELECT IdProduct, SUM(Quantity) as Quantity 
         FROM v_leads_detail 
-        WHERE Status = 'quoted' 
+        WHERE Status = 'quoted' OR Status = 'confirmed' 
         AND (StartDateTime < :DateE AND EndDateTime > :DateS)
         AND Unlimited = 0
         GROUP BY IdProduct
@@ -2296,7 +2297,7 @@ function precios($data,$product){
             relationship_products
             ON 
                 v_leads_detail.IdProduct = relationship_products.Producto_sp
-        WHERE v_leads_detail.Status = 'quoted' 
+        WHERE v_leads_detail.Status = 'quoted'  OR v_leads_detail.Status = 'confirmed' 
         AND (v_leads_detail.StartDateTime < :DateEE AND v_leads_detail.EndDateTime > :DateSS)
         AND v_leads_detail.Unlimited = 0
         GROUP BY relationship_products.Producto_rsp		                
