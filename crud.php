@@ -302,42 +302,48 @@ session_start();
                             $CampoDescripcion = "PriceName";
                             $Filtro =   "";
                             $Titulo = Trd(27);
-                            echo "<label for='$Campo' class='form-label'>$Titulo</label>";
-                                echo '<select name="'.$Campo.'" id="'.$Campo.'" data-tipo="complete" class="selectpicker form-control border-1  rounded " style="" onchange="get_json_price(this.value)" >';
+                                echo "<label for='$Campo' class='form-label'>$Titulo</label>";
+                                echo '<select name="'.$Campo.'" id="'.$Campo.'" data-tipo="complete" class="form-control border-1 rounded">';
 
-                                    $checkColumn = $db->query("SHOW COLUMNS FROM $TablaDts LIKE 'Idioma'");
-                                    $columnExists = $checkColumn->fetch();                            
-                                    if ($columnExists) {
-                                            $query ="SELECT $CampoValor,$CampoDescripcion FROM $TablaDts WHERE Idioma = '$Idioma' $Filtro ";
+                                $checkColumn = $db->query("SHOW COLUMNS FROM $TablaDts LIKE 'Idioma'");
+                                $columnExists = $checkColumn->fetch();
+
+                                if ($columnExists) {
+                                    $query = "SELECT $CampoValor,$CampoDescripcion FROM $TablaDts WHERE Idioma = '$Idioma' $Filtro";
+                                } else {
+                                    $query = "SELECT $CampoValor,$CampoDescripcion FROM $TablaDts WHERE 1 = 1 $Filtro";
+                                }
+
+                                $stmt_dts = $db->prepare($query);
+                                $stmt_dts->execute();
+                                $tabla_dts = $stmt_dts->fetchAll(PDO::FETCH_ASSOC);
+
+                                if ($tabla_dts) {
+                                    echo '<option value="" selected> ... </option>';
+                                    foreach ($tabla_dts as $tabla_dt) {
+                                        $Valor       = $tabla_dt[$CampoValor];
+                                        $Descripcion = $tabla_dt[$CampoDescripcion];
+                                        echo '<option value="' . $Valor . '">' . $Descripcion . '</option>';
                                     }
-                                    else{
-                                        $query ="SELECT $CampoValor,$CampoDescripcion FROM $TablaDts WHERE 1 = 1  $Filtro ";
-                                    }
-                                    $stmt_dts = $db->prepare($query);
-                                    $stmt_dts->execute();
-                                    $tabla_dts = $stmt_dts->fetchAll(PDO::FETCH_ASSOC);
-                                    if ($tabla_dts) {
-                                        echo '<option value = "" selected> ... </option>';
-                                        foreach ($tabla_dts as $tabla_dt) {
-                                            $Valor         = $tabla_dt[$CampoValor];
-                                            $Descripcion   = $tabla_dt[$CampoDescripcion];
-                                            echo '<option value="'.$Valor.'">'. ($Descripcion).'</option>';
-                                        }
-                                    }
-                            echo '</select>';
+                                }
+
+                                echo '</select>';
                             ?>
                         </div>
                         <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
-
-                            <br><div class="form-check  form-switch">
-                            <input name="edit_Taxable" id="edit_Taxable" class="form-check-input" type="checkbox">
+                            <br>
+                            <div class="form-check  form-switch">
+                                <input name="edit_new" id="edit_new" type="hidden">
+                                <input name="edit_Taxable" id="edit_Taxable" class="form-check-input" type="checkbox">
                                 <label class="form-check-label" for="edit_Taxable">
                                     <?php echo Trd(28)?>
                                 </label>
                             </div>
-
                         </div>
                     </div>
+
+
+
                     <div id="edit_contenedor-funciones">
                         
                     </div>
@@ -354,28 +360,81 @@ session_start();
                         </div>
                     </div>                    
 
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button class="btn btn-primary" type="submit"><?php echo Trd(7)?></button>
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+
+                        <button class="btn btn-primary fw-semibold px-4 rounded-3 shadow-sm" type="submit">
+                            <i class="fa-solid fa-floppy-disk me-1"></i><?php echo Trd(7)?>
+                        </button>                    
+
                     </div>
                 </form>            
             <?php
             echo "</div>";
 
 
-            $Tabla = 'products_categories';
-            echo '<br><h4 class="mb-4">'.Trd(30).'</h4>';
-                add_listado($Tabla);                
+$Tabla = 'products_categories';
+
+echo '<style>
+    .btn-toggle-custom {
+        cursor: pointer;
+        background-color: #f8f9fa;
+        padding: 12px 20px;
+        border-radius: 6px;
+        border-left: 4px solid #0d6efd; /* Línea azul interactiva a la izquierda */
+        transition: all 0.2s ease;
+    }
+    .btn-toggle-custom:hover {
+        background-color: #e9ecef;
+    }
+    /* Añade un signo + o - dinámico con CSS puro */
+    .btn-toggle-custom::after {
+        content: "＋";
+        float: right;
+        font-weight: bold;
+        color: #6c757d;
+    }
+    .btn-toggle-custom[aria-expanded="true"]::after {
+        content: "－";
+    }
+</style>';
+
+echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
+          data-bs-toggle="collapse" 
+          data-bs-target="#listado_' . $Tabla . '" 
+          aria-expanded="false" 
+          aria-controls="listado_' . $Tabla . '">';
+echo Trd(30);
+echo '</h4>';
+
+                add_listado($Tabla,'collapse');                
                 add_form($Tabla,$Idioma,'D');
                 edit_form($Tabla,$Idioma,'D');
             $Tabla2 = 'products_images';
-            echo '<br><h4 class="mb-4">'.Trd(31).'</h4>';
-                add_listado($Tabla2);
+
+echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
+          data-bs-toggle="collapse" 
+          data-bs-target="#listado_' . $Tabla2 . '" 
+          aria-expanded="false" 
+          aria-controls="listado_' . $Tabla2 . '">';
+echo Trd(31);
+echo '</h4>';            
+
+                add_listado($Tabla2,'collapse');
                 add_form($Tabla2,$Idioma,'D');
                 edit_form($Tabla2,$Idioma,'D');
             $Tabla3 = 'packing_list';
-            echo '<br><h4 class="mb-4">'.Trd(32).'</h4>';
+
+echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
+          data-bs-toggle="collapse" 
+          data-bs-target="#listado_' . $Tabla3 . '" 
+          aria-expanded="false" 
+          aria-controls="listado_' . $Tabla3 . '"
+          onclick="toggleElementoClone(\'add_form_' . $Tabla3 . '_clone\')">';
+echo Trd(32);
+echo '</h4>';            
+
 ?>
-        <div class="container-fluid p-4 bg-white border-0 shadow-sm rounded-4 mb-4" id="add_form_<?php echo $Tabla3?>_clone" style="max-width: 100%;">
+        <div class="collapse container-fluid p-4 bg-white border-0 shadow-sm rounded-4 mb-4" id="add_form_<?php echo $Tabla3?>_clone" style="max-width: 100%;">
             <form name="add_<?php echo $Tabla3?>_clone" id="add_<?php echo $Tabla3?>_clone" class="needs-validation" novalidate>
                 <div class="row g-3 align-items-end">
                     <div class="col-12 col-md-10 col-lg-10">
@@ -396,13 +455,20 @@ session_start();
         </div>
 
 <?php
-                add_listado($Tabla3);
+                add_listado($Tabla3,'collapse');
                 add_form($Tabla3,$Idioma,'D');
                 edit_form($Tabla3,$Idioma,'D');
             $Tabla4 = 'related_products';
-            echo '<br><h4 class="mb-4">'.Trd(33).'</h4>';
+echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
+          data-bs-toggle="collapse" 
+          data-bs-target="#listado_' . $Tabla4 . '" 
+          aria-expanded="false" 
+          aria-controls="listado_' . $Tabla4 . '"
+          onclick="toggleElementoClone(\'add_form_' . $Tabla4 . '_clone\')">';
+echo Trd(33);
+echo '</h4>';
 ?>
-        <div class="container-fluid p-4 bg-white border-0 shadow-sm rounded-4 mb-4" id="add_form_<?php echo $Tabla4?>_clone" style="max-width: 100%;">
+        <div class="collapse container-fluid p-4 bg-white border-0 shadow-sm rounded-4 mb-4" id="add_form_<?php echo $Tabla4?>_clone" style="max-width: 100%;">
             <form name="add_<?php echo $Tabla4?>_clone" id="add_<?php echo $Tabla4?>_clone" class="needs-validation" novalidate>
                 <div class="row g-3 align-items-end">
                     <div class="col-12 col-md-10 col-lg-10">
@@ -422,13 +488,23 @@ session_start();
             </form>
         </div>
 <?php            
-                add_listado($Tabla4);
+                add_listado($Tabla4,'collapse');
                 add_form($Tabla4,$Idioma,'D');
                 edit_form($Tabla4,$Idioma,'D');                                
             $Tabla5 = 'upselling_products';
-            echo '<br><h4 class="mb-4">'.Trd(34).'</h4>';
+
+echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
+          data-bs-toggle="collapse" 
+          data-bs-target="#listado_' . $Tabla5 . '" 
+          aria-expanded="false" 
+          aria-controls="listado_' . $Tabla5 . '"
+          onclick="toggleElementoClone(\'add_form_' . $Tabla5 . '_clone\')">';
+echo Trd(34);
+echo '</h4>';            
+
+
 ?>
-        <div class="container-fluid p-4 bg-white border-0 shadow-sm rounded-4 mb-4" id="add_form_<?php echo $Tabla5?>_clone" style="max-width: 100%;">
+        <div class="collapse container-fluid p-4 bg-white border-0 shadow-sm rounded-4 mb-4" id="add_form_<?php echo $Tabla5?>_clone" style="max-width: 100%;">
             <form name="add_<?php echo $Tabla5?>_clone" id="add_<?php echo $Tabla5?>_clone" class="needs-validation" novalidate>
                 <div class="row g-3 align-items-end">
                     <div class="col-12 col-md-10 col-lg-10">
@@ -448,13 +524,23 @@ session_start();
             </form>
         </div>
 <?php            
-                add_listado($Tabla5);
+                add_listado($Tabla5,'collapse');
                 add_form($Tabla5,$Idioma,'D');
                 edit_form($Tabla5,$Idioma,'D');
             $Tabla6 = 'relationship_products';
-            echo '<br><h4 class="mb-4">'.Trd(35).'</h4>';
+
+echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
+          data-bs-toggle="collapse" 
+          data-bs-target="#listado_' . $Tabla6 . '" 
+          aria-expanded="false" 
+          aria-controls="listado_' . $Tabla6 . ' "
+          onclick="toggleElementoClone(\'add_form_' . $Tabla6 . '_clone\')">';
+echo Trd(35);
+echo '</h4>';            
+
+
 ?>
-        <div class="container-fluid p-4 bg-white border-0 shadow-sm rounded-4 mb-4" id="add_form_<?php echo $Tabla6?>_clone" style="max-width: 100%;">
+        <div class="collapse container-fluid p-4 bg-white border-0 shadow-sm rounded-4 mb-4" id="add_form_<?php echo $Tabla6?>_clone" style="max-width: 100%;">
             <form name="add_<?php echo $Tabla6?>_clone" id="add_<?php echo $Tabla6?>_clone" class="needs-validation" novalidate>
                 <div class="row g-3 align-items-end">
                     <div class="col-12 col-md-10 col-lg-10">
@@ -474,17 +560,34 @@ session_start();
             </form>
         </div>
 <?php            
-                add_listado($Tabla6);
+                add_listado($Tabla6,'collapse');
                 add_form($Tabla6,$Idioma,'D');
                 edit_form($Tabla6,$Idioma,'D');                
             $Tabla7 = 'cost_products';
-            echo '<br><h4 class="mb-4">'.Trd(36).'</h4>';
-                add_listado($Tabla7);
+
+echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
+          data-bs-toggle="collapse" 
+          data-bs-target="#listado_' . $Tabla7 . '" 
+          aria-expanded="false" 
+          aria-controls="listado_' . $Tabla7 . '">';
+echo Trd(36);
+echo '</h4>';            
+
+
+                add_listado($Tabla7,'collapse');
                 add_form($Tabla7,$Idioma,'D');
                 edit_form($Tabla7,$Idioma,'D');
             $Tabla8 = 'products_files';
-            echo '<br><h4 class="mb-4">'.Trd(37).'</h4>';
-                add_listado($Tabla8);
+
+echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
+          data-bs-toggle="collapse" 
+          data-bs-target="#listado_' . $Tabla8 . '" 
+          aria-expanded="false" 
+          aria-controls="listado_' . $Tabla8 . '">';
+echo Trd(37);
+echo '</h4>';            
+
+                add_listado($Tabla8,'collapse');
                 add_form($Tabla8,$Idioma,'D');
                 edit_form($Tabla8,$Idioma,'D');
 
@@ -550,11 +653,11 @@ session_start();
         }
         elseif ($IdTabla == 'item_prices'){
             add_listado($IdTabla);
-            add_form($IdTabla,$Idioma,'M');
+            add_form($IdTabla,$Idioma,'M',true);
             edit_form($IdTabla,$Idioma,'M',true);
             delete_form($IdTabla);
             ?>
-            <div class="container">
+            <div class="container" id="proyeccion_item_prices" style="display: none;">
                 <div class="seccion-proyeccion">
                     <h3><?php Trd_2(3)?></h3>
 
@@ -836,6 +939,9 @@ session_start();
         if (Id=='products'){
             $("#add_form_products_clone").hide();
         }
+        if (Id=='item_prices'){
+            $("#proyeccion_item_prices").hide();
+        }        
     }
     function Cancel_edit(Id){
         $("#listado_"+Id).show();
@@ -843,6 +949,10 @@ session_start();
         if (Id=='products'){
             $("#add_form_products_clone_edit").hide();
         }
+        if (Id=='item_prices'){
+            $("#proyeccion_item_prices").hide();
+        }
+
     }    
 
     function AgregarRegistro(Id){
@@ -856,7 +966,9 @@ session_start();
         }
         if (Id=='gifcard'){
             $('#Code').val(generarCodigoAlfanumerico());
-        }        
+        } 
+        if (Id=='item_prices')
+            $("#proyeccion_item_prices").show();
         
     }
 
@@ -1274,9 +1386,10 @@ function getRecordData(Id,IdTabla) {
     if (IdTabla == 'price_lists')
         IdSelected = Id;
 
-    if (IdTabla == 'item_prices')
-        IdSelected = Id;    
-
+    if (IdTabla == 'item_prices'){
+        IdSelected = Id;
+        $("#proyeccion_item_prices").show();
+    }
 
     $("#listado_"+IdTabla).hide();
     $("#edit_form_"+IdTabla).show();
@@ -1410,7 +1523,7 @@ function getRecordData(Id,IdTabla) {
             }
             else if (IdTabla == 'price_lists'){
                 listado('detail_price_lists');
-            }else if (IdTabla == 'item_prices' || IdTabla == 'products_item_price'){                
+            }else if (IdTabla == 'item_prices' || IdTabla == 'products_item_price'){
                 cargar();
                 if (IdTabla == 'products_item_price'){
                     //const contenedor = document.getElementById('edit_contenedor-funciones');
@@ -1428,6 +1541,8 @@ function getRecordData(Id,IdTabla) {
             ?>
         },
         error: function(xhr, status, error) {
+            if (IdTabla == 'products_item_price')
+                ejecutarFuncion1(); 
             if (xhr.status === 401) {
                 console.error('Acceso denegado. Token expirado o inválido.');
                 // Aquí puedes redirigir al login o limpiar el token
@@ -2608,6 +2723,71 @@ const generarCodigoAlfanumerico = () => {
             console.log("Token actualizado globalmente desde: " + settings.url);
         }
     });
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    const el = document.getElementById('<?= $Campo ?>');
+
+    const choices = new Choices(el, {
+        allowHTML: false,
+        searchEnabled: true,
+        searchPlaceholderValue: 'Buscar...',
+        noResultsText: 'No encontrado',
+        noChoicesText: 'Sin opciones',
+
+        // ✅ Permite agregar elemento nuevo si no existe
+        addItems: true,
+        addChoices: true,
+        addItemText: (value) => `Enter para agregar "<b>${value}</b>"`,
+        allowHtmlUserInput: false,
+
+        // Solo agrega si no hay coincidencia exacta
+        duplicateItemsAllowed: false,
+    });
+
+    // Evento cuando se agrega un item nuevo (no existía en la lista)
+    el.addEventListener('addItem', function (event) {
+        const nuevoValor = event.detail.value;
+        const fueAgregado = event.detail.customProperties?.nuevo;
+
+        // Aquí puedes enviar el nuevo valor al servidor si lo necesitas
+        // Ejemplo:
+        // fetch('guardar_opcion.php', {
+        //     method: 'POST',
+        //     body: JSON.stringify({ campo: '<?= $Campo ?>', valor: nuevoValor }),
+        //     headers: { 'Content-Type': 'application/json' }
+        // });
+
+        // También dispara tu función original si la necesitas
+        //get_json_price(nuevoValor);
+        $('#edit_new').val(1);
+    });
+
+    // Para los cambios normales (selección de existente)
+    el.addEventListener('choice', function (event) {
+        //get_json_price(event.detail.choice.value);
+    });
+});    
+
+function toggleElementoClone(idElemento) {
+    // Buscamos el h4 que disparó el evento para saber si se está abriendo o cerrando
+    // Buscamos el que tenga el data-bs-target apuntando al listado correspondiente
+    var idListado = idElemento.replace('add_form_', 'listado_').replace('_clone', '');
+    var $btn = $('[data-bs-target="#' + idListado + '"]');
+
+    // Le damos un mini timeout para esperar a que Bootstrap actualice el estado del aria-expanded
+    setTimeout(function() {
+        var estaExpandido = $btn.attr('aria-expanded') === 'true';
+        var $formClone = $('#' + idElemento); // Aquí usamos el ID dinámico que enviaste
+
+        if (estaExpandido) {
+            $formClone.show();
+        } else {
+            $formClone.hide();
+        }
+    }, 10);
+}
+
 </script>
 
 </body>

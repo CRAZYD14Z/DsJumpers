@@ -76,8 +76,8 @@ function add_form($IdTabla, $Idioma, $Tp, $BotonesFijos = false){
         }
         ?>
 
-        <?php if ($BotonesFijos): ?>
-            <div class="d-flex justify-content-end gap-2 mt-4 pt-3 pb-2 border-top position-sticky bottom-0 bg-white z-3 shadow-lg px-3 rounded-bottom-4" style="margin-left: -1.5rem; margin-right: -1.5rem; margin-bottom: -1.5rem;">
+        <?php if ($BotonesFijos): ?>            
+            <div class="position-fixed bottom-0 start-50 translate-middle-x bg-white z-3 shadow-lg p-3 d-flex justify-content-end gap-2 border-top workflow-actions" style="width: 100%; max-width: inherit; box-shadow: 0 -10px 25px rgba(0,0,0,0.1) !important;">                
         <?php else: ?>
             <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
         <?php endif; ?>

@@ -1,7 +1,8 @@
 <?php
-function add_listado($IdTabla){
+function add_listado($IdTabla,$collapse = ''){
+
 ?>
-    <div class="container-fluid p-4 bg-white border-0 shadow-sm rounded-4" id="listado_<?php echo $IdTabla;?>" style="max-width: 100%;">
+    <div class="<?= $collapse ?> container-fluid p-4 bg-white border-0 shadow-sm rounded-4" id="listado_<?php echo $IdTabla;?>" style="max-width: 100%;">
         
         <div class="row g-3 align-items-center mb-4">
             

@@ -725,6 +725,61 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
         // ------------------------------------------------------------------
         case 'PUT':
         // ------------------------------------------------------------------
+
+            if ($table_name =='products_item_price' AND $data->{'new'} == 1 ){
+                if ($data->{'JsonPrice'} == ""){
+                    http_response_code(200);
+                    echo json_encode(array("message" => "No tiene precio definido"));
+                    die();                    
+                }
+                $Taxable = 0;
+                if (isset($data->{'Taxable'}))
+                    $Taxable = 1;
+
+                // 1. Validar si existe, recuperar el Id de item_prices, si no insertar
+                $sqlCheck = "SELECT Id FROM item_prices WHERE PriceName = :priceName LIMIT 1";
+                $stmtCheck = $db->prepare($sqlCheck);
+                $stmtCheck->bindValue(":priceName", $data->{'ItemPrice'});
+                $stmtCheck->execute();
+
+                $priceRow = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+
+                if ($priceRow) {
+                    // Si ya existe, recuperamos el ID existente
+                    $IdRecuperado = $priceRow['Id'];
+                } else {
+                    // Si no existe, lo insertamos
+                    $sqlInsert = "INSERT INTO item_prices (PriceName, Taxable, JsonPrice, FechaCreacion, FechaCambio) 
+                                VALUES (:priceName, :taxable, :jsonPrice, NOW(), NOW())";
+                    $stmtInsert = $db->prepare($sqlInsert);
+                    $stmtInsert->bindValue(":priceName", $data->{'ItemPrice'});
+                    $stmtInsert->bindValue(":taxable", $Taxable);
+                    $stmtInsert->bindValue(":jsonPrice", $data->{'JsonPrice'});
+                    $stmtInsert->execute();
+                    
+                    // Recuperamos el lastInsertId inmediatamente después del INSERT
+                    $IdRecuperado = $db->lastInsertId();
+                }
+
+                // 2. Eliminar relaciones anteriores del producto
+                $sqlDelete = "DELETE FROM products_item_price WHERE Producto = :producto";
+                $stmtDelete = $db->prepare($sqlDelete);
+                $stmtDelete->bindValue(":producto", $data->{'Producto'});
+                $stmtDelete->execute();                
+
+                // 3. Insertar la nueva relación usando el ID recuperado (ya sea el existente o el nuevo)
+                $sqlRelacion = "INSERT INTO products_item_price (Producto, ItemPrice, Taxable) 
+                                VALUES (:producto, :itemPrice, :taxable)";
+                $stmtRelacion = $db->prepare($sqlRelacion);
+                $stmtRelacion->bindValue(":producto", $data->{'Producto'});
+                $stmtRelacion->bindValue(":itemPrice", $IdRecuperado);
+                $stmtRelacion->bindValue(":taxable", $Taxable);
+                $stmtRelacion->execute();
+
+                http_response_code(200);
+                echo json_encode(array("message" => "Registro insertado."));
+                die();
+            }
             // UPDATE (Actualizar un registro existente)
             $query = "SELECT Campo, TipoCampo, Requerido,TipoCampo FROM modal_edit WHERE Tabla = ?  ORDER BY Id";
             $stmt = $db->prepare($query);
