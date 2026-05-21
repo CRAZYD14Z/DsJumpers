@@ -1,19 +1,19 @@
 <?php
-function edit_form($IdTabla,$Idioma,$Tp,$visible = "display: none"){
+// Mantenemos el parámetro opcional $BotonesFijos por defecto en false
+function edit_form($IdTabla, $Idioma, $Tp,  $BotonesFijos = false,$visible = "display: none"){
     global $db;
 ?>   
     <?php
-        if ($Tp=='I' OR $Tp=='M'){
-            echo '<div class="container mt-4  shadow rounded" id="edit_form_'.$IdTabla.'" style="'.$visible.'">';
+        if ($Tp == 'I' || $Tp == 'M'){
+            echo '<div class="container-fluid p-4 bg-white border-0 shadow-sm rounded-4 mb-4" id="edit_form_'.$IdTabla.'" style="'.$visible.'; max-width: 100%;">';
         }
         elseif($Tp == 'D'){
-            echo '<div class="container" id="edit_form_'.$IdTabla.'" style="display: none">';
+            echo '<div class="container-fluid p-0 mb-4" id="edit_form_'.$IdTabla.'" style="display: none; max-width: 100%;">';
         }
     ?> 
     
-        <br>
-        <h4 class="mb-4"><?php echo Trd(5)?></h4>
-        <form name="edit_<?php echo $IdTabla?>" id="edit_<?php echo $IdTabla?>" class="needs-validation" novalidate>
+        <h4 class="mb-4 text-dark fw-bold border-bottom pb-2"><i class="fa-solid fa-pen-to-square me-2 text-primary small"></i><?php echo Trd(5)?></h4>
+        <form name="edit_<?php echo $IdTabla?>" id="edit_<?php echo $IdTabla?>" class="needs-validation mb-5 pb-5" novalidate>
         <?php 
         $query = "SELECT COUNT(DISTINCT(modal_edit.Etiqueta)) as NoEtiquetas FROM modal_edit WHERE Tabla = ? ";
         $stmt = $db->prepare($query);
@@ -26,11 +26,10 @@ function edit_form($IdTabla,$Idioma,$Tp,$visible = "display: none"){
             }
         }
 
-        if ($NoEtiquetas== 1 ){
-            armar_formulario_edit($IdTabla,"General",$Idioma);
+        if ($NoEtiquetas == 1){
+            armar_formulario_edit($IdTabla, "General", $Idioma);
         }
-        else{
-            //echo '<ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">';
+        else {
             $query = "            
             SELECT
                 DISTINCT( modal_edit.Etiqueta ) as Etiqueta,
@@ -51,79 +50,50 @@ function edit_form($IdTabla,$Idioma,$Tp,$visible = "display: none"){
             $stmt->bindValue(1, $IdTabla);
             $stmt->bindValue(2, $Idioma);
             $stmt->execute();
-            $Tab = 0;
             $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            if ($resultados) {
-                foreach ($resultados as $registro) {
-                    $Tab++;
-                    $Etiqueta = $registro['Etiqueta'];
-                    if ($Tab==1){
-                        //echo '
-                        //    <li class="nav-item" role="presentation">
-                        //        <button class="nav-link active" id="pills-'.$Tab.'-tab" data-bs-toggle="pill" data-bs-target="#pills-'.$Tab.'" type="button" role="tab" aria-controls="pills-'.$Tab.'" aria-selected="true">'.$Etiqueta.'</button>
-                        //    </li>                        
-                        //';
-                    }
-                    else{
-                        //echo '
-                        //    <li class="nav-item" role="presentation">
-                        //        <button class="nav-link" id="pills-'.$Tab.'-tab" data-bs-toggle="pill" data-bs-target="#pills-'.$Tab.'" type="button" role="tab" aria-controls="pills-'.$Tab.'" aria-selected="false">'.$Etiqueta.'</button>
-                        //    </li>                        
-                        //';
-                    }
-                }
-            }            
-            //echo '</ul>';
-            //echo '<div class="tab-content" id="pills-tabContent">';
+            
             $Tab = 0;
             foreach ($resultados as $registro) {
-                    $Tab++;
-                    $Etiqueta = $registro['Etiqueta'];
-                    if ($Tab==1){
-                        //echo '<div class="tab-pane fade show active" id="pills-'.$Tab.'" role="tabpanel" aria-labelledby="pills-'.$Tab.'-tab">';
-                        echo '<h4 class="mb-4">'.$registro['Titulo'].'</h4>';
-                            armar_formulario_edit($IdTabla,$Etiqueta,$Idioma);
-                        //echo '</div>';
-                    }
-                    else{
-                        //echo '<div class="tab-pane fade" id="pills-'.$Tab.'" role="tabpanel" aria-labelledby="pills-'.$Tab.'-tab">';
-                        echo '<h4 class="mb-4">'.$registro['Titulo'].'</h4>';
-                            armar_formulario_edit($IdTabla,$Etiqueta,$Idioma);
-                        //echo '</div>';
-                    }             
+                $Tab++;
+                $Etiqueta = $registro['Etiqueta'];
+                
+                echo '<div class="mt-4 mb-3">';
+                echo '<h5 class="text-secondary fw-semibold border-bottom pb-2 mb-3"><i class="fa-solid fa-layer-group me-2 small text-muted"></i>'.$registro['Titulo'].'</h5>';
+                armar_formulario_edit($IdTabla, $Etiqueta, $Idioma);
+                echo '</div>';
             }
-            //echo '</div>';
         }        
         if ($IdTabla == 'item_prices'){
             ?>
-            <div class="container">
-                <h2><?php Trd_2(2)?></h2>
-                <div id="edit_contenedor-funciones"></div>
+            <div class="container-fluid px-0 mt-4">
+                <h5 class="text-dark fw-bold mb-3"><?php Trd_2(2)?></h5>
+                <div id="edit_contenedor-funciones" class="p-3 bg-light rounded-3 border"></div>
             </div>
             <?php 
         }        
         ?>
-        <br>
-        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-            <button class="btn btn-secondary" type="button" onclick='Cancel_edit("<?php echo $IdTabla;?>");'><?php echo Trd(6)?></button>
-            <button class="btn btn-primary" type="submit"><?php echo Trd(7)?></button>
-        </div>
 
-
+        <?php if ($BotonesFijos): ?>
+            <div class="position-fixed bottom-0 start-50 translate-middle-x bg-white z-3 shadow-lg p-3 d-flex justify-content-end gap-2 border-top workflow-actions" style="width: 100%; max-width: inherit; box-shadow: 0 -10px 25px rgba(0,0,0,0.1) !important;">
+        <?php else: ?>
+            <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+        <?php endif; ?>
+                <button class="btn btn-light border fw-semibold px-4 rounded-3 shadow-none text-secondary" type="button" onclick='Cancel_edit("<?php echo $IdTabla;?>");'>
+                    <i class="fa-solid fa-xmark me-1"></i><?php echo Trd(6)?>
+                </button>
+                <button class="btn btn-primary fw-semibold px-4 rounded-3 shadow-sm" type="submit">
+                    <i class="fa-solid fa-floppy-disk me-1"></i><?php echo Trd(7)?>
+                </button>
+            </div>
         </form>
-        <br>
+        
     <?php
-        if ($Tp=='F' OR $Tp=='M'){
-            echo "</div>";
-        }
-        elseif($Tp == 'D'){
+        if ($Tp == 'F' || $Tp == 'M' || $Tp == 'D'){
             echo "</div>";
         }
     ?>   
     <script>
-
         $('#edit_<?php echo $IdTabla?>').on('submit', function(e) {
-
             if (!this.checkValidity()) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -132,12 +102,12 @@ function edit_form($IdTabla,$Idioma,$Tp,$visible = "display: none"){
             }        
 
             e.preventDefault(); 
-            updateRecord($(this),'<?php echo $IdTabla?>'); // Pasamos el formulario a la función
+            updateRecord($(this), '<?php echo $IdTabla?>'); // Pasamos el formulario a la función
         });   
 
         $(document).ready(function() {
         <?php
-            $query = "SELECT Campo  FROM modal_edit WHERE Tabla = ? AND TipoCampo ='html'";
+            $query = "SELECT Campo FROM modal_edit WHERE Tabla = ? AND TipoCampo ='html'";
             $stmt = $db->prepare($query);
             $stmt->bindValue(1, $IdTabla);
             $stmt->execute();
@@ -145,12 +115,22 @@ function edit_form($IdTabla,$Idioma,$Tp,$visible = "display: none"){
             if ($resultados) {
                 foreach ($resultados as $registro) {
                     $Campo = $registro['Campo'];
-                    echo "$('#edit_$Campo').summernote({height: 480});";
+                    echo "$('#edit_$Campo').summernote({
+                        height: 320,
+                        styleWithSpan: false,
+                        toolbar: [
+                            ['style', ['style']],
+                            ['font', ['bold', 'italic', 'underline', 'clear']],
+                            ['color', ['color']],
+                            ['para', ['ul', 'ol', 'paragraph']],
+                            ['table', ['table']],
+                            ['insert', ['link', 'picture', 'video']],
+                            ['view', ['fullscreen', 'codeview', 'help']]
+                        ]
+                    });";
                 }
             }    
         ?>
         });
-
-
     </script>
-<?php }?>    
+<?php } ?>

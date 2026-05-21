@@ -183,16 +183,19 @@ session_start();
         if ($IdTabla == 'products'){
             add_listado($IdTabla);
 ?>
-        <div class="container" id = "add_form_<?php echo $IdTabla?>_clone" style="display: none">
-        <br>
-        <h4 class="mb-4">Clonar producto:</h4>
+        <div class="container-fluid p-4 bg-white border-0 shadow-sm rounded-4 mb-4" id="add_form_<?php echo $IdTabla?>_clone" style="display: none; max-width: 100%;">
+            
+            <h4 class="mb-4 text-dark fw-bold border-bottom pb-2">
+                <i class="fa-solid fa-clone text-primary me-2 small"></i>Clonar producto:
+            </h4>
+            
             <form name="add_<?php echo $IdTabla?>_clone" id="add_<?php echo $IdTabla?>_clone" class="needs-validation" novalidate>
-                <div class="row">
-                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
-                <?php
-                            echo "<label for='CodigoOrigen_clone' class='form-label'>Producto a Clonar</label>";
-                                echo '<select name="CodigoOrigen_clone" id="CodigoOrigen_clone" class="selectpicker form-control border-1  rounded " style="" >';
-                                $Valores_Productos ='';
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-md-5 col-lg-5">
+                        <label Bresfor="CodigoOrigen_clone" class="form-label text-secondary fw-semibold small mb-2">Producto a Clonar</label>
+                        <?php
+                            echo '<select name="CodigoOrigen_clone" id="CodigoOrigen_clone" class="selectpicker form-control bg-light border px-3 py-2 rounded-3 shadow-none text-dark fw-medium">';
+                            $Valores_Productos ='';
                             $query ="SELECT Id,Name FROM products ";
                             $stmt_dts = $db->prepare($query);
                             $stmt_dts->execute();
@@ -207,45 +210,49 @@ session_start();
                             }
                             echo $Valores_Productos;
                             echo '</select>';
-                ?>
+                        ?>
                     </div>
-                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
-                        <label for='Name_clone' class='form-label'>Nombre Producto</label>
-                            <input name="Name_clone" id="Name_clone" class=" form-control  form-control-sm" type="text" style="text-align: left;" required=""  minlength="5" maxlength="255" placeholder="ingresa el nombre para el nuevo producto"  >
+                    <div class="col-12 col-md-5 col-lg-5">
+                        <label for="Name_clone" class="form-label text-secondary fw-semibold small mb-2">Nombre Producto</label>
+                        <input name="Name_clone" id="Name_clone" class="form-control bg-light border px-3 py-2 rounded-3 shadow-none text-dark fw-medium" type="text" required minlength="5" maxlength="255" placeholder="Ingresa el nombre para el nuevo producto">
                     </div>                        
-                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
-                        <br>
-                        <button class="btn btn-primary" type="button" onclick="Clonar('add','<?php echo $IdTabla?>')">Clonar</button>                
+                    <div class="col-12 col-md-2 col-lg-2">
+                        <button class="btn btn-primary fw-semibold px-4 py-2 rounded-3 shadow-sm w-100 d-inline-flex align-items-center justify-content-center gap-2" type="button" onclick="Clonar('add','<?php echo $IdTabla?>')">
+                            <i class="fa-solid fa-copy"></i> Clonar
+                        </button>                
                     </div>                        
                 </div>
-                
             </form>
         </div>
 <?php
-            add_form($IdTabla,$Idioma,'M');
+            add_form($IdTabla,$Idioma,'M',true);
 
 ?>
-        <div class="container" id = "add_form_<?php echo $IdTabla?>_clone_edit" style="display: none">
-        <br>
-        <h4 class="mb-4">Clonar producto a :</h4>
+        <div class="container-fluid p-4 bg-white border-0 shadow-sm rounded-4 mb-4" id="add_form_<?php echo $IdTabla?>_clone_edit" style="display: none; max-width: 100%;">
+            
+            <h4 class="mb-4 text-dark fw-bold border-bottom pb-2">
+                <i class="fa-solid fa-pen-to-square text-primary me-2 small"></i>Clonar producto a:
+            </h4>
+            
             <form name="add_<?php echo $IdTabla?>_clone_edit" id="add_<?php echo $IdTabla?>_clone_edit" class="needs-validation" novalidate>
-                <div class="row">
-                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
-                        <input name="product_clone_edit" id="product_clone_edit"  type="hidden"  >
-                        <label for='Name_clone_edit' class='form-label'>Nombre Producto</label>
-                            <input name="Name_clone_edit" id="Name_clone_edit" class=" form-control  form-control-sm" type="text" style="text-align: left;" required=""  minlength="5" maxlength="255" placeholder="ingresa el nombre para el nuevo producto"  >
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-md-10 col-lg-10">
+                        <input name="product_clone_edit" id="product_clone_edit" type="hidden">
+                        <label for="Name_clone_edit" class="form-label text-secondary fw-semibold small mb-2">Nombre Producto</label>
+                        <input name="Name_clone_edit" id="Name_clone_edit" class="form-control bg-light border px-3 py-2 rounded-3 shadow-none text-dark fw-medium" type="text" required minlength="5" maxlength="255" placeholder="Ingresa el nombre para el nuevo producto">
                     </div>                        
-                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
-                        <br>
-                        <button class="btn btn-primary" type="button" onclick="Clonar('edit','<?php echo $IdTabla?>')">Clonar</button>                
+                    <div class="col-12 col-md-2 col-lg-2">
+                        <button class="btn btn-primary fw-semibold px-4 py-2 rounded-3 shadow-sm w-100 d-inline-flex align-items-center justify-content-center gap-2" type="button" onclick="Clonar('edit','<?php echo $IdTabla?>')">
+                            <i class="fa-solid fa-copy"></i> Clonar
+                        </button>                
                     </div>                        
                 </div>
-                
             </form>
         </div>
+
 <?php            
 
-            edit_form($IdTabla,$Idioma,'I');
+            edit_form($IdTabla,$Idioma,'I',true);
 
             echo '<br><h4 class="mb-4">'.Trd(29).'</h4>';
             echo '<div class="container" id="edit_form_'.$IdTabla.'" style="">';
@@ -368,25 +375,26 @@ session_start();
             $Tabla3 = 'packing_list';
             echo '<br><h4 class="mb-4">'.Trd(32).'</h4>';
 ?>
-        <div class="container" id = "add_form_<?php echo $Tabla3?>_clone" style="">
+        <div class="container-fluid p-4 bg-white border-0 shadow-sm rounded-4 mb-4" id="add_form_<?php echo $Tabla3?>_clone" style="max-width: 100%;">
             <form name="add_<?php echo $Tabla3?>_clone" id="add_<?php echo $Tabla3?>_clone" class="needs-validation" novalidate>
-                <div class="row">
-                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
-                <?php
-                            echo "<label for='CodigoOrigen_clone_$Tabla3' class='form-label'>Copiar información de: </label>";
-                                echo '<select name="CodigoOrigen_clone_'.$Tabla3.'" id="CodigoOrigen_clone_'.$Tabla3.'" class="selectpicker form-control border-1  rounded " style="" >';
-                                echo $Valores_Productos;
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-md-10 col-lg-10">
+                        <?php
+                            echo "<label for='CodigoOrigen_clone_$Tabla3' class='form-label text-secondary fw-semibold small mb-2'>Copiar información de: </label>";
+                            echo '<select name="CodigoOrigen_clone_'.$Tabla3.'" id="CodigoOrigen_clone_'.$Tabla3.'" class="selectpicker form-control bg-light border px-3 py-2 rounded-3 shadow-none text-dark fw-medium">';
+                            echo $Valores_Productos;
                             echo '</select>';
-                ?>
+                        ?>
                     </div>
-                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
-                        <br>
-                        <button class="btn btn-primary" type="button" onclick="Copiar(3)">Copiar</button>
+                    <div class="col-12 col-md-2 col-lg-2">
+                        <button class="btn btn-primary fw-semibold px-4 py-2 rounded-3 shadow-sm w-100 d-inline-flex align-items-center justify-content-center gap-2" type="button" onclick="Copiar(3)">
+                            <i class="fa-solid fa-paste"></i> Copiar
+                        </button>
                     </div>                        
                 </div>
-                
             </form>
         </div>
+
 <?php
                 add_listado($Tabla3);
                 add_form($Tabla3,$Idioma,'D');
@@ -394,23 +402,23 @@ session_start();
             $Tabla4 = 'related_products';
             echo '<br><h4 class="mb-4">'.Trd(33).'</h4>';
 ?>
-        <div class="container" id = "add_form_<?php echo $Tabla4?>_clone" style="">
+        <div class="container-fluid p-4 bg-white border-0 shadow-sm rounded-4 mb-4" id="add_form_<?php echo $Tabla4?>_clone" style="max-width: 100%;">
             <form name="add_<?php echo $Tabla4?>_clone" id="add_<?php echo $Tabla4?>_clone" class="needs-validation" novalidate>
-                <div class="row">
-                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
-                <?php
-                            echo "<label for='CodigoOrigen_clone_$Tabla4' class='form-label'>Copiar información de: </label>";
-                                echo '<select name="CodigoOrigen_clone_'.$Tabla4.'" id="CodigoOrigen_clone_'.$Tabla4.'" class="selectpicker form-control border-1  rounded " style="" >';
-                                echo $Valores_Productos;
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-md-10 col-lg-10">
+                        <?php
+                            echo "<label for='CodigoOrigen_clone_$Tabla4' class='form-label text-secondary fw-semibold small mb-2'>Copiar información de: </label>";
+                            echo '<select name="CodigoOrigen_clone_'.$Tabla4.'" id="CodigoOrigen_clone_'.$Tabla4.'" class="selectpicker form-control bg-light border px-3 py-2 rounded-3 shadow-none text-dark fw-medium">';
+                            echo $Valores_Productos;
                             echo '</select>';
-                ?>
+                        ?>
                     </div>
-                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
-                        <br>
-                        <button class="btn btn-primary" type="button" onclick="Copiar(4)">Copiar</button>
+                    <div class="col-12 col-md-2 col-lg-2">
+                        <button class="btn btn-primary fw-semibold px-4 py-2 rounded-3 shadow-sm w-100 d-inline-flex align-items-center justify-content-center gap-2" type="button" onclick="Copiar(4)">
+                            <i class="fa-solid fa-paste"></i> Copiar
+                        </button>
                     </div>                        
                 </div>
-                
             </form>
         </div>
 <?php            
@@ -420,23 +428,23 @@ session_start();
             $Tabla5 = 'upselling_products';
             echo '<br><h4 class="mb-4">'.Trd(34).'</h4>';
 ?>
-        <div class="container" id = "add_form_<?php echo $Tabla5?>_clone" style="">
+        <div class="container-fluid p-4 bg-white border-0 shadow-sm rounded-4 mb-4" id="add_form_<?php echo $Tabla5?>_clone" style="max-width: 100%;">
             <form name="add_<?php echo $Tabla5?>_clone" id="add_<?php echo $Tabla5?>_clone" class="needs-validation" novalidate>
-                <div class="row">
-                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
-                <?php
-                            echo "<label for='CodigoOrigen_clone_$Tabla5' class='form-label'>Copiar información de: </label>";
-                                echo '<select name="CodigoOrigen_clone_'.$Tabla5.'" id="CodigoOrigen_clone_'.$Tabla5.'" class="selectpicker form-control border-1  rounded " style="" >';
-                                echo $Valores_Productos;
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-md-10 col-lg-10">
+                        <?php
+                            echo "<label for='CodigoOrigen_clone_$Tabla5' class='form-label text-secondary fw-semibold small mb-2'>Copiar información de: </label>";
+                            echo '<select name="CodigoOrigen_clone_'.$Tabla5.'" id="CodigoOrigen_clone_'.$Tabla5.'" class="selectpicker form-control bg-light border px-3 py-2 rounded-3 shadow-none text-dark fw-medium">';
+                            echo $Valores_Productos;
                             echo '</select>';
-                ?>
+                        ?>
                     </div>
-                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
-                        <br>
-                        <button class="btn btn-primary" type="button" onclick="Copiar(5)">Copiar</button>
+                    <div class="col-12 col-md-2 col-lg-2">
+                        <button class="btn btn-primary fw-semibold px-4 py-2 rounded-3 shadow-sm w-100 d-inline-flex align-items-center justify-content-center gap-2" type="button" onclick="Copiar(5)">
+                            <i class="fa-solid fa-paste"></i> Copiar
+                        </button>
                     </div>                        
                 </div>
-                
             </form>
         </div>
 <?php            
@@ -446,23 +454,23 @@ session_start();
             $Tabla6 = 'relationship_products';
             echo '<br><h4 class="mb-4">'.Trd(35).'</h4>';
 ?>
-        <div class="container" id = "add_form_<?php echo $Tabla6?>_clone" style="">
+        <div class="container-fluid p-4 bg-white border-0 shadow-sm rounded-4 mb-4" id="add_form_<?php echo $Tabla6?>_clone" style="max-width: 100%;">
             <form name="add_<?php echo $Tabla6?>_clone" id="add_<?php echo $Tabla6?>_clone" class="needs-validation" novalidate>
-                <div class="row">
-                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
-                <?php
-                            echo "<label for='CodigoOrigen_clone_$Tabla6' class='form-label'>Copiar información de: </label>";
-                                echo '<select name="CodigoOrigen_clone_'.$Tabla6.'" id="CodigoOrigen_clone_'.$Tabla6.'" class="selectpicker form-control border-1  rounded " style="" >';
-                                echo $Valores_Productos;
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-md-10 col-lg-10">
+                        <?php
+                            echo "<label for='CodigoOrigen_clone_$Tabla6' class='form-label text-secondary fw-semibold small mb-2'>Copiar información de: </label>";
+                            echo '<select name="CodigoOrigen_clone_'.$Tabla6.'" id="CodigoOrigen_clone_'.$Tabla6.'" class="selectpicker form-control bg-light border px-3 py-2 rounded-3 shadow-none text-dark fw-medium">';
+                            echo $Valores_Productos;
                             echo '</select>';
-                ?>
+                        ?>
                     </div>
-                    <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
-                        <br>
-                        <button class="btn btn-primary" type="button" onclick="Copiar(6)">Copiar</button>
+                    <div class="col-12 col-md-2 col-lg-2">
+                        <button class="btn btn-primary fw-semibold px-4 py-2 rounded-3 shadow-sm w-100 d-inline-flex align-items-center justify-content-center gap-2" type="button" onclick="Copiar(6)">
+                            <i class="fa-solid fa-paste"></i> Copiar
+                        </button>
                     </div>                        
                 </div>
-                
             </form>
         </div>
 <?php            
@@ -500,7 +508,7 @@ session_start();
             add_form($IdTabla,$Idioma,'M');
                 //add_listado($Tabla);
                 //add_form($Tabla,$Idioma,'F');
-            edit_form($IdTabla,$Idioma,'I');
+            edit_form($IdTabla,$Idioma,'I',true);
 
             $Tabla = 'distance_charges_zip_code';
             echo '<h4 class="mb-4">'.Trd(38).'</h4>';
@@ -538,12 +546,12 @@ session_start();
 
         }
         elseif ($IdTabla == 'account'){
-            edit_form($IdTabla,$Idioma,'M','');
+            edit_form($IdTabla,$Idioma,'M',true,'');
         }
         elseif ($IdTabla == 'item_prices'){
             add_listado($IdTabla);
             add_form($IdTabla,$Idioma,'M');
-            edit_form($IdTabla,$Idioma,'M');
+            edit_form($IdTabla,$Idioma,'M',true);
             delete_form($IdTabla);
             ?>
             <div class="container">
@@ -560,7 +568,7 @@ session_start();
         elseif ($IdTabla == 'customers'){
             add_listado($IdTabla);
             add_form($IdTabla,$Idioma,'M');
-            edit_form($IdTabla,$Idioma,'I');
+            edit_form($IdTabla,$Idioma,'I',true);
 
             $Tabla = 'customer_addresses';
             echo '<h4 class="mb-4">Direcciones Extras</h4>';
@@ -576,135 +584,136 @@ session_start();
         elseif ($IdTabla == 'price_lists'){
             add_listado($IdTabla);
             add_form($IdTabla,$Idioma,'M');
-            edit_form($IdTabla,$Idioma,'I');
+            edit_form($IdTabla,$Idioma,'I',true);
 
                 ?>
                 
-                <br>
-                <h4 class="mb-4">Opciones</h4>
+        <div class="container-fluid p-4 bg-white border-0 shadow-sm rounded-4 mb-4" style="max-width: 100%;">
+            
+            <h4 class="mb-3 text-dark fw-bold"><i class="fa-solid fa-sliders text-primary me-2 small"></i>Opciones de Gestión</h4>
+            
+            <div class="bg-light p-3 rounded-3 border mb-4">
+                <label class="form-label text-secondary fw-semibold small d-block mb-3">Selecciona el tipo de operación:</label>
+                <div class="d-flex flex-wrap gap-4">
+                    <div class="form-check form-check-inline m-0">
+                        <input class="form-check-input cursor-pointer shadow-none" type="radio" name="tipo" id="Copia" value="Copia" onclick="cambiarDivs('copiar_lista')" checked>
+                        <label class="form-check-label text-dark fw-medium cursor-pointer" for="Copia">
+                            <i class="fa-solid fa-folder-plus text-muted me-1"></i> Copiar Lista
+                        </label>
+                    </div>
+                    <div class="form-check form-check-inline m-0">
+                        <input class="form-check-input cursor-pointer shadow-none" type="radio" name="tipo" id="Ajuste" value="Ajuste" onclick="cambiarDivs('ajustar_lista')">
+                        <label class="form-check-label text-dark fw-medium cursor-pointer" for="Ajuste">
+                            <i class="fa-solid fa-tags text-muted me-1"></i> Ajuste de precio
+                        </label>
+                    </div>                        
+                </div>
+            </div>
+
+            <form name="ajustar_precios" id="ajustar_precios" class="needs-validation" novalidate>
                 
-                    <div class="row">
-                        <div class='col-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 col-xxl-4'>
-                                <label for='' class='form-label'>Tipo</label>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class='col-6 col-sm-6 col-md-4 col-lg-4 col-xl-4 col-xxl-4'>
-                                <input class="form-check-input" type="radio" name="tipo" id="Copia" value = "Copia"  onclick="cambiarDivs('copiar_lista')" checked>
-                                <label class="form-check-label" for="Ajuste">
-                                    Copiar Lista
-                                </label>
-                        </div>
-                        <div class='col-6 col-sm-6 col-md-4 col-lg-4 col-xl-4 col-xxl-4'>
-                                <input class="form-check-input" type="radio" name="tipo" id="Ajuste" value = "Ajuste" onclick="cambiarDivs('ajustar_lista')">
-                                <label class="form-check-label" for="Ajuste">
-                                    Ajuste precio
-                                </label>
-                        </div>                        
-                    </div>
-                    <hr>
-                    <form name="ajustar_precios" id="ajustar_precios" class="needs-validation" novalidate>
-                    <div id="copiar_lista" style="display:block;">
-                        <div class="row" >
-                            <div class='col-12 col-sm-12 col-md-8 col-lg-6 col-xl-6 col-xxl-6'>
-                                <label for='nueva_lista' class='form-label'>Nombre</label>
-                                <input name="nueva_lista" id="nueva_lista" class="form-control  form-control-sm" type="text" style="text-align: left;" required  minlength="5" maxlength="50" placeholder="Ingresa nombre para  la lista">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class='col-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 col-xxl-4'>
-                                    <label for='' class='form-label'>Ajustar precios en </label>
-                            </div>
-                        </div>                        
-                        <div class="row">
-                            <div class='col-6 col-sm-6 col-md-4 col-lg-4 col-xl-4 col-xxl-4'>
-                                    <input class="form-check-input" type="radio" name="tipo_ajuste" id="Monto" value = "$" checked>
-                                    <label class="form-check-label" for="Ajuste">
-                                        $ - Monto
-                                    </label>
-                            </div>
-                            <div class='col-6 col-sm-6 col-md-4 col-lg-4 col-xl-4 col-xxl-4'>
-                                    <input class="form-check-input" type="radio" name="tipo_ajuste" id="Porcentaje" value = "%">
-                                    <label class="form-check-label" for="Ajuste">
-                                        % - Porcentaje
-                                    </label>
-                            </div>
-                        </div>                        
-                        <div class="row">                            
-                            <div class='col-4 col-sm-4 col-md-3 col-lg-3 col-xl-3 col-xxl-3'>
-                                <label for='copia_monto' class='form-label'>Monto Cargo Inicial</label>
-                                <input name="copia_monto" id="copia_monto" class="form-control  form-control-sm decimals currency" type="text" style="text-align: right;" maxlength="10"  value="0.00" >
-                            </div>
-                        <div class="row">                            
-                            <div class='col-4 col-sm-4 col-md-3 col-lg-3 col-xl-3 col-xxl-3'>
-                                <label for='copia_monto_e' class='form-label'>Monto Cargo Extra</label>
-                                <input name="copia_monto_e" id="copia_monto_e" class="form-control  form-control-sm decimals currency" type="text" style="text-align: right;" maxlength="10"  value="0.00" >
-                            </div>
-                        </div>                            
+                <div id="copiar_lista" style="display: block;">
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-md-6">
+                            <label for="nueva_lista" class="form-label text-secondary fw-semibold small mb-2">Nombre de la Lista</label>
+                            <input name="nueva_lista" id="nueva_lista" class="form-control bg-light border px-3 py-2 rounded-3 shadow-none text-dark fw-medium" type="text" required minlength="5" maxlength="50" placeholder="Ingresa nombre para la lista">
                         </div>
                     </div>
                     
-                    <div id="ajustar_lista" style="display: none">
-                        <div class="row" >
-                            <div class='col-12 col-sm-12 col-md-8 col-lg-6 col-xl-6 col-xxl-6'>
-                                <label for='$ajuste_categoria' class='form-label'>Ajustar precio a categoria</label>
-                                <select name="ajuste_categoria" id="ajuste_categoria" class="form-control  form-control-sm"  >
-                                    <option value = "0" selected> Todas </option>
-<?php
-                            $query = "SELECT Id,Nombre FROM categories ORDER BY Id";
-                            $stmt_dts = $db->prepare($query);
-                            $stmt_dts->execute();
-                            $tabla_dts = $stmt_dts->fetchAll(PDO::FETCH_ASSOC);
-                            if ($tabla_dts) {
-                                foreach ($tabla_dts as $tabla_dt) {
-                                    $Valor         = $tabla_dt["Id"];
-                                    $Descripcion   = $tabla_dt["Nombre"];
-                                    echo '<option value="'.$Valor.'">'. ($Descripcion).'</option>';
-                                }
-                            }
-                            echo '</select>';
-
-?>                                    
-                                </select>
+                    <div class="p-3 bg-light rounded-3 border mb-3">
+                        <label class="form-label text-secondary fw-semibold small d-block mb-2">Ajustar precios en:</label>
+                        <div class="d-flex gap-4 mb-3">
+                            <div class="form-check form-check-inline m-0">
+                                <input class="form-check-input cursor-pointer shadow-none" type="radio" name="tipo_ajuste" id="Monto" value="$" checked>
+                                <label class="form-check-label text-dark fw-medium cursor-pointer" for="Monto">$ - Monto Fijo</label>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class='col-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 col-xxl-4'>
-                                    <label for='' class='form-label'>Ajustar precios en </label>
+                            <div class="form-check form-check-inline m-0">
+                                <input class="form-check-input cursor-pointer shadow-none" type="radio" name="tipo_ajuste" id="Porcentaje" value="%">
+                                <label class="form-check-label text-dark fw-medium cursor-pointer" for="Porcentaje">% - Porcentaje</label>
                             </div>
                         </div>                        
-                        <div class="row">
-                            <div class='col-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 col-xxl-4'>
-                                    <input class="form-check-input" type="radio" name="tipo_ajuste_c" id="Monto_c" value = "$" checked>
-                                    <label class="form-check-label" for="Ajuste">
-                                        $ - Monto
-                                    </label>
+                        
+                        <div class="row g-3">                            
+                            <div class="col-12 col-sm-6 col-md-4">
+                                <label for="copia_monto" class="form-label text-secondary fw-semibold small mb-2">Monto Cargo Inicial</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0 text-muted rounded-start-3">$</span>
+                                    <input name="copia_monto" id="copia_monto" class="form-control bg-light border-start-0 px-3 py-2 text-end rounded-end-3 shadow-none fw-semibold decimals currency" type="text" maxlength="10" value="0.00">
+                                </div>
                             </div>
-                            <div class='col-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 col-xxl-4'>
-                                    <input class="form-check-input" type="radio" name="tipo_ajuste_c" id="Porcentaje_c" value = "%">
-                                    <label class="form-check-label" for="Ajuste">
-                                        % - Porcentaje
-                                    </label>
+                            <div class="col-12 col-sm-6 col-md-4">
+                                <label for="copia_monto_e" class="form-label text-secondary fw-semibold small mb-2">Monto Cargo Extra</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0 text-muted rounded-start-3">$</span>
+                                    <input name="copia_monto_e" id="copia_monto_e" class="form-control bg-light border-start-0 px-3 py-2 text-end rounded-end-3 shadow-none fw-semibold decimals currency" type="text" maxlength="10" value="0.00">
+                                </div>
+                            </div>
+                        </div>                            
+                    </div>
+                </div>
+                
+                <div id="ajustar_lista" style="display: none;">
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-md-6">
+                            <label for="ajuste_categoria" class="form-label text-secondary fw-semibold small mb-2">Ajustar precio a categoría</label>
+                            <select name="ajuste_categoria" id="ajuste_categoria" class="form-control bg-light border px-3 py-2 rounded-3 shadow-none text-dark fw-medium">
+                                <option value="0" selected> Todas las Categorías </option>
+                                <?php
+                                    $query = "SELECT Id,Nombre FROM categories ORDER BY Id";
+                                    $stmt_dts = $db->prepare($query);
+                                    $stmt_dts->execute();
+                                    $tabla_dts = $stmt_dts->fetchAll(PDO::FETCH_ASSOC);
+                                    if ($tabla_dts) {
+                                        foreach ($tabla_dts as $tabla_dt) {
+                                            $Valor         = $tabla_dt["Id"];
+                                            $Descripcion   = $tabla_dt["Nombre"];
+                                            echo '<option value="'.$Valor.'">'. ($Descripcion).'</option>';
+                                        }
+                                    }
+                                ?>                                    
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="p-3 bg-light rounded-3 border mb-3">
+                        <label class="form-label text-secondary fw-semibold small d-block mb-2">Ajustar precios en:</label>
+                        <div class="d-flex gap-4 mb-3">
+                            <div class="form-check form-check-inline m-0">
+                                <input class="form-check-input cursor-pointer shadow-none" type="radio" name="tipo_ajuste_c" id="Monto_c" value="$" checked>
+                                <label class="form-check-label text-dark fw-medium cursor-pointer" for="Monto_c">$ - Monto Fijo</label>
+                            </div>
+                            <div class="form-check form-check-inline m-0">
+                                <input class="form-check-input cursor-pointer shadow-none" type="radio" name="tipo_ajuste_c" id="Porcentaje_c" value="%">
+                                <label class="form-check-label text-dark fw-medium cursor-pointer" for="Porcentaje_c">% - Porcentaje</label>
                             </div>
                         </div>                        
-                        <div class="row">                            
-                            <div class='col-4 col-sm-4 col-md-3 col-lg-3 col-xl-3 col-xxl-3'>
-                                <label for='ajuste_monto' class='form-label'>Monto Cargo Inicial</label>
-                                <input name="ajuste_monto" id="ajuste_monto" class="form-control  form-control-sm decimals " type="text" style="text-align: right;" maxlength="10"  value="0.00" >
+                        
+                        <div class="row g-3">                            
+                            <div class="col-12 col-sm-6 col-md-4">
+                                <label for="ajuste_monto" class="form-label text-secondary fw-semibold small mb-2">Monto Cargo Inicial</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0 text-muted rounded-start-3">$</span>
+                                    <input name="ajuste_monto" id="ajuste_monto" class="form-control bg-light border-start-0 px-3 py-2 text-end rounded-end-3 shadow-none fw-semibold decimals" type="text" maxlength="10" value="0.00">
+                                </div>
                             </div>
-                        </div>
-                        <div class="row">                            
-                            <div class='col-4 col-sm-4 col-md-3 col-lg-3 col-xl-3 col-xxl-3'>
-                                <label for='ajuste_monto_e' class='form-label'>Monto Cargo Extra</label>
-                                <input name="ajuste_monto_e" id="ajuste_monto_e" class="form-control  form-control-sm decimals " type="text" style="text-align: right;" maxlength="10"  value="0.00" >
+                            <div class="col-12 col-sm-6 col-md-4">
+                                <label for="ajuste_monto_e" class="form-label text-secondary fw-semibold small mb-2">Monto Cargo Extra</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0 text-muted rounded-start-3">$</span>
+                                    <input name="ajuste_monto_e" id="ajuste_monto_e" class="form-control bg-light border-start-0 px-3 py-2 text-end rounded-end-3 shadow-none fw-semibold decimals" type="text" maxlength="10" value="0.00">
+                                </div>
                             </div>
                         </div>                        
                     </div>                    
+                </div>
 
-                <br>
-                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                    <button class="btn btn-primary" type="submit">Procesar</button>
-                </div>                
+                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                    <button class="btn btn-primary fw-semibold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center gap-2" type="submit">
+                        <i class="fa-solid fa-gears"></i> Procesar Operación
+                    </button>
+                </div>         
+            </form>
+        </div>   
 
                 </form>
                     <script>
@@ -804,7 +813,7 @@ session_start();
         else{
             add_listado($IdTabla);
             add_form($IdTabla,$Idioma,'M');
-            edit_form($IdTabla,$Idioma,'M');
+            edit_form($IdTabla,$Idioma,'M',true);
             delete_form($IdTabla);            
         }
 
@@ -1462,126 +1471,141 @@ function deleteRecord(Id,IdTabla) {
     });
 }
 
+// Función para renderizar la tabla
+function renderTable(data, titulos, IdTabla, tipos) {
+    // alert(IdTabla)
+    const $container = $('#table-container_' + IdTabla);
+    
+    if (data.length === 0) {
+        $container.html('<div class="alert alert-info text-center shadow-sm my-3"><?php echo Trd(42)?></div>');
+        return;
+    }
+    
+    // Obtener nombres de columnas (usando las claves del primer objeto)
+    const columns = Object.keys(data[0]);
+    
+    // Crear la tabla (Agregamos align-middle para centrar verticalmente todo el contenido)
+    let html = '<div class="table-responsive">'; // Envoltura responsiva para evitar desbordes en móviles
+    html += '<table class="table table-sm table-striped table-hover align-middle mb-0" style="font-size: 0.9rem;">';
+    
+    // Cabecera de la tabla
+    html += '<thead class="table-light border-bottom">';
+    html += '<tr>';
+    
+    let alineaciones = [];
+    titulos.forEach(row => {
+        if (row['Titulo'] != 'Id' && row['Titulo'] != 'IId' && row['Titulo'] != 'Producto_rup' && row['Titulo'] != 'Producto_rsp') {
+            let alineacion = row['Alineacion'] || 'center';
+            // Aplicamos la misma alineación del campo al encabezado para mantener simetría
+            html += `<th style="text-align: ${alineacion};" class="text-secondary fw-semibold py-2">${row['Titulo'] || ''}</th>`;
+        }
 
-        // Función para renderizar la tabla
-        function renderTable(data,titulos,IdTabla,tipos) {
-            //alert(IdTabla)
-            const $container = $('#table-container_'+IdTabla);
-            
-            if (data.length === 0) {
-                $container.html('<div class="alert alert-info text-center"><?php echo Trd(42)?></div>');
-                return;
+        let alineacion = row['Alineacion'] || 'center';
+        alineaciones.push(alineacion);
+    });
+
+    let Tipos = [];
+    tipos.forEach(row => {
+        let tipo = row['TipoCampo'];
+        Tipos.push(tipo);
+    });
+    
+    if (IdTabla == 'products_images') {
+        html += `<th style="text-align: center;" class="text-secondary fw-semibold py-2">Orden</th>`;
+    }
+
+    html += `<th style="width: 100px;"></th>`; // Columna para los botones de acción fija
+    html += '</tr>';
+    html += '</thead>';
+    
+    // Cuerpo de la tabla
+    html += '<tbody>';
+
+    data.forEach(row => {
+        html += '<tr>';
+        let Id = '';
+        let idx = 0;
+
+        columns.forEach(col => {                
+            if (Tipos[idx] == 'checkbox') {
+                // Diseño elegante usando Badges de Bootstrap en lugar de emojis planos
+                if (row[col] == 1) {
+                    html += `<td style="text-align: ${alineaciones[idx]}"><span class="badge rounded-pill bg-success-subtle text-success px-2 py-1"><i class="fa-solid fa-check me-1"></i>Activo</span></td>`;
+                } else {
+                    html += `<td style="text-align: ${alineaciones[idx]}"><span class="badge rounded-pill bg-danger-subtle text-danger px-2 py-1"><i class="fa-solid fa-xmark me-1"></i>Inactivo</span></td>`;
+                }
             }
-            
-            // Obtener nombres de columnas (usando las claves del primer objeto)
-            const columns = Object.keys(data[0]);
-            
-            // Crear la tabla
-            let html = '<table class="table table-sm table-striped table-hover">';
-            
-            // Cabecera de la tabla
-            html += '<thead class="table-light">';
-            html += '<tr>';
-            //columns.forEach(col => {
-            //    html += `<th >${formatColumnName(col)}</th>`;
-            //});
-            let alineaciones = [];
-            titulos.forEach(row => {
-                if (row['Titulo'] != 'Id' && row['Titulo'] != 'IId' && row['Titulo'] != 'Producto_rup' && row['Titulo'] != 'Producto_rsp')
-                html += `<th style="text-align: center">${row['Titulo'] || ''}</th>`;
-
-                let alineacion = row['Alineacion'] || 'center';
-                alineaciones.push(alineacion);
-            });
-
-            let Tipos = [];
-            tipos.forEach(row => {
-                let tipo = row['TipoCampo'];
-                Tipos.push(tipo);
-            });
-            if (IdTabla == 'products_images')
-                html += `<th >Orden</th>`;
-
-            html += `<th ></th>`;
-            html += '</tr>';
-            html += '</thead>';
-            
-            // Cuerpo de la tabla
-            html += '<tbody>';
-
-            data.forEach(row => {
-                html += '<tr>';
-                Id='';
-                idx=0;
-
-                columns.forEach(col => {                
-                if (Tipos[idx] == 'checkbox'){
-                    if (row[col] == 1)
-                        html += `<td style="text-align: ${alineaciones[idx]}" >✅</td>`;
-                    else
-                        html += `<td style="text-align: ${alineaciones[idx]}" >❌</td>`;
+            else if (Tipos[idx] == 'file') {
+                // Enlaces de descarga más visuales con iconos integrados
+                let fileName = row[col] || '';
+                html += `<td style="text-align: ${alineaciones[idx]}">`;
+                if(fileName !== '') {
+                    html += `<a href="ajax/tmp/${fileName}" target="_blank" rel="noopener noreferrer" class="text-decoration-none fw-medium text-primary"><i class="fa-solid fa-paperclip me-1 small"></i>${fileName}</a>`;
+                } else {
+                    html += `<span class="text-muted small">-</span>`;
                 }
-                else if (Tipos[idx] == 'file'){
-                        //url = `${CFPUBLICURL}/${ID_CLIENTE}/${IdTabla}/thumbnails/${row[col] || ''}`;
-                        //html += `<td style="text-align: ${alineaciones[idx]}" ><a href="${url || ''}" target="_blank" rel="noopener noreferrer">${row[col] || ''}</a></td>`;                    
-                        html += `<td style="text-align: ${alineaciones[idx]}" ><a href="ajax/tmp/${row[col] || ''}" target="_blank" rel="noopener noreferrer">${row[col] || ''}</a></td>`;
-                }                
-                else{
-                    if (col != 'Id' && col != 'IId' && col != 'Producto_rup' && col != 'Producto_rsp' && col != 'id_vehicle' )
-                        html += `<td style="text-align: ${alineaciones[idx]}" >${row[col] || ''}</td>`;
+                html += `</td>`;
+            }                
+            else {
+                if (col != 'Id' && col != 'IId' && col != 'Producto_rup' && col != 'Producto_rsp' && col != 'id_vehicle') {
+                    html += `<td style="text-align: ${alineaciones[idx]}" class="text-dark">${row[col] || ''}</td>`;
                 }
+            }
 
-                    if (col == 'Id' || col == 'IId' || col == 'IdWhareHouse' || col ==  'id_vehicle')
-                        Id = row[col];
-                    idx=idx+1;
-                });
+            if (col == 'Id' || col == 'IId' || col == 'IdWhareHouse' || col == 'id_vehicle') {
+                Id = row[col];
+            }
+            idx = idx + 1;
+        });
 
-            if (IdTabla == 'products_images'){
-                html += `<td style="text-align: center">
-                            
-                    <button class="btn-nav" title="Inicio" onclick="orden('I',${IdSelected},${Id})">
+        // Botones de navegación de orden para imágenes
+        if (IdTabla == 'products_images') {
+            html += `<td style="text-align: center">
+                <div class="btn-group btn-group-sm" role="group">
+                    <button class="btn btn-light border text-secondary" title="Inicio" onclick="orden('I',${IdSelected},${Id})">
                         <i class="fa-solid fa-angles-left"></i>
                     </button>
-                    <button class="btn-nav" title="Anterior" onclick="orden('A',${IdSelected},${Id})">
+                    <button class="btn btn-light border text-secondary" title="Anterior" onclick="orden('A',${IdSelected},${Id})">
                         <i class="fa-solid fa-angle-left"></i>
                     </button>
-                    <button class="btn-nav" title="Siguiente" onclick="orden('S',${IdSelected},${Id})">
+                    <button class="btn btn-light border text-secondary" title="Siguiente" onclick="orden('S',${IdSelected},${Id})">
                         <i class="fa-solid fa-angle-right"></i>
                     </button>
-                    <button class="btn-nav" title="Último" onclick="orden('U',${IdSelected},${Id})">
+                    <button class="btn btn-light border text-secondary" title="Último" onclick="orden('U',${IdSelected},${Id})">
                         <i class="fa-solid fa-angles-right"></i>
                     </button>
-
-                        </td>`;                
-            }
-                
-            if (IdTabla == 'detail_price_lists'){
-
-                html += `<td style="text-align: center">
-                            <button type="button" class="btn btn-danger btn-sm" onclick="questionDelete('${Id}','${IdTabla}')"  data-bs-toggle="modal" data-bs-target="#delete_${IdTabla}">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>`;            
-
-            }else{
-                html += `<td style="text-align: center">
-                            <button type="button" class="btn btn-primary btn-sm" onclick="getRecordData('${Id}','${IdTabla}')">
-                                <i class="fas fa-pen"></i>
-                            </button>
-
-                            <button type="button" class="btn btn-danger btn-sm" onclick="questionDelete('${Id}','${IdTabla}')"  data-bs-toggle="modal" data-bs-target="#delete_${IdTabla}">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>`;
-            }
-                html += '</tr>';
-            });
-
-            html += '</tbody>';
-            html += '</table>';
-            
-            $container.html(html);
+                </div>
+            </td>`;                
         }
+            
+        // Botones de acciones generales (Editar / Eliminar) envueltos en grupos compactos
+        if (IdTabla == 'detail_price_lists') {
+            html += `<td style="text-align: center">
+                <button type="button" class="btn btn-outline-danger btn-sm rounded-3 shadow-none px-2" title="Eliminar" onclick="questionDelete('${Id}','${IdTabla}')" data-bs-toggle="modal" data-bs-target="#delete_${IdTabla}">
+                    <i class="fas fa-trash-can"></i>
+                </button>
+            </td>`;            
+        } else {
+            html += `<td style="text-align: center">
+                <div class="btn-group btn-group-sm rounded-3" role="group">
+                    <button type="button" class="btn btn-outline-primary shadow-none px-2" title="Editar" onclick="getRecordData('${Id}','${IdTabla}')">
+                        <i class="fas fa-pen"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-danger shadow-none px-2" title="Eliminar" onclick="questionDelete('${Id}','${IdTabla}')" data-bs-toggle="modal" data-bs-target="#delete_${IdTabla}">
+                        <i class="fas fa-trash-can"></i>
+                    </button>
+                </div>
+            </td>`;
+        }
+        html += '</tr>';
+    });
+
+    html += '</tbody>';
+    html += '</table>';
+    html += '</div>'; // Cierra table-responsive
+    
+    $container.html(html);
+}
 
         // Función para formatear nombres de columnas
         function formatColumnName(columnName) {
