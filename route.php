@@ -460,7 +460,7 @@ const colores = ['#f97316', '#0ea5e9', '#10b981', '#8b5cf6', '#ef4444', '#f59e0b
 
 function initMap() {
     map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 20.6736, lng: -103.344 },
+        center: { lat: <?= $account['Lat'] ?>, lng: <?= $account['Lng'] ?> },
         zoom: 12,
         styles: [
             { featureType: "poi",            stylers: [{ visibility: "off" }] },
