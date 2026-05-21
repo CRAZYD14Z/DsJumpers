@@ -1242,7 +1242,7 @@ $(document).on("keypress", ".numbers-only", function (e) {
 
             const $primerTd = $(this).find('td:nth-child(1)');
             const todosLosDatos = $primerTd.data();
-            if (todosLosDatos.quantity > 0){
+            //if (todosLosDatos.quantity > 0){
 
                 const idProd = $(this).find('td:nth-child(1)').text();
                 const nombreProd = $(this).find('td:nth-child(2)').text();
@@ -1255,10 +1255,10 @@ $(document).on("keypress", ".numbers-only", function (e) {
                 Row+=1;
                 add_row(Row,0,todosLosDatos);
                 get_related_products($(this).find('td:nth-child(1)').text());
-            }
-            else{
-                lanzarMensaje("<?php echo Trd(84)?>", "error", 5000);
-            }
+            //}
+            //else{
+            //    lanzarMensaje("<?php echo Trd(84)?>", "error", 5000);
+            //}
             //alert($(this).find('td:nth-child(1)').data('name'))
             //console.log('Producto seleccionado:', nombreProd);
         });               
@@ -1267,14 +1267,14 @@ $(document).on("keypress", ".numbers-only", function (e) {
         $('.table-custom-sprd tbody ').on('click','tr', function() {
             const $primerTd = $(this).find('td:nth-child(1)');            
             const todosLosDatos = $primerTd.data();  
-            if (todosLosDatos.quantity > 0){          
+            //if (todosLosDatos.quantity > 0){          
                 $(this).hide();
                 Row+=1;
                 add_row(Row,$('#IdProducto').val(),todosLosDatos);
-            }
-            else{
-                lanzarMensaje("<?php echo Trd(85)?>", "error", 5000);
-            }
+            //}
+            //else{
+            //    lanzarMensaje("<?php echo Trd(85)?>", "error", 5000);
+            //}
         });          
 
         //RECUPERAR PRODUCTOS DE CATERGORIA
@@ -1908,16 +1908,16 @@ function cambiarCantidad(id, delta) {
 
     if (delta > 0) {
         // Lógica para SUMAR
-        if (stockDisponible > 0) {
+        //if (stockDisponible > 0) {
             cantSeleccionada++;
             stockDisponible--;
             
             // Actualizar la clase (opcional: tu ProductCounter)
             inventario.add(fila_afectada.dataset.product, fila_afectada.dataset.name, 1);
-        } else {
+        //} else {
             //alert("¡No hay más stock disponible!");
-            lanzarMensaje("<?php echo Trd(89)?>", "alert", 5000);
-        }
+        //    lanzarMensaje("<?php echo Trd(89)?>", "alert", 5000);
+        //}
     } else if (delta < 0) {
         // Lógica para RESTAR
         if (cantSeleccionada > 0) {

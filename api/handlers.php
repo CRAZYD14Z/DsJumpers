@@ -1662,6 +1662,39 @@ function get_products_categories($table_name,$db, $method, $id, $data){
 
             ";
 
+            $query = "
+                SELECT 
+                    IdProduct, 
+                    SUM(Quantity) AS Quantity 
+                FROM v_leads_detail 
+                WHERE 
+                    Status IN ('quoted', 'confirmed')
+                    AND Unlimited = 0
+                    AND StartDateTime < :DateE
+                    AND EndDateTime > :DateS
+                GROUP BY IdProduct
+
+                UNION 
+
+                SELECT
+                        relationship_products.Producto_rsp as IdProduct, 
+                        count(relationship_products.Producto_rsp) as Quantity
+                FROM
+                        v_leads_detail
+                        INNER JOIN
+                        relationship_products
+                        ON 
+                                v_leads_detail.IdProduct = relationship_products.Producto_sp
+                WHERE 
+                        v_leads_detail.Status IN ('quoted', 'confirmed')
+                        AND v_leads_detail.Unlimited = 0
+                        AND v_leads_detail.StartDateTime < :DateEE 
+                        AND v_leads_detail.EndDateTime > :DateSS 
+
+                GROUP BY relationship_products.Producto_rsp	                
+            ";             
+
+
             $stmt = $db->prepare($query);
             $stmt->bindParam(':DateS', $fechaS_db);
             $stmt->bindParam(':DateE', $fechaE_db);
@@ -1803,6 +1836,38 @@ function get_related_products($table_name,$db, $method, $id, $data){
                 GROUP BY relationship_products.Producto_rsp	                
 
             ";
+
+            $query = "
+                SELECT 
+                    IdProduct, 
+                    SUM(Quantity) AS Quantity 
+                FROM v_leads_detail 
+                WHERE 
+                    Status IN ('quoted', 'confirmed')
+                    AND Unlimited = 0
+                    AND StartDateTime < :DateE
+                    AND EndDateTime > :DateS
+                GROUP BY IdProduct
+
+                UNION 
+
+                SELECT
+                        relationship_products.Producto_rsp as IdProduct, 
+                        count(relationship_products.Producto_rsp) as Quantity
+                FROM
+                        v_leads_detail
+                        INNER JOIN
+                        relationship_products
+                        ON 
+                                v_leads_detail.IdProduct = relationship_products.Producto_sp
+                WHERE 
+                        v_leads_detail.Status IN ('quoted', 'confirmed')
+                        AND v_leads_detail.Unlimited = 0
+                        AND v_leads_detail.StartDateTime < :DateEE 
+                        AND v_leads_detail.EndDateTime > :DateSS 
+
+                GROUP BY relationship_products.Producto_rsp	                
+            ";             
 
             $stmt = $db->prepare($query);
             $stmt->bindParam(':DateS', $fechaS_db);
@@ -2338,9 +2403,6 @@ function distance_charge($table_name,$db, $method, $id, $data){
                             $costo_total += ($millas_excedentes * $costo_extra);
                         }
                         //$costo_total;
-                        
-
-
                     }
 
                     $TaxRate = 0;

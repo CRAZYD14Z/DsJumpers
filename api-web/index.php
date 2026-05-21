@@ -234,7 +234,11 @@ switch ($resource) {
     case 'distance_charge':
 	    $Traducciones = Traducciones('distance_charge',$lng,$db);           
         distance_charge($resource,$db, $method, $id, $data);
-    break;    
+    break;
+    case 'distance':
+	    $Traducciones = Traducciones('distance_charge',$lng,$db);           
+        distance($resource,$db, $method, $id, $data);
+    break;        
     case 'validate_gifcard':
 	    $Traducciones = Traducciones('validate_gifcard',$lng,$db);        
         validate_gifcard($resource,$db, $method, $id, $data);
@@ -1660,6 +1664,39 @@ function products_categories($table_name,$db, $method, $id, $data){
                 AND v_leads_detail.Unlimited = 0
                 GROUP BY relationship_products.Producto_rsp		                
             ";
+
+            $query = "
+                SELECT 
+                    IdProduct, 
+                    SUM(Quantity) AS Quantity 
+                FROM v_leads_detail 
+                WHERE 
+                    Status IN ('quoted', 'confirmed')
+                    AND Unlimited = 0
+                    AND StartDateTime < :DateE
+                    AND EndDateTime > :DateS
+                GROUP BY IdProduct
+
+                UNION 
+
+                SELECT
+                        relationship_products.Producto_rsp as IdProduct, 
+                        count(relationship_products.Producto_rsp) as Quantity
+                FROM
+                        v_leads_detail
+                        INNER JOIN
+                        relationship_products
+                        ON 
+                                v_leads_detail.IdProduct = relationship_products.Producto_sp
+                WHERE 
+                        v_leads_detail.Status IN ('quoted', 'confirmed')
+                        AND v_leads_detail.Unlimited = 0
+                        AND v_leads_detail.StartDateTime < :DateEE 
+                        AND v_leads_detail.EndDateTime > :DateSS 
+
+                GROUP BY relationship_products.Producto_rsp	                
+            ";            
+
             $stmt = $db->prepare($query);
             $stmt->bindParam(':DateS', $fechaS_db);
             $stmt->bindParam(':DateE', $fechaE_db);
@@ -1895,6 +1932,7 @@ try {
             $Distance = '';
             $Distance = distance_charge($table_name,$db, $method, $id, $data_dst);
             $Distance = json_decode($Distance);
+            //$Nt1 =  $data->lugar->cp." ".$Distance->cost->costo_total." ".$Distance->cost->total_millas." ".$Distance->cost->taxrate;
             // Acceder al valor
             $Costo_Distancia = $Distance->cost->costo_total;
             $TaxPc = $Distance->cost->taxrate; 
@@ -2306,6 +2344,39 @@ function precios($data,$product){
         AND v_leads_detail.Unlimited = 0
         GROUP BY relationship_products.Producto_rsp		                
     ";
+
+    $query = "
+        SELECT 
+            IdProduct, 
+            SUM(Quantity) AS Quantity 
+        FROM v_leads_detail 
+        WHERE 
+            Status IN ('quoted', 'confirmed')
+            AND Unlimited = 0
+            AND StartDateTime < :DateE
+            AND EndDateTime > :DateS
+        GROUP BY IdProduct
+
+        UNION 
+
+        SELECT
+                relationship_products.Producto_rsp as IdProduct, 
+                count(relationship_products.Producto_rsp) as Quantity
+        FROM
+                v_leads_detail
+                INNER JOIN
+                relationship_products
+                ON 
+                        v_leads_detail.IdProduct = relationship_products.Producto_sp
+        WHERE 
+                v_leads_detail.Status IN ('quoted', 'confirmed')
+                AND v_leads_detail.Unlimited = 0
+                AND v_leads_detail.StartDateTime < :DateEE 
+                AND v_leads_detail.EndDateTime > :DateSS 
+
+        GROUP BY relationship_products.Producto_rsp	                
+    ";     
+
     $stmt = $db->prepare($query);
     $stmt->bindParam(':DateS', $fechaS_db);
     $stmt->bindParam(':DateE', $fechaE_db);
@@ -2585,6 +2656,56 @@ function verificarPagoLink(SquareClient $square, string $orderId,$db): array
         'moneda'         => null
     ];      
 }
+
+function distance($table_name,$db, $method, $id, $data){
+    global $IDS; 
+    switch ($method) {
+        case 'POST': 
+            $ZIPO = $data->{'ZIPO'};
+            $CONO = $data->{'CONO'};
+            $ZIPD = $data->{'ZIPD'};
+            $COND = $data->{'COND'};
+            if ($ZIPD!="" AND $ZIPD != $ZIPO){
+
+                    $query = "select MAX(MaxM) as MAXM from distance_charges_distance";
+                    $stmt = $db->prepare($query);
+                    $stmt->execute();
+                    //$costo_extra = $stmt->fetchColumn();
+                    $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+
+                $total_millas = get_distance("$ZIPO,$CONO","$ZIPD,$COND");
+                if (str_starts_with($total_millas, 'Error')) {
+                    echo Trd(1);
+                }
+                else{
+                    $total_millas = str_replace(" mi", "", $total_millas);
+                    $total_millas = str_replace(",", "", $total_millas);
+                    $total_millas = $total_millas * 1;
+                }            
+
+                if ($total_millas > $data['MAXM']){
+                    $respuesta = [
+                        "success" => false,
+                        "total_millas" => $total_millas,
+                    ];
+                }
+                else{
+                    $respuesta = [
+                        "success" => true,
+                        "total_millas" => $total_millas,
+                    ];
+                }
+
+                    echo  json_encode(array(
+                        "cost" => $respuesta
+                    ));                 
+
+            }
+        break;
+    }
+}
+
 function distance_charge($table_name,$db, $method, $id, $data){
     global $IDS; 
     switch ($method) {
@@ -2610,12 +2731,13 @@ function distance_charge($table_name,$db, $method, $id, $data){
                     $total_millas = 0;
                     if ($Distance==1){
                         //die("$ZIPO,$CONO $ZIPD,$COND");
-                        $total_millas = get_distance("$ZIPO,$CONO","$ZIPD,$COND");                        
+                        $total_millas = get_distance("$ZIPO,$CONO","$ZIPD,$COND");
                         if (str_starts_with($total_millas, 'Error')) {
                             echo Trd(1);
                         }
                         else{
                             $total_millas = str_replace(" mi", "", $total_millas);
+                            $total_millas = str_replace(",", "", $total_millas);
                             $total_millas = $total_millas * 1;
                         }
                         //$total_millas = 35; //AQUI VA LA FUNCION DE GOOGLE MAPS PARA SABER LAS MILLAS
