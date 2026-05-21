@@ -1641,7 +1641,7 @@ function products_categories($table_name,$db, $method, $id, $data){
             $query = "
                 SELECT IdProduct, SUM(Quantity) as Quantity 
                 FROM v_leads_detail 
-                WHERE Status = 'quoted' OR Status = 'confirmed'  
+                WHERE Status = 'quoted'
                 AND (StartDateTime < :DateE AND EndDateTime > :DateS)
                 AND Unlimited = 0
                 GROUP BY IdProduct
@@ -1655,7 +1655,7 @@ function products_categories($table_name,$db, $method, $id, $data){
                     relationship_products
                     ON 
                         v_leads_detail.IdProduct = relationship_products.Producto_sp
-                WHERE v_leads_detail.Status = 'quoted' OR v_leads_detail.Status = 'confirmed' 
+                WHERE v_leads_detail.Status = 'quoted'
                 AND (v_leads_detail.StartDateTime < :DateEE AND v_leads_detail.EndDateTime > :DateSS)
                 AND v_leads_detail.Unlimited = 0
                 GROUP BY relationship_products.Producto_rsp		                
@@ -2287,7 +2287,7 @@ function precios($data,$product){
     $query = "
         SELECT IdProduct, SUM(Quantity) as Quantity 
         FROM v_leads_detail 
-        WHERE Status = 'quoted' OR Status = 'confirmed' 
+        WHERE Status = 'quoted'
         AND (StartDateTime < :DateE AND EndDateTime > :DateS)
         AND Unlimited = 0
         GROUP BY IdProduct
@@ -2301,7 +2301,7 @@ function precios($data,$product){
             relationship_products
             ON 
                 v_leads_detail.IdProduct = relationship_products.Producto_sp
-        WHERE v_leads_detail.Status = 'quoted'  OR v_leads_detail.Status = 'confirmed' 
+        WHERE v_leads_detail.Status = 'quoted'
         AND (v_leads_detail.StartDateTime < :DateEE AND v_leads_detail.EndDateTime > :DateSS)
         AND v_leads_detail.Unlimited = 0
         GROUP BY relationship_products.Producto_rsp		                
