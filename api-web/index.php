@@ -1782,7 +1782,7 @@ function process_quote($table_name,$db, $method, $id, $data){
                     $data->cliente->organizacion,
                     $data->cliente->telefono,
                     $data->cliente->direccion,
-                    $data->cliente->colonia, // Usado como Direccion2
+                    $data->cliente->colonia ?? '', // Usado como Direccion2
                     $data->cliente->ciudad,
                     $data->cliente->cp,
                     $idCliente
@@ -1795,7 +1795,7 @@ function process_quote($table_name,$db, $method, $id, $data){
                 $sqlIns = "INSERT INTO customers (
                             Nombres, Apellidos, NombreEmpresa, Correo, TelefonoCelular, 
                             Direccion, Direccion2, Ciudad, CP, Pais,Estado, Lenguaje,Estatus,FechaCreacion,FechaCambio
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '$lng', 'A',now(),now())";
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, '$lng', 'A',now(),now())";
                 $stmtIns = $db->prepare($sqlIns);
                 $stmtIns->execute([
                     $data->cliente->nombre,
@@ -1804,7 +1804,7 @@ function process_quote($table_name,$db, $method, $id, $data){
                     $data->cliente->correo,
                     $data->cliente->telefono,
                     $data->cliente->direccion,
-                    $data->cliente->colonia,
+                    $data->cliente->colonia ?? '',
                     $data->cliente->ciudad,
                     $data->cliente->cp,
                     $account['Estado'],
