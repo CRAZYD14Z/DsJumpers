@@ -1897,6 +1897,8 @@ try {
             $Distance = json_decode($Distance);
             // Acceder al valor
             $Costo_Distancia = $Distance->cost->costo_total;
+            $TaxPc = $Distance->cost->taxrate; 
+            $TaxAm = 0; 
             //TOTAL DE ITEMS
             $TotalI = 0;
             //TOTAL QUE APLICA A PROPINA
@@ -1962,8 +1964,8 @@ try {
             }
             //IMPUESTOS APLICABLES!!
             $TaxId = ''; 
-            $TaxPc = 0; 
-            $TaxAm = 0; 
+            //$TaxPc = 0; 
+            //$TaxAm = 0; 
             //$Total = 0;
             $fechas = explode(' to ', $data->reserva->fecha);
             $FHI = $fechas[0] .' '. $data->reserva->hInicio; 
@@ -1987,22 +1989,24 @@ try {
             $StCs = $StaffCost; 
             $ChkDsc = 0; 
             $Dsc = 0;
-            $SubT = $SubtotalGral; 
-            $Total = $Subtotal; 
+            $SubT = $SubtotalGral;
+            $TaxAm = $SubT * $TaxPc;
+            $Total = $Subtotal + $TaxAm; 
+            $STTAm = $Subtotal + $TaxAm;
             //SECCION PARA ANTICIPO
             $BalDue = 0;
             $DepoA = 0;            
             if ($Total > 0){
                 if ($account['DepositType'] == 'percentage'){
                     $Depo = $account['DepositAmount'];
-                    $DepoA = ($Subtotal * ($Depo / 100)); 
+                    $DepoA = ($STTAm * ($Depo / 100)); 
                 }else{
                     $Depo = 0;
                     $DepoA = $account['DepositAmount']; 
                 }
-                if ($DepoA > $Subtotal)
-                    $DepoA = $Subtotal;
-                $BalDue = $Subtotal - $DepoA;
+                if ($DepoA > $STTAm)
+                    $DepoA = $STTAm;
+                $BalDue = $STTAm - $DepoA;
             }
             $Status = 'Pending';
             $IdBranch = 1;

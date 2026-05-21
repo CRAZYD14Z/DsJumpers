@@ -105,7 +105,7 @@ try {
     $sqlPay = "INSERT INTO payments (IdLead,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus,Usuario) 
                             VALUES  (?,?,now(),'Square',?,?,?,'A','')";
     $stmtPay = $db->prepare($sqlPay);
-    $stmtPay->execute([$IdLead,$Folio,$amount/100,Currency::Usd->value,$payment->getId()]);    
+    $stmtPay->execute([$IdLead,$Folio,$amount,Currency::Usd->value,$payment->getId()]);    
 
     $stmt = $db->prepare(" UPDATE folios sET Folio = ? WHERE IdBranch = ? AND Type = 'Pay'");
     $stmt->execute([$Folio,$lead['IdBranch']]);        
