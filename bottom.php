@@ -1,6 +1,6 @@
 <div id="barra-inferior" class="fixed-bottom barra-minimalista">
     <div class="container-fluid d-flex justify-content-center align-items-center py-2"> <div class="button-group">
-            <?php if (isset($lead) AND $lead['Status'] != 'canceled'){?>
+            <?php if ((isset($lead) AND $lead['Status'] != 'canceled') OR !isset($lead) ){?>
                 <button class="btn-minimal" onclick="LoadDocument('Quote')"><?php echo Trd(65)?></button>
                 <button class="btn-minimal" onclick="LoadDocument('Contract')"><?php echo Trd(66)?></button>
                 <button class="btn-minimal" onclick="LoadDocument('Invoice')"><?php echo Trd(67)?></button>
