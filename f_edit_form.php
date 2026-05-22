@@ -39,7 +39,6 @@ function armar_formulario_edit($tabla,$etiqueta,$idioma){
             $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
             if ($resultados) {
                 $FilaN = 0;
-                // row g-4 da una separación horizontal y vertical uniforme y limpia
                 echo '<div class="row g-4">';
                 foreach ($resultados as $row) {
 
@@ -75,127 +74,132 @@ function armar_formulario_edit($tabla,$etiqueta,$idioma){
                     $Filtro2        = $row['Filtro2'];
                     $ValorCampo     = $row['Valor'];
                     
-                    // Clases estándar de Bootstrap 5 cómodas a la lectura
                     $form_control = "form-control";
                     $form_select  = "form-select";
 
-                    if ($FilaN != $Fila && $FilaN != 0){
+                    if ($FilaN != $Fila AND $FilaN != 0){
                         echo '</div>';
                         echo '<div class="row g-4">';
                     }   
                     $FilaN = $Fila;
 
-                    $aps = "'";
-                    if ($Patron != "") {
+                    $aps="'";
+                    if ($Patron!="")
                         $Patron = ' pattern="'.$Patron.'" ';            
-                    }
                                                 
-                    $Requerido = ($Requerido == 'X') ? 'required=""' : '';
-                    if ($SoloLectura == 'X') {
+                    if ($Requerido=='X')
+                        $Requerido = 'required=""';
+                    else
+                        $Requerido = '';
+                    if ($SoloLectura=='X')
                         $SoloLectura = 'readonly="readonly"';
-                    } else {
+                    else
                         $SoloLectura = '';                    
-                    }
 
                     echo "<div class='col-$ColXS col-sm-$ColSM col-md-$ColMD col-lg-$ColLG col-xl-$ColXL col-xxl-$ColXXL'>";
 
-                    // Contenedor interno para control del espaciado del elemento
                     echo '<div class="mb-1">';
 
                     switch ($TipoCampo) {
                         case 'option':
-                            $option = substr($Campo, 0, -2);
-                            echo '<div class="form-check my-2">';
-                            echo '<input class="form-check-input" type="radio" name="'.$option.'" id="'.$Campo.'" value="'.$Alineacion.'">';
-                            echo '<label class="form-check-label fw-medium text-dark" for="'.$Campo.'">'.$Titulo.'</label>';
-                            echo '</div>';
+                                $option= substr($Campo, 0, -2);
+                                echo '<div class="form-check my-2">';
+                                echo '<input class="form-check-input" type="radio" name="'.$option.'" id="'.$Campo.'" value = "'.$Alineacion.'">';
+                                echo '<label class="form-check-label fw-medium text-dark" for="'.$Campo.'">';
+                                    echo $Titulo;
+                                echo '</label>';
+                                echo '</div>';
                             break;
-
                         case 'label':
                             echo "<label for='$Campo' class='form-label fw-semibold text-secondary d-block'>$Titulo</label>";
                             break;                            
-
                         case 'titulo':
                             echo '<h5 class="border-bottom pb-2 mb-3 text-primary fw-bold">'.$Titulo.'</h5>';
                             break;                          
-
                         case 'hidden':
-                            if ($Campo == "edit_IId") {
-                                $Campo .= "_".$tabla;
-                            }
-                            echo '<input name="'.$Campo.'" id="'.$Campo.'" type="'.$TipoCampo.'" >';
+                            if ( $Campo == "edit_IId")
+                                $Campo.="_".$tabla;
+                            echo '<input name="'.$Campo.'" id="'.$Campo.'"  type="'.$TipoCampo.'" >';
                             break;                        
-
                         case 'text':
-                        case 'tel':
-                        case 'url':
-                        case 'password':
-                        case 'email':
-                        case 'date':
-                        case 'time':
                             echo "<label for='$Campo' class='form-label fw-semibold text-dark small mb-1'>$Titulo</label>";
-                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' w-100" type="'.$TipoCampo.'" style="text-align: '.$Alineacion.';" '.$Requerido.' minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.'>';
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' w-100" type="'.$TipoCampo.'" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.'>';
                             echo '<div class="invalid-feedback">'.$Validacion.'</div>';
                             break;
-
-                        case 'number':
+                        case 'number';
                             echo "<label for='$Campo' class='form-label fw-semibold text-dark small mb-1'>$Titulo</label>";
-                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' numbers-only w-100" type="number" style="text-align: '.$Alineacion.';" '.$Requerido.' minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.' >';
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' numbers-only w-100" type="number" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.' >';
                             echo '<div class="invalid-feedback">'.$Validacion.'</div>';
                             break;
-
-                        case 'decimal':
+                        case 'decimal';
                             echo "<label for='$Campo' class='form-label fw-semibold text-dark small mb-1'>$Titulo</label>";
-                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' decimals w-100" type="number" style="text-align: '.$Alineacion.';" '.$Requerido.' minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.' >';
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' decimals w-100" type="number" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.' >';
                             echo '<div class="invalid-feedback">'.$Validacion.'</div>';
                             break;
-
-                        case 'currency':
+                        case 'currency';
                             echo "<label for='$Campo' class='form-label fw-semibold text-dark small mb-1'>$Titulo</label>";
-                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' decimals currency w-100" type="text" style="text-align: '.$Alineacion.';" '.$Requerido.' minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.' >';                            
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' decimals currency w-100" type="text" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.' >';                            
                             echo '<div class="invalid-feedback">'.$Validacion.'</div>';
                             break;   
-
-                        case 'area':
+                        case 'area';
                             echo "<label for='$Campo' class='form-label fw-semibold text-dark small mb-1'>$Titulo</label>";
                             echo '<textarea name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' w-100" data-tipo="area" style="min-height: 100px;" rows="'.$LargoMin.'" cols="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$SoloLectura.'>'.$ValorCampo.'</textarea>';
                             echo '<div class="invalid-feedback">'.$Validacion.'</div>';
                             break;
-
-                        case 'html':
+                        case 'html';
                             echo "<label for='$Campo' class='form-label fw-semibold text-dark small mb-1'>$Titulo</label>";
-                            echo '<textarea name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' w-100" data-tipo="html" style="min-height: 100px;" rows="'.$LargoMin.'" cols="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$SoloLectura.'></textarea>';
+                            echo '<textarea name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' w-100" data-tipo="html" style="min-height: 100px;" rows="'.$LargoMin.'" cols="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$SoloLectura.' ></textarea>';
                             echo '<div class="invalid-feedback">'.$Validacion.'</div>';
                             break;                            
-
                         case 'range':
                             echo "<label for='$Campo' class='form-label fw-semibold text-dark small mb-1'>$Titulo</label>";
                             echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" type="'.$TipoCampo.'" class="form-range w-100" min="'.$LargoMin.'" max="'.$LargoMax.'" />';
                             break;
-
+                        case 'date':
+                            echo "<label for='$Campo' class='form-label fw-semibold text-dark small mb-1'>$Titulo</label>";
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' w-100" type="'.$TipoCampo.'" style="" '.$Requerido.' '.$SoloLectura.'>';
+                            break;
+                        case 'time':
+                            echo "<label for='$Campo' class='form-label fw-semibold text-dark small mb-1'>$Titulo</label>";
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' w-100" type="'.$TipoCampo.'" style="" '.$Requerido.' '.$SoloLectura.'>';
+                            break;
+                        case 'tel':
+                            echo "<label for='$Campo' class='form-label fw-semibold text-dark small mb-1'>$Titulo</label>";
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' w-100" type="'.$TipoCampo.'" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.'>';
+                            break;
+                        case 'url':
+                            echo "<label for='$Campo' class='form-label fw-semibold text-dark small mb-1'>$Titulo</label>";
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' w-100" type="'.$TipoCampo.'" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.'>';
+                            break;
+                        case 'password':
+                            echo "<label for='$Campo' class='form-label fw-semibold text-dark small mb-1'>$Titulo</label>";
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' w-100" type="'.$TipoCampo.'" style="text-align: '.$Alineacion.';" '.$Requerido.' '.$SoloLectura.'>';
+                            break;
                         case 'color':
                             echo "<label for='$Campo' class='form-label fw-semibold text-dark small mb-1'>$Titulo</label>";
                             echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="form-control form-control-color w-100" type="'.$TipoCampo.'" >';
                             break;
-
-                        case 'select':
-                            if ($SoloLectura != "") {
-                                $SoloLectura = "disabled";
-                            }
+                        case 'email':
                             echo "<label for='$Campo' class='form-label fw-semibold text-dark small mb-1'>$Titulo</label>";
-                            if ($TablaDts2 != "") {
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' w-100" type="'.$TipoCampo.'" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.'>';
+                            break;
+                        case 'select':
+                            if ($SoloLectura!="")
+                                $SoloLectura = "disabled";
+                            echo "<label for='$Campo' class='form-label fw-semibold text-dark small mb-1'>$Titulo</label>";
+                            if ($TablaDts2!= "")
                                 echo '<select name="'.$Campo.'" id="'.$Campo.'" class="'.$form_select.' w-100" onChange="change_send2(this.value,'.$aps. str_replace("edit_","",$Campo).$aps.','.$aps.$Receptor.$aps.','.$aps.$tabla.$aps.', $('.$aps. '#'.$Receptor.$aps.').val() )" '.$Requerido.' '.$SoloLectura.'>';
-                            } else {
+                            else
                                 echo '<select name="'.$Campo.'" id="'.$Campo.'" class="'.$form_select.' w-100" '.$Requerido.' '.$SoloLectura.'>';
-                            }
 
                             $checkColumn = $db->query("SHOW COLUMNS FROM $TablaDts LIKE 'Idioma'");
                             $columnExists = $checkColumn->fetch();                            
 
                             if ($columnExists) {
-                                $query = "SELECT $CampoValor,$CampoDescripcion FROM $TablaDts WHERE Idioma = '$idioma' $Filtro ";
-                            } else {
-                                $query = "SELECT $CampoValor,$CampoDescripcion FROM $TablaDts WHERE 1 = 1 $Filtro ";
+                                $query ="SELECT $CampoValor,$CampoDescripcion FROM $TablaDts WHERE Idioma = '$idioma'  $Filtro ";
+                            }
+                            else{
+                                $query ="SELECT $CampoValor,$CampoDescripcion FROM $TablaDts WHERE 1 = 1  $Filtro ";
                             }                            
                             
                             $stmt_dts = $db->prepare($query);
@@ -205,9 +209,9 @@ function armar_formulario_edit($tabla,$etiqueta,$idioma){
                             echo '<option value="" selected> ... </option>';
                             if ($tabla_dts) {
                                 foreach ($tabla_dts as $tabla_dt) {
-                                    $Valor = $tabla_dt[$CampoValor];
-                                    $Descripcion = $tabla_dt[$CampoDescripcion];
-                                    echo '<option value="'.$Valor.'">'.$Descripcion.'</option>';
+                                    $Valor         = $tabla_dt[$CampoValor];
+                                    $Descripcion   = $tabla_dt[$CampoDescripcion];
+                                    echo '<option value="'.$Valor.'">'. ($Descripcion).'</option>';
                                 }
                             }
                             echo '</select>';
@@ -216,33 +220,31 @@ function armar_formulario_edit($tabla,$etiqueta,$idioma){
 
                         case 'checkbox':
                             echo '<div class="form-check form-switch pt-4">';
-                            echo '<input name="'.$Campo.'" id="'.$Campo.'" class="form-check-input" type="checkbox" '.$Requerido.' '.$SoloLectura.'>';
-                            echo '<label class="form-check-label fw-semibold text-dark small" for="'.$Campo.'">'.$Titulo.'</label>';
+                                echo '<input name="'.$Campo.'" id="'.$Campo.'" class="form-check-input" type="checkbox" '.$Requerido.' '.$SoloLectura.'>';
+                                    echo '<label class="form-check-label fw-semibold text-dark small" for="'.$Campo.'">';
+                                        echo $Titulo;
+                                    echo '</label>';
                             echo '</div>';
                             break;
-
                         case 'button':
-                            echo "<button type='button' class='btn btn-primary w-100 mt-4 shadow-sm' name='$Campo' id='$Campo'>$Titulo</button>";
+                                echo "<button type='button' class='btn btn-primary w-100 mt-4 shadow-sm' name='$Campo' id='$Campo'>$Titulo</button>";
                             break;                            
-
                         case 'img':
-                        case 'file':
-                            $accept_type = ($TipoCampo == 'img') ? 'img' : 'file';
                             echo '<label class="form-label fw-semibold text-dark small mb-1" for="'.$Campo.'">'.$Titulo.'</label>';
                             echo '<div class="card p-3 border-dashed bg-light shadow-none mb-2">';
-                            echo '<input name="'.$Campo.'" id="'.$Campo.'" class="form-control bg-white" type="file" accept="'.$Filtro.'">';
-                            echo '<input name="file_'.$Campo.'" id="file_'.$Campo.'" type="hidden">';
-                            echo '<input name="file_'.$Campo.'_1" id="file_'.$Campo.'_1" type="hidden">';
+                            echo '<input name="'.$Campo.'" id="'.$Campo.'" class="form-control bg-white" type="file"  accept="'.$Filtro.'">';
+                            echo '<input name="file_'.$Campo.'" id="file_'.$Campo.'"  type="hidden" >';
+                            echo '<input name="file_'.$Campo.'_1" id="file_'.$Campo.'_1"  type="hidden" >';
                             
-                            if ($Regla != "") {
+                            if ($Regla != "")
                                 echo '<div class="form-text small text-muted mt-1">'.$Regla.'</div>';
-                            }
-                            
+
                             echo '<div class="mt-3 text-center">';
-                            echo '<img src="" id="gallery_file2_'.$Campo.'" name="gallery_file2_'.$Campo.'" class="img-thumbnail img-fluid style-preview mb-2" style="max-height: 150px; display: none;">';
-                            echo '<div id="gallery_file_'.$Campo.'" class="row g-2"></div>';
-                            echo '</div>';
-                            echo '</div>'; // Cierra el card de subida
+                            echo "<img src='' id='gallery_file2_$Campo' name ='gallery_file2_$Campo' class='img-thumbnail img-fluid style-preview mb-2' style='max-height: 150px; display: none;'>";
+                            echo "<div id='gallery_file_".$Campo."' class='row g-2'>";
+                            echo "</div>";
+                            echo "</div>";                    
+                            echo "</div>";                    
 
                             echo "
                             <script>
@@ -250,54 +252,87 @@ function armar_formulario_edit($tabla,$etiqueta,$idioma){
                             el_".$Campo.".addEventListener('change', function () {
                                 var files = this.files;
                                 for(var i=0; i<files.length; i++){
-                                    uploadFile(this.files[i],'file_".$Campo."','".$accept_type."'); 
+                                    uploadFile(this.files[i],'file_".$Campo."','img'); 
                                     var imgPreview = document.getElementById('gallery_file2_".$Campo."');
                                     if(imgPreview) { imgPreview.style.display='none'; }
-                                    ".($TipoCampo == 'img' ? "previewImage(this.files[i],'file_".$Campo."');" : "")."
+                                    previewImage(this.files[i],'file_".$Campo."');
                                 }
                             }, false);                    
                             </script>
                             ";
                             break;  
 
+                        case 'file':
+                            echo '<label class="form-label fw-semibold text-dark small mb-1" for="'.$Campo.'">'.$Titulo.'</label>';
+                            echo '<div class="card p-3 border-dashed bg-light shadow-none mb-2">';
+                            echo '<input name="'.$Campo.'" id="'.$Campo.'" class="form-control bg-white" type="file"  accept="'.$Filtro.'">';
+                            echo '<input name="file_'.$Campo.'" id="file_'.$Campo.'"  type="hidden" >';
+                            echo '<input name="file_'.$Campo.'_1" id="file_'.$Campo.'_1"  type="hidden" >';
+                            
+                            if ($Regla != "")
+                                echo '<div class="form-text small text-muted mt-1">'.$Regla.'</div>';
+
+                            echo '<div class="mt-3 text-center">';
+                            echo "<img src='' id='gallery_file2_$Campo' name ='gallery_file2_$Campo' class='img-thumbnail img-fluid style-preview mb-2' style='max-height: 150px; display: none;'>";
+                            echo "<div id='gallery_file_".$Campo."' class='row g-2'>";
+                            echo "</div>";
+                            echo "</div>";                    
+                            echo "</div>";                    
+
+                            echo "
+                            <script>
+                            var el_".$Campo." = document.querySelector('#".$Campo."');
+                            el_".$Campo.".addEventListener('change', function () {
+                                var files = this.files;
+                                for(var i=0; i<files.length; i++){
+                                    uploadFile(this.files[i],'file_".$Campo."','file'); 
+                                    var imgPreview = document.getElementById('gallery_file2_".$Campo."');
+                                    if(imgPreview) { imgPreview.style.display='none'; }
+                                }
+                            }, false);                    
+                            </script>
+                            ";
+                            break;                      
+
                         case 'complete':
                             echo "<label for='$Campo' class='form-label fw-semibold text-dark small mb-1'>$Titulo</label>";
                             echo '<select name="'.$Campo.'" id="'.$Campo.'" data-tipo="complete" class="selectpicker form-control border rounded" '.$Requerido.' '.$SoloLectura.'>';
-                            
-                            if ($Campo == "edit_ZonaHoraria") {
+                            if ($Campo == "edit_ZonaHoraria"){
                                 $zonas = DateTimeZone::listIdentifiers();
-                                echo '<option value="" selected> ... </option>';
-                                foreach ($zonas as $zona) {
-                                    echo '<option value="'.$zona.'">'.$zona.'</option>';
-                                }
-                            } else {
+                                echo '<option value = "" selected> ... </option>';
+                                foreach ($zonas as $zona):
+                                    echo '<option value="'.$zona.'">'. ($zona).'</option>';
+                                endforeach;
+                            }
+                            else{
                                 $checkColumn = $db->query("SHOW COLUMNS FROM $TablaDts LIKE 'Idioma'");
                                 $columnExists = $checkColumn->fetch();                            
                                 if ($columnExists) {
-                                    $query = "SELECT $CampoValor,$CampoDescripcion FROM $TablaDts WHERE Idioma = '$idioma' $Filtro ";
-                                } else {
-                                    $query = "SELECT $CampoValor,$CampoDescripcion FROM $TablaDts WHERE 1 = 1 $Filtro ";
+                                        $query ="SELECT $CampoValor,$CampoDescripcion FROM $TablaDts WHERE Idioma = '$idioma' $Filtro ";
+                                }
+                                else{
+                                    $query ="SELECT $CampoValor,$CampoDescripcion FROM $TablaDts WHERE 1 = 1  $Filtro ";
                                 }
                                 $stmt_dts = $db->prepare($query);
                                 $stmt_dts->execute();
                                 $tabla_dts = $stmt_dts->fetchAll(PDO::FETCH_ASSOC);
-                                echo '<option value="" selected> ... </option>';
+                                echo '<option value = "" selected> ... </option>';
                                 if ($tabla_dts) {
                                     foreach ($tabla_dts as $tabla_dt) {
-                                        $Valor = $tabla_dt[$CampoValor];
-                                        $Descripcion = $tabla_dt[$CampoDescripcion];
-                                        echo '<option value="'.$Valor.'">'.$Descripcion.'</option>';
+                                        $Valor         = $tabla_dt[$CampoValor];
+                                        $Descripcion   = $tabla_dt[$CampoDescripcion];
+                                        echo '<option value="'.$Valor.'">'. ($Descripcion).'</option>';
                                     }
                                 }
                             }
                             echo '</select>';
                             echo '<div class="invalid-feedback">'.$Validacion.'</div>';
-                            break;  
+                        break;  
                     }
-                    echo '</div>'; // Cierra mb-1
-                    echo '</div>'; // Cierra col-##
+                    echo '</div>'; 
+                    echo '</div>'; 
                 }
-                echo '</div>'; // Cierra row final
+                echo '</div>'; 
             }
 }
 ?>
