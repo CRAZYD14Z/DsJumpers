@@ -2724,6 +2724,8 @@ const generarCodigoAlfanumerico = () => {
         }
     });
 
+<?php if ($IdTabla == 'products'){?>
+
 document.addEventListener('DOMContentLoaded', function () {
 
     const el = document.getElementById('<?= $Campo ?>');
@@ -2750,17 +2752,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const nuevoValor = event.detail.value;
         const fueAgregado = event.detail.customProperties?.nuevo;
 
-        // Aquí puedes enviar el nuevo valor al servidor si lo necesitas
-        // Ejemplo:
-        // fetch('guardar_opcion.php', {
-        //     method: 'POST',
-        //     body: JSON.stringify({ campo: '<?= $Campo ?>', valor: nuevoValor }),
-        //     headers: { 'Content-Type': 'application/json' }
-        // });
 
         // También dispara tu función original si la necesitas
         //get_json_price(nuevoValor);
         $('#edit_new').val(1);
+        $('#contenedor-funciones').empty();
+        $('#edit_contenedor-funciones').empty();        
+        ejecutarFuncion1();
     });
 
     // Para los cambios normales (selección de existente)
@@ -2768,6 +2766,7 @@ document.addEventListener('DOMContentLoaded', function () {
         //get_json_price(event.detail.choice.value);
     });
 });    
+<?php } ?>
 
 function toggleElementoClone(idElemento) {
     // Buscamos el h4 que disparó el evento para saber si se está abriendo o cerrando
