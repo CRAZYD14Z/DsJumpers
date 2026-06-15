@@ -10,10 +10,14 @@ $db = $database->getConnection();
 $lang ='es';
 try {
     // 2. Recibir datos del formulario
+
+    $referencia = $_POST['orderID'];
+    //$detalles = $_POST['detalles'];    
+
     $tokenId    = $_POST['token_id'] ?? null;
     $IdLead     = $_POST['token'] ?? null;
     $monto      = $_POST['monto'] ?? 0;
-    $referencia = $_POST['referencia'] ?? null;
+    //$referencia = $_POST['referencia'] ?? null;
     $tipo_pago  = $_POST['tipo-pago'] ?? null;
     $Currency = 'MXN';
     $ahora = date("Y-m-d H:i:s");
@@ -63,3 +67,22 @@ try {
         'description' => $e->getMessage()
     ]);
 } 
+
+
+die();
+if (isset($_POST['orderID'])) {
+    $orderID = $_POST['orderID'];
+    $detalles = $_POST['detalles'];
+
+    // Aquí procesarías la información:
+    // 1. Conectar a la base de datos.
+    // 2. Validar el estado del pago: $detalles['status'] == 'COMPLETED'.
+    // 3. Guardar el ID de transacción ($detalles['id']).
+    // 4. Enviar un correo de confirmación.
+
+    // Ejemplo de respuesta simple
+    echo json_encode(['status' => 'success', 'message' => 'Orden recibida']);
+} else {
+    echo json_encode(['status' => 'error', 'message' => 'No se recibió el ID']);
+}
+?>

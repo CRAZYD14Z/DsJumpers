@@ -98,7 +98,8 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
         'inventory_stock',
         'operators',
         'referals',
-        'vehicles'
+        'vehicles',
+        'schedules'
     ];
     if (!in_array($table_name, $allowed_tables)) {
         http_response_code(400);
@@ -109,7 +110,52 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
         // ------------------------------------------------------------------
         case 'GET': 
         // ------------------------------------------------------------------
+
+                $FWhere = '';
+                $FFWhere = '';
+                $FOrder = '';        
+
+                $sortField = isset($_GET['sort_field']) ? preg_replace('/[^a-zA-Z0-9_]/', '', $_GET['sort_field']) : '';
+                $sortOrder = isset($_GET['sort_order']) ? strtoupper($_GET['sort_order']) : '';
+
+                    // Si mandaron columna y orden válidos, cambiamos el $Order original
+                if (!empty($sortField) && !empty($sortOrder)) {
+                    $FOrder = "$sortField $sortOrder";
+                }
+
+
+
+
+                $sortFieldsString = isset($_GET['sort_fields']) ? $_GET['sort_fields'] : '';
+                $likeValue = isset($_GET['like']) ? $_GET['like'] : '';            
+
+           
+
+                if (!empty($sortFieldsString) && !empty($likeValue)) {
+                    // Explotamos el string por sus comas
+                    $camposAFiltrar = explode(',', $sortFieldsString);
+                    $orConditions = [];
+                    $orConditions2 = [];
+                    $prm_idx = 1;
+                    foreach ($camposAFiltrar as $campo) {
+                        // Limpieza de seguridad básica para nombres de columnas
+                        $campoLimpio = preg_replace('/[^a-zA-Z0-9_]/', '', $campo);
+                        if (!empty($campoLimpio)) {
+                            $orConditions[] = "$campoLimpio LIKE ? ";
+                            $orConditions2[] = "$campoLimpio LIKE :like_$prm_idx ";
+                        }
+                    }
+                    
+                    if (!empty($orConditions)) {
+                        // Unimos los campos en un bloque ( Campo1 LIKE ... OR Campo2 LIKE ... )
+                        $FWhere .= " (" . implode(' OR ', $orConditions) . ") ";
+                        $FFWhere .= " (" . implode(' OR ', $orConditions2) . ") ";
+                    }
+                }    
+
             if (!isset($_GET['page'])) {
+
+            
 
                 $query = "SELECT Campo FROM listado_ajax WHERE Tabla = ? AND Tipo = 'Data' ORDER BY Id";
                 $stmt = $db->prepare($query);
@@ -164,7 +210,10 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                 }
                 if ($table_name == 'related_products')
                     $query = "SELECT $Campos FROM  v_related_products  WHERE $Where = ? LIMIT 0,1";
-                    
+                
+                if ($table_name == 'products')
+                    $query = "SELECT $Campos FROM  v_products  WHERE $Where = ? LIMIT 0,1";                
+
                 $stmt = $db->prepare($query);
                 $stmt->bindParam(1, $id);
                 $stmt->execute();
@@ -249,7 +298,11 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                 //}
 
                 // 2. Consulta para obtener el CONTEO TOTAL de registros
-                if ($table_name == 'gifcard')
+                if ($table_name == 'schedules')
+                    $v_table_name = 'v_schedules';                
+                elseif ($table_name == 'products')
+                    $v_table_name = 'v_products';
+                elseif ($table_name == 'gifcard')
                     $v_table_name = 'v_gifcard';
                 elseif ($table_name == 'products_categories')
                     $v_table_name = 'v_products_categories'; 
@@ -296,6 +349,10 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                 else
                     $v_table_name = $table_name;
                 
+                if ($Where != "" AND $FWhere != "" )
+                    $Where=" WHERE ".$FWhere;
+
+                //$count_query = "SELECT COUNT(*) as total FROM $v_table_name $Where";
                 $count_query = "SELECT COUNT(*) as total FROM $v_table_name $Where";
                 //echo $count_query;
                 //if ($page == 2)
@@ -303,10 +360,23 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                 $count_stmt = $db->prepare($count_query);
                 $p=0;
                 if ($like!=""){
-                    foreach ($resultados as $registro) {
-                        $p++;
-                        $search_pattern = "%" . $like . "%";
-                        $count_stmt->bindValue($p, $search_pattern);
+                    if ($Where != "" AND $FWhere != "" ){
+                        foreach ($camposAFiltrar as $campo) {
+                            // Limpieza de seguridad básica para nombres de columnas
+                            $campoLimpio = preg_replace('/[^a-zA-Z0-9_]/', '', $campo);
+                            if (!empty($campoLimpio)) {
+                                $p++;
+                                $search_pattern = "%" . $like . "%";
+                                $count_stmt->bindValue($p, $search_pattern);                            
+                            }
+                        }                
+                    }
+                    else{
+                        foreach ($resultados as $registro) {
+                            $p++;
+                            $search_pattern = "%" . $like . "%";
+                            $count_stmt->bindValue($p, $search_pattern);
+                        }
                     }
                 }
                 $idx = 0;
@@ -404,6 +474,9 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                     echo json_encode(array("message" => "Estructura Order no creada."));
                 }                
                 $Order = implode(',', $Order); 
+                $Order.=" ASC ";
+                if ($FOrder != "")
+                    $Order = $FOrder;
 
                 $where_clauses = [];
                 $param_index = 1;
@@ -435,6 +508,11 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                 else{
                     $Where ='';
                 }   
+
+                if ($Where != "" AND $FFWhere != "" )
+                    $Where=" WHERE ".$FFWhere;
+
+
                 
                 // PARA CONSULTA DE REGISTROS RELACIONADOS!
                     $Where2 = '';
@@ -463,8 +541,11 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                         $Where = ' WHERE '.$Where2;
                     }
                 // PARA CONSULTA DE REGISTROS RELACIONADOS!                
-                
-                if ($table_name == 'gifcard')
+                if ($table_name == 'schedules')
+                    $v_table_name = 'v_schedules';                       
+                elseif ($table_name == 'products')
+                    $v_table_name = 'v_products';
+                elseif ($table_name == 'gifcard')
                     $v_table_name = 'v_gifcard';
                 elseif ($table_name == 'products_categories')
                     $v_table_name = 'v_products_categories';  
@@ -499,16 +580,32 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                 else
                     $v_table_name = $table_name;
                 // 3. Consulta para obtener los DATOS PAGINADOS
-                $data_query = "SELECT $Campos FROM $v_table_name $Where ORDER BY $Order ASC LIMIT :limit OFFSET :offset";                
+                $data_query = "SELECT $Campos FROM $v_table_name $Where ORDER BY $Order  LIMIT :limit OFFSET :offset";                
                 //echo $data_query;
                 $data_stmt = $db->prepare($data_query);
                 $param_index=1;
                 if ($like!=""){
-                    foreach ($resultados as $registro) {
-                        $search_pattern = "%" . $like . "%";
-                        $data_stmt->bindValue(":like_" . $param_index, $search_pattern, PDO::PARAM_STR);
-                        $param_index++;
+                    if ($Where != "" AND $FWhere != "" ){
+
+                        foreach ($camposAFiltrar as $campo) {
+                            // Limpieza de seguridad básica para nombres de columnas
+                            $campoLimpio = preg_replace('/[^a-zA-Z0-9_]/', '', $campo);
+                            if (!empty($campoLimpio)) {
+                                $search_pattern = "%" . $like . "%";
+                                $data_stmt->bindValue(":like_" . $param_index, $search_pattern, PDO::PARAM_STR);
+                                $param_index++;                          
+                            }
+                        }                      
+
                     }
+                    else{
+                        foreach ($resultados as $registro) {
+                            $search_pattern = "%" . $like . "%";
+                            $data_stmt->bindValue(":like_" . $param_index, $search_pattern, PDO::PARAM_STR);
+                            $param_index++;
+                        }
+                    }
+
                 }
                 $idx=0;
                 foreach ($resultados2 as $registro) {
@@ -728,7 +825,7 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
 
             if ($table_name =='products_item_price' AND $data->{'new'} == 1 ){
                 if ($data->{'JsonPrice'} == ""){
-                    http_response_code(200);
+                    http_response_code(404);
                     echo json_encode(array("message" => "No tiene precio definido"));
                     die();                    
                 }
@@ -776,10 +873,110 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                 $stmtRelacion->bindValue(":taxable", $Taxable);
                 $stmtRelacion->execute();
 
+                $sqlDelete = "DELETE FROM detail_price_lists WHERE IdItem = :producto";
+                $stmtDelete = $db->prepare($sqlDelete);
+                $stmtDelete->bindValue(":producto", $data->{'Producto'});
+                $stmtDelete->execute();
+
+                $query = "select Id from price_lists where Estatus = 1 AND NOW() BETWEEN FechaHoraInicio AND FechaHoraFin";
+                $stmt = $db->prepare($query);
+                $stmt->execute();
+                $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                if ($resultados) {
+                    foreach ($resultados as $registro) {
+                        $sqlPriceList = "INSERT INTO detail_price_lists (IdLista,IdItem,JsonPrice,Estatus_price,FechaCreacion,FechaCambio) 
+                                        VALUES (:idLista,:idItem,:jsonPrice,1,now(),now())";
+                        $sqlPriceList = $db->prepare($sqlPriceList);
+                        $sqlPriceList->bindValue(":idLista", $registro['Id']);
+                        $sqlPriceList->bindValue(":idItem", $data->{'Producto'});
+                        $sqlPriceList->bindValue(":jsonPrice", $data->{'JsonPrice'});
+                        $sqlPriceList->execute();
+                    }
+                }                
+
                 http_response_code(200);
                 echo json_encode(array("message" => "Registro insertado."));
                 die();
             }
+
+            if ($table_name =='products_item_price' AND $data->{'new'} == 2 ){
+                if ($data->{'JsonPrice'} == ""){
+                    http_response_code(404);
+                    echo json_encode(array("message" => "No tiene precio definido"));
+                    die();                    
+                }
+                $Taxable = 0;
+                if (isset($data->{'Taxable'}))
+                    $Taxable = 1;
+
+                // 1. Validar si existe, recuperar el Id de item_prices, si no insertar
+                $sqlCheck = "SELECT Id FROM item_prices WHERE PriceName = :priceName LIMIT 1";
+                $stmtCheck = $db->prepare($sqlCheck);
+                $stmtCheck->bindValue(":priceName", $data->{'ItemPrice'});
+                $stmtCheck->execute();
+
+                $priceRow = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+
+                if ($priceRow) {
+                    // Si ya existe, recuperamos el ID existente
+                    $IdRecuperado = $priceRow['Id'];
+                } else {
+                    // Si no existe, lo insertamos
+                    $sqlInsert = "INSERT INTO item_prices (PriceName, Taxable, JsonPrice, FechaCreacion, FechaCambio) 
+                                VALUES (:priceName, :taxable, :jsonPrice, NOW(), NOW())";
+                    $stmtInsert = $db->prepare($sqlInsert);
+                    $stmtInsert->bindValue(":priceName", $data->{'price_name'});
+                    $stmtInsert->bindValue(":taxable", $Taxable);
+                    $stmtInsert->bindValue(":jsonPrice", $data->{'JsonPrice'});
+                    $stmtInsert->execute();
+                    
+                    // Recuperamos el lastInsertId inmediatamente después del INSERT
+                    $IdRecuperado = $db->lastInsertId();
+                }
+
+                // 2. Eliminar relaciones anteriores del producto
+                $sqlDelete = "DELETE FROM products_item_price WHERE Producto = :producto";
+                $stmtDelete = $db->prepare($sqlDelete);
+                $stmtDelete->bindValue(":producto", $data->{'Producto'});
+                $stmtDelete->execute();                
+
+                // 3. Insertar la nueva relación usando el ID recuperado (ya sea el existente o el nuevo)
+                $sqlRelacion = "INSERT INTO products_item_price (Producto, ItemPrice, Taxable) 
+                                VALUES (:producto, :itemPrice, :taxable)";
+                $stmtRelacion = $db->prepare($sqlRelacion);
+                $stmtRelacion->bindValue(":producto", $data->{'Producto'});
+                $stmtRelacion->bindValue(":itemPrice", $IdRecuperado);
+                $stmtRelacion->bindValue(":taxable", $Taxable);
+                $stmtRelacion->execute();
+
+                $sqlDelete = "DELETE FROM detail_price_lists WHERE IdItem = :producto";
+                $stmtDelete = $db->prepare($sqlDelete);
+                $stmtDelete->bindValue(":producto", $data->{'Producto'});
+                $stmtDelete->execute();
+
+                $query = "select Id from price_lists where Estatus = 1 AND NOW() BETWEEN FechaHoraInicio AND FechaHoraFin";
+                $stmt = $db->prepare($query);
+                $stmt->execute();
+                $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                if ($resultados) {
+                    foreach ($resultados as $registro) {
+                        $sqlPriceList = "INSERT INTO detail_price_lists (IdLista,IdItem,JsonPrice,Estatus_price,FechaCreacion,FechaCambio) 
+                                        VALUES (:idLista,:idItem,:jsonPrice,1,now(),now())";
+                        $sqlPriceList = $db->prepare($sqlPriceList);
+                        $sqlPriceList->bindValue(":idLista", $registro['Id']);
+                        $sqlPriceList->bindValue(":idItem", $data->{'Producto'});
+                        $sqlPriceList->bindValue(":jsonPrice", $data->{'JsonPrice'});
+                        $sqlPriceList->execute();
+                    }
+                }
+
+                http_response_code(200);
+                echo json_encode(array("message" => "Registro insertado."));
+                die();
+            }            
+
+
+
             // UPDATE (Actualizar un registro existente)
             $query = "SELECT Campo, TipoCampo, Requerido,TipoCampo FROM modal_edit WHERE Tabla = ?  ORDER BY Id";
             $stmt = $db->prepare($query);
@@ -4407,6 +4604,10 @@ function get_pay_platform($table_name,$db, $method, $id, $data){
             
             // Obtenemos datos de OPAY
             $opay = $db->query("SELECT Id, SecretKey, PublicKey FROM opay_account LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+
+            // Obtenemos datos de OPAY
+            $paypal = $db->query("SELECT Id, SecretKey, Active FROM paypal_account LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+
             
             // Obtenemos datos de SQUARE
             $square = $db->query("SELECT Id, LocalId, Token FROM square_account LIMIT 1")->fetch(PDO::FETCH_ASSOC);
@@ -4414,7 +4615,8 @@ function get_pay_platform($table_name,$db, $method, $id, $data){
             echo json_encode([
                 'pay_platform' => $acc['pay_platform'] ?? '',
                 'opay' => $opay ?: ['Id'=>'', 'SecretKey'=>'', 'PublicKey'=>''],
-                'square' => $square ?: ['Id'=>'', 'LocalId'=>'', 'Token'=>'']
+                'square' => $square ?: ['Id'=>'', 'LocalId'=>'', 'Token'=>''],
+                'paypal' => $paypal ?: ['Id'=>'', 'SecretKey'=>'', 'Active'=>'']
             ]);            
 
 
@@ -4438,9 +4640,11 @@ function update_pay_platform($table_name,$db, $method, $id, $data){
                 echo json_encode(['status' => 'error', 'message' => 'Plataforma no seleccionada']);
                 exit;
             }            
+            if ($platform != "PAYPAL") {
+                $stmt1 = $db->prepare("UPDATE account SET pay_platform = ? LIMIT 1");
+                $stmt1->execute([$platform]);
+            }
 
-            $stmt1 = $db->prepare("UPDATE account SET pay_platform = ? LIMIT 1");
-            $stmt1->execute([$platform]);
 
             // 2. Actualizar la tabla específica
             if ($platform === 'OPAY') {
@@ -4458,6 +4662,19 @@ function update_pay_platform($table_name,$db, $method, $id, $data){
                     $_POST['square_token']
                 ]);
             }
+            //else if ($platform === 'PAYPAL') {
+                if (isset($_POST['paypal_active'])){
+                    $active = 1;
+                }else{
+                    $active = 0;
+                }
+                $stmt2 = $db->prepare("UPDATE paypal_account SET Id = ?, SecretKey = ?, Active = ? LIMIT 1");
+                $stmt2->execute([
+                    $_POST['paypal_id'],
+                    $_POST['paypal_secret'],
+                    $active
+                ]);
+            //}
             http_response_code(200);
             echo json_encode(['status' => 'success']);
 
@@ -4502,6 +4719,260 @@ function get_gif_card($table_name,$db, $method, $id, $data){
         break;
     }
 } 
+function asistencias($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+    $fechaInicio = $_GET['fecha_inicio'] ?? date('Y-m-d');
+    $fechaFin    = $_GET['fecha_fin'] ?? date('Y-m-d');
+    $operatorId  = $_GET['operator_id'] ?? '';
+
+    // Array para mapear los días de la semana en español
+    $diasEspañol = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+    // Construimos la consulta base
+    // Buscamos en el calendario de horarios asignados y cruzamos con lo que realmente se ponchó
+    $sql = "SELECT 
+                o.Id AS OperadorId,
+                CONCAT(o.Nombres, ' ', o.Apellidos) AS NombreCompleto,
+                l.Nombre as NombreUbicacion,
+                 WEEKDAY(a.HoraEntradaReal) as DiaSemana,
+                s.HoraEntrada AS HoraRequerida,
+                a.Fecha,
+                a.HoraEntradaReal,
+                a.HoraSalidaReal,
+                a.EstatusEntrada,
+                a.LatitudEntrada,
+                a.LongitudEntrada
+            FROM schedules s
+            INNER JOIN operators o ON s.OperatorId = o.Id
+            INNER JOIN wharehouses l ON s.LocationId = l.Id
+            LEFT JOIN attendance a ON s.OperatorId = a.OperatorId 
+                AND a.Fecha BETWEEN :fechaInicio AND :fechaFin
+                
+            WHERE (o.Estatus = 'A' OR o.Estatus IS NULL)";
+
+    if (!empty($operatorId)) {
+        $sql .= " AND o.Id = :operatorId";
+    }
+
+    $sql .= " ORDER BY a.Fecha DESC, NombreCompleto ASC";
+
+    $stmt = $db->prepare($sql);
+    $params = [':fechaInicio' => $fechaInicio, ':fechaFin' => $fechaFin];
+    if (!empty($operatorId)) { $params[':operatorId'] = $operatorId; }
+
+    $stmt->execute($params);
+    $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+  // 1. Si no hay registros, metemos el mensaje vacío en la estructura HTML del JSON
+if (count($resultados) == 0) {
+    $htmlOutput = '<tr><td colspan="7" class="text-center text-muted py-4">No hay registros de asistencia en el rango de fechas seleccionado.</td></tr>';
+    echo json_encode(['tabla' => $htmlOutput]);
+    exit;
+}
+
+$htmlOutput = ""; // Variable para acumular las filas HTML
+
+foreach ($resultados as $row) {
+    $fechaFormateada = $row['Fecha'] ? date('d/m/Y', strtotime($row['Fecha'])) : 'Sin Registro';
+    $diaNombre = $row['Fecha'] ? $diasEspañol[date('w', strtotime($row['Fecha']))] : $diasEspañol[$row['DiaSemana']];
+    
+    $badgeClass = 'bg-light text-dark';
+    $estatusFinal = 'Falta';
+
+    if ($row['HoraEntradaReal']) {
+        if ($row['EstatusEntrada'] == 'A tiempo') {
+            $badgeClass = 'bg-success-subtle text-success border border-success-subtle';
+            $estatusFinal = 'A Tiempo';
+        } else {
+            $badgeClass = 'bg-warning-subtle text-warning-emphasis border border-warning-subtle';
+            $estatusFinal = 'Retardo';
+        }
+    } else {
+        $badgeClass = 'bg-danger-subtle text-danger border border-danger-subtle';
+    }
+
+    $entrada = $row['HoraEntradaReal'] ? date('g:i a', strtotime($row['HoraEntradaReal'])) : '---';
+    $salida = $row['HoraSalidaReal'] ? date('g:i a', strtotime($row['HoraSalidaReal'])) : '---';
+    $horarioTeorico = date('g:i a', strtotime($row['HoraRequerida']));
+
+    $mapaLink = '---';
+    if ($row['LatitudEntrada'] && $row['LongitudEntrada']) {
+        $mapaLink = "<a href='https://maps.google.com/?q={$row['LatitudEntrada']},{$row['LongitudEntrada']}' target='_blank' class='btn btn-link btn-sm text-decoration-none p-0'><i class='fa-solid fa-map-pin text-danger'></i> Ver Mapa</a>";
+    }
+
+    // Concatenamos la fila completa en la variable
+    $htmlOutput .= "<tr>
+            <td>
+                <span class='fw-semibold text-dark d-block'>{$row['NombreCompleto']}</span>
+                <small class='text-muted' style='font-size:0.75rem;'>{$row['NombreUbicacion']}</small>
+            </td>
+            <td>
+                <span class='d-block text-dark'>$fechaFormateada</span>
+                <small class='text-muted' style='font-size:0.75rem;'>$diaNombre</small>
+            </td>
+            <td class='text-secondary'>$horarioTeorico</td>
+            <td class='fw-medium text-dark'>$entrada</td>
+            <td class='fw-medium text-dark'>$salida</td>
+            <td><span class='badge px-2.5 py-1.5 rounded-3 $badgeClass' style='font-size:0.8rem; font-weight:500;'>$estatusFinal</span></td>
+            <td>$mapaLink</td>
+          </tr>";
+}
+
+// 2. Enviamos el encabezado JSON correcto y el objeto codificado
+header('Content-Type: application/json');
+echo json_encode(['tabla' => $htmlOutput]);
+exit;
+
+    break;
+    }
+}
+
+
+function attendance($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+
+
+    $operatorId = intval($_POST['operator_id']);
+    $latCliente = floatval($_POST['latitud']);
+    $lngCliente = floatval($_POST['longitud']);
+    $accion     = $_POST['accion']; // 'entrada' o 'salida'
+
+    $fechaActual = date('Y-m-d');
+    $horaActual  = date('H:i:s');
+    $diaSemana   = date('w'); // 0 = Domingo, 1 = Lunes, etc.
+
+    switch ($diaSemana) {
+        case '0':
+            $diaSemana = " s.D = 1 ";
+        break;
+        case '1':
+            $diaSemana = " s.L = 1 ";
+        break;
+        case '2':
+            $diaSemana = " s.M = 1 ";
+        break;
+        case '3':
+            $diaSemana = " s.MI = 1 ";
+        break;
+        case '4':
+            $diaSemana = " s.J = 1 ";
+        break;
+        case '5':
+            $diaSemana = " s.V = 1 ";
+        break;
+        case '6':
+            $diaSemana = " s.S = 1 ";
+        break;                       
+    }    
+
+   
+    // 1. Validar si el operador tiene horario programado para HOY
+    $sqlSch = "SELECT s.*, l.Lat, l.Lng , l.RadioMetros 
+               FROM schedules s 
+               INNER JOIN wharehouses l ON s.LocationId = l.Id 
+               WHERE s.OperatorId = ? AND $diaSemana ";    
+    //echo $sqlSch;
+    $stmt = $db->prepare($sqlSch);
+    // En PDO se ejecutan los parámetros directamente dentro de un arreglo en execute()
+    $stmt->execute([$operatorId]);
+    $horario = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$horario) {
+        echo json_error("No tienes horario asignado para el día de hoy.");
+        exit;
+    }
+
+    // 2. Validar Distancia Geográfica (Geofence)
+    $distancia = calcularDistancia($latCliente, $lngCliente, $horario['Lat'], $horario['Lng']);
+    if ($distancia > $horario['RadioMetros']) {
+        echo json_error("Fuera de rango. Estás a " . round($distancia) . " metros de la ubicación permitida.");
+        exit;
+    }
+
+    // 3. Procesar Entrada o Salida
+    if ($accion == 'entrada') {
+        // Verificar si ya registró entrada hoy (Usando prepare para evitar inyección SQL)
+        $check = $db->prepare("SELECT Id FROM attendance WHERE OperatorId = ? AND Fecha = ?");
+        $check->execute([$operatorId, $fechaActual]);
+        
+        if ($check->fetch()) {
+            echo json_error("Ya registraste tu entrada el día de hoy.");
+            exit;
+        }
+
+        // Validar tolerancia de entrada
+        $horaPermitida = strtotime($horario['HoraEntrada']);
+        $toleranciaSec = $horario['ToleranciaMinutos'] * 60;
+        $horaMaxIn     = $horaPermitida + $toleranciaSec;
+        $horaRealSec   = strtotime($horaActual);
+
+        $estatusEntrada = ($horaRealSec <= $horaMaxIn) ? 'A tiempo' : 'Retardo';
+
+        $ins = $db->prepare("INSERT INTO attendance (OperatorId, Fecha, HoraEntradaReal, LatitudEntrada, LongitudEntrada, EstatusEntrada) VALUES (?, ?, ?, ?, ?, ?)");
+        
+        if ($ins->execute([$operatorId, $fechaActual, $horaActual, $latCliente, $lngCliente, $estatusEntrada])) {
+            echo json_success("Entrada registrada con éxito ($estatusEntrada) a las $horaActual.");
+        } else {
+            echo json_error("Error al registrar entrada.");
+        }
+
+    } elseif ($accion == 'salida') {
+        // Verificar si ya registró entrada primero
+        $check = $db->prepare("SELECT Id, HoraSalidaReal FROM attendance WHERE OperatorId = ? AND Fecha = ?");
+        $check->execute([$operatorId, $fechaActual]);
+        $row = $check->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$row) {
+            echo json_error("Primero debes registrar una entrada para el día de hoy.");
+            exit;
+        }
+        
+        if (!is_null($row['HoraSalidaReal'])) {
+            echo json_error("Ya registraste tu salida el día de hoy.");
+            exit;
+        }
+
+        $upd = $db->prepare("UPDATE attendance SET HoraSalidaReal = ?, LatitudSalida = ?, LongitudSalida = ? WHERE OperatorId = ? AND Fecha = ?");
+        
+        if ($upd->execute([$horaActual, $latCliente, $lngCliente, $operatorId, $fechaActual])) {
+            echo json_success("Salida registrada con éxito a las $horaActual.");
+        } else {
+            echo json_error("Error al registrar salida.");
+        }
+    }    
+    
+
+
+
+            break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+} 
+
+function calcularDistancia($lat1, $lon1, $lat2, $lon2) {
+    $radioTierra = 6371000; // Radio de la Tierra en metros
+
+    $dLat = deg2rad($lat2 - $lat1);
+    $dLon = deg2rad($lon2 - $lon1);
+
+    $a = sin($dLat/2) * sin($dLat/2) +
+         cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+         sin($dLon/2) * sin($dLon/2);
+         
+    $c = 2 * atan2(sqrt($a), sqrt(1-$a));
+    return $radioTierra * $c; // Devuelve metros
+}
+
+function json_error($msg) { return json_encode(['status' => 'error', 'message' => $msg]); }
+function json_success($msg) { return json_encode(['status' => 'success', 'message' => $msg]);}
 
 function generar_uuid_v4() {
     // Generamos 16 bytes de datos aleatorios
@@ -4674,7 +5145,7 @@ function delete_Aws($client,$gallery,$file){
         return true;
     } catch (Aws\S3\Exception\S3Exception $e) {
         error_log("Error al subir a S3: " . $e->getMessage());
-        return false;
+        return $e->getMessage();
     }  
 }
 ?>

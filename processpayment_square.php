@@ -102,8 +102,8 @@ try {
 
     $amount = $amount / 100;
 
-    $sqlPay = "INSERT INTO payments (IdLead,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus,Usuario) 
-                            VALUES  (?,?,now(),'Square',?,?,?,'A','')";
+    $sqlPay = "INSERT INTO payments (IdLead,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus,Usuario,Type) 
+                            VALUES  (?,?,now(),'Square',?,?,?,'A','','Pay')";
     $stmtPay = $db->prepare($sqlPay);
     $stmtPay->execute([$IdLead,$Folio,$amount,Currency::Usd->value,$payment->getId()]);    
 
@@ -117,7 +117,7 @@ try {
         //process_op($cotizacion['IdQuote'],$db);
         //METER A OPERACION!!
 
-    $query = "select * FROM payments WHERE IdLead = ?";
+    $query = "select * FROM payments WHERE IdLead = ? ORDER BY Id";
     $stmt = $db->prepare($query);
     $stmt->bindParam(1, $IdLead);
     $stmt->execute();

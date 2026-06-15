@@ -33,6 +33,17 @@ include_once 'head.php';
     $stmt->execute();
     $account = $stmt->fetch(PDO::FETCH_ASSOC);
 
+    if ($account['Pais'] == 'USA' ){
+        $account['Pais'] = 'US';
+    }else{
+        $account['Pais'] = 'MX';
+    }
+
+    $query = "select * FROM paypal_account";
+    $stmt = $db->prepare($query);
+    $stmt->execute();
+    $paypal_account = $stmt->fetch(PDO::FETCH_ASSOC);    
+
 ?>
 <link rel="stylesheet" href="css/lead.css" />
 <style>

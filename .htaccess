@@ -1,0 +1,8 @@
+RewriteEngine On
+
+# Evita que se alteren archivos o carpetas reales si es que existen
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Regla para capturar la empresa y mandarla a index.php
+RewriteRule ^([^/]+)/login$ index.php?company=$1 [L,QSA]

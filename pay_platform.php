@@ -25,52 +25,73 @@
 <br><br>
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <!-- Limitamos el ancho a la mitad de la pantalla (col-md-6) -->
         <div class="col-md-6">
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">Configuración de plataforma de Pagos</div>
                 <div class="card-body">
                     <form id="paymentForm">
+                        
                         <div class="mb-4">
-                            <label class="form-label fw-bold">Plataforma Activa</label>
-                            <select class="form-select" id="pay_platform" name="pay_platform">
+                            <label class="form-label fw-bold">Plataforma Principal (Obligatoria)</label>
+                            <select class="form-select" id="pay_platform" name="pay_platform" required>
                                 <option value="">Seleccione una opción...</option>
                                 <option value="OPAY">OPAY</option>
                                 <option value="SQUARE">SQUARE</option>
                             </select>
+                            <div class="form-text">Selecciona la pasarela principal para procesar tarjetas.</div>
                         </div>
 
-                        <!-- Campos OPAY -->
-                        <div id="section_OPAY" class="payment-section d-none border p-3 rounded bg-light">
-                            <h6 class="text-muted border-bottom pb-2">Datos OPAY</h6>
+                        <div id="section_OPAY" class="payment-section d-none border p-3 rounded bg-light mb-4">
+                            <h6 class="text-primary border-bottom pb-2 fw-bold">Datos OPAY</h6>
                             <div class="mb-2">
-                                <label class="small">ID</label>
+                                <label class="small fw-bold">ID</label>
                                 <input type="text" class="form-control form-control-sm" name="opay_id" id="opay_id">
                             </div>
                             <div class="mb-2">
-                                <label class="small">Secret Key</label>
+                                <label class="small fw-bold">Secret Key</label>
                                 <input type="text" class="form-control form-control-sm" name="opay_secret" id="opay_secret">
                             </div>
                             <div class="mb-2">
-                                <label class="small">Public Key</label>
+                                <label class="small fw-bold">Public Key</label>
                                 <input type="text" class="form-control form-control-sm" name="opay_public" id="opay_public">
                             </div>
                         </div>
 
-                        <!-- Campos SQUARE -->
-                        <div id="section_SQUARE" class="payment-section d-none border p-3 rounded bg-light">
-                            <h6 class="text-muted border-bottom pb-2">Datos SQUARE</h6>
+                        <div id="section_SQUARE" class="payment-section d-none border p-3 rounded bg-light mb-4">
+                            <h6 class="text-primary border-bottom pb-2 fw-bold">Datos SQUARE</h6>
                             <div class="mb-2">
-                                <label class="small">ID</label>
+                                <label class="small fw-bold">ID</label>
                                 <input type="text" class="form-control form-control-sm" name="square_id" id="square_id">
                             </div>
                             <div class="mb-2">
-                                <label class="small">Local ID</label>
+                                <label class="small fw-bold">Local ID</label>
                                 <input type="text" class="form-control form-control-sm" name="square_local" id="square_local">
                             </div>
                             <div class="mb-2">
-                                <label class="small">Token</label>
+                                <label class="small fw-bold">Token</label>
                                 <input type="text" class="form-control form-control-sm" name="square_token" id="square_token">
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" name="paypal_active" id="paypal_active">
+                                <label class="form-check-label fw-bold" for="paypal_active">Ofrecer PayPal como alternativa</label>
+                            </div>
+                            <div class="form-text">Activa esta opción si deseas permitir que tus clientes paguen también con PayPal.</div>
+                        </div>
+
+                        <div id="section_PAYPAL" class="payment-section d-none border p-3 rounded bg-light mb-4">
+                            <h6 class="text-warning border-bottom pb-2 fw-bold">Datos PAYPAL</h6>
+                            <div class="mb-2">
+                                <label class="small fw-bold">ID</label>
+                                <input type="text" class="form-control form-control-sm" name="paypal_id" id="paypal_id">
+                            </div>
+                            <div class="mb-2">
+                                <label class="small fw-bold">Secret Key</label>
+                                <input type="text" class="form-control form-control-sm" name="paypal_secret" id="paypal_secret">
                             </div>
                         </div>
 
@@ -86,6 +107,7 @@
         </div>
     </div>
 </div>
+
 
 <div class="toast-container position-fixed bottom-0 end-0 p-3">
   <div id="liveToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
@@ -124,6 +146,7 @@ $(document).ready(function() {
             headers: misHeaders,    
             success: function(data) {
                 if (data) {
+                    const sectionPaypal = document.getElementById("section_PAYPAL");
                     // Seleccionar la plataforma y disparar el evento change para mostrar la sección
                     $('#pay_platform').val(data.pay_platform).trigger('change');
                     
@@ -132,6 +155,18 @@ $(document).ready(function() {
                     $('#opay_secret').val(data.opay.SecretKey);
                     $('#opay_public').val(data.opay.PublicKey);
                     
+                    $('#paypal_id').val(data.paypal.Id);
+                    $('#paypal_secret').val(data.paypal.SecretKey);
+                    if (data.paypal.Active == 1){
+                        sectionPaypal.classList.remove("d-none");
+                        $('#paypal_active').prop('checked', true);
+                    }
+                    else{
+                        sectionPaypal.classList.add("d-none");
+                        $('#paypal_active').prop('checked', false);
+                    }
+                        
+
                     // Llenar campos SQUARE
                     $('#square_id').val(data.square.Id);
                     $('#square_local').val(data.square.LocalId);
@@ -240,6 +275,38 @@ $(document).ajaxSuccess(function(event, xhr, settings) {
         console.log("Token actualizado globalmente desde: " + settings.url);
     }
 });    
+
+document.addEventListener("DOMContentLoaded", function() {
+    const payPlatformSelect = document.getElementById("pay_platform");
+    const paypalCheckbox = document.getElementById("paypal_active");
+    
+    const sectionOpay = document.getElementById("section_OPAY");
+    const sectionSquare = document.getElementById("section_SQUARE");
+    const sectionPaypal = document.getElementById("section_PAYPAL");
+
+    // Control de Plataforma Principal (OPAY / SQUARE)
+    payPlatformSelect.addEventListener("change", function() {
+        // Ocultamos ambas primero
+        sectionOpay.classList.add("d-none");
+        sectionSquare.classList.add("d-none");
+
+        // Mostramos la seleccionada
+        if (this.value === "OPAY") {
+            sectionOpay.classList.remove("d-none");
+        } else if (this.value === "SQUARE") {
+            sectionSquare.classList.remove("d-none");
+        }
+    });
+
+    // Control de PayPal Opcional
+    paypalCheckbox.addEventListener("change", function() {
+        if (this.checked) {
+            sectionPaypal.classList.remove("d-none");
+        } else {
+            sectionPaypal.classList.add("d-none");
+        }
+    });
+});
 
 </script>
 </body>

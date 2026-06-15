@@ -106,6 +106,35 @@ if ($resource === 'login' && $method === 'POST') {
     exit();
 } 
 
+if ($resource === 'user_login' && $method === 'POST') {
+    //handle_login_request( $data); // Llama a la función de login en Handlers.php
+
+    define('DB_NAME', $data->data_base);  
+
+    $database = new Database();
+    $db = $database->getConnection();    
+
+    $stmt = $db->prepare("SELECT * FROM operators WHERE Usuario = ? AND Estatus = 'A' ");
+    $stmt->execute([$data->username]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($user && password_verify($data->password, $user['Password'])) {
+            http_response_code(200);
+            echo json_encode(array(
+                "message" => "Inicio de sesión exitoso.",
+                "Id" => $user['Id'],
+                "Nombre" => $user['Nombres']." " .$user['Apellidos'],
+                "Tipo" => $user['Tipo']
+            ));    
+    }  
+    else{
+        http_response_code(401);
+        echo json_encode(array("message" => "Credenciales inválidas."));
+    }  
+    exit();
+} 
+
+
 // --- B. MIDDLEWARE DE AUTENTICACIÓN (Para todas las demás rutas) ---
 if ($resource !== 'login') {
     $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
@@ -176,8 +205,75 @@ if (isset($_SERVER['HTTP_ID5']))
 //print_r($IDS);
 //die();
 switch ($resource) {
+    case'image_actions':
+
+        header('Content-Type: application/json');
+
+        $action = $_POST['action'] ?? '';
+
+        switch ($action) {
+
+            case 'delete':
+                $id = intval($_POST['id'] ?? 0);
+
+                $stmt = $db->prepare("SELECT Image FROM products_images WHERE IId = ?");
+                $stmt->execute([$id]);
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($row) {
+                    $imageFile = $row['Image'];
+                    //$baseName  = str_replace('.avif', '', $imageFile);
+
+                    // Borrar archivos físicos
+                    //@unlink("tmp/" . $imageFile);
+                    //@unlink("tmp/thumbnail_" . $baseName . ".avif");
+                    //@unlink("tmp/thumbnail_" . $baseName . ".jpg");
+                    @delete_Aws(ID_CLIENTE,"products_images",$imageFile);
+
+                    $stmt = $db->prepare("DELETE FROM products_images WHERE IId = ?");
+                    $stmt->execute([$id]);
+
+                    echo json_encode(['success' => true]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'No encontrado']);
+                }
+                break;
+
+            case 'reorder':
+                $order = json_decode($_POST['order'] ?? '[]', true); // array de IDs en el nuevo orden
+
+                if (!is_array($order) || empty($order)) {
+                    echo json_encode(['success' => false, 'message' => 'Orden inválido']);
+                    break;
+                }
+
+                //$db->beginTransaction();
+                foreach ($order as $index => $id) {
+                    $stmt = $db->prepare("UPDATE products_images SET Orden = ?, FechaCambio = NOW() WHERE IId = ?");
+                    $stmt->execute([$index + 1, intval($id)]);
+                }
+                //$db->commit();
+
+                echo json_encode(['success' => true]);
+                break;
+
+            case 'list':
+                $product_id = intval($_POST['product_id'] ?? 0);
+
+                $stmt = $db->prepare("SELECT IId, Orden, Image FROM products_images WHERE Product = ? ORDER BY Orden ASC");
+                $stmt->execute([$product_id]);
+                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                echo json_encode(['success' => true, 'data' => $rows]);
+                break;
+
+            default:
+                echo json_encode(['success' => false, 'message' => 'Acción no válida']);
+        }
+        exit;        
 
 
+    break;
     case 'save_route':
         save_route($resource,$db, $method, $id, $data);
         break;
@@ -238,6 +334,10 @@ switch ($resource) {
         
         handle_generic_crud($resource,$db, $method, $id, $data);
         break;      
+    case 'schedules':
+        
+        handle_generic_crud($resource,$db, $method, $id, $data);
+        break;          
     case 'vehicles':
         
         handle_generic_crud($resource,$db, $method, $id, $data);
@@ -451,6 +551,15 @@ switch ($resource) {
     case 'get_gif_card':
         get_gif_card($resource,$db, $method, $id, $data);
     break;                    
+
+    case 'attendance':
+        attendance($resource,$db, $method, $id, $data);
+    break;                    
+
+    case 'asistencias':
+        asistencias($resource,$db, $method, $id, $data);
+    break; 
+
 
     default:
         // Manejar rutas no definidas

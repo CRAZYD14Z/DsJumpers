@@ -76,7 +76,12 @@
                             <select class="form-select form-select-sm" id="tipo_pago" required>
                                 <option value=""><?= Trd(130) ?></option>
                                 <option value="efectivo"><?= Trd(131) ?></option>
-                                <option value="tarjeta"><?= Trd(132) ?></option>
+                                <option value="tarjeta"><?= $PayPlatform ." - ".Trd(132) ?></option>
+                                <?php 
+                                if ($paypal_account['Active'] == 1){
+                                    echo '<option value="paypal">PAYPAL</option>';
+                                }
+                                ?>
                                 <option value="transferencia"><?= Trd(133) ?></option>
                             </select>
                         </div>
@@ -148,6 +153,8 @@
 
                     </div>
 
+                    
+
                     <?php if ($PayPlatform == 'OPAY'){
                             //<button class="btn btn-dark" type="button" id="pay-button">Confirmar Pago</button> 
                         }
@@ -196,16 +203,103 @@
                 </div>
             </div>                    
 
-            <div class="text-center border-top pt-3">
+            <div class="text-center border-top pt-3 d-none" id="pay-buttons">
                 <button type="submit" class="btn btn-dark w-100" id="pay-button"><?= Trd(145) ?></button>
                 <button type="button" class="btn btn-link btn-sm text-secondary mt-2" data-bs-toggle="collapse" data-bs-target="#collapseForm"><?= Trd(153) ?></button>
             </div>                        
+
+            <div id="paypal-button-container"  class="d-none" ></div>
 
 
             </div>
         </div>
     </div>
 </div>
+
+<?php if ($paypal_account['Active'] ==1):?>
+<script src="https://www.paypal.com/sdk/js?client-id=<?= $paypal_account['Id'] ?>&currency=<?= $account['Currency'] ?>&enable-funding=venmo,paylater&buyer-country=<?= $account['Pais'] ?>"></script>
+
+<script>
+    paypal.Buttons({
+        // Fuerza el flujo de captura inmediata
+        commit: true, 
+
+        // Estilo de los botones (opcional, para adaptarlos visualmente)
+        style: {
+            layout: 'vertical',
+            color:  'blue',
+            shape:  'rect',
+            label:  'paypal'
+        },
+
+        createOrder: function(data, actions) {
+            const monto = parseFloat($('#monto_pago').val()) || 0;
+            
+            return actions.order.create({
+                application_context: {
+                    shipping_preference: 'NO_SHIPPING' // Sin dirección de envío
+                },
+                purchase_units: [{
+                    amount: {
+                        currency_code: '<?= $account['Currency'] ?>',
+                        value: monto, // El TOTAL absoluto de la orden (25 + 10)
+                        breakdown: {
+                            item_total: {
+                                currency_code: '<?= $account['Currency'] ?>',
+                                value: monto // La suma de los subtotales de los items
+                            }
+                        }
+                    },
+                    // AQUÍ PONES TU LISTA DE PRODUCTOS
+                    items: [
+                        {
+                            name: 'Pay Lead <?= $IdLead ?>',       // Nombre del producto 1
+                            sku: 'Pay',                // Identificador único (opcional)
+                            unit_amount: {
+                                currency_code: '<?= $account['Currency'] ?>',
+                                value: monto               // Precio unitario
+                            },
+                            quantity: '1'                    // Cantidad
+                        }
+                    ]
+                }]
+            });
+        },
+
+        onApprove: function(data, actions) {
+            return actions.order.capture().then(function(orderData) {
+            
+                $('#monto').val($('#monto_pago').val())
+                $('#tipo-pago').val($('#tipo_pago').val())
+                $('#referencia').val($('#refcia').val())            
+
+                var datosFormulario = $('#payment-form').serialize();
+                datosFormulario += '&orderID=' + encodeURIComponent(data.orderID);
+                $.ajax({
+                    url: 'processpayment_paypal.php',
+                    method: 'POST',
+                    dataType: "json",
+                    data: datosFormulario,
+                    success: function(respuestaBackend) {
+                        if(respuestaBackend.status === 'success') {
+                            const divpaypal = document.getElementById('paypal-button-container');
+                            divpaypal.classList.add('d-none');                        
+                            lanzarMensaje("<?= Trd(148) ?>","exito",5000);
+                            render_pagos(respuestaBackend)
+                            //$btn.prop("disabled", false).text("Aplicar Pago");
+                        }
+                    },
+                    error: function(err) {
+                        var errorMsg = err.responseJSON ? err.responseJSON.description : "Error interno.";
+                        lanzarMensaje(`❌ ${errorMsg}`,"error",5000);
+                        $btn.prop("disabled", false).text("Aplicar Pago");                        
+                    }
+                });
+            });
+        }
+    }).render('#paypal-button-container');
+</script>
+<?php endif;?>
 
 <script>
 
@@ -242,17 +336,28 @@ document.getElementById('tipo_pago').addEventListener('change', function() {
     const val = this.value;
     const divRef = document.getElementById('div_referencia');
     const divTar = document.getElementById('div_tarjeta');
+    const divpaypal = document.getElementById('paypal-button-container');
+    const paybuttons = document.getElementById('pay-buttons');
 
     // Ocultar todo primero
     divRef.classList.add('d-none');
     divTar.classList.add('d-none');
+    divpaypal.classList.add('d-none');
+    paybuttons.classList.add('d-none');
+
+    
 
     // Mostrar según selección
     if (val === 'efectivo' || val === 'transferencia') {
         divRef.classList.remove('d-none');
+        paybuttons.classList.remove('d-none');
     } else if (val === 'tarjeta') {
         divTar.classList.remove('d-none');
+        paybuttons.classList.remove('d-none');
+    } else if (val === 'paypal') {
+        divpaypal.classList.remove('d-none');
     }
+    //paypal-button-container
 });
 
 document.querySelectorAll('.only-numbers').forEach(input => {
@@ -381,6 +486,9 @@ function render_pagos(response){
     $('#monto_pago').val('0.00');
 
     recalculate_totals();
+
+    $('#display-pago-hoy').html(formatter.format('0.00') );    
+
 }
 
 </script>

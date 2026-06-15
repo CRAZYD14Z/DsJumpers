@@ -139,7 +139,7 @@ function armar_formulario_add($tabla,$etiqueta,$idioma){
                             break;
                         case 'decimal';
                             echo "<label for='$Campo' class='form-label fw-semibold text-dark small mb-1'>$Titulo</label>";
-                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' decimals w-100" type="number" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.' >';
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' decimals w-100" type="text" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.' >';
                             echo '<div class="invalid-feedback">'.$Validacion.'</div>';
                             break;
                         case 'currency';
@@ -235,31 +235,97 @@ function armar_formulario_add($tabla,$etiqueta,$idioma){
                             break;                            
 
                         case 'img':
-                            echo '<label class="form-label fw-semibold text-dark small mb-1" for="file_'.$Campo.'">'.$Titulo.'</label>';
-                            echo '<div class="card p-3 border-dashed bg-light shadow-none">';
-                            echo '<input name="file_'.$Campo.'" id="file_'.$Campo.'" class="form-control bg-white" type="file"  accept="'.$Filtro.'">';
-                            echo '<input name="'.$Campo.'" id="'.$Campo.'"  type="text" style=" display: none;" >';
-                            
-                            if ($Regla != "")
-                                echo '<div class="form-text small text-muted mt-1">'.$Regla.'</div>';
 
-                            echo '<div id="gallery_'.$Campo.'" class="row g-2 mt-2"></div>';
-                            echo '</div>';                  
+echo '<label class="form-label fw-bold text-dark small mb-2" for="file_'.$Campo.'">'.$Titulo.'</label>';
 
-                            echo "
-                            <script>
-                            var ".$Campo." = document.querySelector('#file_".$Campo."');
-                            ".$Campo.".addEventListener('change', function () {
-                                var files = this.files;
-                                for(var i=0; i<files.length; i++){
-                                    uploadFile(this.files[i],'".$Campo."','img'); 
-                                    previewImage(this.files[i],'".$Campo."');
-                                }
-                                    
-                            }, false);  
-                            
-                            </script>
-                            ";
+// CONTENEDOR PRINCIPAL: Funciona como botón y como contenedor del preview
+echo '<div id="dropzone_'.$Campo.'" class="position-relative border-dashed bg-light d-flex flex-column align-items-center justify-content-center text-center" style="width: 200px; height: 150px; border-radius: 12px; transition: all 0.2s ease-in-out; overflow: hidden;">';
+    
+    // 1. ESTADO INICIAL: Texto e Icono para cargar
+    echo '<div id="prompt_'.$Campo.'" class="p-2 pointer-events-none d-flex flex-column align-items-center justify-content-center h-100">';
+        echo '<i class="bi bi-cloud-arrow-up text-secondary fs-3 mb-1"></i>';
+        echo '<span class="fw-semibold text-secondary small">Cargar imagen</span>';
+        if ($Regla != "") {
+            echo '<div class="text-muted" style="font-size: 10px; max-width: 180px;">'.$Regla.'</div>';
+        }
+    echo '</div>';
+
+    // 2. ESTADO CARGADO: Contenedor del Preview (Oculto por defecto)
+    echo '<div id="gallery_'.$Campo.'" class="w-100 h-100 d-none position-relative" style="z-index: 3;">';
+        echo '<img id="img_preview_'.$Campo.'" class="w-100 h-100" style="object-fit: cover;" alt="Preview">';
+        // Botón Borrar flotante
+        echo '<button type="button" class="btn btn-danger btn-sm rounded-circle position-absolute top-0 end-0 m-2 d-flex align-items-center justify-content-center p-0 shadow" style="width: 26px; height: 26px; z-index: 4;" onclick="removePreview(\''.$Campo.'\', event)" title="Eliminar">';
+            echo '<i class="fa-solid fa-trash-can" style="font-size: 11px;"></i>'; // Icono cambiado a Font Awesome
+        echo '</button>';
+    echo '</div>';
+
+    // 3. INPUT REAL (Invisible pero cubre todo el recuadro para detectar clics y drag&drop)
+    echo '<input name="file_'.$Campo.'" id="file_'.$Campo.'" class="form-control position-absolute top-0 start-0 w-100 h-100 opacity-0" type="file" accept="'.$Filtro.'" style="cursor: pointer; z-index: 2;">';
+    echo '<input name="'.$Campo.'" id="'.$Campo.'" type="text" style="display: none;">';
+
+echo '</div>';
+
+// JAVASCRIPT INTEGRADO
+echo "
+<script>
+(function() {
+    var fileInput = document.querySelector('#file_".$Campo."');
+    
+    fileInput.addEventListener('change', function () {
+        var files = this.files;
+        if(files.length > 0){
+            // Ejecuta tu lógica de subida
+            uploadFile(files[0], '".$Campo."', 'img'); 
+            // Ejecuta el cambio visual del preview
+            previewImageInline(files[0], '".$Campo."');
+        }
+    }, false);  
+})();
+
+if (typeof window.previewImageInline !== 'function') {
+    window.previewImageInline = function(file, field) {
+        if (!file.type.match(/image.*/)) {
+            alert('Por favor, selecciona un archivo de imagen válido.');
+            return;
+        }
+    
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            // Asignar la imagen al src del preview interno
+            document.getElementById('img_preview_' + field).src = e.target.result;
+            
+            // Alternar visibilidades dentro del mismo recuadro
+            document.getElementById('prompt_' + field).classList.add('d-none');
+            document.getElementById('gallery_' + field).classList.remove('d-none');
+            
+            // Desactivar temporalmente el input file para que no estorbe el botón de borrar
+            document.getElementById('file_' + field).style.pointerEvents = 'none';
+        };
+        reader.readAsDataURL(file);
+    };
+}
+
+if (typeof window.removePreview !== 'function') {
+    window.removePreview = function(field, event) {
+        // Evitamos que el clic en borrar active el input de abajo
+        event.stopPropagation();
+        event.preventDefault();
+        
+        // Limpiar valores
+        document.getElementById('file_' + field).value = '';
+        document.getElementById('img_preview_' + field).src = '';
+        
+        // Volver a mostrar el estado inicial Cargar imagen
+        document.getElementById('gallery_' + field).classList.add('d-none');
+        document.getElementById('prompt_' + field).classList.remove('d-none');
+        
+        // Reactivar el input file para permitir una nueva carga
+        document.getElementById('file_' + field).style.pointerEvents = 'auto';
+    };
+}
+</script>
+";
+
                             break;
 
                         case 'file':

@@ -211,6 +211,12 @@ switch ($resource) {
         $Traducciones = Traducciones('processpayment_square',$lng,$db);
         processpayment_square($resource,$db, $method, $id, $data);
     break;
+
+    case 'processpayment_paypal':
+        $Traducciones = Traducciones('processpayment_paypal',$lng,$db);
+        processpayment_paypal($resource,$db, $method, $id, $data);
+    break;    
+
     case 'gifcard_pay':
         $Traducciones = Traducciones('gifcard_pay',$lng,$db);         
         gifcard_pay($resource,$db, $method, $id, $data);
@@ -223,6 +229,10 @@ switch ($resource) {
         $Traducciones = Traducciones('SQUARE',$lng,$db);        
         SQUARE($resource,$db, $method, $id, $data);
     break;    
+    case 'PAYPAL':
+        $Traducciones = Traducciones('PAYPAL',$lng,$db);
+        PAYPAL($resource,$db, $method, $id, $data);
+    break;        
     case 'tnks':
 	    $Traducciones = Traducciones('tnks',$lng,$db);           
         tnks($resource,$db, $method, $id, $data);
@@ -290,6 +300,26 @@ function SQUARE($table_name,$db, $method, $id, $data){
         break;
     }      
 }
+
+function PAYPAL($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+            $sql = "select Id, Active FROM paypal_account";
+            $stmt = $db->prepare($sql);
+            $stmt->execute();
+            $account = $stmt->fetch(PDO::FETCH_ASSOC);
+            http_response_code(200);
+            echo json_encode($account);
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }      
+}
+
 function gifcard_pay($table_name,$db, $method, $id, $data){
     global $IDS;
     global $lng;
@@ -466,6 +496,216 @@ function gifcard_pay($table_name,$db, $method, $id, $data){
         break;
     }      
 }
+
+function processpayment_paypal($table_name,$db, $method, $id, $data){
+    global $IDS;
+    global $lng;
+    switch ($method) {
+        case 'POST': 
+
+                $token      = $data->token ?? null;
+                $amount     = $data->amount ?? 0;
+                $OrdeId      = $data->orderID ?? '';
+                $ahora = date("Y-m-d H:i:s");
+                $stmt = $db->prepare("SELECT * FROM quotes WHERE UUID = ? AND Status = 'A'");
+                $stmt->execute([$token]);
+                $cotizacion = $stmt->fetch();
+                if ($cotizacion) {
+                    // Verificar si la fecha actual es mayor a la de expiración
+                    if ($ahora > $cotizacion['ExpDate']) {
+                        echo Trd(2) . $cotizacion['ExpDate']." $ahora";
+                        die();
+                    }
+                } else {
+                    echo Trd(3);
+                    die();
+                }        
+
+                $sql = "SELECT * FROM account ";
+                $stmt = $db->prepare($sql);
+                $stmt->execute();                
+                $account = $stmt->fetch(PDO::FETCH_ASSOC);                
+
+                $Currency = $account['Currency'];
+
+                $stmt = $db->prepare("SELECT IdBranch FROM lead WHERE Id = ? ");
+                $stmt->execute([$cotizacion['IdQuote']]);
+                $lead = $stmt->fetch();    
+                $Folio = 0;    
+                $stmt = $db->prepare("select MAX(Folio) as Folio FROM folios WHERE IdBranch = ? AND Type = 'Pay'");
+                $stmt->execute([$lead['IdBranch']]);
+                $Payments = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($Payments){
+                    $Folio = $Payments['Folio'];
+                }
+                $Folio+=1;
+                $stmt = $db->prepare(" UPDATE folios sET Folio = ? WHERE IdBranch = ? AND Type = 'Pay'");
+                $stmt->execute([$Folio,$lead['IdBranch']]);                
+
+
+            try{
+                $sqlPay = "INSERT INTO payments (IdLead,Type,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus,Usuario) 
+                                        VALUES  (?,'Pay',?,now(),'paypal',?,?,?,'A','Web')";
+                $stmtPay = $db->prepare($sqlPay);
+                $stmtPay->execute([$cotizacion['IdQuote'],$Folio,$amount,$Currency,$OrdeId]);    
+                $stmt = $db->prepare(" UPDATE lead SET Status = ? WHERE Id = ?");
+                $stmt->execute(['confirmed', $cotizacion['IdQuote']]);
+                //RECUPERAMOS LOS DATOS DEL GIFCARD
+                $stmt = $db->prepare("SELECT * FROM lead_discounts WHERE IdLead = ? AND Type = 'gifcard'");
+                $stmt->execute([$cotizacion['IdQuote']]);
+                $lead_discounts = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($lead_discounts){
+                    $stmt = $db->prepare("SELECT * FROM gifcard WHERE Code = ? ");
+                    $stmt->execute([$lead_discounts['Descript']]);
+                    $gifcard = $stmt->fetch(PDO::FETCH_ASSOC);
+                    //ACTUALIZAMOS EL SALDO DEL GIFCARD
+                    $stmt = $db->prepare(" UPDATE gifcard SET Amount = 0, Estatus = 0 WHERE Id = ?");
+                    $stmt->execute([$gifcard['Id']]);
+                    //METER PAGO DE GIFCARD                    
+                    $Folio = 0;    
+                    $stmt = $db->prepare("select MAX(Folio) as Folio FROM folios WHERE IdBranch = ? AND Type = 'Pay'");
+                    $stmt->execute([$lead['IdBranch']]);
+                    $Payments = $stmt->fetch(PDO::FETCH_ASSOC);
+                    if ($Payments){
+                        $Folio = $Payments['Folio'];
+                    }
+                    $Folio+=1;
+                    $stmt = $db->prepare(" UPDATE folios sET Folio = ? WHERE IdBranch = ? AND Type = 'Pay'");
+                    $stmt->execute([$Folio,$lead['IdBranch']]);                        
+                    $paymentid = $lead_discounts['Descript'];                    
+                    $sqlPay = "INSERT INTO payments (IdLead,Type,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus,Usuario) 
+                                            VALUES  (?,'Pay',?,now(),'GifCard',?,?,?,'A','Web')";
+                    $stmtPay = $db->prepare($sqlPay);
+                    $stmtPay->execute([$cotizacion['IdQuote'],$Folio,$lead_discounts['AmountVal'],$Currency,$paymentid]);                        
+                }
+                    process_op($cotizacion['IdQuote'],$db);
+                //ENVIO DE CORREO                    
+                    $sql = "SELECT * FROM account ";
+                    $stmt = $db->prepare($sql);
+                    //$stmt->bindValue(":name", $data->Product); 
+                    $stmt->execute();
+                    $account = $stmt->fetch(PDO::FETCH_ASSOC);                
+                    //RECUPERAR PLANTILLA
+                    $sql = "SELECT Nombre, Template FROM document_center WHERE Tipo = 'email' AND IdTemplate = '8' AND Idioma = '$lng'";
+                    $stmt = $db->prepare($sql);
+                    //$stmt->bindValue(":name", $data->Product); 
+                    $stmt->execute();
+                    $Template = $stmt->fetch(PDO::FETCH_ASSOC);    
+                    //RECUPERAR Lead
+                    $sql = "SELECT * FROM lead WHERE Id = :id";
+                    $stmt = $db->prepare($sql);
+                    $stmt->bindValue(":id", $cotizacion['IdQuote']); 
+                    $stmt->execute();
+                    $lead = $stmt->fetch(PDO::FETCH_ASSOC);
+                    //RECUPERAR Customer
+                    $sql = "SELECT * FROM customers WHERE Id = :id";
+                    $stmt = $db->prepare($sql);
+                    $stmt->bindValue(":id", $lead['Customer']); 
+                    $stmt->execute();
+                    $customer = $stmt->fetch(PDO::FETCH_ASSOC);
+                    $query = "select * FROM organizations WHERE Id = ".$lead['Organization'];
+                    $stmt = $db->prepare($query);
+                    $stmt->execute();
+                    $organization = $stmt->fetch(PDO::FETCH_ASSOC);            
+                    //RECUPERAR venue
+                    $sql = "SELECT * FROM venues WHERE Id = :id";
+                    $stmt = $db->prepare($sql);
+                    $stmt->bindValue(":id", $lead['Venue']); 
+                    $stmt->execute();
+                    $venue = $stmt->fetch(PDO::FETCH_ASSOC);       
+                    $header = "";
+                    //$header = "MIME-Version: 1.0\r\n";
+                    //$header .= "Content-Type: text/html; charset=UTF-8\r\n";
+                    $header .= $Template['Nombre']."\r\n";            
+                                // Incluimos el teléfono en el cuerpo del correo
+                    $cuerpo = "<html>".$Template['Template']."</html>";
+                            if ($customer){
+                                $nombreCliente = $customer['Nombres'];
+                                $correoCliente =$customer['Correo'];
+                            }
+                            else{
+                                $nombreCliente = $organization['Nombre'];
+                                $correoCliente =$organization['Correo'];
+                            }    
+                    $valores = [
+                        'company_logo'      => $account['Logo'],
+                        'company_name' => $account['NombreCompania'],
+                        'ctfirstname'  => $nombreCliente,
+                        'leadid'       => $lead['Folio'],
+                        'total'  => $lead['Total'],
+                        'apayment'  => $lead['DepositAmount'],
+                        'balancedue'  => $lead['Balance'],
+                        'link_to_accept'  => '',
+                        'eventstreet' => $venue['Direccion'],
+                        'eventcity'    => $venue['Ciudad'],
+                        'startdate'  => $lead['StartDateTime'],
+                        'company_name'  => $account['NombreCompania'],
+                        'company_phone'  => $account['TelefonoOficina'],
+                        'company_city'  => $account['Ciudad'],
+                    ];       
+                    $cuerpo = generarHtmlCotizacion($cuerpo, $valores);
+                    $datosConexion = [
+                        'host'             => $account['ServidorS'],
+                        'username'         => $account['UsuarioS'],
+                        'password'         => $account['PasswordS'],
+                        'port'             => $account['PortS'],
+                        'encryption'       => '',
+                        'nombre_remitente' => $account['NombreCompania']
+                    ];
+                    $archivos = [];
+                    $resultado = enviarEmail(
+                        $datosConexion, 
+                        $correoCliente, 
+                        $header,
+                        $cuerpo,
+                        $archivos,
+                        $cotizacion['Contrato'],
+                        $cotizacion['UUID'].".PDF"
+                    );                        
+                //
+                echo json_encode([
+                    'success'    => true,
+                    'payment_id' => 'Pay - '.$Folio,
+                    'status'     => 'Success',
+                    'amount'     => $amount,
+                    'currency'   => $Currency,
+                    'status' => 'success',
+                    'message' => Trd(6),
+                    'transaction_id' => $OrdeId,
+                    'url' => 'successpayment.php?Id='.$token.'&TId='.$OrdeId
+                ]);
+            } catch (SquareApiException $e) {
+                // Error de la API de Square (4xx / 5xx)
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'error'   => $e->getMessage(),
+                    'code'    => $e->getCode(),
+                    'body'    => json_decode($e->getBody(), true),
+                    'status' => 'error',
+                    'error_code' => $e->getCode(),
+                    'description' => $e->getMessage()        
+                ]);
+            } catch (SquareException $e) {
+                // Error de red u otro error del SDK
+                http_response_code(500);
+                echo json_encode([
+                    'success' => false,
+                    'error'   => Trd(5) . $e->getMessage(),
+                    'status' => 'error',
+                    'description' => $e->getMessage()
+                ]);
+            }                              
+
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(7)));
+        break;
+    }      
+} 
 function processpayment_square($table_name,$db, $method, $id, $data){
     global $IDS;
     global $lng;

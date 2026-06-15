@@ -30,6 +30,7 @@ session_start();
     }
     include_once 'head.php';
 ?>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link href="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/choices.js@9.0.1/public/assets/styles/choices.min.css" rel="stylesheet">
@@ -135,6 +136,24 @@ session_start();
                 width: 100%;
             }
         }
+
+/* Bordes discontinuos finos y redondeados */
+.border-dashed {
+    border: 2px dashed #cbd5e1 !important;
+}
+
+/* Efecto visual interactivo */
+#dropzone_bg:hover, 
+div[id^="dropzone_"]:hover {
+    border-color: #3b82f6 !important;
+    background-color: #f8fafc !important;
+}
+
+/* Evita interferencias con el texto interior */
+.pointer-events-none {
+    pointer-events: none;
+}        
+
     </style>    
 </head>
 
@@ -161,7 +180,8 @@ session_start();
             'inventory_stock',
             'operators',
             'referals',
-            'vehicles'
+            'vehicles',
+            'schedules'
         ];
         if (!in_array($IdTabla, $allowed_tables)) {
             die("<h3>".Trd(3)."</h3></div></body></html>");
@@ -303,7 +323,7 @@ session_start();
                             $Filtro =   "";
                             $Titulo = Trd(27);
                                 echo "<label for='$Campo' class='form-label'>$Titulo</label>";
-                                echo '<select name="'.$Campo.'" id="'.$Campo.'" data-tipo="complete" class="form-control border-1 rounded">';
+                                echo '<select name="'.$Campo.'" id="'.$Campo.'" data-tipo="complete" class="form-control border-1 rounded" onchange="get_json_price(this.value)">';
 
                                 $checkColumn = $db->query("SHOW COLUMNS FROM $TablaDts LIKE 'Idioma'");
                                 $columnExists = $checkColumn->fetch();
@@ -330,9 +350,10 @@ session_start();
                                 echo '</select>';
                             ?>
                         </div>
-                        <div class='col-12 col-sm-12 col-md-8 col-lg-4 col-xl-4 col-xxl-4'>
+                        <div class='col-12 col-sm-12 col-md-8 col-lg-2 col-xl-2 col-xxl-2'>
                             <br>
                             <div class="form-check  form-switch">
+                                <input name="edit_price_name" id="edit_price_name" type="hidden">
                                 <input name="edit_new" id="edit_new" type="hidden">
                                 <input name="edit_Taxable" id="edit_Taxable" class="form-check-input" type="checkbox">
                                 <label class="form-check-label" for="edit_Taxable">
@@ -340,6 +361,14 @@ session_start();
                                 </label>
                             </div>
                         </div>
+
+                        <div class='col-12 col-sm-12 col-md-8 col-lg-2 col-xl-2 col-xxl-2'>
+                            <br>
+                            <button class="btn btn-primary fw-semibold px-4 rounded-3 shadow-sm" type="submit">
+                                <i class="fa-solid fa-floppy-disk me-1"></i><?php echo Trd(7)?>
+                            </button>
+                        </div>                        
+
                     </div>
 
 
@@ -347,6 +376,13 @@ session_start();
                     <div id="edit_contenedor-funciones">
                         
                     </div>
+
+                    <div >
+
+                            <button class="btn btn-warning fw-semibold px-4 rounded-3 shadow-sm" onclick=" $('#edit_contenedor-funciones').empty();configTotal = [];ejecutarFuncion1();if (myChart) {myChart.destroy()};$('#edit_ItemPrice').closest('form')[0].reset();$('#edit_producto_origen_pl').closest('form')[0].reset();$('#edit_new').val(2);$('#edit_price_name').val($('#edit_Name').val())" type="button">
+                                <i class="fa-solid fa-floppy-disk me-1"></i> Clear inputs
+                            </button>                    
+                    </div>                    
 
                     <input type="hidden" id ="edit_JsonPrice" name ="edit_JsonPrice">
 
@@ -359,7 +395,7 @@ session_start();
                             </div>        
                         </div>
                     </div>                    
-
+<!--
                     <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
 
                         <button class="btn btn-primary fw-semibold px-4 rounded-3 shadow-sm" type="submit">
@@ -367,71 +403,270 @@ session_start();
                         </button>                    
 
                     </div>
+-->
                 </form>            
             <?php
             echo "</div>";
 
 
-$Tabla = 'products_categories';
+                $Tabla = 'products_categories';
 
-echo '<style>
-    .btn-toggle-custom {
-        cursor: pointer;
-        background-color: #f8f9fa;
-        padding: 12px 20px;
-        border-radius: 6px;
-        border-left: 4px solid #0d6efd; /* Línea azul interactiva a la izquierda */
-        transition: all 0.2s ease;
-    }
-    .btn-toggle-custom:hover {
-        background-color: #e9ecef;
-    }
-    /* Añade un signo + o - dinámico con CSS puro */
-    .btn-toggle-custom::after {
-        content: "＋";
-        float: right;
-        font-weight: bold;
-        color: #6c757d;
-    }
-    .btn-toggle-custom[aria-expanded="true"]::after {
-        content: "－";
-    }
-</style>';
+                echo '<style>
+                    .btn-toggle-custom {
+                        cursor: pointer;
+                        background-color: #f8f9fa;
+                        padding: 12px 20px;
+                        border-radius: 6px;
+                        border-left: 4px solid #0d6efd; /* Línea azul interactiva a la izquierda */
+                        transition: all 0.2s ease;
+                    }
+                    .btn-toggle-custom:hover {
+                        background-color: #e9ecef;
+                    }
+                    /* Añade un signo + o - dinámico con CSS puro */
+                    .btn-toggle-custom::after {
+                        content: "＋";
+                        float: right;
+                        font-weight: bold;
+                        color: #6c757d;
+                    }
+                    .btn-toggle-custom[aria-expanded="true"]::after {
+                        content: "－";
+                    }
+                </style>';
 
-echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
-          data-bs-toggle="collapse" 
-          data-bs-target="#listado_' . $Tabla . '" 
-          aria-expanded="false" 
-          aria-controls="listado_' . $Tabla . '">';
-echo Trd(30);
-echo '</h4>';
+                echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
+                        data-bs-toggle="collapse" 
+                        data-bs-target="#listado_' . $Tabla . '" 
+                        aria-expanded="false" 
+                        aria-controls="listado_' . $Tabla . '">';
+                echo Trd(30);
+                echo '</h4>';
 
                 add_listado($Tabla,'collapse');                
                 add_form($Tabla,$Idioma,'D');
                 edit_form($Tabla,$Idioma,'D');
-            $Tabla2 = 'products_images';
+                
+                $Tabla2 = 'products_images';
+                echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
+                        data-bs-toggle="collapse" 
+                        data-bs-target="#listado_' . $Tabla2 . '" 
+                        aria-expanded="false" 
+                        aria-controls="listado_' . $Tabla2 . '">';
+                echo Trd(31);
+                echo '</h4>';
+                
+                
+?>
+    <style>
+        .gallery-item {
+            position: relative;
+            cursor: grab;
+        }
+        .gallery-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .gallery-item .btn-delete {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+        .gallery-item.ui-sortable-helper {
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .gallery-item .order-badge {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 0.75rem;
+        }
+        .drop-zone {
+            border: 2px dashed #adb5bd;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            color: #6c757d;
+            transition: all .2s;
+            cursor: pointer;
+        }
+        .drop-zone.dragover {
+            border-color: #0d6efd;
+            background: #e7f1ff;
+            color: #0d6efd;
+        }
 
-echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
-          data-bs-toggle="collapse" 
-          data-bs-target="#listado_' . $Tabla2 . '" 
-          aria-expanded="false" 
-          aria-controls="listado_' . $Tabla2 . '">';
-echo Trd(31);
-echo '</h4>';            
+.gallery-item {
+    position: relative;
+}
+.gallery-item img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+.gallery-item .btn-delete {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+.gallery-item .order-badge {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 0.75rem;
+    z-index: 2;
+}
+.order-controls {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 4px;
+}
+.order-controls .btn {
+    flex: 1;
+    border: 1px solid #dee2e6;
+}
+.drop-zone {
+    border: 2px dashed #adb5bd;
+    border-radius: 10px;
+    padding: 40px;
+    text-align: center;
+    color: #6c757d;
+    transition: all .2s;
+    cursor: pointer;
+}
+.drop-zone.dragover {
+    border-color: #0d6efd;
+    background: #e7f1ff;
+    color: #0d6efd;
+}        
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+.loading-box {
+    background: #fff;
+    padding: 30px 40px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+}
 
+/* Placeholder mientras se sube cada imagen */
+.gallery-item.uploading {
+    position: relative;
+}
+.gallery-item.uploading img {
+    opacity: 0.4;
+}
+.gallery-item .item-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+}
+    </style>
+<div class=" collapse container py-4" id = "listado_<?= $Tabla2 ?>">
+    <h3 class="mb-4">Galería de imágenes del producto</h3>
+
+    <input type="hidden" id="product_id" value="29"> <!-- ID del producto actual -->
+
+    <!-- Zona de carga -->
+    <div class="drop-zone mb-3" id="dropZone">
+        <i class="bi bi-cloud-upload fs-1"></i>
+        <p class="mb-1">Arrastra tus imágenes aquí o haz clic para seleccionar</p>
+        <small>Puedes seleccionar varias imágenes a la vez (JPG, PNG, AVIF, WEBP)</small>
+        <input type="file" id="fileInput" name="upload_file[]" multiple accept="image/*" class="d-none">
+    </div>
+
+    <!-- Barra de progreso -->
+    <div class="progress mb-3 d-none" id="uploadProgress" style="height: 6px;">
+        <div class="progress-bar bg-success" style="width: 0%"></div>
+    </div>
+
+    <!-- Galería -->
+    <div class="row g-3" id="galleryContainer">
+        <!-- Items dinámicos -->
+    </div>
+
+</div>
+
+<!-- Modal vista previa -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Vista previa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="previewImg" src="" class="img-fluid rounded">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="loadingOverlay" class="loading-overlay d-none">
+    <div class="loading-box">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2 mb-0" id="loadingText">Procesando imágenes...</p>
+    </div>
+</div>
+
+<?php                
+
+
+/*
                 add_listado($Tabla2,'collapse');
                 add_form($Tabla2,$Idioma,'D');
                 edit_form($Tabla2,$Idioma,'D');
-            $Tabla3 = 'packing_list';
+*/
+                $Tabla3 = 'packing_list';
 
-echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
-          data-bs-toggle="collapse" 
-          data-bs-target="#listado_' . $Tabla3 . '" 
-          aria-expanded="false" 
-          aria-controls="listado_' . $Tabla3 . '"
-          onclick="toggleElementoClone(\'add_form_' . $Tabla3 . '_clone\')">';
-echo Trd(32);
-echo '</h4>';            
+                echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
+                        data-bs-toggle="collapse" 
+                        data-bs-target="#listado_' . $Tabla3 . '" 
+                        aria-expanded="false" 
+                        aria-controls="listado_' . $Tabla3 . '"
+                        onclick="toggleElementoClone(\'add_form_' . $Tabla3 . '_clone\')">';
+                echo Trd(32);
+                echo '</h4>';            
 
 ?>
         <div class="collapse container-fluid p-4 bg-white border-0 shadow-sm rounded-4 mb-4" id="add_form_<?php echo $Tabla3?>_clone" style="max-width: 100%;">
@@ -459,14 +694,14 @@ echo '</h4>';
                 add_form($Tabla3,$Idioma,'D');
                 edit_form($Tabla3,$Idioma,'D');
             $Tabla4 = 'related_products';
-echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
-          data-bs-toggle="collapse" 
-          data-bs-target="#listado_' . $Tabla4 . '" 
-          aria-expanded="false" 
-          aria-controls="listado_' . $Tabla4 . '"
-          onclick="toggleElementoClone(\'add_form_' . $Tabla4 . '_clone\')">';
-echo Trd(33);
-echo '</h4>';
+            echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
+                    data-bs-toggle="collapse" 
+                    data-bs-target="#listado_' . $Tabla4 . '" 
+                    aria-expanded="false" 
+                    aria-controls="listado_' . $Tabla4 . '"
+                    onclick="toggleElementoClone(\'add_form_' . $Tabla4 . '_clone\')">';
+            echo Trd(33);
+            echo '</h4>';
 ?>
         <div class="collapse container-fluid p-4 bg-white border-0 shadow-sm rounded-4 mb-4" id="add_form_<?php echo $Tabla4?>_clone" style="max-width: 100%;">
             <form name="add_<?php echo $Tabla4?>_clone" id="add_<?php echo $Tabla4?>_clone" class="needs-validation" novalidate>
@@ -493,14 +728,14 @@ echo '</h4>';
                 edit_form($Tabla4,$Idioma,'D');                                
             $Tabla5 = 'upselling_products';
 
-echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
-          data-bs-toggle="collapse" 
-          data-bs-target="#listado_' . $Tabla5 . '" 
-          aria-expanded="false" 
-          aria-controls="listado_' . $Tabla5 . '"
-          onclick="toggleElementoClone(\'add_form_' . $Tabla5 . '_clone\')">';
-echo Trd(34);
-echo '</h4>';            
+            echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
+                    data-bs-toggle="collapse" 
+                    data-bs-target="#listado_' . $Tabla5 . '" 
+                    aria-expanded="false" 
+                    aria-controls="listado_' . $Tabla5 . '"
+                    onclick="toggleElementoClone(\'add_form_' . $Tabla5 . '_clone\')">';
+            echo Trd(34);
+            echo '</h4>';            
 
 
 ?>
@@ -529,14 +764,14 @@ echo '</h4>';
                 edit_form($Tabla5,$Idioma,'D');
             $Tabla6 = 'relationship_products';
 
-echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
-          data-bs-toggle="collapse" 
-          data-bs-target="#listado_' . $Tabla6 . '" 
-          aria-expanded="false" 
-          aria-controls="listado_' . $Tabla6 . ' "
-          onclick="toggleElementoClone(\'add_form_' . $Tabla6 . '_clone\')">';
-echo Trd(35);
-echo '</h4>';            
+            echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
+                    data-bs-toggle="collapse" 
+                    data-bs-target="#listado_' . $Tabla6 . '" 
+                    aria-expanded="false" 
+                    aria-controls="listado_' . $Tabla6 . ' "
+                    onclick="toggleElementoClone(\'add_form_' . $Tabla6 . '_clone\')">';
+            echo Trd(35);
+            echo '</h4>';            
 
 
 ?>
@@ -565,13 +800,13 @@ echo '</h4>';
                 edit_form($Tabla6,$Idioma,'D');                
             $Tabla7 = 'cost_products';
 
-echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
-          data-bs-toggle="collapse" 
-          data-bs-target="#listado_' . $Tabla7 . '" 
-          aria-expanded="false" 
-          aria-controls="listado_' . $Tabla7 . '">';
-echo Trd(36);
-echo '</h4>';            
+                echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
+                        data-bs-toggle="collapse" 
+                        data-bs-target="#listado_' . $Tabla7 . '" 
+                        aria-expanded="false" 
+                        aria-controls="listado_' . $Tabla7 . '">';
+                echo Trd(36);
+                echo '</h4>';            
 
 
                 add_listado($Tabla7,'collapse');
@@ -579,13 +814,13 @@ echo '</h4>';
                 edit_form($Tabla7,$Idioma,'D');
             $Tabla8 = 'products_files';
 
-echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
-          data-bs-toggle="collapse" 
-          data-bs-target="#listado_' . $Tabla8 . '" 
-          aria-expanded="false" 
-          aria-controls="listado_' . $Tabla8 . '">';
-echo Trd(37);
-echo '</h4>';            
+                echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
+                        data-bs-toggle="collapse" 
+                        data-bs-target="#listado_' . $Tabla8 . '" 
+                        aria-expanded="false" 
+                        aria-controls="listado_' . $Tabla8 . '">';
+                echo Trd(37);
+                echo '</h4>';            
 
                 add_listado($Tabla8,'collapse');
                 add_form($Tabla8,$Idioma,'D');
@@ -596,7 +831,7 @@ echo '</h4>';
 
             delete_form($IdTabla);
             delete_form($Tabla);
-            delete_form($Tabla2);
+            //delete_form($Tabla2);
             delete_form($Tabla3);
             delete_form($Tabla4);
             delete_form($Tabla5);
@@ -931,6 +1166,23 @@ echo '</h4>';
     
     let IdSelected = '<?php echo $Id2;?>';
     let IdDelete = '';
+
+var tablaEstados = {};
+
+function inicializarEstadoTabla(IdTabla) {
+    if (!tablaEstados[IdTabla]) {
+        tablaEstados[IdTabla] = {
+            currentPage: 1,
+            limit: 10,
+            isLastPage: false,
+            isLoading: false,
+            // Nuevas propiedades de orden y filtros
+            sortField: '',  // Nombre de la columna en la BD
+            sortOrder: '',  // 'ASC', 'DESC' o vacío
+            columnFilters: {} // Objeto clave-valor para filtros específicos
+        };
+    }
+}
 
 
     function Cancel_add(Id){
@@ -1308,7 +1560,7 @@ $(document).ready(function() {
 
     <?php 
         if ($IdTabla =='account'){
-            echo "getRecordData(1,'".$IdTabla."');";
+            echo "getRecordData(".$_SESSION['database_id'].",'".$IdTabla."');";
         }
     
     ?>
@@ -1342,40 +1594,91 @@ function attemptLogin(username, password) {
     });
 }
 */
-function listado(IdTabla) {
+function listado(IdTabla, loadMore = false) {
+    inicializarEstadoTabla(IdTabla);
 
-    var misHeaders = {
-        'Authorization': 'Bearer ' + TOKEN
-    };
+    var estado = tablaEstados[IdTabla];
 
-    // 2. Agregamos ID2 solo si IdSelected no es null, undefined o vacío
-    if (IdSelected) {
-        misHeaders['ID2'] = IdSelected;
+    if (estado.isLoading || (loadMore && estado.isLastPage)) return;
+
+    if (!loadMore) {
+        estado.currentPage = 1;
+        estado.isLastPage = false;
+    }
+
+    estado.isLoading = true;
+    $('.loading-spinner_' + IdTabla).show(); // Mostrar spinner de carga al final
+
+    const $btnBuscar = $('#Srch_' + IdTabla);
+    if ($btnBuscar.length > 0) {
+        // Guardamos el texto original del botón por si cambia dinámicamente (Buscar / Filtrar)
+        $btnBuscar.data('original-html', $btnBuscar.html());
+        
+        // Deshabilitamos y agregamos el spinner animado de FontAwesome
+        $btnBuscar.prop('disabled', true)
+                  .html('<i class="fa-solid fa-spinner fa-spin small"></i> Cargando...');
     }    
 
+    var misHeaders = { 'Authorization': 'Bearer ' + TOKEN };
+    if (IdSelected) { misHeaders['ID2'] = IdSelected; }    
+
+    var filterParams = '';
+    for (var col in estado.columnFilters) {
+        if (estado.columnFilters[col]) {
+            filterParams += '&filter_' + col + '=' + encodeURIComponent(estado.columnFilters[col]);
+        }
+    }    
+
+var camposFiltrados = Object.keys(estado.columnFilters).join(',');
+
+var queryUrl = API_BASE_URL + IdTabla + '/' +
+    '?page=' + estado.currentPage + 
+    '&limit=' + estado.limit + 
+    '&like=' + $('#Search_' + IdTabla).val() + 
+    '&lang=<?php echo $Idioma?>' +
+    '&sort_field=' + estado.sortField + 
+    '&sort_order=' + estado.sortOrder + 
+    '&sort_fields=' + encodeURIComponent(camposFiltrados);
+    
     $.ajax({
-        url: API_BASE_URL + IdTabla+'/?page=1&limit=10&like='+$('#Search_'+IdTabla).val()+'&lang=<?php echo $Idioma?>',
+        url: queryUrl,
         type: 'GET',
-        dataType: 'json', // Indica que esperamos JSON
+        dataType: 'json',
         headers: misHeaders,
         success: function(response) {
-            renderTable(response.data,response.titulos,IdTabla,response.tipos);
-            renderPagination(response.metadata,IdTabla);            
+            renderTable(response.data, response.titulos, IdTabla, response.tipos, loadMore);
+            
+            if (response.data.length < estado.limit) {
+                estado.isLastPage = true;
+                $('#scroll-detector_' + IdTabla).hide(); // Si no hay más, destruimos el detector
+            } else {
+                estado.currentPage++;
+                $('#scroll-detector_' + IdTabla).show();
+            }
         },
         error: function(xhr, status, error) {
-            if (xhr.status === 401) {
-                console.error('Acceso denegado. Token expirado o inválido.');
-                // Aquí puedes redirigir al login o limpiar el token
-            } else {
-                console.error('Error al obtener registro:', error);
-            }
+            console.error('Error al obtener registro:', error);
+        },
+        complete: function() {
+            estado.isLoading = false;
+            $('.loading-spinner_' + IdTabla).hide(); // Ocultar spinner
+
+            if ($btnBuscar.length > 0 && $btnBuscar.data('original-html')) {
+                // Volvemos a habilitar y restauramos el icono de filtro junto al texto original
+                $btnBuscar.prop('disabled', false)
+                          .html($btnBuscar.data('original-html'));
+            }            
         }
     });
 }
 
 function getRecordData(Id,IdTabla) {
-    if (IdTabla == 'products')
+    if (IdTabla == 'products'){
         IdSelected = Id;
+        $('#product_id').val(Id)
+        loadGallery();
+    }
+        
 
     if (IdTabla == 'distance_charges')
         IdSelected = Id;    
@@ -1586,84 +1889,49 @@ function deleteRecord(Id,IdTabla) {
     });
 }
 
-// Función para renderizar la tabla
-function renderTable(data, titulos, IdTabla, tipos) {
-    // alert(IdTabla)
+function renderTable(data, titulos, IdTabla, tipos, loadMore = false) {
     const $container = $('#table-container_' + IdTabla);
     
-    if (data.length === 0) {
+    if (data.length === 0 && !loadMore) {
         $container.html('<div class="alert alert-info text-center shadow-sm my-3"><?php echo Trd(42)?></div>');
         return;
     }
     
-    // Obtener nombres de columnas (usando las claves del primer objeto)
-    const columns = Object.keys(data[0]);
-    
-    // Crear la tabla (Agregamos align-middle para centrar verticalmente todo el contenido)
-    let html = '<div class="table-responsive">'; // Envoltura responsiva para evitar desbordes en móviles
-    html += '<table class="table table-sm table-striped table-hover align-middle mb-0" style="font-size: 0.9rem;">';
-    
-    // Cabecera de la tabla
-    html += '<thead class="table-light border-bottom">';
-    html += '<tr>';
-    
+    const columns = Object.keys(data[0] || {});
     let alineaciones = [];
-    titulos.forEach(row => {
-        if (row['Titulo'] != 'Id' && row['Titulo'] != 'IId' && row['Titulo'] != 'Producto_rup' && row['Titulo'] != 'Producto_rsp') {
-            let alineacion = row['Alineacion'] || 'center';
-            // Aplicamos la misma alineación del campo al encabezado para mantener simetría
-            html += `<th style="text-align: ${alineacion};" class="text-secondary fw-semibold py-2">${row['Titulo'] || ''}</th>`;
-        }
-
-        let alineacion = row['Alineacion'] || 'center';
-        alineaciones.push(alineacion);
-    });
+    titulos.forEach(row => { alineaciones.push(row['Alineacion'] || 'center'); });
 
     let Tipos = [];
-    tipos.forEach(row => {
-        let tipo = row['TipoCampo'];
-        Tipos.push(tipo);
-    });
-    
-    if (IdTabla == 'products_images') {
-        html += `<th style="text-align: center;" class="text-secondary fw-semibold py-2">Orden</th>`;
-    }
+    tipos.forEach(row => { Tipos.push(row['TipoCampo']); });
 
-    html += `<th style="width: 100px;"></th>`; // Columna para los botones de acción fija
-    html += '</tr>';
-    html += '</thead>';
-    
-    // Cuerpo de la tabla
-    html += '<tbody>';
-
+    // Construir las filas HTML
+    let htmlRows = '';
     data.forEach(row => {
-        html += '<tr>';
+        htmlRows += '<tr>';
         let Id = '';
         let idx = 0;
 
         columns.forEach(col => {                
             if (Tipos[idx] == 'checkbox') {
-                // Diseño elegante usando Badges de Bootstrap en lugar de emojis planos
                 if (row[col] == 1) {
-                    html += `<td style="text-align: ${alineaciones[idx]}"><span class="badge rounded-pill bg-success-subtle text-success px-2 py-1"><i class="fa-solid fa-check me-1"></i>Activo</span></td>`;
+                    htmlRows += `<td style="text-align: ${alineaciones[idx]}"><span class="badge rounded-pill bg-success-subtle text-success px-2 py-1"><i class="fa-solid fa-check me-1"></i>Activo</span></td>`;
                 } else {
-                    html += `<td style="text-align: ${alineaciones[idx]}"><span class="badge rounded-pill bg-danger-subtle text-danger px-2 py-1"><i class="fa-solid fa-xmark me-1"></i>Inactivo</span></td>`;
+                    htmlRows += `<td style="text-align: ${alineaciones[idx]}"><span class="badge rounded-pill bg-danger-subtle text-danger px-2 py-1"><i class="fa-solid fa-xmark me-1"></i>Inactivo</span></td>`;
                 }
             }
             else if (Tipos[idx] == 'file') {
-                // Enlaces de descarga más visuales con iconos integrados
                 let fileName = row[col] || '';
-                html += `<td style="text-align: ${alineaciones[idx]}">`;
+                htmlRows += `<td style="text-align: ${alineaciones[idx]}">`;
                 if(fileName !== '') {
-                    html += `<a href="ajax/tmp/${fileName}" target="_blank" rel="noopener noreferrer" class="text-decoration-none fw-medium text-primary"><i class="fa-solid fa-paperclip me-1 small"></i>${fileName}</a>`;
+                    htmlRows += `<a href="ajax/tmp/${fileName}" target="_blank" rel="noopener noreferrer" class="text-decoration-none fw-medium text-primary"><i class="fa-solid fa-paperclip me-1 small"></i>${fileName}</a>`;
                 } else {
-                    html += `<span class="text-muted small">-</span>`;
+                    htmlRows += `<span class="text-muted small">-</span>`;
                 }
-                html += `</td>`;
+                htmlRows += `</td>`;
             }                
             else {
                 if (col != 'Id' && col != 'IId' && col != 'Producto_rup' && col != 'Producto_rsp' && col != 'id_vehicle') {
-                    html += `<td style="text-align: ${alineaciones[idx]}" class="text-dark">${row[col] || ''}</td>`;
+                    htmlRows += `<td style="text-align: ${alineaciones[idx]}" class="text-dark">${row[col] || ''}</td>`;
                 }
             }
 
@@ -1673,53 +1941,98 @@ function renderTable(data, titulos, IdTabla, tipos) {
             idx = idx + 1;
         });
 
-        // Botones de navegación de orden para imágenes
         if (IdTabla == 'products_images') {
-            html += `<td style="text-align: center">
+            htmlRows += `<td style="text-align: center">
                 <div class="btn-group btn-group-sm" role="group">
-                    <button class="btn btn-light border text-secondary" title="Inicio" onclick="orden('I',${IdSelected},${Id})">
-                        <i class="fa-solid fa-angles-left"></i>
-                    </button>
-                    <button class="btn btn-light border text-secondary" title="Anterior" onclick="orden('A',${IdSelected},${Id})">
-                        <i class="fa-solid fa-angle-left"></i>
-                    </button>
-                    <button class="btn btn-light border text-secondary" title="Siguiente" onclick="orden('S',${IdSelected},${Id})">
-                        <i class="fa-solid fa-angle-right"></i>
-                    </button>
-                    <button class="btn btn-light border text-secondary" title="Último" onclick="orden('U',${IdSelected},${Id})">
-                        <i class="fa-solid fa-angles-right"></i>
-                    </button>
+                    <button class="btn btn-light border text-secondary" onclick="orden('I',${IdSelected},${Id})"><i class="fa-solid fa-angles-left"></i></button>
+                    <button class="btn btn-light border text-secondary" onclick="orden('A',${IdSelected},${Id})"><i class="fa-solid fa-angle-left"></i></button>
+                    <button class="btn btn-light border text-secondary" onclick="orden('S',${IdSelected},${Id})"><i class="fa-solid fa-angle-right"></i></button>
+                    <button class="btn btn-light border text-secondary" onclick="orden('U',${IdSelected},${Id})"><i class="fa-solid fa-angles-right"></i></button>
                 </div>
             </td>`;                
         }
             
-        // Botones de acciones generales (Editar / Eliminar) envueltos en grupos compactos
         if (IdTabla == 'detail_price_lists') {
-            html += `<td style="text-align: center">
-                <button type="button" class="btn btn-outline-danger btn-sm rounded-3 shadow-none px-2" title="Eliminar" onclick="questionDelete('${Id}','${IdTabla}')" data-bs-toggle="modal" data-bs-target="#delete_${IdTabla}">
-                    <i class="fas fa-trash-can"></i>
-                </button>
+            htmlRows += `<td style="text-align: center">
+                <button type="button" class="btn btn-outline-danger btn-sm rounded-3" onclick="questionDelete('${Id}','${IdTabla}')" data-bs-toggle="modal" data-bs-target="#delete_${IdTabla}"><i class="fas fa-trash-can"></i></button>
             </td>`;            
         } else {
-            html += `<td style="text-align: center">
+            htmlRows += `<td style="text-align: center">
                 <div class="btn-group btn-group-sm rounded-3" role="group">
-                    <button type="button" class="btn btn-outline-primary shadow-none px-2" title="Editar" onclick="getRecordData('${Id}','${IdTabla}')">
-                        <i class="fas fa-pen"></i>
-                    </button>
-                    <button type="button" class="btn btn-outline-danger shadow-none px-2" title="Eliminar" onclick="questionDelete('${Id}','${IdTabla}')" data-bs-toggle="modal" data-bs-target="#delete_${IdTabla}">
-                        <i class="fas fa-trash-can"></i>
-                    </button>
+                    <button type="button" class="btn btn-outline-primary" onclick="getRecordData('${Id}','${IdTabla}')"><i class="fas fa-pen"></i></button>
+                    <button type="button" class="btn btn-outline-danger" onclick="questionDelete('${Id}','${IdTabla}')" data-bs-toggle="modal" data-bs-target="#delete_${IdTabla}"><i class="fas fa-trash-can"></i></button>
                 </div>
             </td>`;
         }
-        html += '</tr>';
+        htmlRows += '</tr>';
     });
 
-    html += '</tbody>';
-    html += '</table>';
-    html += '</div>'; // Cierra table-responsive
-    
-    $container.html(html);
+    // Inserción en el DOM
+    if (loadMore && $container.find('table').length > 0) {
+        $container.find('tbody').append(htmlRows);
+    } else {
+
+
+// ... (dentro de renderTable, en la sección de carga inicial)
+let htmlStructure = '<div class="table-responsive">';
+htmlStructure += '<table class="table table-sm table-striped table-hover align-middle mb-0" style="font-size: 0.9rem;">';
+htmlStructure += '<thead class="table-light border-bottom"><tr>';
+
+var estado = tablaEstados[IdTabla];
+
+titulos.forEach(row => {
+    if (row['Titulo'] != 'Id' && row['Titulo'] != 'IId' && row['Titulo'] != 'Producto_rup' && row['Titulo'] != 'Producto_rsp') {
+        let alineacion = row['Alineacion'] || 'center';
+        let campoBD = row['Campo'] || row['Titulo']; 
+        
+        // 1. Icono de Ordenamiento (Un clic)
+        let orderIcon = '<i class="fa-solid fa-sort text-muted ms-1 small opacity-50"></i>';
+        if (estado.sortField === campoBD) {
+            if (estado.sortOrder === 'ASC') {
+                orderIcon = '<i class="fa-solid fa-sort-up text-primary ms-1 small"></i>';
+            } else if (estado.sortOrder === 'DESC') {
+                orderIcon = '<i class="fa-solid fa-sort-down text-primary ms-1 small"></i>';
+            }
+        }
+
+        // 2. Icono de Filtrado Activado (Doble clic)
+        // Si el campo existe en nuestro objeto de filtros, agregamos un embudo azul
+        let filterIcon = '';
+        if (estado.columnFilters[campoBD]) {
+            filterIcon = ' <i class="fa-solid fa-filter text-info ms-1 small" title="Filtrando por este campo"></i>';
+        }
+
+        htmlStructure += `
+            <th style="text-align: ${alineacion}; cursor: pointer; user-select: none;" 
+                class="text-secondary fw-semibold py-2 th-sortable" 
+                data-tabla="${IdTabla}" 
+                data-campo="${campoBD}"
+                title="Un clic: Ordenar | Doble clic: Activar/Quitar campo de filtro">
+                ${row['Titulo'] || ''}${orderIcon}${filterIcon}
+            </th>`;
+    }
+});
+
+if (IdTabla == 'products_images') {
+    htmlStructure += `<th style="text-align: center;" class="text-secondary fw-semibold py-2">Orden</th>`;
+}
+htmlStructure += `<th style="width: 100px;"></th></tr></thead>`;
+htmlStructure += '<tbody>' + htmlRows + '</tbody>';
+        htmlStructure += '</table></div>';
+        
+        // ELEMENTO DETECTOR: Un div centrado con un spinner sutil que se muestra solo al cargar
+        htmlStructure += `
+            <div id="scroll-detector_${IdTabla}" class="text-center my-3 text-muted" style="height: 20px;">
+                <span class="loading-spinner_${IdTabla}" style="display:none;">
+                    <i class="fa-solid fa-spinner fa-spin me-2"></i> Cargando más registros...
+                </span>
+            </div>`;
+
+        $container.html(htmlStructure);
+        
+        // ACTIVAR EL OBSERVADOR DE SCROLL
+        activarScrollInfinito(IdTabla);
+    }
 }
 
         // Función para formatear nombres de columnas
@@ -1930,16 +2243,33 @@ function renderTable(data, titulos, IdTabla, tipos) {
             }
         });
         //CAPTURAR DECIMALES
-        $(".decimals").keypress(function (e) {
-            if(e.which == 46){
-                if($(this).val().indexOf('.') != -1) {
-                    return false;
-                }
-            }    
-            if (e.which != 8 && e.which != 0 && e.which != 46 && (e.which < 48 || e.which > 57)) {
-                return false;
-            }
-        });          
+// CAPTURAR DECIMALES Y NEGATIVOS
+$(".decimals").keypress(function (e) {
+    var caracter = e.which;
+    var valorActual = $(this).val();
+
+    // 1. Permitir el signo menos (-) solo si está al principio
+    if (caracter == 45) { // 45 es el código ASCII del menos '-'
+        // Si ya hay un signo menos o el cursor no está al inicio, lo bloquea
+        if (valorActual.indexOf('-') != -1 || this.selectionStart !== 0) {
+            return false;
+        }
+        return true; // Es válido si está al inicio
+    }
+
+    // 2. Permitir el punto (.) solo una vez
+    if (caracter == 46) { // 46 es el código ASCII del punto '.'
+        if (valorActual.indexOf('.') != -1) {
+            return false;
+        }
+        return true;
+    }    
+
+    // 3. Permitir teclas de control (Backspace = 8, Enter/Flechas = 0) y números (48 al 57)
+    if (caracter != 8 && caracter != 0 && (caracter < 48 || caracter > 57)) {
+        return false;
+    }
+});     
 
 
         //PONER FORMATO DE MONEDA A CAMPOS CURRENCY
@@ -2061,10 +2391,10 @@ function renderTable(data, titulos, IdTabla, tipos) {
 
 
         function CargaImagen(Id,div){
-            //alert(Id)
+            alert(div)
             //alert("ajax/tmp/"+$('#file_edit_'+Id+"_1").val())
             img = $('#file_edit_'+Id+"_1").val();
-            url = `${CFPUBLICURL}/${ID_CLIENTE}/<?= $IdTabla ?>/originals/${img || ''}`;
+            url = `${CFPUBLICURL}/${ID_CLIENTE}/<?php if ($IdTabla=="products"){ echo "products_images"; } ?>/originals/${img || ''}`;
             $("#"+div).attr("src",url);
             $("#"+div).attr("width","120px");
         }
@@ -2787,7 +3117,350 @@ function toggleElementoClone(idElemento) {
     }, 10);
 }
 
+// Objeto global para almacenar los observadores activos de cada tabla
+var observadoresTablas = {};
+
+function activarScrollInfinito(IdTabla) {
+    const detector = document.getElementById('scroll-detector_' + IdTabla);
+    if (!detector) return;
+
+    // Si ya existía un observador para esta tabla, lo desconectamos para evitar duplicados
+    if (observadoresTablas[IdTabla]) {
+        observadoresTablas[IdTabla].disconnect();
+    }
+
+    // Configuración del Intersection Observer
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            // entry.isIntersecting significa que el elemento ya es visible en la pantalla
+            if (entry.isIntersecting) {
+                listado(IdTabla, true); // Gatilla de forma automática el "Cargar más"
+            }
+        });
+    }, {
+        root: null, // Usa el viewport del navegador
+        rootMargin: '100px', // Gatilla la carga 100px antes de llegar al fondo para que sea fluido
+        threshold: 0
+    });
+
+    observer.observe(detector);
+    observadoresTablas[IdTabla] = observer; // Guardamos referencia
+}
+
+$(document).ready(function() {
+    let clickTimer = null;
+    const clickDelay = 250; // Tiempo límite para detectar el doble clic (ms)
+
+    // Unificamos todo en un solo escuchador de CLICK
+    $(document).on('click', '.th-sortable', function(e) {
+        let $th = $(this);
+        let IdTabla = $th.data('tabla');
+        let campo = $th.data('campo');
+        let estado = tablaEstados[IdTabla];
+
+        // e.detail nos dice cuántos clics consecutivos se han hecho en este elemento
+        if (e.detail === 1) {
+            // --- PRIMER CLICK (Posible Ordenamiento) ---
+            // Creamos el temporizador esperando a ver si viene otro clic en camino
+            clickTimer = setTimeout(function() {
+                if (estado.sortField === campo) {
+                    if (estado.sortOrder === 'ASC') {
+                        estado.sortOrder = 'DESC';
+                    } else if (estado.sortOrder === 'DESC') {
+                        estado.sortField = '';
+                        estado.sortOrder = '';
+                    }
+                } else {
+                    estado.sortField = campo;
+                    estado.sortOrder = 'ASC';
+                }
+                
+                // Ejecutamos el listado solo con el cambio de orden
+                listado(IdTabla, false);
+            }, clickDelay);
+
+        } else if (e.detail === 2) {
+            // --- SEGUNDO CLICK (¡Es un Doble Clic confirmado!) ---
+            // Cancelamos inmediatamente el temporizador del primer clic para que NO ordene
+            clearTimeout(clickTimer);
+
+            if (!estado.columnFilters) {
+                estado.columnFilters = {};
+            }
+
+            // Alternamos (Toggle) el filtro de la columna
+            if (estado.columnFilters[campo]) {
+                delete estado.columnFilters[campo];
+            } else {
+                estado.columnFilters[campo] = true; 
+            }
+
+            // Ejecutamos el listado con el filtro actualizado (manteniendo el orden intacto)
+            listado(IdTabla, false);
+        }
+    });
+});
+
 </script>
+
+
+<script>
+
+    const productId = $('#product_id').val();
+
+    // ===== Cargar galería existente =====
+    function loadGallery() {
+$.ajax({
+    url: 'api/image_actions',
+    type: 'POST',
+    headers: { 'Authorization': 'Bearer ' + TOKEN },
+    data: { action: 'list', product_id: productId },
+    dataType: 'json',
+    success: function (res) {
+        if (res.success) {
+            $('#galleryContainer').empty();
+            res.data.forEach(item => {
+                addItemToDOM(item.IId, item.Image, item.Orden);
+            });
+        }
+    }
+});
+    }
+
+    function addItemToDOM(id, image, orden) {
+        const thumb = "<?= CFPUBLICURL ?>/"+ID_CLIENTE+"/products_images/thumbnails/" + image;
+        const full  = "<?= CFPUBLICURL ?>/"+ID_CLIENTE+"/products_images/originals/" + image;
+
+    const html = `
+        <div class="col-6 col-md-3 col-lg-2 gallery-item" data-id="${id}">
+            <span class="order-badge">${orden}</span>
+            <img src="${thumb}" data-full="${full}" class="preview-img">
+            <button class="btn btn-danger btn-sm btn-delete" title="Eliminar">
+                <i class="bi bi-trash"></i>
+            </button>
+            <div class="order-controls">
+                <button class="btn btn-light btn-sm btn-move-up" title="Subir">
+                    <i class="bi bi-arrow-left"></i>
+                </button>
+                <button class="btn btn-light btn-sm btn-move-down" title="Bajar">
+                    <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+        </div>`;
+    $('#galleryContainer').append(html);
+    }
+
+    
+
+    // ===== Drag & drop zona de carga =====
+    const dropZone  = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', e => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        handleFiles(e.dataTransfer.files);
+    });
+
+    fileInput.addEventListener('change', () => {
+        handleFiles(fileInput.files);
+        fileInput.value = '';
+    });
+
+function handleFiles(files) {
+    if (!files.length) return;
+
+    const formData = new FormData();
+    formData.append('product_id', productId);
+
+    let validFiles = 0;
+    for (let i = 0; i < files.length; i++) {
+        if (!files[i].type.startsWith('image/')) continue;
+        formData.append('upload_file[]', files[i]);
+        validFiles++;
+    }
+
+    if (validFiles === 0) {
+        alert('Selecciona archivos de imagen válidos');
+        return;
+    }
+
+    // Mostrar placeholders "uploading" en la galería
+    const placeholders = [];
+    for (let i = 0; i < validFiles; i++) {
+        const $ph = $(`
+            <div class="col-6 col-md-3 col-lg-2 gallery-item uploading">
+                <span class="order-badge">...</span>
+                <img src="https://via.placeholder.com/150x150?text=...">
+                <div class="spinner-border spinner-border-sm text-light item-spinner" role="status"></div>
+            </div>
+        `);
+        $('#galleryContainer').append($ph);
+        placeholders.push($ph);
+    }
+
+    // Overlay general + barra de progreso de subida
+    $('#loadingText').text('Subiendo imágenes...');
+    $('#loadingOverlay').removeClass('d-none');
+
+    const $progress = $('#uploadProgress');
+    const $bar = $progress.find('.progress-bar');
+    $progress.removeClass('d-none');
+    $bar.css('width', '0%');
+
+    $.ajax({
+        url: 'ajax/uploads.php',
+        type: 'POST',
+        data: formData,
+        contentType: false,
+        processData: false,
+        xhr: function () {
+            const xhr = new window.XMLHttpRequest();
+            xhr.upload.addEventListener('progress', function (e) {
+                if (e.lengthComputable) {
+                    const percent = (e.loaded / e.total) * 100;
+                    $bar.css('width', percent + '%');
+
+                    // Cuando termina la subida (100%), cambia el texto a "procesando"
+                    if (percent >= 100) {
+                        $('#loadingText').text('Procesando imágenes (generando miniaturas)...');
+                    }
+                }
+            });
+            return xhr;
+        },
+        success: function (res) {
+            $progress.addClass('d-none');
+            $('#loadingOverlay').addClass('d-none');
+
+            // Quitar placeholders
+            placeholders.forEach($ph => $ph.remove());
+
+            if (res.success) {
+                res.files.forEach(f => {
+                    if (f.success) {
+                        addItemToDOM(f.id, f.image, f.orden);
+                    } else {
+                        alert(f.message);
+                    }
+                });
+                updateOrderBadges();
+            } else {
+                alert(res.message || 'Error al subir archivos');
+            }
+        },
+        error: function () {
+            $progress.addClass('d-none');
+            $('#loadingOverlay').addClass('d-none');
+            placeholders.forEach($ph => $ph.remove());
+            alert('Error en la subida');
+        }
+    });
+}
+
+    // ===== Vista previa =====
+    $(document).on('click', '.preview-img', function () {
+        $('#previewImg').attr('src', $(this).data('full'));
+        $('#previewModal').modal('show');
+    });
+
+$(document).on('click', '.btn-delete', function () {
+    const $item = $(this).closest('.gallery-item');
+    const id = $item.data('id');
+
+    if (!confirm('¿Eliminar esta imagen?')) return;
+
+    $item.addClass('uploading');
+    $item.append('<div class="spinner-border spinner-border-sm text-danger item-spinner" role="status"></div>');
+
+$.ajax({
+    url: 'api/image_actions',
+    type: 'POST',
+    headers: { 'Authorization': 'Bearer ' + TOKEN },
+    data: { action: 'delete', id: id },
+    dataType: 'json',
+    success: function (res) {
+        if (res.success) {
+            $item.fadeOut(200, function () {
+                $(this).remove();
+                updateOrderBadges();
+                saveOrder();
+            });
+        } else {
+            $item.removeClass('uploading');
+            $item.find('.item-spinner').remove();
+            alert(res.message || 'Error al eliminar');
+        }
+    }
+});
+
+});
+
+// ===== Mover izquierda (subir orden) =====
+$(document).on('click', '.btn-move-up', function () {
+    const $item = $(this).closest('.gallery-item');
+    const $prev = $item.prev('.gallery-item');
+
+    if ($prev.length) {
+        $item.insertBefore($prev);
+        updateOrderBadges();
+        saveOrder();
+    }
+});
+
+// ===== Mover derecha (bajar orden) =====
+$(document).on('click', '.btn-move-down', function () {
+    const $item = $(this).closest('.gallery-item');
+    const $next = $item.next('.gallery-item');
+
+    if ($next.length) {
+        $item.insertAfter($next);
+        updateOrderBadges();
+        saveOrder();
+    }
+});
+
+    function updateOrderBadges() {
+        $('#galleryContainer .gallery-item').each(function (index) {
+            $(this).find('.order-badge').text(index + 1);
+        });
+    }
+
+    function saveOrder() {
+        const order = $('#galleryContainer .gallery-item').map(function () {
+            return $(this).data('id');
+        }).get();
+
+$.ajax({
+    url: 'api/image_actions',
+    type: 'POST',
+    headers: { 'Authorization': 'Bearer ' + TOKEN },
+    data: {
+        action: 'reorder',
+        order: JSON.stringify(order)
+    },
+    dataType: 'json',
+    success: function (res) {
+        if (!res.success) {
+            console.error('Error al guardar orden', res.message);
+        }
+    }
+});
+    }
+
+</script>    
+
 
 </body>
 </html>

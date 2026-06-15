@@ -133,7 +133,7 @@ function armar_formulario_edit($tabla,$etiqueta,$idioma){
                             break;
                         case 'decimal';
                             echo "<label for='$Campo' class='form-label fw-semibold text-dark small mb-1'>$Titulo</label>";
-                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' decimals w-100" type="number" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.' >';
+                            echo '<input value="'.$ValorCampo.'" name="'.$Campo.'" id="'.$Campo.'" class="'.$form_control.' decimals w-100" type="text" style="text-align: '.$Alineacion.';" '.$Requerido.'  minlength="'.$LargoMin.'" maxlength="'.$LargoMax.'" placeholder="'.$PlaceHolder.'" '.$Patron.' '.$SoloLectura.' >';
                             echo '<div class="invalid-feedback">'.$Validacion.'</div>';
                             break;
                         case 'currency';
@@ -240,7 +240,7 @@ function armar_formulario_edit($tabla,$etiqueta,$idioma){
                                 echo '<div class="form-text small text-muted mt-1">'.$Regla.'</div>';
 
                             echo '<div class="mt-3 text-center">';
-                            echo "<img src='' id='gallery_file2_$Campo' name ='gallery_file2_$Campo' class='img-thumbnail img-fluid style-preview mb-2' style='max-height: 150px; display: none;'>";
+                            echo "<img src='' id='gallery_file2_$Campo' name ='gallery_file2_$Campo' class='img-thumbnail img-fluid style-preview mb-2' style='max-height: 150px; '>";
                             echo "<div id='gallery_file_".$Campo."' class='row g-2'>";
                             echo "</div>";
                             echo "</div>";                    

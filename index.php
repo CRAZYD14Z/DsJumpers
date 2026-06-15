@@ -30,6 +30,7 @@
         <div id="alert-container"></div>
 
         <form id="login-form">
+            <input type="hidden" name="company" id = "company"  value = "<?= $_GET['company'] ?>">
             <div class="mb-3">
                 <label for="usuario" class="form-label"><?php echo $texts['usuario']; ?></label>
                 <input type="text" id="usuario" name="usuario" class="form-control" placeholder="<?php echo $texts['placeholder_user']; ?>" required>
@@ -57,7 +58,7 @@ $(document).ready(function() {
         const langSeleccionado = $(this).val();
 
         $.ajax({
-            url: 'cambiar_idioma.php',
+            url: '../cambiar_idioma.php',
             type: 'POST',
             data: { lang: langSeleccionado },
             dataType: 'json',
@@ -77,14 +78,14 @@ $(document).ready(function() {
         const formData = $(this).serialize();
 
         $.ajax({
-            url: 'login.php',
+            url: '../login.php',
             type: 'POST',
             data: formData,
             dataType: 'json',
             success: function(response) {
                 if (response.status === 'success') {
                     localStorage.setItem('apiToken', response.jwtToken);
-                    window.location.href = 'home.php';
+                    window.location.href = '../home.php';
                 } else {
                     $('#alert-container').html(`
                         <div class="alert alert-danger py-2">${response.message}</div>

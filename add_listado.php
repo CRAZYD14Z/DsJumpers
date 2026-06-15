@@ -11,8 +11,8 @@ function add_listado($IdTabla,$collapse = ''){
                     <span class="input-group-text bg-light border-end-0 text-secondary border rounded-start-3 px-3">
                         <i class="fa-solid fa-magnifying-glass"></i>
                     </span>
-                    <input class="form-control form-control-sm bg-light border-start-0 px-2 py-2 rounded-end-3 shadow-none text-dark fw-medium" type="search" placeholder="<?php echo Trd(25)?>" id="Search_<?php echo $IdTabla;?>" name="Search_<?php echo $IdTabla;?>" aria-label="Search">
-                    <button class="btn btn-primary px-4 py-2 fw-semibold rounded-3 ms-2 shadow-sm d-flex align-items-center gap-2" type="button" onclick="listado('<?php echo $IdTabla;?>');">
+                    <input class="form-control form-control-sm bg-light border-start-0 px-2 py-2 rounded-end-3 shadow-none text-dark fw-medium" type="search" placeholder="<?php echo Trd(25)?>" id="Search_<?php echo $IdTabla;?>" name="Search_<?php echo $IdTabla;?>" aria-label="Search" onchange="listado('<?php echo $IdTabla;?>')" >
+                    <button class="btn btn-primary px-4 py-2 fw-semibold rounded-3 ms-2 shadow-sm d-flex align-items-center gap-2" type="button" id="Srch_<?php echo $IdTabla;?>" onclick="listado('<?php echo $IdTabla;?>');">
                         <i class="fa-solid fa-filter small"></i> <?php echo Trd(25) ? 'Buscar' : 'Filtrar'; ?>
                     </button>
                 </div>
