@@ -1845,8 +1845,18 @@ function getRecordData(Id,IdTabla) {
             ?>
         },
         error: function(xhr, status, error) {
-            if (IdTabla == 'products_item_price')
-                ejecutarFuncion1(); 
+            
+            if (IdTabla == 'products_item_price'){
+                //ejecutarFuncion1(); 
+                $('#edit_contenedor-funciones').empty();
+                configTotal = [];
+                ejecutarFuncion1();
+                if (myChart) {myChart.destroy()};
+                $('#edit_ItemPrice').closest('form')[0].reset();
+                $('#edit_producto_origen_pl').closest('form')[0].reset();
+                $('#edit_new').val(2);
+                $('#edit_price_name').val($('#edit_Name').val());
+            }
             if (xhr.status === 401) {
                 console.error('Acceso denegado. Token expirado o inválido.');
                 // Aquí puedes redirigir al login o limpiar el token
