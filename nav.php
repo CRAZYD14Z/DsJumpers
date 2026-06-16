@@ -86,34 +86,52 @@
         <li><a class="dropdown-item" href="crud.php?Id=vehicles"><?php echo ($_SESSION['Idioma'] == 'en') ? "Vehicles" : "Vehículos"; ?></a></li>
         <li><a class="dropdown-item" href="crud.php?Id=distance_charges"><?php echo ($_SESSION['Idioma'] == 'en') ? "Distance Charges" : "Cargos Distancia"; ?></a></li>
         
-        <li><hr class="dropdown-divider"></li>
-        
-        <li><a class="dropdown-item text-danger" href="#" id="logout-link">
-            <i class="fas fa-sign-out-alt me-2"></i><?php echo ($_SESSION['Idioma'] == 'en') ? "Sign Out" : "Salir"; ?>
-        </a></li>
     </ul>
 </li>
             </ul>
+<!-- BUSCADOR, IDIOMA Y USUARIO A LA DERECHA -->
+<div class="d-flex align-items-center gap-2">
+    <!-- Buscador -->
+    <form class="me-2" role="search">
+        <div class="input-group input-group-sm">
+            <input class="form-control" type="search" id="search_text" placeholder="<?php echo ($_SESSION['Idioma']== 'en') ? "Search..." : "Buscar..."; ?>">
+            <button class="btn btn-outline-light" id="SearchButton" type="button"><i class="fas fa-search"></i></button>
+        </div>
+    </form>
 
-            <!-- BUSCADOR E IDIOMA A LA DERECHA -->
-            <div class="d-flex align-items-center">
-                <form class="me-3" role="search">
-                    <div class="input-group input-group-sm">
-                        <input class="form-control" type="search" id="search_text" placeholder="<?php echo ($_SESSION['Idioma']== 'en') ? "Search..." : "Buscar..."; ?>">
-                        <button class="btn btn-outline-light" id="SearchButton" type="button"><i class="fas fa-search"></i></button>
-                    </div>
-                </form>
+    <!-- Idioma -->
+    <div class="dropdown me-2">
+        <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            <i class="fas fa-globe"></i> <?php echo strtoupper($_SESSION['Idioma'])?>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item lang-option" href="#" data-lang="es">Español</a></li>
+            <li><a class="dropdown-item lang-option" href="#" data-lang="en">English</a></li>
+        </ul>
+    </div>
 
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-globe"></i> <?php echo strtoupper($_SESSION['Idioma'])?>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item lang-option" href="#" data-lang="es">Español</a></li>
-                        <li><a class="dropdown-item lang-option" href="#" data-lang="en">English</a></li>
-                    </ul>
+    <!-- MENÚ DEL USUARIO LOGUEADO -->
+    <div class="dropdown">
+        <button class="btn btn-sm btn-outline-light dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
+            <i class="fas fa-user-circle me-2 fs-5"></i>
+            <span><?php echo ($_SESSION['Idioma']== 'en') ? "User" : "Usuario"; ?></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow">
+            <li>
+                <div class="dropdown-header">
+                    <strong><?php echo $_SESSION['role_id'] ?? 'Rol'; ?></strong>
                 </div>
-            </div>
+            </li>
+            <li><a class="dropdown-item" href="#"><i class="fas fa-user-cog me-2 text-muted"></i> <?php echo $_SESSION['user'] ?? 'Usuario'; ?></a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item text-danger" href="#" id="logout-link">
+                    <i class="fas fa-sign-out-alt me-2"></i><?php echo ($_SESSION['Idioma'] == 'en') ? "Sign Out" : "Salir"; ?>
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
         </div>
     </div>
 </nav>

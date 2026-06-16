@@ -4,6 +4,56 @@
     include_once 'config/config.php';     
     include_once 'config/database.php'; 
     require 'idioma.php'; 
+    $company = $_GET['company'] ;
+
+    $database = new DatabaseLogin();
+    $db = $database->getConnection();
+
+    $stmt = $db->prepare("SELECT Id, nombre_db, estatus, fecha_termino FROM data_bases WHERE company = ?");
+    $stmt->execute([$company]);
+    $SDB = $stmt->fetch(PDO::FETCH_ASSOC); 
+    if ($SDB){
+
+            $loginUrl = URL_BASE."/api/account_login";            
+
+            $data = [
+                'data_base'         => $SDB['nombre_db']
+            ];
+
+            $payload = json_encode($data);
+            $ch = curl_init($loginUrl);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Devuelve la respuesta como string
+            curl_setopt($ch, CURLOPT_POST, true);           // Define el método POST
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $payload); // Adjunta los datos JSON
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($payload)
+            ]);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);            
+
+
+            if (curl_errno($ch)) {
+                echo 'Error en cURL: ' . curl_error($ch);
+            } else {
+                if ($httpCode === 200) {
+//                    die ($response);
+                    $result = json_decode($response, true);
+                    $WebSite = $result['WebSite'];
+                    $Logo = $result['Logo'];                    
+                } else {
+                    $errorResponse = json_decode($response, true);
+                    $errorMessage = $errorResponse['message'] ?? 'Error desconocido.';
+                    echo json_encode(['status' => 'error', 'message' => "Fallo el inicio de sesión: " . $errorMessage]);
+                    die();
+                }
+            }
+
+            curl_close($ch);             
+
+    }
+
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $lang; ?>">
@@ -26,6 +76,11 @@
         </div>
 
         <h3 class="card-title text-center mb-4"><?php echo $texts['titulo']; ?></h3>
+
+        <!-- LOGO DE LA EMPRESA AÑADIDO AQUÍ -->
+        <div class="text-center mb-4">
+            <img src="<?= $Logo ?>" alt="Logo Empresa" class="img-fluid" style="max-height: 100px;">
+        </div>
 
         <div id="alert-container"></div>
 

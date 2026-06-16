@@ -106,6 +106,33 @@ if ($resource === 'login' && $method === 'POST') {
     exit();
 } 
 
+if ($resource === 'account_login' && $method === 'POST') {
+    //handle_login_request( $data); // Llama a la función de login en Handlers.php
+
+    define('DB_NAME', $data->data_base);  
+
+    $database = new Database();
+    $db = $database->getConnection();    
+
+    $stmt = $db->prepare("SELECT * FROM account LIMIT 1");
+    $stmt->execute();
+    $account = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($account ) {
+            http_response_code(200);
+            echo json_encode(array(
+                
+                "WebSite" => $account['WebSite'],
+                "Logo" => $account['Logo']
+            ));    
+    }  
+    else{
+        http_response_code(401);
+        echo json_encode(array("message" => "Credenciales inválidas."));
+    }  
+    exit();
+} 
+
 if ($resource === 'user_login' && $method === 'POST') {
     //handle_login_request( $data); // Llama a la función de login en Handlers.php
 

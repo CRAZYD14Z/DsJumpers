@@ -43,9 +43,6 @@ $db = $database->getConnection();
                 'id_cliente'        => $SDB['Id']
             ];
 
-            //echo $loginUrl;
-            //print_r($data);
-
             $payload = json_encode($data);
             $ch = curl_init($loginUrl);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Devuelve la respuesta como string
