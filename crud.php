@@ -605,7 +605,7 @@ div[id^="dropzone_"]:hover {
 <div class=" collapse container py-4" id = "listado_<?= $Tabla2 ?>">
     <h3 class="mb-4">Galería de imágenes del producto</h3>
 
-    <input type="hidden" id="product_id" value="29"> <!-- ID del producto actual -->
+    <input type="hidden" id="product_id" > <!-- ID del producto actual -->
 
     <!-- Zona de carga -->
     <div class="drop-zone mb-3" id="dropZone">
@@ -1675,6 +1675,7 @@ var queryUrl = API_BASE_URL + IdTabla + '/' +
 function getRecordData(Id,IdTabla) {
     if (IdTabla == 'products'){
         IdSelected = Id;
+        //alert(Id)
         $('#product_id').val(Id)
         loadGallery();
     }
@@ -3124,27 +3125,50 @@ function activarScrollInfinito(IdTabla) {
     const detector = document.getElementById('scroll-detector_' + IdTabla);
     if (!detector) return;
 
-    // Si ya existía un observador para esta tabla, lo desconectamos para evitar duplicados
     if (observadoresTablas[IdTabla]) {
         observadoresTablas[IdTabla].disconnect();
     }
 
-    // Configuración del Intersection Observer
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-            // entry.isIntersecting significa que el elemento ya es visible en la pantalla
             if (entry.isIntersecting) {
-                listado(IdTabla, true); // Gatilla de forma automática el "Cargar más"
+                // 1. Ejecutamos la carga de datos
+                listado(IdTabla, true); 
+                
+                /* 2. TRUCO: Si la pantalla es gigante, el detector podría seguir visible.
+                     Esperamos un microsegundo a que el DOM se actualice con las nuevas filas 
+                     y revisamos si el detector sigue cruzándose en pantalla.
+                */
+                setTimeout(() => {
+                    // entry.target es nuestro detector. 
+                    // Usamos boudingClientRect para ver si sigue dentro del alto de la pantalla
+                    const rect = entry.target.getBoundingClientRect();
+                    const visibleEnPantalla = rect.top < window.innerHeight;
+
+                    if (visibleEnPantalla) {
+                        // Si sigue visible, forzamos otra carga recursiva hasta llenar el monitor
+                        listado(IdTabla, true);
+                    }
+                }, 100); // Un pequeño delay para dar tiempo al render del navegador
             }
         });
     }, {
-        root: null, // Usa el viewport del navegador
-        rootMargin: '100px', // Gatilla la carga 100px antes de llegar al fondo para que sea fluido
+        root: null,
+        rootMargin: '50px', 
         threshold: 0
     });
 
     observer.observe(detector);
-    observadoresTablas[IdTabla] = observer; // Guardamos referencia
+    observadoresTablas[IdTabla] = observer;
+
+// --- EL PARCHE PARA PANTALLAS GRANDES ---
+    // Al cargar la función, verificamos inmediatamente si el detector ya está visible en la pantalla maximizada
+    const rect = detector.getBoundingClientRect();
+    if (rect.top < window.innerHeight) {
+        // Si está visible de entrada, ejecutamos la primera carga extra para intentar llenar el vacío
+        listado(IdTabla, true);
+    }    
+
 }
 
 $(document).ready(function() {
@@ -3206,25 +3230,27 @@ $(document).ready(function() {
 
 <script>
 
-    const productId = $('#product_id').val();
+    
+    
 
     // ===== Cargar galería existente =====
     function loadGallery() {
-$.ajax({
-    url: 'api/image_actions',
-    type: 'POST',
-    headers: { 'Authorization': 'Bearer ' + TOKEN },
-    data: { action: 'list', product_id: productId },
-    dataType: 'json',
-    success: function (res) {
-        if (res.success) {
-            $('#galleryContainer').empty();
-            res.data.forEach(item => {
-                addItemToDOM(item.IId, item.Image, item.Orden);
-            });
-        }
-    }
-});
+        let productId = $('#product_id').val();
+        $.ajax({
+            url: 'api/image_actions',
+            type: 'POST',
+            headers: { 'Authorization': 'Bearer ' + TOKEN },
+            data: { action: 'list', product_id: productId },
+            dataType: 'json',
+            success: function (res) {
+                if (res.success) {
+                    $('#galleryContainer').empty();
+                    res.data.forEach(item => {
+                        addItemToDOM(item.IId, item.Image, item.Orden);
+                    });
+                }
+            }
+        });
     }
 
     function addItemToDOM(id, image, orden) {
@@ -3279,6 +3305,7 @@ $.ajax({
     });
 
 function handleFiles(files) {
+    let productId = $('#product_id').val();
     if (!files.length) return;
 
     const formData = new FormData();

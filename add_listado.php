@@ -27,12 +27,15 @@ function add_listado($IdTabla,$collapse = ''){
             
         </div>
 
-        <div class="row">
-            <div class="col-12">
-                <div id="table-container_<?php echo $IdTabla;?>" class="table-responsive rounded-3 border bg-white">
-                    </div>
-            </div>
-        </div>
+<div class="row">
+    <div class="col-12">
+        <div id="table-container_<?php echo $IdTabla;?>" 
+             class="table-responsive rounded-3 border bg-white" 
+             style="max-height: 70vh; overflow-y: auto;">
+             
+             </div>
+    </div>
+</div>
         
         <div class="row mt-3">
             <div class="col-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
