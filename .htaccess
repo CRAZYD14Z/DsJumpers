@@ -2,17 +2,17 @@ RewriteEngine On
 
 # Define la ruta base desde la carpeta htdocs. 
 # Si tu proyecto está en htdocs/DsJumpers, la base es /DsJumpers/
-RewriteBase /DsJumpers/
+RewriteBase /
 
 # Evita que se alteren archivos o carpetas reales si es que existen
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 
 # 1. SI acceden a /login (sin empresa), redirige usando la barra inicial '/'
-RewriteRule ^login$ /DsJumpers/error_instancia.php [L,R=302]
+RewriteRule ^login$ error_instancia.php [L,R=302]
 
 # 2. SI entran a la raíz vacía, también redirige con la ruta correcta
-RewriteRule ^$ /DsJumpers/error_instancia.php [L,R=302]
+RewriteRule ^$ error_instancia.php [L,R=302]
 
 # 3. SI ponen la empresa antes de /login, procesa normalmente
 RewriteRule ^([^/]+)/login$ index.php?company=$1 [L,QSA]
