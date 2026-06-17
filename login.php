@@ -126,6 +126,15 @@ $db = $database->getConnection();
                     $_SESSION['company']        = $company;
 
                     $_SESSION['apiToken'] = $jwtToken;
+
+                    $is_local = ($_SERVER['SERVER_NAME'] == 'localhost');
+                    $cookie_path = $is_local ? '/DsJumpers/' : '/';                    
+
+                    
+                    setcookie("saved_company", $company, time() + 86400, $cookie_path, "", false, true);
+
+                    // ... El resto de tu código para iniciar la $_SESSION normal ...                    
+
                     
                     //echo "Login exitoso. Token guardado en sesión.";
                     echo json_encode(['status' => 'success', 'jwtToken' => $jwtToken]);

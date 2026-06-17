@@ -9,7 +9,7 @@ $database = new Database();
 $db = $database->getConnection();
 
 $Idioma = $_SESSION['Idioma'];
-$query = "select Traduccion FROM  programas_traduccion where Programa = 'leads' AND Idioma = ? ORDER BY Id";            
+$query = "select Traduccion FROM  programas_traduccion where Programa = 'attendance_report' AND Idioma = ? ORDER BY Id";            
 $stmt = $db->prepare($query);
 $stmt->bindValue(1, $Idioma);
 $stmt->execute();
@@ -48,25 +48,25 @@ include_once 'head.php';
 
 <div class="container my-5">
     <div class="mb-4">
-        <h4 class="fw-semibold text-dark mb-1" style="letter-spacing: -0.5px;">Bitácora de Asistencias</h4>
-        <p class="text-muted small mb-0">Reporte detallado de puntualidad, geocercas y asistencias diarias.</p>
+        <h4 class="fw-semibold text-dark mb-1" style="letter-spacing: -0.5px;"><?= Trd(1) ?></h4>
+        <p class="text-muted small mb-0"><?= Trd(2) ?></p>
     </div>
 
     <div class="card custom-card shadow-sm mb-4">
         <div class="card-body p-3">
             <form id="formFiltros" class="row g-2 align-items-end">
                 <div class="col-md-3">
-                    <label class="form-label text-muted small fw-medium mb-1">DESDE</label>
+                    <label class="form-label text-muted small fw-medium mb-1"><?= Trd(3) ?></label>
                     <input type="date" class="form-control" id="fecha_inicio" value="<?php echo date('Y-m-d'); ?>">
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label text-muted small fw-medium mb-1">HASTA</label>
+                    <label class="form-label text-muted small fw-medium mb-1"><?= Trd(4) ?></label>
                     <input type="date" class="form-control" id="fecha_fin" value="<?php echo date('Y-m-d'); ?>">
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label text-muted small fw-medium mb-1">OPERADOR</label>
+                    <label class="form-label text-muted small fw-medium mb-1"><?= Trd(5) ?></label>
                     <select class="form-select" id="operator_id">
-                        <option value="">Todos los colaboradores</option>
+                        <option value=""><?= Trd(6) ?></option>
                         <?php
                         include 'conexion.php';
                         $ops = $db->query("SELECT Id, CONCAT(Nombres, ' ', Apellidos) AS Nombre FROM operators WHERE Estatus = 'A' OR Estatus IS NULL")->fetchAll(PDO::FETCH_ASSOC);
@@ -78,7 +78,7 @@ include_once 'head.php';
                 </div>
                 <div class="col-md-2">
                     <button type="button" id="btnFiltrar" class="btn btn-dark w-100 py-2 rounded-2 fw-medium" style="font-size: 0.9rem;">
-                        <i class="fa-solid fa-filter me-2"></i>Filtrar
+                        <i class="fa-solid fa-filter me-2"></i><?= Trd(7) ?>
                     </button>
                 </div>
             </form>
@@ -90,13 +90,13 @@ include_once 'head.php';
             <table class="table table-hover mb-0 align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th>Colaborador / Sucursal</th>
-                        <th>Fecha de Registro</th>
-                        <th>Horario Ideal</th>
-                        <th>Entrada Real</th>
-                        <th>Salida Real</th>
-                        <th>Estatus</th>
-                        <th>Ubicación GPS</th>
+                        <th><?= Trd(8) ?></th>
+                        <th><?= Trd(9) ?></th>
+                        <th><?= Trd(10) ?></th>
+                        <th><?= Trd(11) ?></th>
+                        <th><?= Trd(12) ?></th>
+                        <th><?= Trd(13) ?></th>
+                        <th><?= Trd(14) ?></th>
                     </tr>
                 </thead>
                 <tbody id="contenedorReporte">
@@ -124,7 +124,7 @@ $(document).ready(function() {
         let opId = $('#operator_id').val();
 
         // Mostrar un spinner de carga minimalista provisional en la tabla
-        $('#contenedorReporte').html('<tr><td colspan="7" class="text-center py-4 text-muted"><i class="fa-solid fa-circle-notch fa-spin me-2"></i>Procesando historial de asistencia...</td></tr>');
+        $('#contenedorReporte').html('<tr><td colspan="7" class="text-center py-4 text-muted"><i class="fa-solid fa-circle-notch fa-spin me-2"></i><?= Trd(15) ?></td></tr>');
 
         $.ajax({
             url: API_BASE_URL+'asistencias/',
@@ -141,7 +141,7 @@ $(document).ready(function() {
                 $('#contenedorReporte').html(response.tabla);
             },
             error: function() {
-                $('#contenedorReporte').html('<tr><td colspan="7" class="text-center text-danger py-4">Error de comunicación con el servidor de reportes.</td></tr>');
+                $('#contenedorReporte').html('<tr><td colspan="7" class="text-center text-danger py-4"><?= Trd(16) ?></td></tr>');
             }
         });
     }

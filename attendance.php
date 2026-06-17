@@ -9,7 +9,7 @@ $database = new Database();
 $db = $database->getConnection();
 
 $Idioma = $_SESSION['Idioma'];
-$query = "select Traduccion FROM  programas_traduccion where Programa = 'leads' AND Idioma = ? ORDER BY Id";            
+$query = "select Traduccion FROM  programas_traduccion where Programa = 'attendance' AND Idioma = ? ORDER BY Id";            
 $stmt = $db->prepare($query);
 $stmt->bindValue(1, $Idioma);
 $stmt->execute();
@@ -61,8 +61,8 @@ include_once 'head.php';
     <div class="card border-0 shadow-sm" style="width: 100%; max-width: 400px; border-radius: 12px; background-color: #ffffff;">
         
         <div class="card-header border-0 bg-transparent text-center pt-5 pb-4">
-            <h5 class="fw-semibold text-dark mb-1" style="letter-spacing: -0.5px; font-size: 1.4rem;">Asistencia</h5>
-            <p class="text-muted small mb-0" style="font-size: 0.8rem; letter-spacing: 0.5px;">REGISTRO DE JORNADA</p>
+            <h5 class="fw-semibold text-dark mb-1" style="letter-spacing: -0.5px; font-size: 1.4rem;"><?= Trd(1) ?></h5>
+            <p class="text-muted small mb-0" style="font-size: 0.8rem; letter-spacing: 0.5px;"><?= Trd(2) ?></p>
         </div>
         
         <div class="card-body px-4 pb-5 pt-0">
@@ -71,9 +71,9 @@ include_once 'head.php';
 
             <form id="attendanceForm">
                 <div class="mb-4">
-                    <label for="operator_id" class="form-label text-muted fw-medium small mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">COLABORADOR</label>
+                    <label for="operator_id" class="form-label text-muted fw-medium small mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px;"><?= Trd(3) ?></label>
                     <select class="form-select custom-minimal-select py-2.5" id="operator_id" required>
-                        <option value="">Selecciona tu nombre...</option>
+                        <option value=""><?= Trd(4) ?></option>
                         <?php
                         if ($_SESSION['role_id'] == "ADMIN")
                             $res = $db->query("SELECT Id, Nombres, Apellidos FROM operators WHERE Estatus = 'A'  OR Estatus IS NULL");
@@ -92,12 +92,12 @@ include_once 'head.php';
                 <div class="row g-2">
                     <div class="col-6">
                         <button type="button" class="btn btn-minimal btn-minimal-success w-100 py-3 btn-marcar" data-accion="entrada">
-                            <i class="fa-solid fa-arrow-right-to-bracket me-2"></i>Entrada
+                            <i class="fa-solid fa-arrow-right-to-bracket me-2"></i><?= Trd(5) ?>
                         </button>
                     </div>
                     <div class="col-6">
                         <button type="button" class="btn btn-minimal btn-minimal-danger w-100 py-3 btn-marcar" data-accion="salida">
-                            <i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Salida
+                            <i class="fa-solid fa-arrow-right-from-bracket me-2"></i><?= Trd(6) ?>
                         </button>
                     </div>
                 </div>
@@ -106,7 +106,7 @@ include_once 'head.php';
             <div class="text-center mt-4">
                 <span class="text-muted small d-inline-flex align-items-center" style="font-size: 0.78rem; font-weight: 400;">
                     <i id="geoIcon" class="fa-solid fa-circle text-warning me-2" style="font-size: 6px;"></i>
-                    <span id="geoStatus">Localizando dispositivo...</span>
+                    <span id="geoStatus"><?= Trd(7) ?></span>
                 </span>
             </div>
             
@@ -178,13 +178,13 @@ $(document).ready(function() {
         navigator.geolocation.getCurrentPosition(function(position) {
             $('#latitud').val(position.coords.latitude);
             $('#longitud').val(position.coords.longitude);
-            $('#geoStatus').text("Ubicación GPS lista y verificada").removeClass('text-danger').addClass('text-success');
+            $('#geoStatus').text("<?= Trd(14) ?>").removeClass('text-danger').addClass('text-success');
         }, function(error) {
-            $('#geoStatus').text("Error: Por favor activa el GPS de tu dispositivo.").addClass('text-danger');
-            showAlert('danger', 'Es obligatorio permitir el uso del GPS para poder registrar asistencia.');
+            $('#geoStatus').text("<?= Trd(8) ?>").addClass('text-danger');
+            showAlert('danger', '<?= Trd(9) ?>');
         }, { enableHighAccuracy: true });
     } else {
-        $('#geoStatus').text("Tu navegador no soporta geolocalización.");
+        $('#geoStatus').text("<?= Trd(10) ?>");
     }
 
     // 2. Evento Click de los botones
@@ -195,12 +195,12 @@ $(document).ready(function() {
         let accion = $(this).data('accion');
 
         if (!opId) {
-            showAlert('warning', 'Por favor, selecciona un trabajador.');
+            showAlert('warning', '<?= Trd(11) ?>');
             return;
         }
 
         if (!lat || !lng) {
-            showAlert('danger', 'No se han detectado tus coordenadas GPS. Inténtalo de nuevo.');
+            showAlert('danger', '<?= Trd(12) ?>');
             return;
         }
 
@@ -228,7 +228,7 @@ $(document).ready(function() {
                 $('.btn-marcar').prop('disabled', false);
             },
             error: function() {
-                showAlert('danger', 'Ocurrió un error interno en el servidor de asistencia.');
+                showAlert('danger', '<?= Trd(13) ?>');
                 $('.btn-marcar').prop('disabled', false);
             }
         });

@@ -603,15 +603,15 @@ div[id^="dropzone_"]:hover {
 }
     </style>
 <div class=" collapse container py-4" id = "listado_<?= $Tabla2 ?>">
-    <h3 class="mb-4">Galería de imágenes del producto</h3>
+    <h3 class="mb-4"><?= Trd(44) ?></h3>
 
     <input type="hidden" id="product_id" > <!-- ID del producto actual -->
 
     <!-- Zona de carga -->
     <div class="drop-zone mb-3" id="dropZone">
         <i class="bi bi-cloud-upload fs-1"></i>
-        <p class="mb-1">Arrastra tus imágenes aquí o haz clic para seleccionar</p>
-        <small>Puedes seleccionar varias imágenes a la vez (JPG, PNG, AVIF, WEBP)</small>
+        <p class="mb-1"><?= Trd(45) ?></p>
+        <small><?= Trd(46) ?></small>
         <input type="file" id="fileInput" name="upload_file[]" multiple accept="image/*" class="d-none">
     </div>
 
@@ -632,7 +632,7 @@ div[id^="dropzone_"]:hover {
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Vista previa</h5>
+                <h5 class="modal-title"><?= Trd(47) ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center">
@@ -645,7 +645,7 @@ div[id^="dropzone_"]:hover {
 <div id="loadingOverlay" class="loading-overlay d-none">
     <div class="loading-box">
         <div class="spinner-border text-primary" role="status"></div>
-        <p class="mt-2 mb-0" id="loadingText">Procesando imágenes...</p>
+        <p class="mt-2 mb-0" id="loadingText"><?= Trd(48) ?></p>
     </div>
 </div>
 
@@ -928,21 +928,21 @@ div[id^="dropzone_"]:hover {
                 
         <div class="container-fluid p-4 bg-white border-0 shadow-sm rounded-4 mb-4" style="max-width: 100%;">
             
-            <h4 class="mb-3 text-dark fw-bold"><i class="fa-solid fa-sliders text-primary me-2 small"></i>Opciones de Gestión</h4>
+            <h4 class="mb-3 text-dark fw-bold"><i class="fa-solid fa-sliders text-primary me-2 small"></i><?= Trd(59) ?></h4>
             
             <div class="bg-light p-3 rounded-3 border mb-4">
-                <label class="form-label text-secondary fw-semibold small d-block mb-3">Selecciona el tipo de operación:</label>
+                <label class="form-label text-secondary fw-semibold small d-block mb-3"><?= Trd(60) ?></label>
                 <div class="d-flex flex-wrap gap-4">
                     <div class="form-check form-check-inline m-0">
                         <input class="form-check-input cursor-pointer shadow-none" type="radio" name="tipo" id="Copia" value="Copia" onclick="cambiarDivs('copiar_lista')" checked>
                         <label class="form-check-label text-dark fw-medium cursor-pointer" for="Copia">
-                            <i class="fa-solid fa-folder-plus text-muted me-1"></i> Copiar Lista
+                            <i class="fa-solid fa-folder-plus text-muted me-1"></i> <?= Trd(61) ?>
                         </label>
                     </div>
                     <div class="form-check form-check-inline m-0">
                         <input class="form-check-input cursor-pointer shadow-none" type="radio" name="tipo" id="Ajuste" value="Ajuste" onclick="cambiarDivs('ajustar_lista')">
                         <label class="form-check-label text-dark fw-medium cursor-pointer" for="Ajuste">
-                            <i class="fa-solid fa-tags text-muted me-1"></i> Ajuste de precio
+                            <i class="fa-solid fa-tags text-muted me-1"></i> <?= Trd(62) ?>
                         </label>
                     </div>                        
                 </div>
@@ -953,34 +953,34 @@ div[id^="dropzone_"]:hover {
                 <div id="copiar_lista" style="display: block;">
                     <div class="row g-3 mb-4">
                         <div class="col-12 col-md-6">
-                            <label for="nueva_lista" class="form-label text-secondary fw-semibold small mb-2">Nombre de la Lista</label>
+                            <label for="nueva_lista" class="form-label text-secondary fw-semibold small mb-2"><?= Trd(63) ?></label>
                             <input name="nueva_lista" id="nueva_lista" class="form-control bg-light border px-3 py-2 rounded-3 shadow-none text-dark fw-medium" type="text" required minlength="5" maxlength="50" placeholder="Ingresa nombre para la lista">
                         </div>
                     </div>
                     
                     <div class="p-3 bg-light rounded-3 border mb-3">
-                        <label class="form-label text-secondary fw-semibold small d-block mb-2">Ajustar precios en:</label>
+                        <label class="form-label text-secondary fw-semibold small d-block mb-2"><?= Trd(64) ?></label>
                         <div class="d-flex gap-4 mb-3">
                             <div class="form-check form-check-inline m-0">
                                 <input class="form-check-input cursor-pointer shadow-none" type="radio" name="tipo_ajuste" id="Monto" value="$" checked>
-                                <label class="form-check-label text-dark fw-medium cursor-pointer" for="Monto">$ - Monto Fijo</label>
+                                <label class="form-check-label text-dark fw-medium cursor-pointer" for="Monto"><?= Trd(65) ?></label>
                             </div>
                             <div class="form-check form-check-inline m-0">
                                 <input class="form-check-input cursor-pointer shadow-none" type="radio" name="tipo_ajuste" id="Porcentaje" value="%">
-                                <label class="form-check-label text-dark fw-medium cursor-pointer" for="Porcentaje">% - Porcentaje</label>
+                                <label class="form-check-label text-dark fw-medium cursor-pointer" for="Porcentaje"><?= Trd(66) ?></label>
                             </div>
                         </div>                        
                         
                         <div class="row g-3">                            
                             <div class="col-12 col-sm-6 col-md-4">
-                                <label for="copia_monto" class="form-label text-secondary fw-semibold small mb-2">Monto Cargo Inicial</label>
+                                <label for="copia_monto" class="form-label text-secondary fw-semibold small mb-2"><?= Trd(67) ?></label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-white border-end-0 text-muted rounded-start-3">$</span>
                                     <input name="copia_monto" id="copia_monto" class="form-control bg-light border-start-0 px-3 py-2 text-end rounded-end-3 shadow-none fw-semibold decimals currency" type="text" maxlength="10" value="0.00">
                                 </div>
                             </div>
                             <div class="col-12 col-sm-6 col-md-4">
-                                <label for="copia_monto_e" class="form-label text-secondary fw-semibold small mb-2">Monto Cargo Extra</label>
+                                <label for="copia_monto_e" class="form-label text-secondary fw-semibold small mb-2"><?= Trd(68) ?></label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-white border-end-0 text-muted rounded-start-3">$</span>
                                     <input name="copia_monto_e" id="copia_monto_e" class="form-control bg-light border-start-0 px-3 py-2 text-end rounded-end-3 shadow-none fw-semibold decimals currency" type="text" maxlength="10" value="0.00">
@@ -993,9 +993,9 @@ div[id^="dropzone_"]:hover {
                 <div id="ajustar_lista" style="display: none;">
                     <div class="row g-3 mb-4">
                         <div class="col-12 col-md-6">
-                            <label for="ajuste_categoria" class="form-label text-secondary fw-semibold small mb-2">Ajustar precio a categoría</label>
+                            <label for="ajuste_categoria" class="form-label text-secondary fw-semibold small mb-2"><?= Trd(69) ?></label>
                             <select name="ajuste_categoria" id="ajuste_categoria" class="form-control bg-light border px-3 py-2 rounded-3 shadow-none text-dark fw-medium">
-                                <option value="0" selected> Todas las Categorías </option>
+                                <option value="0" selected><?= Trd(71) ?></option>
                                 <?php
                                     $query = "SELECT Id,Nombre FROM categories ORDER BY Id";
                                     $stmt_dts = $db->prepare($query);
@@ -1014,28 +1014,28 @@ div[id^="dropzone_"]:hover {
                     </div>
                     
                     <div class="p-3 bg-light rounded-3 border mb-3">
-                        <label class="form-label text-secondary fw-semibold small d-block mb-2">Ajustar precios en:</label>
+                        <label class="form-label text-secondary fw-semibold small d-block mb-2"><?= Trd(64) ?></label>
                         <div class="d-flex gap-4 mb-3">
                             <div class="form-check form-check-inline m-0">
                                 <input class="form-check-input cursor-pointer shadow-none" type="radio" name="tipo_ajuste_c" id="Monto_c" value="$" checked>
-                                <label class="form-check-label text-dark fw-medium cursor-pointer" for="Monto_c">$ - Monto Fijo</label>
+                                <label class="form-check-label text-dark fw-medium cursor-pointer" for="Monto_c"><?= Trd(65) ?></label>
                             </div>
                             <div class="form-check form-check-inline m-0">
                                 <input class="form-check-input cursor-pointer shadow-none" type="radio" name="tipo_ajuste_c" id="Porcentaje_c" value="%">
-                                <label class="form-check-label text-dark fw-medium cursor-pointer" for="Porcentaje_c">% - Porcentaje</label>
+                                <label class="form-check-label text-dark fw-medium cursor-pointer" for="Porcentaje_c"><?= Trd(66) ?></label>
                             </div>
                         </div>                        
                         
                         <div class="row g-3">                            
                             <div class="col-12 col-sm-6 col-md-4">
-                                <label for="ajuste_monto" class="form-label text-secondary fw-semibold small mb-2">Monto Cargo Inicial</label>
+                                <label for="ajuste_monto" class="form-label text-secondary fw-semibold small mb-2"><?= Trd(67) ?></label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-white border-end-0 text-muted rounded-start-3">$</span>
                                     <input name="ajuste_monto" id="ajuste_monto" class="form-control bg-light border-start-0 px-3 py-2 text-end rounded-end-3 shadow-none fw-semibold decimals" type="text" maxlength="10" value="0.00">
                                 </div>
                             </div>
                             <div class="col-12 col-sm-6 col-md-4">
-                                <label for="ajuste_monto_e" class="form-label text-secondary fw-semibold small mb-2">Monto Cargo Extra</label>
+                                <label for="ajuste_monto_e" class="form-label text-secondary fw-semibold small mb-2"><?= Trd(68) ?></label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-white border-end-0 text-muted rounded-start-3">$</span>
                                     <input name="ajuste_monto_e" id="ajuste_monto_e" class="form-control bg-light border-start-0 px-3 py-2 text-end rounded-end-3 shadow-none fw-semibold decimals" type="text" maxlength="10" value="0.00">
@@ -1047,7 +1047,7 @@ div[id^="dropzone_"]:hover {
 
                 <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                     <button class="btn btn-primary fw-semibold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center gap-2" type="submit">
-                        <i class="fa-solid fa-gears"></i> Procesar Operación
+                        <i class="fa-solid fa-gears"></i> <?= Trd(70) ?>
                     </button>
                 </div>         
             </form>
@@ -1228,11 +1228,11 @@ function inicializarEstadoTabla(IdTabla) {
 
         if (Id == 'add'){
             if (!$('#CodigoOrigen_clone').val()){
-                alert('Necesita seleccionar producto a copiar')
+                alert('<?= Trd(49) ?>')
                 return;
             }
             if (!$('#Name_clone').val()){
-                alert('Necesita ingresar el nombre para el nuevo producto')
+                alert('<?= Trd(50) ?>')
                 return;
             }            
             var misHeaders = {
@@ -1278,7 +1278,7 @@ function inicializarEstadoTabla(IdTabla) {
         }
         else{
             if (!$('#Name_clone_edit').val()){
-                alert('Necesita ingresar el nombre para el nuevo producto')
+                alert('<?= Trd(50) ?>')
                 return;
             }         
             //IdSelected
@@ -1616,7 +1616,7 @@ function listado(IdTabla, loadMore = false) {
         
         // Deshabilitamos y agregamos el spinner animado de FontAwesome
         $btnBuscar.prop('disabled', true)
-                  .html('<i class="fa-solid fa-spinner fa-spin small"></i> Cargando...');
+                  .html('<i class="fa-solid fa-spinner fa-spin small"></i> <?= Trd(53) ?>');
     }    
 
     var misHeaders = { 'Authorization': 'Bearer ' + TOKEN };
@@ -2035,7 +2035,7 @@ htmlStructure += '<tbody>' + htmlRows + '</tbody>';
         htmlStructure += `
             <div id="scroll-detector_${IdTabla}" class="text-center my-3 text-muted" style="height: 20px;">
                 <span class="loading-spinner_${IdTabla}" style="display:none;">
-                    <i class="fa-solid fa-spinner fa-spin me-2"></i> Cargando más registros...
+                    <i class="fa-solid fa-spinner fa-spin me-2"></i> <?= Trd(54) ?>
                 </span>
             </div>`;
 
@@ -3074,9 +3074,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const choices = new Choices(el, {
         allowHTML: false,
         searchEnabled: true,
-        searchPlaceholderValue: 'Buscar...',
-        noResultsText: 'No encontrado',
-        noChoicesText: 'Sin opciones',
+        searchPlaceholderValue: '<?= Trd(55) ?>',
+        noResultsText: '<?= Trd(56) ?>',
+        noChoicesText: '<?= Trd(57) ?>',
 
         // ✅ Permite agregar elemento nuevo si no existe
         addItems: true,
@@ -3329,7 +3329,7 @@ function handleFiles(files) {
     }
 
     if (validFiles === 0) {
-        alert('Selecciona archivos de imagen válidos');
+        alert('<?= Trd(51) ?>');
         return;
     }
 
@@ -3371,7 +3371,7 @@ function handleFiles(files) {
 
                     // Cuando termina la subida (100%), cambia el texto a "procesando"
                     if (percent >= 100) {
-                        $('#loadingText').text('Procesando imágenes (generando miniaturas)...');
+                        $('#loadingText').text('<?= Trd(58) ?>');
                     }
                 }
             });
@@ -3394,14 +3394,14 @@ function handleFiles(files) {
                 });
                 updateOrderBadges();
             } else {
-                alert(res.message || 'Error al subir archivos');
+                alert(res.message || '<?= Trd(52) ?>');
             }
         },
         error: function () {
             $progress.addClass('d-none');
             $('#loadingOverlay').addClass('d-none');
             placeholders.forEach($ph => $ph.remove());
-            alert('Error en la subida');
+            alert('<?= Trd(52) ?>');
         }
     });
 }

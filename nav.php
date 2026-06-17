@@ -27,7 +27,7 @@
                         <li><a class="dropdown-item" href="leads.php"><i class="fas fa-list me-2"></i><?php echo ($_SESSION['Idioma']== 'en') ? "Leads" : "Eventos"; ?></a></li>
                         <li><a class="dropdown-item" href="pending_payments.php"><i class="fas fa-money-bill me-2"></i><?php echo ($_SESSION['Idioma']== 'en') ? "Payments" : "Pagos Pendientes"; ?></a></li>
                         <li><a class="dropdown-item" href="payment_report.php"><i class="fa-solid fa-file-invoice-dollar"></i> <?php echo ($_SESSION['Idioma']== 'en') ? "Reports" : "Reporte de Pagos"; ?></a></li>
-                        <li><a class="dropdown-item" href="graficas.php"><i class="fas fa-chart-line me-2"></i><?php echo ($_SESSION['Idioma']== 'en') ? "Graficas" : "Graficas"; ?></a></li>
+                        <li><a class="dropdown-item" href="graficas.php"><i class="fas fa-chart-line me-2"></i><?php echo ($_SESSION['Idioma']== 'en') ? "Graphics" : "Gráficas"; ?></a></li>
                     </ul>
                 </li>
 
@@ -60,8 +60,8 @@
         <li><a class="dropdown-item" href="crud.php?Id=referals"><?php echo ($_SESSION['Idioma'] == 'en') ? "Referrals" : "Referidos"; ?></a></li>
         <li><a class="dropdown-item" href="crud.php?Id=operators"><?php echo ($_SESSION['Idioma'] == 'en') ? "Operators" : "Operadores"; ?></a></li>
         <li><a class="dropdown-item" href="attendance.php"><?php echo ($_SESSION['Idioma'] == 'en') ? "Attendance Registration" : "Registro de Asistencia"; ?></a></li>
-        <li><a class="dropdown-item" href="crud.php?Id=schedules"><?php echo ($_SESSION['Idioma'] == 'en') ? "Gestión de Horarios" : "Gestión de Horarios"; ?></a></li>
-        <li><a class="dropdown-item" href="asistencia.php"><?php echo ($_SESSION['Idioma'] == 'en') ? "Reporte asistencia" : "Reporte asistencia"; ?></a></li>
+        <li><a class="dropdown-item" href="crud.php?Id=schedules"><?php echo ($_SESSION['Idioma'] == 'en') ? "Schedule Management" : "Gestión de Horarios"; ?></a></li>
+        <li><a class="dropdown-item" href="attendance_report.php"><?php echo ($_SESSION['Idioma'] == 'en') ? "Attendance report" : "Reporte asistencia"; ?></a></li>
         
         <li><hr class="dropdown-divider"></li>
         
