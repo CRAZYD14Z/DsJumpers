@@ -401,6 +401,10 @@ switch ($resource) {
         
         handle_generic_crud($resource,$db, $method, $id, $data);
         break;
+    case 'products_videos':
+        
+        handle_generic_crud($resource,$db, $method, $id, $data);
+        break;        
     case 'products_files':
         
         handle_generic_crud($resource,$db, $method, $id, $data);

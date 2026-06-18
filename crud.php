@@ -657,6 +657,24 @@ div[id^="dropzone_"]:hover {
                 add_form($Tabla2,$Idioma,'D');
                 edit_form($Tabla2,$Idioma,'D');
 */
+
+
+                $Tabla22 = 'products_videos';
+
+                echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
+                        data-bs-toggle="collapse" 
+                        data-bs-target="#listado_' . $Tabla22 . '" 
+                        aria-expanded="false" 
+                        aria-controls="listado_' . $Tabla22 . '">';
+                echo Trd(72);
+                echo '</h4>';
+
+                add_listado($Tabla22,'collapse');                
+                add_form($Tabla22,$Idioma,'D');
+                edit_form($Tabla22,$Idioma,'D');
+
+
+
                 $Tabla3 = 'packing_list';
 
                 echo '<h4 class="mb-4 btn-toggle-custom fs-5" 
@@ -831,7 +849,7 @@ div[id^="dropzone_"]:hover {
 
             delete_form($IdTabla);
             delete_form($Tabla);
-            //delete_form($Tabla2);
+            delete_form($Tabla22);
             delete_form($Tabla3);
             delete_form($Tabla4);
             delete_form($Tabla5);
@@ -1807,6 +1825,7 @@ function getRecordData(Id,IdTabla) {
                 $("#add_form_products_clone_edit").show();
                 listado('products_categories');
                 listado('products_images');
+                listado('products_videos');
                 listado('packing_list');
                 listado('related_products');
                 listado('upselling_products');

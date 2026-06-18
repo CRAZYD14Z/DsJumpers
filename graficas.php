@@ -240,6 +240,13 @@ include_once 'head.php';
     </div>
 </div>
 
+<div class="chart-card">
+    <h3>Cobros: Pagado vs Pendiente</h3>
+    <div class="chart-container">
+        <canvas id="graficaPagosCuentas"></canvas>
+    </div>
+</div>
+
 </div>
 
 
@@ -296,6 +303,8 @@ function actualizarDashboard() {
     cargarTablaProductos(inicio, fin);    
 
     cargarGraficaColumnas();
+
+    cargarGraficaPagos();
 
     // Ejemplo de llamadas para tus futuras gráficas:
     // cargarSegundaGrafica(inicio, fin);
@@ -503,7 +512,7 @@ async function cargarGraficaColumnas() {
                 {
                     label: `Año ${anios.menos2}`,
                     data: ventasAnioAntepasado,
-                    backgroundColor: '#cbd5e1', // Gris claro
+                    backgroundColor: '#5ec306', // Gris claro
                     borderRadius: 4 // Bordes ligeramente redondeados
                 },
                 {
@@ -515,7 +524,7 @@ async function cargarGraficaColumnas() {
                 {
                     label: `Año ${anios.actual}`,
                     data: ventasAnioActual,
-                    backgroundColor: '#1d4ed8', // Azul oscuro (Destaca el año actual)
+                    backgroundColor: '#ff8104', // Azul oscuro (Destaca el año actual)
                     borderRadius: 4
                 }
             ]
@@ -556,6 +565,77 @@ async function cargarGraficaColumnas() {
                 x: {
                     grid: {
                         display: false // Quita las líneas verticales de fondo para un diseño más limpio
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Recuerda mandarla a llamar en tu inicializador: 
+// cargarGraficaPagos();
+
+let chartPagos;
+
+async function cargarGraficaPagos() {
+    // Puedes pasarle el año dinámicamente desde un select si lo deseas, aquí por defecto va al script
+    const anioActual = new Date().getFullYear(); // 2026
+    const respuesta = await fetch(`data_pagos.php?anio=${anioActual}`);
+    const datos = await respuesta.json();
+
+    if (datos.error) return;
+
+    const ctx = document.getElementById('graficaPagosCuentas').getContext('2d');
+
+    if (chartPagos) {
+        chartPagos.destroy();
+    }
+
+    chartPagos = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: datos.labels,
+            datasets: [
+                {
+                    label: 'Pagado',
+                    data: datos.pagado,
+                    backgroundColor: '#10b981', // Verde éxito
+                    borderRadius: 4
+                },
+                {
+                    label: 'Pendiente por Cobrar',
+                    data: datos.pendiente,
+                    backgroundColor: '#ef4444', // Rojo advertencia
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let valor = context.raw || 0;
+                            return ` ${context.dataset.label}: ${valor.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { 
+                    stacked: true, // Apila las barras en el eje X
+                    grid: { display: false } 
+                },
+                y: { 
+                    stacked: true, // Apila las barras en el eje Y
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString('es-MX');
+                        }
                     }
                 }
             }

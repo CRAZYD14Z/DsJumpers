@@ -71,6 +71,7 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
         'products',
         'products_categories',
         'products_images',
+        'products_videos',
         'products_files',
         'packing_list',
         'related_products',
@@ -803,8 +804,6 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                     $stmt->bindValue(":" . $campo, $valor);
                 }
             }
-
-            
             
             if ($stmt->execute()) {
                 $lastInsertId = $db->lastInsertId();
@@ -4738,12 +4737,18 @@ function asistencias($table_name,$db, $method, $id, $data){
                 l.Nombre as NombreUbicacion,
                  WEEKDAY(a.HoraEntradaReal) as DiaSemana,
                 s.HoraEntrada AS HoraRequerida,
+                s.HoraSalida AS HoraRequeridaS,
                 a.Fecha,
                 a.HoraEntradaReal,
                 a.HoraSalidaReal,
                 a.EstatusEntrada,
                 a.LatitudEntrada,
-                a.LongitudEntrada
+                a.LongitudEntrada,
+                a.FueraAreaEntrada,
+                a.LatitudSalida,
+                a.LongitudSalida,
+                a.FueraAreaSalida,
+                IF(a.HoraSalidaReal > s.HoraSalida, TIMESTAMPDIFF(MINUTE, s.HoraSalida, a.HoraSalidaReal) / 60.0, 0) AS HorasExtras
             FROM schedules s
             INNER JOIN operators o ON s.OperatorId = o.Id
             INNER JOIN wharehouses l ON s.LocationId = l.Id
@@ -4796,11 +4801,27 @@ foreach ($resultados as $row) {
     $entrada = $row['HoraEntradaReal'] ? date('g:i a', strtotime($row['HoraEntradaReal'])) : '---';
     $salida = $row['HoraSalidaReal'] ? date('g:i a', strtotime($row['HoraSalidaReal'])) : '---';
     $horarioTeorico = date('g:i a', strtotime($row['HoraRequerida']));
+    $horarioTeoricoS = date('g:i a', strtotime($row['HoraRequeridaS']));
 
     $mapaLink = '---';
     if ($row['LatitudEntrada'] && $row['LongitudEntrada']) {
         $mapaLink = "<a href='https://maps.google.com/?q={$row['LatitudEntrada']},{$row['LongitudEntrada']}' target='_blank' class='btn btn-link btn-sm text-decoration-none p-0'><i class='fa-solid fa-map-pin text-danger'></i> Ver Mapa</a>";
     }
+
+    $mapaLinkS = '---';
+    if ($row['LatitudSalida'] && $row['LongitudSalida']) {
+        $mapaLinkS = "<a href='https://maps.google.com/?q={$row['LatitudSalida']},{$row['LongitudSalida']}' target='_blank' class='btn btn-link btn-sm text-decoration-none p-0'><i class='fa-solid fa-map-pin text-danger'></i> Ver Mapa</a>";
+    }    
+
+    if ($row['FueraAreaEntrada'] == 1)
+        $row['FueraAreaEntrada'] = "<i class='fa-solid fa-flag text-danger'></i>";
+    else
+        $row['FueraAreaEntrada'] = "";
+
+    if ($row['FueraAreaSalida'] == 1)
+        $row['FueraAreaSalida'] = "<i class='fa-solid fa-flag text-danger'></i>";
+    else
+        $row['FueraAreaSalida'] = "";    
 
     // Concatenamos la fila completa en la variable
     $htmlOutput .= "<tr>
@@ -4812,11 +4833,11 @@ foreach ($resultados as $row) {
                 <span class='d-block text-dark'>$fechaFormateada</span>
                 <small class='text-muted' style='font-size:0.75rem;'>$diaNombre</small>
             </td>
-            <td class='text-secondary'>$horarioTeorico</td>
-            <td class='fw-medium text-dark'>$entrada</td>
-            <td class='fw-medium text-dark'>$salida</td>
+            <td class='text-secondary'>$horarioTeorico / $horarioTeoricoS</td>
+            <td class='fw-medium text-dark'>$entrada ". $row['FueraAreaEntrada'] ." <br> $mapaLink </td>
+            <td class='fw-medium text-dark'>$salida ".$row['FueraAreaSalida']." <br> $mapaLinkS </td>
             <td><span class='badge px-2.5 py-1.5 rounded-3 $badgeClass' style='font-size:0.8rem; font-weight:500;'>$estatusFinal</span></td>
-            <td>$mapaLink</td>
+            <td class='fw-medium text-dark'>".number_format($row['HorasExtras'], 2) ." </td>
           </tr>";
 }
 
@@ -4869,15 +4890,19 @@ function attendance($table_name,$db, $method, $id, $data){
         break;                       
     }    
 
-   
-    // 1. Validar si el operador tiene horario programado para HOY
+    $sqlSch = "SELECT *
+               FROM operators
+               WHERE Id = ? ";    
+    $stmt = $db->prepare($sqlSch);
+    $stmt->execute([$operatorId]);
+    $Operator = $stmt->fetch(PDO::FETCH_ASSOC);   
+
+    
     $sqlSch = "SELECT s.*, l.Lat, l.Lng , l.RadioMetros 
                FROM schedules s 
                INNER JOIN wharehouses l ON s.LocationId = l.Id 
                WHERE s.OperatorId = ? AND $diaSemana ";    
-    //echo $sqlSch;
     $stmt = $db->prepare($sqlSch);
-    // En PDO se ejecutan los parámetros directamente dentro de un arreglo en execute()
     $stmt->execute([$operatorId]);
     $horario = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -4885,12 +4910,19 @@ function attendance($table_name,$db, $method, $id, $data){
         echo json_error("No tienes horario asignado para el día de hoy.");
         exit;
     }
-
+    
+    $FueraPerimetro=0;
     // 2. Validar Distancia Geográfica (Geofence)
     $distancia = calcularDistancia($latCliente, $lngCliente, $horario['Lat'], $horario['Lng']);
-    if ($distancia > $horario['RadioMetros']) {
-        echo json_error("Fuera de rango. Estás a " . round($distancia) . " metros de la ubicación permitida.");
-        exit;
+    if ($distancia > $horario['RadioMetros'] ) {
+        if ( $Operator['RegistroExterno'] == 1){
+            $FueraPerimetro=1;
+        }
+        else{
+            echo json_error("Fuera de rango. Estás a " . round($distancia) . " metros de la ubicación permitida.");
+            exit;
+        }
+
     }
 
     // 3. Procesar Entrada o Salida
@@ -4912,9 +4944,9 @@ function attendance($table_name,$db, $method, $id, $data){
 
         $estatusEntrada = ($horaRealSec <= $horaMaxIn) ? 'A tiempo' : 'Retardo';
 
-        $ins = $db->prepare("INSERT INTO attendance (OperatorId, Fecha, HoraEntradaReal, LatitudEntrada, LongitudEntrada, EstatusEntrada) VALUES (?, ?, ?, ?, ?, ?)");
+        $ins = $db->prepare("INSERT INTO attendance (OperatorId, Fecha, HoraEntradaReal, LatitudEntrada, LongitudEntrada, EstatusEntrada,FueraAreaEntrada) VALUES (?, ?, ?, ?, ?, ?, ?)");
         
-        if ($ins->execute([$operatorId, $fechaActual, $horaActual, $latCliente, $lngCliente, $estatusEntrada])) {
+        if ($ins->execute([$operatorId, $fechaActual, $horaActual, $latCliente, $lngCliente, $estatusEntrada, $FueraPerimetro])) {
             echo json_success("Entrada registrada con éxito ($estatusEntrada) a las $horaActual.");
         } else {
             echo json_error("Error al registrar entrada.");
@@ -4936,9 +4968,9 @@ function attendance($table_name,$db, $method, $id, $data){
             exit;
         }
 
-        $upd = $db->prepare("UPDATE attendance SET HoraSalidaReal = ?, LatitudSalida = ?, LongitudSalida = ? WHERE OperatorId = ? AND Fecha = ?");
+        $upd = $db->prepare("UPDATE attendance SET HoraSalidaReal = ?, LatitudSalida = ?, LongitudSalida = ?, FueraAreaSalida = ? WHERE OperatorId = ? AND Fecha = ?");
         
-        if ($upd->execute([$horaActual, $latCliente, $lngCliente, $operatorId, $fechaActual])) {
+        if ($upd->execute([$horaActual, $latCliente, $lngCliente, $operatorId, $fechaActual, $FueraPerimetro])) {
             echo json_success("Salida registrada con éxito a las $horaActual.");
         } else {
             echo json_error("Error al registrar salida.");

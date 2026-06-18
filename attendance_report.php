@@ -96,14 +96,17 @@ include_once 'head.php';
                         <th><?= Trd(11) ?></th>
                         <th><?= Trd(12) ?></th>
                         <th><?= Trd(13) ?></th>
-                        <th><?= Trd(14) ?></th>
+                        <th><?= Trd(17) ?></th>
                     </tr>
                 </thead>
                 <tbody id="contenedorReporte">
                     </tbody>
             </table>
+            
         </div>
+        
     </div>
+    <i class='fa-solid fa-flag text-danger'></i> = <?=  Trd(14) ?>
 </div>
 
 

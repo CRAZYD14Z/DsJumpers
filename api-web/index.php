@@ -1648,7 +1648,16 @@ function products($table_name,$db, $method, $id, $data){
                 $stmt->bindValue(":idproduct",$product['Id']); 
                 $stmt->execute();
                 $Images = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            }            
+            }   
+            
+            foreach ($productos as $product) {
+                $sql = "SELECT * FROM products_videos WHERE Product = :idproduct ORDER BY Title";
+                $stmt = $db->prepare($sql);
+                $stmt->bindValue(":idproduct",$product['Id']); 
+                $stmt->execute();
+                $Videos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            }               
+            
             foreach ($productos as $product) {
                 $sql = "SELECT Producto_rp, Producto_r, Image, 'Nombre producto extra' as Name, '122' as Price, '0' as Quantity  FROM v_related_products WHERE Producto_rp = :idproduct ";
                 $stmt = $db->prepare($sql);
@@ -1708,6 +1717,7 @@ function products($table_name,$db, $method, $id, $data){
                 "data" => $productos,
                 "Image" => $Image,
                 "Images" => $Images,
+                "Videos" => $Videos,
                 "Accesories" => $Accesories,
                 "UpSelling"=>$UpSelling,
                 "Resultadosp"=>$resultados_p
