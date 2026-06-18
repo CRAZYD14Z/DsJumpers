@@ -323,7 +323,7 @@ function calcularCarga(array $productos, float $factorHolgura = 1.2): array
     ];
 }
 
-$stmt = $db->prepare("Select Lat,Lng FROM account WHERE Id = 1");
+$stmt = $db->prepare("Select Lat,Lng FROM account WHERE Id = ".$_SESSION['database_id']);
 $stmt->execute();
 $account = $stmt->fetch(PDO::FETCH_ASSOC); 
 // Vehículos
