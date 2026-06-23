@@ -1985,8 +1985,15 @@ function get_all_sales($table_name,$db, $method, $id, $data){
 
             if ($categoria !== 'all' && !empty($categoria)) {
                 // Filtramos por el nombre de la categoría (o el ID si lo prefieres cambiar)
-                $where_categoria = " AND v_products.Nombre = :categoria ";
-                $params[':categoria'] = $categoria;
+                if ($categoria == 'stock'){
+                    $where_categoria = " AND inventory_stock.Quantity_for_sale > 0 ";
+                }
+                else{
+                    $where_categoria = " AND v_products.Nombre = :categoria ";
+                    $params[':categoria'] = $categoria;
+                }
+
+
             }
 
             if ($search !== '' && !empty($search)) {
@@ -1997,6 +2004,7 @@ function get_all_sales($table_name,$db, $method, $id, $data){
                 $params[':search'] = '%' . $search . '%';
             }         
 
+//                    
 
             // 3. Determinar el ordenamiento basado en el precio neto (SalePrice - Discount)
             $order_by = " ORDER BY precio_neto ASC "; // Por defecto precio menor
@@ -2023,7 +2031,6 @@ function get_all_sales($table_name,$db, $method, $id, $data){
                     v_products.Active = 1 AND
                     v_products.For_Sale = 1 AND
                     products_images.Orden = 1 AND
-                    inventory_stock.Quantity_for_sale > 0 AND 
                     inventory_stock.Active = 1
                     $where_categoria
                 GROUP BY 
@@ -2062,7 +2069,12 @@ function get_all_sales($table_name,$db, $method, $id, $data){
             ";
             $stmt_total = $db->prepare($sql_total);
             if ($categoria !== 'all' && !empty($categoria)) {
-                $stmt_total->bindValue(':categoria', $categoria);
+                if ($categoria == 'stock'){
+                 
+                }else{
+                    $stmt_total->bindValue(':categoria', $categoria);
+                }                
+                
             }
 
             if ($search !== '' && !empty($search)) {
