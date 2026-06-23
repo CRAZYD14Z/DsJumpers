@@ -149,6 +149,22 @@ switch ($resource) {
 	    $Traducciones = Traducciones('products',$lng,$db);            
         products($resource,$db, $method, $id, $data);
     break;
+
+    case 'products_sale':
+	    $Traducciones = Traducciones('products_sale',$lng,$db);            
+        products_sale($resource,$db, $method, $id, $data);
+    break;    
+
+    case 'products_sale_stock':
+	    $Traducciones = Traducciones('products_sale_stock',$lng,$db);            
+        products_sale_stock($resource,$db, $method, $id, $data);
+    break;
+
+    case 'products_sale_hero':
+	    $Traducciones = Traducciones('products_sale_hero',$lng,$db);            
+        products_sale_hero($resource,$db, $method, $id, $data);
+    break;    
+
     case 'categories':
 	    $Traducciones = Traducciones('categories',$lng,$db);            
         categories($resource,$db, $method, $id, $data);
@@ -263,6 +279,7 @@ switch ($resource) {
         echo json_encode(["message" => "Recurso '" . $resource . "' no encontrado."]);
         break;
 }
+
 $db = null;
 function OPAY($table_name,$db, $method, $id, $data){
     global $IDS;
@@ -1730,6 +1747,189 @@ function products($table_name,$db, $method, $id, $data){
         break;
     }      
 }
+
+function products_sale($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+            /*
+            $sql = "SELECT * FROM products WHERE Name = :name";
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(":name", $data->Product); 
+            $stmt->execute();
+            $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            */
+            $sql = "SELECT * FROM products WHERE Id = :id AND Active = 1 AND For_Sale = 1";
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(":id", $data->IdP); 
+            $stmt->execute();
+            $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);            
+            foreach ($productos as $product) {
+                $sql = "SELECT Image FROM products_images WHERE Product = :idproduct AND Orden = 1";
+                $stmt = $db->prepare($sql);
+                $stmt->bindValue(":idproduct", $product['Id']); 
+                $stmt->execute();
+                $Image = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            }
+            foreach ($productos as $product) {
+                $sql = "SELECT Image FROM products_images WHERE Product = :idproduct ORDER BY Orden";
+                $stmt = $db->prepare($sql);
+                $stmt->bindValue(":idproduct",$product['Id']); 
+                $stmt->execute();
+                $Images = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            }   
+            
+            foreach ($productos as $product) {
+                $sql = "SELECT * FROM products_videos WHERE Product = :idproduct ORDER BY Title";
+                $stmt = $db->prepare($sql);
+                $stmt->bindValue(":idproduct",$product['Id']); 
+                $stmt->execute();
+                $Videos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            }               
+            
+
+            http_response_code(200);
+            echo json_encode([
+                "status" => "success",
+                "total" => count($productos),
+                "data" => $productos,
+                "Image" => $Image,
+                "Images" => $Images,
+                "Videos" => $Videos
+            ]);
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }      
+}
+
+function products_sale_stock($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+            // 1. Definimos el SQL como un simple string (texto)
+            $sql = "
+            
+                    SELECT
+                        products.Id, 
+                        products.`Name`, 
+                        products.SalePrice, 
+                        products.Discount, 
+                        products_images.Image, 
+                        sum(inventory_stock.Quantity_for_sale) as Quantity
+                    FROM
+                        products
+                        INNER JOIN
+                        products_images
+                        ON 
+                            products.Id = products_images.Product
+                        INNER JOIN
+                        inventory_stock
+                        ON 
+                            products.Id = inventory_stock.Id_product
+                    WHERE
+                        products.Active = 1 AND
+                        products.For_Sale = 1 AND
+                        products_images.Orden = 1 AND
+                        inventory_stock.Quantity_for_sale > 0 AND 
+                        inventory_stock.Active = 1
+                        GROUP BY inventory_stock.Id_product
+                        ORDER BY 
+                        RAND()
+                    LIMIT 4           
+
+            ";
+            // 2. Preparamos la consulta
+            $stmt = $db->prepare($sql);
+            // 3. Vinculamos el valor (asegúrate que $data->Product exista)
+            //$stmt->bindValue(":name", $data->Product); 
+            // 4. EJECUTAMOS la consulta (Paso vital que faltaba)
+            $stmt->execute();
+            // 5. Obtenemos los resultados desde el $stmt, no desde $db ni $query
+            $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // 6. Respuesta JSON
+            http_response_code(200);
+            echo json_encode([
+                "status" => "success",
+                "total" => count($productos),
+                "data" => $productos
+            ]);
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }       
+}
+
+function products_sale_hero($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+            // 1. Definimos el SQL como un simple string (texto)
+            $sql = "
+                    SELECT
+                        products.Id, 
+                        products.`Name`, 
+                        products.SalePrice, 
+                        products.Discount, 
+                        products_images.Image, 
+                        sum(inventory_stock.Quantity_for_sale) as Quantity
+                    FROM
+                        products
+                        INNER JOIN
+                        products_images
+                        ON 
+                            products.Id = products_images.Product
+                        INNER JOIN
+                        inventory_stock
+                        ON 
+                            products.Id = inventory_stock.Id_product
+                    WHERE
+                        products.Active = 1 AND
+                        products.For_Sale = 1 AND
+                        products_images.Orden = 1 AND
+                        inventory_stock.Quantity_for_sale > 0 AND 
+                        inventory_stock.Active = 1
+                        GROUP BY inventory_stock.Id_product
+                        ORDER BY 
+                        RAND()
+                    LIMIT 1            
+
+            ";
+
+            $stmt = $db->prepare($sql);
+            $stmt->execute();
+            $producto = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($producto as $prd) {
+                $sql = "SELECT Image FROM products_images WHERE Product = '".$prd['Id']."' AND ORden > 1 ORDER BY Orden LIMIT 1";
+                $stmt = $db->prepare($sql);
+                $stmt->execute();
+                $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            }
+
+            http_response_code(200);
+            echo json_encode([
+                "status" => "success",
+                "total" => count($producto),
+                "data" => $producto,
+                "images" => $images
+            ]);
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }       
+}
+
+
 function get_discounts($table_name,$db, $method, $id, $data){
     global $IDS;
     switch ($method) {
@@ -1763,7 +1963,7 @@ function categories($table_name,$db, $method, $id, $data){
     switch ($method) {
         case 'POST': 
             // 1. Definimos el SQL como un simple string (texto)
-            $sql = "SELECT Id, Nombre, Imagen FROM categories WHERE IntExt = 1 ";
+            $sql = "SELECT Id, Nombre, Imagen FROM categories WHERE IntExt = 1 ORDER BY Nombre ";
             // 2. Preparamos la consulta
             $stmt = $db->prepare($sql);
             // 3. Vinculamos el valor (asegúrate que $data->Product exista)
