@@ -165,6 +165,11 @@ switch ($resource) {
         products_sale_hero($resource,$db, $method, $id, $data);
     break;    
 
+    case 'get_all_sales':
+	    //$Traducciones = Traducciones('get_all_sales',$lng,$db);            
+        get_all_sales($resource,$db, $method, $id, $data);
+    break;    
+
     case 'categories':
 	    $Traducciones = Traducciones('categories',$lng,$db);            
         categories($resource,$db, $method, $id, $data);
@@ -1958,6 +1963,134 @@ function get_discounts($table_name,$db, $method, $id, $data){
         break;
     }      
 }
+
+function get_all_sales($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+            // 1. Recibir y sanitizar los parámetros
+            $pagina = isset($data->pagina) ? (int)$data->pagina : 1;
+            $registros_por_pagina = isset($data->registros_por_pagina) ? (int)$data->registros_por_pagina : 10;
+            $categoria = isset($data->categoria) ? $data->categoria : 'all';
+            $orden = isset($data->orden) ? $data->orden : 'precio_menor';
+            $search = isset($data->search) ? $data->search : '';
+
+            // Calcular el desplazamiento (OFFSET) para el paginado
+            if ($pagina < 1) $pagina = 1;
+            $offset = ($pagina - 1) * $registros_por_pagina;
+
+            // 2. Construir condiciones dinámicas (Filtro de categoría)
+            $where_categoria = "";
+            $params = [];
+
+            if ($categoria !== 'all' && !empty($categoria)) {
+                // Filtramos por el nombre de la categoría (o el ID si lo prefieres cambiar)
+                $where_categoria = " AND v_products.Nombre = :categoria ";
+                $params[':categoria'] = $categoria;
+            }
+
+            if ($search !== '' && !empty($search)) {
+                // 1. Dejamos el marcador limpio en el SQL
+                $where_categoria.= " AND v_products.`Name` LIKE :search ";
+                
+                // 2. Concatenamos los comodines '%' al valor real en PHP
+                $params[':search'] = '%' . $search . '%';
+            }         
+
+
+            // 3. Determinar el ordenamiento basado en el precio neto (SalePrice - Discount)
+            $order_by = " ORDER BY precio_neto ASC "; // Por defecto precio menor
+            if ($orden === 'precio_mayor') {
+                $order_by = " ORDER BY precio_neto DESC ";
+            }
+
+            // 4. Consulta SQL principal con paginado y cálculo de precio neto
+            $sql = "
+                SELECT
+                    v_products.Id, 
+                    v_products.`Name`,
+                    v_products.Nombre as Categoria, 
+                    v_products.SalePrice, 
+                    v_products.Discount,
+                    (v_products.SalePrice - v_products.Discount) as precio_neto,
+                    products_images.Image, 
+                    SUM(inventory_stock.Quantity_for_sale) as Quantity
+                FROM
+                    v_products
+                    INNER JOIN products_images ON v_products.Id = products_images.Product
+                    INNER JOIN inventory_stock ON v_products.Id = inventory_stock.Id_product
+                WHERE
+                    v_products.Active = 1 AND
+                    v_products.For_Sale = 1 AND
+                    products_images.Orden = 1 AND
+                    inventory_stock.Quantity_for_sale > 0 AND 
+                    inventory_stock.Active = 1
+                    $where_categoria
+                GROUP BY 
+                    v_products.Id, 
+                    v_products.`Name`,
+                    v_products.Nombre, 
+                    v_products.SalePrice, 
+                    v_products.Discount,
+                    products_images.Image
+                $order_by
+                LIMIT :limit OFFSET :offset
+            ";
+            //echo $sql;
+            $stmt = $db->prepare($sql);
+
+            // Asignar parámetros del filtro si existen
+            foreach ($params as $key => $val) {
+                $stmt->bindValue($key, $val);
+            }
+
+            // Los parámetros de LIMIT y OFFSET deben ser tratados estrictamente como enteros en PDO
+            $stmt->bindValue(':limit', $registros_por_pagina, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+
+            $stmt->execute();
+            $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // 5. (Opcional pero recomendado) Obtener el total real de registros para que el frontend calcule las páginas totales
+            $sql_total = "
+                SELECT COUNT(DISTINCT v_products.Id) as total 
+                FROM v_products
+                INNER JOIN products_images ON v_products.Id = products_images.Product
+                INNER JOIN inventory_stock ON v_products.Id = inventory_stock.Id_product
+                WHERE v_products.Active = 1 AND v_products.For_Sale = 1 AND products_images.Orden = 1 AND inventory_stock.Quantity_for_sale > 0 AND inventory_stock.Active = 1
+                $where_categoria
+            ";
+            $stmt_total = $db->prepare($sql_total);
+            if ($categoria !== 'all' && !empty($categoria)) {
+                $stmt_total->bindValue(':categoria', $categoria);
+            }
+
+            if ($search !== '' && !empty($search)) {
+                $stmt_total->bindValue(':search', '%' . $search . '%');
+            }                   
+
+            $stmt_total->execute();
+            $total_registros = $stmt_total->fetch(PDO::FETCH_ASSOC)['total'];
+
+            // 6. Respuesta JSON
+            http_response_code(200);
+            echo json_encode([
+                "status" => "success",
+                "pagina_actual" => $pagina,
+                "registros_por_pagina" => $registros_por_pagina,
+                "total_registros" => (int)$total_registros,
+                "total_paginas" => ceil($total_registros / $registros_por_pagina),
+                "data" => $productos
+            ]);
+        break;    
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }      
+}
+
 function categories($table_name,$db, $method, $id, $data){
     global $IDS;
     switch ($method) {
