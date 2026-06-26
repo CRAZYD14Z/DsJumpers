@@ -163,7 +163,42 @@ switch ($resource) {
     case 'products_sale_hero':
 	    $Traducciones = Traducciones('products_sale_hero',$lng,$db);            
         products_sale_hero($resource,$db, $method, $id, $data);
-    break;    
+    break;  
+    
+    case 'sales_customer_register':
+	    $Traducciones = Traducciones('sales_customer_register',$lng,$db);            
+        sales_customer_register($resource,$db, $method, $id, $data);
+    break;      
+    
+    case 'sales_customer_login':
+	    $Traducciones = Traducciones('sales_customer_login',$lng,$db);            
+        sales_customer_login($resource,$db, $method, $id, $data);
+    break;      
+
+    case 'update_profile':
+	    $Traducciones = Traducciones('update_profile',$lng,$db);            
+        update_profile($resource,$db, $method, $id, $data);
+    break;   
+
+    case 'get_orders':
+	    $Traducciones = Traducciones('get_orders',$lng,$db);            
+        get_orders($resource,$db, $method, $id, $data);
+    break;   
+    
+    case 'get_addresses':
+	    $Traducciones = Traducciones('get_addresses',$lng,$db);            
+        get_addresses($resource,$db, $method, $id, $data);
+    break;   
+    
+    case 'create_address':
+	    $Traducciones = Traducciones('create_address',$lng,$db);            
+        create_address($resource,$db, $method, $id, $data);
+    break;       
+
+    case 'creatdelete_addresse_address':
+	    $Traducciones = Traducciones('delete_address',$lng,$db);            
+        delete_address($resource,$db, $method, $id, $data);
+    break;     
 
     case 'get_all_sales':
 	    //$Traducciones = Traducciones('get_all_sales',$lng,$db);            
@@ -237,6 +272,20 @@ switch ($resource) {
         $Traducciones = Traducciones('processpayment_paypal',$lng,$db);
         processpayment_paypal($resource,$db, $method, $id, $data);
     break;    
+
+    case 'processpayment_sale':
+	    $Traducciones = Traducciones('processpayment_sale',$lng,$db);            
+        processpayment_sale($resource,$db, $method, $id, $data);
+    break;  
+    case 'processpayment_square_sale':
+        $Traducciones = Traducciones('processpayment_square_sale',$lng,$db);
+        processpayment_square_sale($resource,$db, $method, $id, $data);
+    break;
+
+    case 'processpayment_paypal_sale':
+        $Traducciones = Traducciones('processpayment_paypal_sale',$lng,$db);
+        processpayment_paypal_sale($resource,$db, $method, $id, $data);
+    break;      
 
     case 'gifcard_pay':
         $Traducciones = Traducciones('gifcard_pay',$lng,$db);         
@@ -519,6 +568,200 @@ function gifcard_pay($table_name,$db, $method, $id, $data){
     }      
 }
 
+function processpayment_paypal_sale($table_name,$db, $method, $id, $data){
+    global $IDS;
+    global $lng;
+    switch ($method) {
+        case 'POST':
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(4)));
+        break;
+    }               
+}
+function processpayment_square_sale($table_name,$db, $method, $id, $data){
+    global $IDS;
+    global $lng;
+    switch ($method) {
+        case 'POST':
+
+            $stmt = $db->prepare("SELECT * FROM  square_account");
+            $stmt->execute();
+            $square_account = $stmt->fetch();       
+            $accessToken = $square_account['Token'];
+            $locationId  = $square_account['LocalId'];
+            // ── Recibir token del frontend ─────────────────────────────────────────────────
+            //$input = json_decode(file_get_contents('php://input'), true);
+            $token_id = $data->token_id ?? null;
+            if (!$token_id) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => Trd(1)]);
+                exit;
+            }
+                // 2. Recibir datos del formulario
+                $tokenId    = $data->token_id ?? null;
+                $token      = $data->token ?? null;
+                $deviceId   = $data->deviceIdHiddenFieldName ?? null;
+                $amount     = $data->amount ?? 0;
+                $amount = $amount * 100;
+                $ahora = date("Y-m-d H:i:s");            
+
+                // Datos del cliente
+                $customerData = [
+                    'name' => $data->name,
+                    'last_name' => $data->last_name,
+                    'email' => $data->email,
+                    'phone_number' => $data->phone ?? '5500000000'
+                ];
+            // ── Inicializar cliente Square (v45) ───────────────────────────────────────────
+            $square = new SquareClient(
+                token: $accessToken,
+                options: ['baseUrl' => 'https://connect.squareupsandbox.com'] // sandbox
+                // Para producción: omitir baseUrl o usar 'https://connect.squareup.com'
+            );
+            // ── Crear el pago ──────────────────────────────────────────────────────────────
+            try {
+                $response = $square->payments->create(
+                    request: new CreatePaymentRequest([
+                        'idempotencyKey' => uniqid('Pago_', true), // clave única por transacción
+                        'sourceId'       => $token_id,
+                        'locationId'     => $locationId,
+                        'amountMoney'    => new Money([
+                            'amount'   => $amount,           // en centavos: 1000 = $10.00 USD
+                            'currency' => Currency::Usd->value,
+                        ]),
+                        'note' => Trd(4) . $customerData['name'],
+                    ])
+                );
+                $payment = $response->getPayment();     
+
+                
+            } catch (SquareApiException $e) {
+                // Error de la API de Square (4xx / 5xx)
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'error'   => $e->getMessage(),
+                    'code'    => $e->getCode(),
+                    'body'    => json_decode($e->getBody(), true),
+                    'status' => 'error',
+                    'error_code' => $e->getCode(),
+                    'description' => $e->getMessage()        
+                ]);
+            } catch (SquareException $e) {
+                // Error de red u otro error del SDK
+                http_response_code(500);
+                echo json_encode([
+                    'success' => false,
+                    'error'   => Trd(5) . $e->getMessage(),
+                    'status' => 'error',
+                    'description' => $e->getMessage()
+                ]);
+            }    
+
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(4)));
+        break;
+    }
+}
+function processpayment_sale($table_name,$db, $method, $id, $data){
+    global $IDS;
+    global $lng;
+    switch ($method) {
+        case 'POST':
+
+        $stmt = $db->prepare("SELECT * FROM  opay_account");
+        $stmt->execute();
+        $opay_account = $stmt->fetch();       
+        $merchantId = $opay_account['Id'];
+        $privateKey = $opay_account['SecretKey'];            
+        $countryCode = 'MX';
+        $clientIp = $_SERVER['REMOTE_ADDR'];
+        $isSandbox = true;
+        try {
+            $openpay = Openpay::getInstance($merchantId, $privateKey,$countryCode,$clientIp);
+            Openpay::setProductionMode(!$isSandbox);
+            // 2. Recibir datos del formulario
+            $tokenId    = $data->token_id;
+            $token      = $data->token;
+            $deviceId   = $data->deviceIdHiddenFieldName;
+            $amount     = $data->amount;
+            $ahora = date("Y-m-d H:i:s");
+
+
+            // Datos del cliente
+            $customerData = [
+                'name' => $data->name,
+                'last_name' => $data->last_name,
+                'email' => $data->email,
+                'phone_number' => $data->phone ?? '5500000000'
+            ];
+            if (!$tokenId || !$deviceId) {
+                throw new Exception(Trd(3));
+            }
+            $Currency = 'MXN';
+            // 3. Preparar el objeto del cargo
+            $chargeRequest = [
+                'method' => 'card',
+                'source_id' => $tokenId,
+                'amount' => (float)$amount,
+                'currency' => $Currency,
+                'description' => Trd(4) . $customerData['name'],
+                'device_session_id' => $deviceId, // Vital para el sistema antifraude
+                'customer' => $customerData,
+                // Si quieres habilitar 3D Secure para mayor seguridad:
+                // 'use_3d_secure' => true,
+                // 'redirect_url' => 'https://tu-sitio.com/pago-completado',
+            ];
+            // 4. Realizar el cargo
+            $charge = $openpay->charges->create($chargeRequest);
+            // 5. Respuesta según el estado del pago
+            if ($charge->status == 'completed') {
+
+            } else {
+                // En caso de pagos pendientes (como 3D Secure)
+                echo json_encode([
+                    'status' => 'pending',
+                    'url' => $charge->payment_method->url
+                ]);
+            }            
+
+
+
+        } catch (OpenpayApiTransactionError $e) {
+            // Errores específicos de la transacción (ej. fondos insuficientes)
+            http_response_code(402);
+            echo json_encode([
+                'status' => 'error',
+                'error_code' => $e->getErrorCode(),
+                'description' => $e->getMessage()
+            ]);
+        } catch (\Exception $e) {
+            // Errores generales del sistema
+            http_response_code(500);
+            echo json_encode([
+                'status' => 'error',
+                'description' => $e->getMessage()
+            ]);
+        }  
+
+
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(4)));
+        break;
+    }
+}
 function processpayment_paypal($table_name,$db, $method, $id, $data){
     global $IDS;
     global $lng;
@@ -1764,7 +2007,7 @@ function products_sale($table_name,$db, $method, $id, $data){
             $stmt->execute();
             $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             */
-            $sql = "SELECT * FROM products WHERE Id = :id AND Active = 1 AND For_Sale = 1";
+            $sql = "SELECT * FROM v_products WHERE Id = :id AND Active = 1 AND For_Sale = 1";
             $stmt = $db->prepare($sql);
             $stmt->bindValue(":id", $data->IdP); 
             $stmt->execute();
@@ -1792,6 +2035,14 @@ function products_sale($table_name,$db, $method, $id, $data){
                 $Videos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }               
             
+            foreach ($productos as $product) {
+                $sql = "SELECT Sum(Quantity_for_sale) as Quantity FROM inventory_stock WHERE Id_product = :idproduct AND Active = 1";
+                $stmt = $db->prepare($sql);
+                $stmt->bindValue(":idproduct",$product['Id']); 
+                $stmt->execute();
+                $Stock = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            }            
+
 
             http_response_code(200);
             echo json_encode([
@@ -1800,7 +2051,8 @@ function products_sale($table_name,$db, $method, $id, $data){
                 "data" => $productos,
                 "Image" => $Image,
                 "Images" => $Images,
-                "Videos" => $Videos
+                "Videos" => $Videos,
+                "Stock" => $Stock,
             ]);
         break;
         default:
@@ -1934,6 +2186,359 @@ function products_sale_hero($table_name,$db, $method, $id, $data){
     }       
 }
 
+function sales_customer_register($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+
+        $firstname = isset($data->firstname) ? trim($data->firstname) : '';
+        $lastname  = isset($data->lastname) ? trim($data->lastname) : '';
+        $email     = isset($data->email) ? filter_var(trim($data->email), FILTER_VALIDATE_EMAIL) : false;
+        $phone     = isset($data->phone) ? preg_replace('/\s+/', '', $data->phone) : '';
+        $state     = isset($data->state) ? trim($data->state) : '';
+        $password  = isset($data->password) ? $data->password : '';
+        $password_confirm = isset($data->password_confirm) ? $data->password_confirm : '';
+
+        // 2. Validaciones estrictas del Backend
+        if (empty($firstname) || empty($lastname) || empty($phone) || empty($state) || empty($password)) {
+            echo json_encode(['success' => false, 'message' => 'Todos los campos son obligatorios.']);
+            exit;
+        }
+
+        if (!$email) {
+            echo json_encode(['success' => false, 'message' => 'La dirección de correo electrónico no es válida.']);
+            exit;
+        }
+
+        if (strlen($phone) !== 10 || !ctype_digit($phone)) {
+            echo json_encode(['success' => false, 'message' => 'El número de teléfono debe contener exactamente 10 dígitos numéricos.']);
+            exit;
+        }
+
+        if (strlen($password) < 8) {
+            echo json_encode(['success' => false, 'message' => 'La contraseña debe tener al menos 8 caracteres.']);
+            exit;
+        }
+
+        if ($password !== $password_confirm) {
+            echo json_encode(['success' => false, 'message' => 'Las contraseñas enviadas no coinciden.']);
+            exit;
+        }
+
+        try {
+
+
+            $stmtCheck = $db->prepare("SELECT id FROM sale_customers WHERE email = :email LIMIT 1");
+            $stmtCheck->execute([':email' => $email]);
+            
+            if ($stmtCheck->fetch()) {
+                echo json_encode(['success' => false, 'message' => 'El correo electrónico ya está registrado con otra cuenta.']);
+                exit;
+            }
+
+
+            $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+
+
+            $sqlInsert = "INSERT INTO sale_customers (firstname, lastname, email, phone, state, password) 
+                        VALUES (:firstname, :lastname, :email, :phone, :state, :password)";
+            
+            $stmtInsert = $db->prepare($sqlInsert);
+            $result = $stmtInsert->execute([
+                ':firstname' => $firstname,
+                ':lastname'  => $lastname,
+                ':email'     => $email,
+                ':phone'     => $phone,
+                ':state'     => $state,
+                ':password'  => $passwordHash
+            ]);
+
+            if ($result) {
+                // Obtener el ID generado para el cliente recién creado
+                $customerId = $db->lastInsertId();
+
+                $sql = "SELECT id,firstname,lastname,email,phone,state FROM sale_customers WHERE id  = $customerId";
+                $stmt = $db->prepare($sql);
+                $stmt->execute();
+                $sale_customer = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                // Respuesta exitosa para el Frontend
+                echo json_encode([
+                    'success' => true,
+                    'sale_customer' => $sale_customer,
+                    'message' => 'Tu perfil de distribuidor ha sido activado e iniciaste sesión con éxito.'
+                ]);
+                exit;
+            } else {
+                echo json_encode(['success' => false, 'message' => 'No se pudieron guardar los datos. Inténtalo de nuevo.']);
+                exit;
+            }
+
+        } catch (PDOException $e) {
+            // Log interno del error para depuración en desarrollo (no exponer detalles crudos al cliente)
+            error_log("Error de Registro PDO: " . $e->getMessage());
+            
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Ocurrió un error inesperado en el servidor de base de datos. Por favor, inténtalo más tarde.'
+            ]);
+            exit;
+        }            
+
+
+
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }       
+}            
+
+function sales_customer_login($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+
+
+$loginUser = isset($data->loginUser) ? trim($data->loginUser) : '';
+$loginPass = isset($data->loginPass) ? $data->loginPass : '';            
+
+
+try {
+
+
+    // Buscar al cliente por correo electrónico
+    $sql = "SELECT id, firstname, lastname, email, password FROM sale_customers WHERE email = :email LIMIT 1";
+    $stmt = $db->prepare($sql);
+    $stmt->execute([':email' => $loginUser]);
+    
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Verificar si el usuario existe y la contraseña coincide con el hash almacenado
+    if ($user && password_verify($loginPass, $user['password'])) {
+
+        $sql = "SELECT id,firstname,lastname,email,phone,state FROM sale_customers WHERE id  = ". $user['id'];
+        $stmt = $db->prepare($sql);
+        $stmt->execute();
+        $sale_customer = $stmt->fetch(PDO::FETCH_ASSOC);        
+
+
+        echo json_encode([
+            'success' => true,
+            'sale_customer' => $sale_customer,
+            'message' => 'Sesión iniciada correctamente.'
+        ]);
+        exit;
+    } else {
+        // Mensaje genérico para no dar pistas a atacantes si el correo existe o no
+        echo json_encode([
+            'success' => false,
+            'message' => 'El correo electrónico o la contraseña son incorrectos.'
+        ]);
+        exit;
+    }
+
+} catch (PDOException $e) {
+    error_log("Error de Login PDO: " . $e->getMessage());
+    echo json_encode([
+        'success' => false,
+        'message' => 'Error interno en el servidor de accesos. Inténtalo más tarde.'
+    ]);
+    exit;
+}            
+
+            
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }       
+}    
+
+
+
+function update_profile($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+            $firstname = $data->firstname;
+            $lastname = $data->lastname;
+            $phone = $data->phone;
+            $customerId = $data->customerId;
+
+            $stmt = $db->prepare("UPDATE sale_customers SET firstname = :f, lastname = :l, phone = :p WHERE id = :id");
+            $stmt->execute([':f' => $firstname, ':l' => $lastname, ':p' => $phone, ':id' => $customerId]);            
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Información de perfil actualizada con éxito.'
+            ]);            
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }       
+}                
+
+function get_orders($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+            $type = $data->type;
+            $statusCondition = ($type === 'process') ? "NOT IN ('Entregado', 'Cancelado')" : "= 'Entregado'";            
+            $customerId = $data->customerId;
+            /*
+            // Nota: Adapta este query asociándolo a tus tablas reales de 'orders' y 'order_items'
+            $sql = "SELECT id, date, total, city, state, status, product_title, qty, product_img 
+                    FROM orders WHERE customer_id = :cid AND status $statusCondition ORDER BY id DESC";
+            
+            $stmt = $db->prepare($sql);
+            $stmt->execute([':cid' => $customerId]);
+            $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            */
+            $orders = [];
+            echo json_encode(['success' => true, 'data' => $orders]);
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }       
+}    
+
+function get_addresses($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+            $customerId = $data->customerId;
+
+            $stmt = $db->prepare("SELECT id, alias, state, city, street, colonia, zip, `references`, is_default FROM sale_customer_addresses WHERE customer_id = :cid ORDER BY is_default DESC, id DESC");
+            $stmt->execute([':cid' => $customerId]);
+            $addresses = $stmt->fetchAll(PDO::FETCH_ASSOC);          
+
+            echo json_encode([
+                'success' => true, 
+                'data' => $addresses
+            ]);            
+            
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }       
+}    
+
+function create_address($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+            $customerId = $data->customerId;
+            $action  = $data->action;
+            $alias   = $data->alias;
+            $state   = $data->state;
+            $city    = $data->city;
+            $street  = $data->street;
+            $colonia = $data->colonia;
+            $zip     = $data->zip;
+            $refs    = $data->refs;
+            $addrId  = $data->addrId;
+
+            // Validar si el cliente ya cuenta con direcciones previas (si es la primera, marcar como por defecto)
+            $stmtCount = $db->prepare("SELECT COUNT(*) FROM sale_customer_addresses WHERE customer_id = :cid");
+            $stmtCount->execute([':cid' => $customerId]);
+            $hasAddresses = (int)$stmtCount->fetchColumn() > 0;
+            $isDefault = $hasAddresses ? 0 : 1;
+
+            if ($action === 'create_address') {
+                $sql = "INSERT INTO sale_customer_addresses (customer_id, alias, state, city, street, colonia, zip, `references`, is_default) 
+                        VALUES (:cid, :alias, :state, :city, :street, :colonia, :zip, :refs, :is_default)";
+                $stmt = $db->prepare($sql);
+                $stmt->execute([
+                    ':cid' => $customerId, ':alias' => $alias, ':state' => $state, ':city' => $city,
+                    ':street' => $street, ':colonia' => $colonia, ':zip' => $zip, ':refs' => $refs, ':is_default' => $isDefault
+                ]);
+                $msg = "Nueva dirección agregada con éxito.";
+            } else {
+                // Verificar pertenencia por seguridad antes de actualizar
+                $sql = "UPDATE sale_customer_addresses SET alias = :alias, state = :state, city = :city, street = :street, 
+                        colonia = :colonia, zip = :zip, `references` = :refs 
+                        WHERE id = :aid AND customer_id = :cid";
+                $stmt = $db->prepare($sql);
+                $stmt->execute([
+                    ':alias' => $alias, ':state' => $state, ':city' => $city, ':street' => $street,
+                    ':colonia' => $colonia, ':zip' => $zip, ':refs' => $refs, ':aid' => $addrId, ':cid' => $customerId
+                ]);
+                $msg = "Dirección de envío actualizada.";
+            }
+
+            echo json_encode(['success' => true, 'message' => $msg]);
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }       
+}    
+
+function delete_address($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+            
+            $customerId = $data->customerId;
+            $addrId  = $data->addrId;            
+
+            // 1. REQUISITO DE VALIDACIÓN CRÍTICO: Contar cuántas direcciones tiene actualmente el usuario
+            $stmtCount = $db->prepare("SELECT COUNT(*) FROM customer_addresses WHERE customer_id = :cid");
+            $stmtCount->execute([':cid' => $customerId]);
+            $totalAddresses = (int)$stmtCount->fetchColumn();
+
+            if ($totalAddresses <= 1) {
+                echo json_encode([
+                    'success' => false, 
+                    'message' => 'No puedes eliminar esta dirección. Debes mantener al menos una dirección registrada para tus entregas.'
+                ]);
+                exit;
+            }
+
+            // 2. Verificar si la dirección a borrar es la "Principal" (is_default) para delegar el rol a otra
+            $stmtCheckDefault = $db->prepare("SELECT is_default FROM customer_addresses WHERE id = :aid AND customer_id = :cid");
+            $stmtCheckDefault->execute([':aid' => $addrId, ':cid' => $customerId]);
+            $isDefault = (int)$stmtCheckDefault->fetchColumn();
+
+            // 3. Ejecutar borrado seguro asegurando propiedad del id
+            $stmtDel = $db->prepare("DELETE FROM customer_addresses WHERE id = :aid AND customer_id = :cid");
+            $stmtDel->execute([':aid' => $addrId, ':cid' => $customerId]);
+
+            // 4. Si borramos la principal, convertimos de manera automática otra dirección aleatoria en predeterminada
+            if ($isDefault === 1) {
+                $stmtSetDefault = $db->prepare("UPDATE customer_addresses SET is_default = 1 WHERE customer_id = :cid LIMIT 1");
+                $stmtSetDefault->execute([':cid' => $customerId]);
+            }
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }       
+}    
 
 function get_discounts($table_name,$db, $method, $id, $data){
     global $IDS;
@@ -1988,6 +2593,12 @@ function get_all_sales($table_name,$db, $method, $id, $data){
                 if ($categoria == 'stock'){
                     $where_categoria = " AND inventory_stock.Quantity_for_sale > 0 ";
                 }
+                elseif ($categoria == 'byrequest'){
+                    $where_categoria = " AND v_products.OnlyRequest = 1 ";
+                }                 
+                elseif ($categoria == 'newdesign'){
+                    $where_categoria = " AND v_products.NewDesign = 1 ";
+                }                
                 else{
                     $where_categoria = " AND v_products.Nombre = :categoria ";
                     $params[':categoria'] = $categoria;
@@ -2008,9 +2619,19 @@ function get_all_sales($table_name,$db, $method, $id, $data){
 
             // 3. Determinar el ordenamiento basado en el precio neto (SalePrice - Discount)
             $order_by = " ORDER BY precio_neto ASC "; // Por defecto precio menor
-            if ($orden === 'precio_mayor') {
+            if ($orden === 'precio_menor') {
+                $order_by = " ORDER BY precio_neto ASC ";
+            }
+            elseif ($orden === 'precio_mayor') {
                 $order_by = " ORDER BY precio_neto DESC ";
             }
+            elseif ($orden === 'destacados') {
+                $order_by = " ORDER BY v_products.Featured DESC ";
+            }
+            elseif ($orden === 'nuevos') {
+                $order_by = " ORDER BY v_products.NewDesign DESC ";
+            }
+
 
             // 4. Consulta SQL principal con paginado y cálculo de precio neto
             $sql = "
@@ -2022,7 +2643,10 @@ function get_all_sales($table_name,$db, $method, $id, $data){
                     v_products.Discount,
                     (v_products.SalePrice - v_products.Discount) as precio_neto,
                     products_images.Image, 
-                    SUM(inventory_stock.Quantity_for_sale) as Quantity
+                    SUM(inventory_stock.Quantity_for_sale) as Quantity,
+                    v_products.Featured,
+                    v_products.NewDesign,
+                    v_products.OnlyRequest
                 FROM
                     v_products
                     INNER JOIN products_images ON v_products.Id = products_images.Product
@@ -2071,7 +2695,14 @@ function get_all_sales($table_name,$db, $method, $id, $data){
             if ($categoria !== 'all' && !empty($categoria)) {
                 if ($categoria == 'stock'){
                  
-                }else{
+                }
+                elseif ($categoria == 'byrequest'){
+                
+                }                 
+                elseif ($categoria == 'newdesign'){
+                
+                }   
+                else{
                     $stmt_total->bindValue(':categoria', $categoria);
                 }                
                 
