@@ -24,7 +24,9 @@
                     </a>
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" href="lead.php"><i class="fas fa-plus me-2"></i><?php echo ($_SESSION['Idioma']== 'en') ? "New Lead" : "Nuevo Evento"; ?></a></li>
+                        <li><a class="dropdown-item" href="sale.php"><i class="fas fa-plus me-2"></i><?php echo ($_SESSION['Idioma']== 'en') ? "New Sale" : "Nueva Venta"; ?></a></li>
                         <li><a class="dropdown-item" href="leads.php"><i class="fas fa-list me-2"></i><?php echo ($_SESSION['Idioma']== 'en') ? "Leads" : "Eventos"; ?></a></li>
+                        <li><a class="dropdown-item" href="sales.php"><i class="fas fa-list me-2"></i><?php echo ($_SESSION['Idioma']== 'en') ? "Sales" : "Ventas"; ?></a></li>
                         <li><a class="dropdown-item" href="pending_payments.php"><i class="fas fa-money-bill me-2"></i><?php echo ($_SESSION['Idioma']== 'en') ? "Payments" : "Pagos Pendientes"; ?></a></li>
                         <li><a class="dropdown-item" href="payment_report.php"><i class="fa-solid fa-file-invoice-dollar"></i> <?php echo ($_SESSION['Idioma']== 'en') ? "Reports" : "Reporte de Pagos"; ?></a></li>
                         <li><a class="dropdown-item" href="graficas.php"><i class="fas fa-chart-line me-2"></i><?php echo ($_SESSION['Idioma']== 'en') ? "Graphics" : "Gráficas"; ?></a></li>
@@ -54,6 +56,8 @@
         <li><a class="dropdown-item" href="crud.php?Id=account"><?php echo ($_SESSION['Idioma'] == 'en') ? "Account" : "Cuenta"; ?></a></li>
         <li><a class="dropdown-item" href="pay_platform.php"><?php echo ($_SESSION['Idioma'] == 'en') ? "Payment Platform" : "Plataforma de pago"; ?></a></li>
         <li><a class="dropdown-item" href="crud.php?Id=customers"><?php echo ($_SESSION['Idioma'] == 'en') ? "Customers" : "Clientes"; ?></a></li>
+        <li><a class="dropdown-item" href="crud.php?Id=sale_customers"><?php echo ($_SESSION['Idioma'] == 'en') ? "Sale Customers" : "Clientes de ventas"; ?></a></li>
+        <li><a class="dropdown-item" href="crud.php?Id=sale_customer_addresses"><?php echo ($_SESSION['Idioma'] == 'en') ? "Sale Customers Address" : "Direcciones de clientes de ventas"; ?></a></li>
         <li><a class="dropdown-item" href="crud.php?Id=customer_type"><?php echo ($_SESSION['Idioma'] == 'en') ? "Customer Type" : "Tipo Cliente"; ?></a></li>
         <li><a class="dropdown-item" href="crud.php?Id=organizations"><?php echo ($_SESSION['Idioma'] == 'en') ? "Organizations" : "Organizaciones"; ?></a></li>
         <li><a class="dropdown-item" href="crud.php?Id=venues"><?php echo ($_SESSION['Idioma'] == 'en') ? "Venues" : "Lugares de eventos"; ?></a></li>

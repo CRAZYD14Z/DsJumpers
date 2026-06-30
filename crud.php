@@ -163,6 +163,8 @@ div[id^="dropzone_"]:hover {
         $allowed_tables = [
             'clientes',
             'customers',
+            'sale_customers',
+            'sale_customer_addresses',
             'categories',
             'customer_type',
             'wharehouses',
@@ -1439,6 +1441,7 @@ function inicializarEstadoTabla(IdTabla) {
 
         const formDataArray = form.serializeArray();
         const formData = {};
+        let esValido = true; 
 
         $.each(formDataArray, function(index, field) {
             // 1. Buscamos el elemento real en el DOM para poder leer sus atributos
@@ -1458,7 +1461,21 @@ function inicializarEstadoTabla(IdTabla) {
                 // Para el resto, el valor tal cual
                 formData[field.name] = field.value;
             }
+            
+            if (field.name == 'password'){
+                if ($('#password').val() != $('#password_c').val() ){
+                    setTimeout(() => {
+                        showToast('❌ Es necesario que los password coincidan');
+                    }, 500);                    
+                    esValido = false;
+                    return false;
+                }
+            }
         });
+
+        if (!esValido) {
+            return;
+        }        
 
         // 3. Realizar la solicitud AJAX
         $.ajax({
@@ -2421,10 +2438,14 @@ $(".decimals").keypress(function (e) {
 
 
         function CargaImagen(Id,div){
-            alert(div)
+            //alert(div)
             //alert("ajax/tmp/"+$('#file_edit_'+Id+"_1").val())
+            <?php 
+            $folder = $IdTabla;
+                if ($IdTabla=="products"){ $folder = "products_images"; } 
+            ?>
             img = $('#file_edit_'+Id+"_1").val();
-            url = `${CFPUBLICURL}/${ID_CLIENTE}/<?php if ($IdTabla=="products"){ echo "products_images"; } ?>/originals/${img || ''}`;
+            url = `${CFPUBLICURL}/${ID_CLIENTE}/<?=  $folder  ?>/originals/${img || ''}`;
             $("#"+div).attr("src",url);
             $("#"+div).attr("width","120px");
         }

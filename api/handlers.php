@@ -64,6 +64,8 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
     $allowed_tables = [
         'clientes',
         'customers',
+        'sale_customers',
+        'sale_customer_addresses',
         'categories',
         'customer_type',
         'wharehouses',
@@ -158,7 +160,7 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
 
             
 
-                $query = "SELECT Campo FROM listado_ajax WHERE Tabla = ? AND Tipo = 'Data' ORDER BY Id";
+                $query = "SELECT Campo FROM listado_ajax WHERE Tabla = ? AND Tipo = 'Data' AND Campo <> 'password_c' ORDER BY Id";
                 $stmt = $db->prepare($query);
                 $stmt->bindParam(1, $table_name);
                 $stmt->execute();
@@ -314,7 +316,9 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                 elseif ($table_name == 'related_products')
                     $v_table_name = 'v_related_products';
                 elseif ($table_name == 'upselling_products')
-                    $v_table_name = 'v_upselling_products';                
+                    $v_table_name = 'v_upselling_products';       
+                elseif ($table_name == 'sale_customer_addresses')
+                    $v_table_name = 'v_sale_customer_addresses';                                
                 elseif ($table_name == 'distance_charges_distance'){
                     $v_table_name = 'v_distance_charges_distance';
                     //if ($Where =="")
@@ -556,6 +560,8 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                     $v_table_name = 'v_packing_list';
                 elseif ($table_name == 'upselling_products')
                     $v_table_name = 'v_upselling_products';
+                elseif ($table_name == 'sale_customer_addresses')
+                    $v_table_name = 'v_sale_customer_addresses';
                 elseif ($table_name == 'related_products')
                     $v_table_name = 'v_related_products';                
                 elseif ($table_name == 'distance_charges_distance'){
@@ -730,7 +736,7 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
         case 'POST': 
         // ------------------------------------------------------------------
         // INSERTA UN NUEVO REGISTRO
-            $query = "SELECT Campo, Requerido,TipoCampo FROM modal_add WHERE Tabla = ? AND TipoCampo <> 'auto' AND TipoCampo <> 'insert' AND TipoCampo <> 'Lst' AND TipoCampo <> 'button' AND TipoCampo <> 'option' AND TipoCampo <> 'titulo' and TipoCampo <> 'imglst' ORDER BY Id";
+            $query = "SELECT Campo, Requerido,TipoCampo FROM modal_add WHERE Tabla = ? AND TipoCampo <> 'auto' AND TipoCampo <> 'insert' AND TipoCampo <> 'Lst' AND TipoCampo <> 'button' AND TipoCampo <> 'option' AND TipoCampo <> 'titulo' and TipoCampo <> 'imglst' AND Campo <> 'password_c' ORDER BY Id";
             $stmt = $db->prepare($query);
             $stmt->bindParam(1, $table_name);
             $stmt->execute();
@@ -777,9 +783,15 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
 
             foreach ($resultados as $registro) {
                 $campo = strtolower($registro['Campo']);
-                $valor = isset($data->{$registro['Campo']}) 
-                    ? htmlspecialchars(strip_tags($data->{$registro['Campo']}))
-                    : null;
+                if ($campo == 'password'){
+                    $valor = password_hash($data->{$registro['Campo']}, PASSWORD_DEFAULT);
+                }
+                else{
+                    $valor = isset($data->{$registro['Campo']}) 
+                        ? htmlspecialchars(strip_tags($data->{$registro['Campo']}))
+                        : null;
+                }
+
                 $tipocampo = strtolower($registro['TipoCampo']);
                 if ($tipocampo =='checkbox'){
                     if ($valor == 'on'){
@@ -2993,6 +3005,58 @@ function leads($table_name,$db, $method, $id, $data){
                             ELSE 'Sin identificar'
                         END AS NombreMostrar
                         FROM v_leads 
+                        ORDER BY Id DESC 
+                        LIMIT :limit OFFSET :offset";
+
+                $stmt = $db->prepare($sql);
+                $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+                $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            }
+            $stmt->execute();            
+
+
+            if ($stmt) {
+                http_response_code(200);
+                echo json_encode($stmt->fetchAll());
+            } else {
+                http_response_code(404);
+                echo json_encode(array("message" => "Registro no encontrado."));
+            }
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+} 
+
+function sales($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+
+
+            $limit = 15;
+            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+            $offset = ($page - 1) * $limit;
+            $search = isset($_GET['search']) ? $_GET['search'] : '';
+            if ($search != ''){
+                $sql = "SELECT *
+                        FROM v_sales
+                        WHERE (NombreCliente LIKE :s OR ApellidosCliente LIKE :s)
+                        ORDER BY Id DESC 
+                        LIMIT :limit OFFSET :offset";
+
+                $stmt = $db->prepare($sql);
+                $stmt->bindValue(':s', "%$search%", PDO::PARAM_STR);
+                $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+                $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            }
+            else{
+                // Consulta con lógica de negocio integrada
+                $sql = "SELECT *
+                        FROM v_sales 
                         ORDER BY Id DESC 
                         LIMIT :limit OFFSET :offset";
 

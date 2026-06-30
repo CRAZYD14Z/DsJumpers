@@ -373,6 +373,19 @@ switch ($resource) {
         
         handle_generic_crud($resource,$db, $method, $id, $data);
         break;
+
+    case 'sale_customers':
+        
+        handle_generic_crud($resource,$db, $method, $id, $data);
+        break;        
+
+    case 'sale_customer_addresses':
+        
+        handle_generic_crud($resource,$db, $method, $id, $data);
+        break;                
+
+        
+
     case 'categories':
         
         handle_generic_crud($resource,$db, $method, $id, $data);
@@ -549,6 +562,11 @@ switch ($resource) {
     case 'leads':
         leads($resource,$db, $method, $id, $data);
         break;
+
+    case 'sales':
+        sales($resource,$db, $method, $id, $data);
+        break;        
+
     case 'pending_payments':
         pending_payments($resource,$db, $method, $id, $data);
         break;

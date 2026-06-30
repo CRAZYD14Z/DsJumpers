@@ -205,10 +205,21 @@ switch ($resource) {
         get_all_sales($resource,$db, $method, $id, $data);
     break;    
 
+    case 'get_sale':
+	    //$Traducciones = Traducciones('get_all_sales',$lng,$db);            
+        get_sale($resource,$db, $method, $id, $data);
+    break;    
+
     case 'categories':
 	    $Traducciones = Traducciones('categories',$lng,$db);            
         categories($resource,$db, $method, $id, $data);
     break;
+
+    case 'categories_sale':
+	    $Traducciones = Traducciones('categories_sale',$lng,$db);            
+        categories_sale($resource,$db, $method, $id, $data);
+    break;    
+
     case 'surfaces':
 	    $Traducciones = Traducciones('surfaces',$lng,$db);        
         surfaces($resource,$db, $method, $id, $data);
@@ -568,11 +579,131 @@ function gifcard_pay($table_name,$db, $method, $id, $data){
     }      
 }
 
+function process_sale($db,$data,$pay_id,$platform){
+
+    $sqlSale = "INSERT INTO sales (
+                    customer_id, address_id, total_amount, cart_notes, 
+                    payer_name, payer_lastname, payer_email, 
+                    payment_method, gateway_token, device_fingerprint, payment_status,cart_json
+                ) VALUES (
+                    :customer_id, :address_id, :total_amount, :cart_notes, 
+                    :payer_name, :payer_lastname, :payer_email, 
+                    :payment_method, :gateway_token, :device_fingerprint, 'completed', :cart_json
+                )";
+
+    $stmtSale = $db->prepare($sqlSale);
+    
+    $stmtSale->execute([
+        ':customer_id'       => $data->id_client,
+        ':address_id'        => $data->id_address,
+        ':total_amount'      => $data->amount,
+        ':cart_notes'        => $data->cartNote_final ?? null,
+        ':payer_name'        => $data->name,
+        ':payer_lastname'    => $data->last_name,
+        ':payer_email'       => $data->email,
+        ':payment_method'    => $data->payment_method,
+        ':gateway_token'     => $data->token_id,
+        ':device_fingerprint'=> $data->deviceIdHiddenFieldName ?? null,
+        ':cart_json' =>$data->cart_json
+    ]);
+
+    // Obtener el ID autogenerado de la venta recién creada
+    $saleId = $db->lastInsertId();
+
+    // --- PASO B: Decodificar e Insertar Artículos del Carrito ---
+    if (!isset($data->cart_json)) {
+        throw new Exception("El elemento 'cart-json' es obligatorio en la petición.");
+    }
+
+    $cartItems = json_decode($data->cart_json, true);
+    
+    if (!is_array($cartItems)) {
+        throw new Exception("El formato interno de 'cart-json' no pudo ser resuelto a una matriz.");
+    }
+
+    $sqlItem = "INSERT INTO sale_items (
+                    sale_id, product_id, product_name_snapshot, price, quantity, is_special_production
+                ) VALUES (
+                    :sale_id, :product_id, :product_name, :price, :quantity, :is_special_production
+                )";
+                
+    $stmtItem = $db->prepare($sqlItem);
+
+    foreach ($cartItems as $item) {
+        $stmtItem->execute([
+            ':sale_id'               => $saleId,
+            ':product_id'            => $item['id'],
+            ':product_name'          => $item['name'],
+            ':price'                 => $item['price'],
+            ':quantity'              => $item['quantity'],
+            ':is_special_production' => $item['onlyRequest'] ? 1 : 0
+        ]);
+    }
+
+        $sql = "SELECT * FROM account ";
+        $stmt = $db->prepare($sql);
+        $stmt->execute();                
+        $account = $stmt->fetch(PDO::FETCH_ASSOC);                
+
+        $Currency = $account['Currency'];        
+
+        $Suc = 1;
+        $Folio = 0;    
+        $stmt = $db->prepare("select MAX(Folio) as Folio FROM folios WHERE IdBranch = ? AND Type = 'PaySale'");
+        $stmt->execute([$Suc]);
+        $Payments = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($Payments){
+            $Folio = $Payments['Folio'];
+        }
+        $Folio+=1;
+        $stmt = $db->prepare(" UPDATE folios sET Folio = ? WHERE IdBranch = ? AND Type = 'PaySale'");
+        $stmt->execute([$Folio,$Suc]);           
+
+
+        $sqlPay = "INSERT INTO payments_sale (IdSale,     Type,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus,Usuario) 
+                                VALUES       (?     ,'PaySale',    ?,   now(),       ?,     ?,       ?,            ?,    'A', 'Web')";
+        $stmtPay = $db->prepare($sqlPay);        
+        $stmtPay->execute([$saleId,$Folio,$platform,$data->amount,$Currency,$pay_id]);    
+
+
+        //DESCUENTO DE EXISTENCIAS
+
+        //PROCESO DE GENERACION DE CONTRATO
+
+        //PROCESO DE ENVIO DE CORREO
+
+        return $Folio;
+
+    
+
+}
+
 function processpayment_paypal_sale($table_name,$db, $method, $id, $data){
     global $IDS;
     global $lng;
     switch ($method) {
         case 'POST':
+
+                $Folio = process_sale($db,$data,$data->orderID,'paypal');
+
+                $sql = "SELECT Currency FROM account ";
+                $stmt = $db->prepare($sql);
+                $stmt->execute();                
+                $account = $stmt->fetch(PDO::FETCH_ASSOC);                
+
+                $Currency = $account['Currency'];              
+
+                echo json_encode([
+                    'success'    => true,
+                    'payment_id' => 'PaySale - '.$Folio,
+                    'status'     => 'success',
+                    'amount'     => $data->amount,
+                    'currency'   => $Currency,
+                    'message' => '¡Pago realizado con éxito!',
+                    'transaction_id' => $data->orderID,
+                    'url' => "tnks?Sale=$Folio&Id=".$data->orderID
+                ]);            
+
 
         break;
         default:
@@ -633,10 +764,30 @@ function processpayment_square_sale($table_name,$db, $method, $id, $data){
                             'amount'   => $amount,           // en centavos: 1000 = $10.00 USD
                             'currency' => Currency::Usd->value,
                         ]),
-                        'note' => Trd(4) . $customerData['name'],
+                        'note' => 'Pago total de producto - ' . $customerData['name'],
                     ])
                 );
                 $payment = $response->getPayment();     
+
+                $Folio= process_sale($db,$data,$payment->getId(),'square');
+
+                $sql = "SELECT Currency FROM account ";
+                $stmt = $db->prepare($sql);
+                $stmt->execute();                
+                $account = $stmt->fetch(PDO::FETCH_ASSOC);                
+
+                $Currency = $account['Currency'];              
+
+                echo json_encode([
+                    'success'    => true,
+                    'payment_id' => 'PaySale - '.$Folio,
+                    'status'     => 'success',
+                    'amount'     => $data->amount,
+                    'currency'   => $Currency,
+                    'message' => '¡Pago realizado con éxito!',
+                    'transaction_id' => $payment->getId(),
+                    'url' => "tnks?Sale=$Folio&Id=".$payment->getId()
+                ]);                          
 
                 
             } catch (SquareApiException $e) {
@@ -656,7 +807,7 @@ function processpayment_square_sale($table_name,$db, $method, $id, $data){
                 http_response_code(500);
                 echo json_encode([
                     'success' => false,
-                    'error'   => Trd(5) . $e->getMessage(),
+                    'error'   => 'Error intero: ' . $e->getMessage(),
                     'status' => 'error',
                     'description' => $e->getMessage()
                 ]);
@@ -676,6 +827,9 @@ function processpayment_sale($table_name,$db, $method, $id, $data){
     global $lng;
     switch ($method) {
         case 'POST':
+
+
+
 
         $stmt = $db->prepare("SELECT * FROM  opay_account");
         $stmt->execute();
@@ -704,7 +858,7 @@ function processpayment_sale($table_name,$db, $method, $id, $data){
                 'phone_number' => $data->phone ?? '5500000000'
             ];
             if (!$tokenId || !$deviceId) {
-                throw new Exception(Trd(3));
+                throw new Exception('Faltan identificadores de seguridad (Token/Device ID).');
             }
             $Currency = 'MXN';
             // 3. Preparar el objeto del cargo
@@ -713,7 +867,7 @@ function processpayment_sale($table_name,$db, $method, $id, $data){
                 'source_id' => $tokenId,
                 'amount' => (float)$amount,
                 'currency' => $Currency,
-                'description' => Trd(4) . $customerData['name'],
+                'description' => 'Pago total de producto - ' . $customerData['name'],
                 'device_session_id' => $deviceId, // Vital para el sistema antifraude
                 'customer' => $customerData,
                 // Si quieres habilitar 3D Secure para mayor seguridad:
@@ -724,6 +878,25 @@ function processpayment_sale($table_name,$db, $method, $id, $data){
             $charge = $openpay->charges->create($chargeRequest);
             // 5. Respuesta según el estado del pago
             if ($charge->status == 'completed') {
+                $Folio = process_sale($db,$data,$charge->id,'opay');
+
+                $sql = "SELECT Currency FROM account ";
+                $stmt = $db->prepare($sql);
+                $stmt->execute();                
+                $account = $stmt->fetch(PDO::FETCH_ASSOC);                
+
+                $Currency = $account['Currency'];              
+
+                echo json_encode([
+                    'success'    => true,
+                    'payment_id' => 'PaySale - '.$Folio,
+                    'status'     => 'success',
+                    'amount'     => $data->amount,
+                    'currency'   => $Currency,
+                    'message' => '¡Pago realizado con éxito!',
+                    'transaction_id' => $charge->id,
+                    'url' => "tnks?Sale=$Folio&Id=".$charge->id
+                ]);                   
 
             } else {
                 // En caso de pagos pendientes (como 3D Secure)
@@ -2423,7 +2596,7 @@ function get_addresses($table_name,$db, $method, $id, $data){
         case 'POST': 
             $customerId = $data->customerId;
 
-            $stmt = $db->prepare("SELECT id, alias, state, city, street, colonia, zip, `references`, is_default FROM sale_customer_addresses WHERE customer_id = :cid ORDER BY is_default DESC, id DESC");
+            $stmt = $db->prepare("SELECT id, alias, country, state, city, street, colonia, zip, reference, is_default FROM sale_customer_addresses WHERE customer_id = :cid ORDER BY is_default DESC, id DESC");
             $stmt->execute([':cid' => $customerId]);
             $addresses = $stmt->fetchAll(PDO::FETCH_ASSOC);          
 
@@ -2448,6 +2621,7 @@ function create_address($table_name,$db, $method, $id, $data){
             $customerId = $data->customerId;
             $action  = $data->action;
             $alias   = $data->alias;
+            $country   = $data->country;
             $state   = $data->state;
             $city    = $data->city;
             $street  = $data->street;
@@ -2463,22 +2637,22 @@ function create_address($table_name,$db, $method, $id, $data){
             $isDefault = $hasAddresses ? 0 : 1;
 
             if ($action === 'create_address') {
-                $sql = "INSERT INTO sale_customer_addresses (customer_id, alias, state, city, street, colonia, zip, `references`, is_default) 
-                        VALUES (:cid, :alias, :state, :city, :street, :colonia, :zip, :refs, :is_default)";
+                $sql = "INSERT INTO sale_customer_addresses (customer_id, alias, country, state, city, street, colonia, zip, reference, is_default) 
+                        VALUES (:cid, :alias, :country, :state, :city, :street, :colonia, :zip, :refs, :is_default)";
                 $stmt = $db->prepare($sql);
                 $stmt->execute([
-                    ':cid' => $customerId, ':alias' => $alias, ':state' => $state, ':city' => $city,
+                    ':cid' => $customerId, ':alias' => $alias, ':country' => $country ,':state' => $state, ':city' => $city,
                     ':street' => $street, ':colonia' => $colonia, ':zip' => $zip, ':refs' => $refs, ':is_default' => $isDefault
                 ]);
                 $msg = "Nueva dirección agregada con éxito.";
             } else {
                 // Verificar pertenencia por seguridad antes de actualizar
-                $sql = "UPDATE sale_customer_addresses SET alias = :alias, state = :state, city = :city, street = :street, 
-                        colonia = :colonia, zip = :zip, `references` = :refs 
+                $sql = "UPDATE sale_customer_addresses SET alias = :alias, country = :country, state = :state, city = :city, street = :street, 
+                        colonia = :colonia, zip = :zip, reference = :refs 
                         WHERE id = :aid AND customer_id = :cid";
                 $stmt = $db->prepare($sql);
                 $stmt->execute([
-                    ':alias' => $alias, ':state' => $state, ':city' => $city, ':street' => $street,
+                    ':alias' => $alias, ':country' => $country, ':state' => $state, ':city' => $city, ':street' => $street,
                     ':colonia' => $colonia, ':zip' => $zip, ':refs' => $refs, ':aid' => $addrId, ':cid' => $customerId
                 ]);
                 $msg = "Dirección de envío actualizada.";
@@ -2734,12 +2908,63 @@ function get_all_sales($table_name,$db, $method, $id, $data){
     }      
 }
 
+function get_sale($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+
+            $sql = "SELECT * FROM payments_sale WHERE Folio = :folio AND TransactionId = :id ";
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(":folio", $data->Sale);
+            $stmt->bindValue(":id", $data->Id);
+            $stmt->execute();
+            $Pay = $stmt->fetch(PDO::FETCH_ASSOC);               
+
+            $sql = "SELECT * FROM sales WHERE id = :sale ";
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(":sale", $Pay['IdSale']);
+            $stmt->execute();
+            $Sale = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $sql = "SELECT * FROM sale_customers WHERE id = :id ";
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(":id", $Sale['customer_id']);
+            $stmt->execute();
+            $Client = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $sql = "SELECT * FROM sale_customer_addresses WHERE id = :id ";
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(":id", $Sale['address_id']);
+            $stmt->execute();
+            $Address = $stmt->fetch(PDO::FETCH_ASSOC);            
+
+
+
+
+            http_response_code(200);
+            echo json_encode([
+                "status" => "success",
+                "sale" => $Sale,
+                "client" => $Client,
+                "address" => $Address,
+                "pay" => $Pay
+                
+            ]);
+        break;    
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }                  
+}
+
 function categories($table_name,$db, $method, $id, $data){
     global $IDS;
     switch ($method) {
         case 'POST': 
             // 1. Definimos el SQL como un simple string (texto)
-            $sql = "SELECT Id, Nombre, Imagen FROM categories WHERE IntExt = 1 ORDER BY Nombre ";
+            $sql = "SELECT Id, Nombre, Imagen FROM categories WHERE WebRent = 1 ORDER BY Nombre ";
             // 2. Preparamos la consulta
             $stmt = $db->prepare($sql);
             // 3. Vinculamos el valor (asegúrate que $data->Product exista)
@@ -2763,6 +2988,37 @@ function categories($table_name,$db, $method, $id, $data){
         break;
     }      
 }
+
+function categories_sale($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+            // 1. Definimos el SQL como un simple string (texto)
+            $sql = "SELECT Id, Nombre, Imagen FROM categories WHERE WebSale = 1 ORDER BY Nombre ";
+            // 2. Preparamos la consulta
+            $stmt = $db->prepare($sql);
+            // 3. Vinculamos el valor (asegúrate que $data->Product exista)
+            //$stmt->bindValue(":name", $data->Product); 
+            // 4. EJECUTAMOS la consulta (Paso vital que faltaba)
+            $stmt->execute();
+            // 5. Obtenemos los resultados desde el $stmt, no desde $db ni $query
+            $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // 6. Respuesta JSON
+            http_response_code(200);
+            echo json_encode([
+                "status" => "success",
+                "total" => count($productos),
+                "data" => $productos
+            ]);
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }      
+}
+
 function surfaces($table_name,$db, $method, $id, $data){
     global $IDS;    
     switch ($method) {

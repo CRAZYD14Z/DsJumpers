@@ -124,21 +124,40 @@ include_once 'head.php';
 <br>
 
 
-<div class="dashboard-header">
-    <h2>Dashboard del Sistema</h2>
-    <div class="filtros">
+<div class="dashboard-header d-flex flex-column flex-md-row justify-content-between align-items-md-center pb-3 mb-4 border-bottom">
+    <h2 class="h3 mb-3 mb-md-0 text-dark">Dashboard del Sistema</h2>
+    
+    <!-- Contenedor de filtros con Flexbox responsivo -->
+    <div class="filtros d-flex flex-column flex-sm-row gap-3 align-items-sm-end">
+        
+        <!-- Tipo de Reporte -->
         <div class="form-group">
-            <label for="fecha_inicio">Fecha Inicio:</label>
-            <input type="date" id="fecha_inicio" value="2026-01-01">
+            <label for="tipo_reporte" class="form-label small fw-semibold text-secondary mb-1">Tipo de Reporte:</label>
+            <select id="tipo_reporte" class="form-select form-select-sm" style="min-width: 180px;">
+                <option value="rentas">Reporte de Rentas</option>
+                <option value="ventas">Reporte de Ventas</option>
+                
+            </select>
         </div>
+
+        <!-- Fecha Inicio -->
         <div class="form-group">
-            <label for="fecha_fin">Fecha Fin:</label>
-            <input type="date" id="fecha_fin" value="2026-12-31">
+            <label for="fecha_inicio" class="form-label small fw-semibold text-secondary mb-1">Fecha Inicio:</label>
+            <input type="date" id="fecha_inicio" class="form-control form-control-sm" value="2026-01-01">
         </div>
-        <button onclick="actualizarDashboard()">Filtrar Periodo</button>
+        
+        <!-- Fecha Fin -->
+        <div class="form-group">
+            <label for="fecha_fin" class="form-label small fw-semibold text-secondary mb-1">Fecha Fin:</label>
+            <input type="date" id="fecha_fin" class="form-control form-control-sm" value="2026-12-31">
+        </div>
+        
+        <!-- Botón de Filtrado -->
+        <button onclick="actualizarDashboard()" class="btn btn-primary btn-sm px-3" type="button">
+            <i class="bi bi-filter me-1"></i> Filtrar Periodo
+        </button>
     </div>
 </div>
-
 <div class="dashboard-grid">
 
     <div class="chart-card">
@@ -295,25 +314,17 @@ let instanciasCharts = {};
 function actualizarDashboard() {
     const inicio = document.getElementById('fecha_inicio').value;
     const fin = document.getElementById('fecha_fin').value;
-
-    // Aquí vas llamando a tus funciones de manera independiente
-    cargarGraficaCategorias(inicio, fin);
-    
-    cargarTablaHistorica(); // Esta se carga fija ya que calcula sus propios 3 años de manera interna
-    cargarTablaProductos(inicio, fin);    
-
-    cargarGraficaColumnas();
-
-    cargarGraficaPagos();
-
-    // Ejemplo de llamadas para tus futuras gráficas:
-    // cargarSegundaGrafica(inicio, fin);
-    // cargarTerceraGrafica(inicio, fin);
+    const tipo = document.getElementById('tipo_reporte').value;
+    cargarGraficaCategorias(inicio, fin,tipo);
+    cargarTablaHistorica(inicio, fin,tipo);
+    cargarTablaProductos(inicio, fin,tipo);    
+    cargarGraficaColumnas(inicio, fin,tipo);
+    cargarGraficaPagos(inicio, fin,tipo);
 }
 
 // 1. FUNCIÓN PARA LA PRIMERA GRÁFICA (Dona)
-async function cargarGraficaCategorias(inicio, fin) {
-    const respuesta = await fetch(`data.php?inicio=${inicio}&fin=${fin}`);
+async function cargarGraficaCategorias(inicio, fin,tipo) {
+    const respuesta = await fetch(`data.php?inicio=${inicio}&fin=${fin}&tipo=${tipo}&id=${1}`);
     const datos = await respuesta.json();
 
     if (datos.error) return;
@@ -358,8 +369,9 @@ async function cargarGraficaCategorias(inicio, fin) {
 document.addEventListener("DOMContentLoaded", actualizarDashboard);
 
 
-async function cargarTablaHistorica() {
-    const respuesta = await fetch('data_tabla.php');
+async function cargarTablaHistorica(inicio, fin,tipo) {
+    //const respuesta = await fetch('data_tabla.php');
+    const respuesta = await fetch(`data.php?inicio=${inicio}&fin=${fin}&tipo=${tipo}&id=${2}`);
     const respuestaJson = await respuesta.json();
 
     if (respuestaJson.error) return;
@@ -421,8 +433,9 @@ async function cargarTablaHistorica() {
 // Añade esta línea dentro de tu función actualizarDashboard(inicio, fin):
 // cargarTablaProductos(inicio, fin);
 
-async function cargarTablaProductos(inicio, fin) {
-    const respuesta = await fetch(`data_productos.php?inicio=${inicio}&fin=${fin}`);
+async function cargarTablaProductos(inicio, fin,tipo) {
+    //const respuesta = await fetch(`data_productos.php?inicio=${inicio}&fin=${fin}`);
+    const respuesta = await fetch(`data.php?inicio=${inicio}&fin=${fin}&tipo=${tipo}&id=${3}`);
     const datos = await respuesta.json();
 
     if (datos.error) return;
@@ -478,8 +491,9 @@ async function cargarTablaProductos(inicio, fin) {
 
 let chartColumnas; // Variable global para controlar la instancia de esta gráfica
 
-async function cargarGraficaColumnas() {
-    const respuesta = await fetch('data_tabla.php');
+async function cargarGraficaColumnas(inicio, fin,tipo) {
+    //const respuesta = await fetch('data_tabla.php');
+    const respuesta = await fetch(`data.php?inicio=${inicio}&fin=${fin}&tipo=${tipo}&id=${2}`);
     const json = await respuesta.json();
 
     if (json.error) {
@@ -577,10 +591,11 @@ async function cargarGraficaColumnas() {
 
 let chartPagos;
 
-async function cargarGraficaPagos() {
+async function cargarGraficaPagos(inicio, fin,tipo) {
     // Puedes pasarle el año dinámicamente desde un select si lo deseas, aquí por defecto va al script
     const anioActual = new Date().getFullYear(); // 2026
-    const respuesta = await fetch(`data_pagos.php?anio=${anioActual}`);
+    //const respuesta = await fetch(`data_pagos.php?anio=${anioActual}`);
+    const respuesta = await fetch(`data.php?anio=${anioActual}&tipo=${tipo}&id=${4}`);
     const datos = await respuesta.json();
 
     if (datos.error) return;
@@ -645,7 +660,7 @@ async function cargarGraficaPagos() {
 
 // Modifica tu listener inicial para que también pinte la tabla
 document.addEventListener("DOMContentLoaded", () => {
-    actualizarDashboard();
+    //actualizarDashboard();
 });
 
 
