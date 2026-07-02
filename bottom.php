@@ -6,10 +6,23 @@
                 <button class="btn-minimal" onclick="LoadDocument('Invoice')"><?php echo Trd(67)?></button>
                 <button class="btn-minimal" onclick="LoadDocument('Picking')"><?php echo Trd(68)?></button>            
                 <button class="btn-minimal" onclick="ProcesarSinPago()"><?= Trd(154) ?></button>
-                <button class="btn-minimalr" onclick="Cancelar()"><?= Trd(153) ?></button>            
+
+
+                <button class="btn btn-light border fw-semibold px-4 rounded-3 shadow-none text-secondary" type="button" onclick='Cancelar()'>
+                    <i class="fa-solid fa-xmark me-1"></i><?php echo Trd(153)?>
+                </button>                
+
+                <button class="btn btn-primary fw-semibold px-4 rounded-3 shadow-sm" type="button" onclick='recalculate();autosave_lead();'>
+                    <i class="fa-solid fa-floppy-disk me-1"></i><?php echo Trd(164)?>
+                </button>                
+
+
+                
             <?php }else{
                 ?>
-                    <button class="btn-minimalr" onclick="Reactive()"><?= Trd(160) ?></button>            
+                <button class="btn btn-primary fw-semibold px-4 rounded-3 shadow-sm" type="button" onclick='Reactive()'>
+                    <i class="fa-solid fa-star me-1"></i><?php echo Trd(160)?>
+                </button>
                 <?php
             } ?>            
                 

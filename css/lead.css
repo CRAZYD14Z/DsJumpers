@@ -212,8 +212,8 @@ body {
     /* Estilo de los botones laterales */
     .btn-minimalr {
         border: none !important; /* Quitamos el borde individual */
-        background: transparent;
-        color: #9d5959;
+        
+        color: #ff0000;
         font-weight: 300;
         padding: 0.5rem 1rem;
         transition: all 0.2s ease;
@@ -227,6 +227,26 @@ body {
     .btn-minimalr:active {
         background-color: #f0f0f0;
     }    
+
+    /* Estilo de los botones laterales */
+    .btn-minimals {
+        border: none !important; /* Quitamos el borde individual */
+        
+        color: #2cb82f;
+        font-weight: 300;
+        padding: 0.5rem 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .btn-minimals:hover {
+        background-color: #f8f9fa;
+        color: #000;
+    }
+
+    .btn-minimals:active {
+        background-color: #f0f0f0;
+    }   
+
 
     /* El input sin bordes propios para que parezca una sola pieza */
     .input-minimal {
