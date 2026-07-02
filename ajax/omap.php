@@ -1,12 +1,26 @@
 <?php
+    ob_start();
+    session_start(); 
+    include_once '../config/config.php';     
+    include_once '../config/database.php';    
+    $database = new Database();
+    $db = $database->getConnection();
 // Procesar la solicitud si viene por AJAX
 if (isset($_GET['buscar']) && !empty($_GET['buscar'])) {
     header('Content-Type: application/json');
     
+    $sql = "SELECT Pais FROM account";
+    $stmt = $db->prepare($sql);
+    //$stmt->bindValue(":name", $data->Product); 
+    $stmt->execute();
+    $account = $stmt->fetch(PDO::FETCH_ASSOC);    
+
+    if ($account['Pais'] == 'USA')
+        $account['Pais'] = 'US';
+
     $query = urlencode($_GET['buscar']);
-    
     // Segmentado a Estados Unidos (us) y con &addressdetails=1 para desglose obligatorio
-    $countryCode = 'us'; 
+    $countryCode = strtolower($account['Pais']); 
     $url = "https://nominatim.openstreetmap.org/search?q={$query}&format=json&addressdetails=1&limit=5&countrycodes={$countryCode}";
     
     $ch = curl_init();
