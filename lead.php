@@ -759,6 +759,66 @@ function inicializarSelectDescuento(selector) {
     });
 
 
+    var $selectCell = $('#Cell').select2({
+        theme: "bootstrap-5",
+        width: '100%',
+        allowClear: true,
+        selectOnClose: false,
+        placeholder: '',
+        tokenSeparators: [',', '\n'], // Ayuda a que detecte el "Enter" como selección
+        ajax: {
+            url:  API_BASE_URL+"get_customers_cell/", // URL de tu Web Service
+            dataType: 'json',
+            headers: {
+                // *** Aquí se adjunta el token en el encabezado Authorization ***
+                'Authorization': 'Bearer ' + TOKEN 
+            }, 
+            delay: 300, // Espera 300ms antes de enviar la petición (evita spam al server)
+            data: function (params) {
+                return {
+                    q: params.term // El texto que el usuario escribió
+                };
+            },
+            processResults: function (data) {
+                // 'data' es la respuesta de tu WS. 
+                // Debes retornar un objeto con la propiedad 'results'.
+                return {
+                    results: data.items.map(function(item) {
+                        return {
+                            id: item.Id,
+                            text: item.TelefonoCelular, // Primera fila (Nombre)
+                            direccion: item.Direccion, // Segunda fila (Dirección)
+                            nombre: item.Nombre // Segunda fila (Dirección)
+                        };
+                    })
+                };
+            },
+            cache: true
+        },
+
+        templateResult: formatResultNoNew,   // Cómo se ve en la lista desplegable
+        templateSelection: formatRepo   // Cómo se ve cuando ya se seleccionó
+    });
+
+    $selectCell.on('select2:select', function (e) {
+        var data = e.params.data;
+        
+        //console.log("Seleccionado:", data); // Mira la consola de F12
+        
+        if (data.newTag === true) {
+            //alert("Detectado nuevo tag: " + data.text);
+            //registrarCustomer(data.text);
+        } else {
+            let Idsrch = data.id
+            Idsrch = Idsrch.split('-')
+            if (Idsrch[1] == "C")
+                load_customer(Idsrch[0]);
+            else
+                load_organization(Idsrch[0]);
+        }
+    });    
+
+
     function registrarCustomer(nombreNuevo) {
         $.ajax({
             url: API_BASE_URL + "save_customer/",
@@ -1541,6 +1601,26 @@ $(document).on("keypress", ".numbers-only", function (e) {
         return $container;
     }
 
+    function formatResultNoNew(repo) {
+        if (repo.loading) return "<?php echo Trd(86)?>";
+        // Si es un tag nuevo, mostramos un diseño simple o un aviso
+        if (repo.newTag) {
+            return $("<span><strong><?php echo Trd(87)?> </strong>" + repo.text + "</span>");
+        }        
+        // Estructura de dos filas con clases de Bootstrap 5
+        var $container = $(
+            "<div class='d-flex flex-column py-1'>" +
+                "<div class='fw-bold text-dark'>" + repo.text + "</div>" +
+                "<div class='text-muted small' style='font-size: 0.75rem;'>" + (repo.nombre || '') + 
+                    "<br><i class='fa-solid fa-location-dot me-1'></i>" + (repo.direccion || '') +
+                "</div>" +
+            "</div>"
+        );
+
+        return $container;
+    }    
+
+
     // Cómo se muestra el ítem seleccionado en el cuadro de búsqueda
     function formatRepo(repo) {
         return repo.text ;
@@ -1744,9 +1824,11 @@ function add_row(id,rel,data,clc=0){
     //}
     allow_change_price = 'readonly';
     select_on_focus = '';
+    li_edit = '';
     if (data.change_rent_price == 1){
         allow_change_price =  ` onchange=" change_price('row_${id}',this.value); " `;
         select_on_focus = 'select-on-focus';
+        li_edit = '<span class="input-group-text bg-transparent border-0 text-muted ps-1"><i class="fa-solid fa-pen fa-sm"></i></span>';
     }
         
         
@@ -1862,9 +1944,7 @@ function add_row(id,rel,data,clc=0){
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-transparent border-0 text-muted">$</span>
                         <input type="text" class="form-control form-control-sm border-0 bg-light fw-bold text-end sync-total_${id} ${select_on_focus}" data-sync="total_${id}" ${allow_change_price} id="row_${id}_col_6" value='${data.price}'>
-    <span class="input-group-text bg-transparent border-0 text-muted ps-1">
-        <i class="fa-solid fa-pen fa-sm"></i>
-    </span>                        
+                        ${li_edit}
                     </div>
                 </div>
             </div>
@@ -1886,9 +1966,7 @@ function add_row(id,rel,data,clc=0){
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-transparent border-0 text-muted">$</span>
                     <input type="text" class="form-control form-control-sm border-0 bg-light fw-bold text-end sync-total_${id} ${select_on_focus}" data-sync="total_${id}" ${allow_change_price} id="row_${id}_col_6_" value='${data.price}'>
-<span class="input-group-text bg-transparent border-0 text-muted ps-1">
-        <i class="fa-solid fa-pen fa-sm"></i>
-</span>                    
+                    ${li_edit}
                 </div>
             </div>
 
@@ -2139,6 +2217,18 @@ function load_organization(Id){
         dataType: 'json', // Indica que esperamos JSON
         headers: misHeaders,
         success: function(data) {
+
+            // 1. Validamos si la opción ya existe. Si no existe, la creamos y la agregamos.
+            if ($('#Organization option[value="' + Id + '"]').length === 0) {
+                // Creamos una nueva opción con el ID como valor y el Nombre como texto visible
+                var newOption = new Option(data.Nombre, Id, true, true);
+                // La añadimos al select
+                $('#Organization').append(newOption).trigger('change');
+            } else {
+                // Si la opción ya existía, simplemente seteamos el valor y disparamos el cambio
+                $('#Organization').val(Id).trigger('change');
+            }        
+
             $('#Country').val( data.Pais);
             $('#Country').trigger('change');
             $('#State').val( data.Estado);
@@ -2172,6 +2262,18 @@ function load_customer(Id){
         dataType: 'json', // Indica que esperamos JSON
         headers: misHeaders,
         success: function(data) {
+
+            // 1. Validamos si la opción ya existe. Si no existe, la creamos y la agregamos.
+            if ($('#Customer option[value="' + Id + '"]').length === 0) {
+                // Creamos una nueva opción con el ID como valor y el Nombre como texto visible
+                var newOption = new Option(data.Nombre, Id, true, true);
+                // La añadimos al select
+                $('#Customer').append(newOption).trigger('change');
+            } else {
+                // Si la opción ya existía, simplemente seteamos el valor y disparamos el cambio
+                $('#Customer').val(Id).trigger('change');
+            }           
+
             $('#Country').val( data.Pais);
             $('#Country').trigger('change');
             $('#State').val( data.Estado);        
@@ -2580,7 +2682,10 @@ function LoadDocument(DocumentType){
         $Picking = $Template['Template'];        
 
     ?>
-
+    let PagoAnticipado = $('#DepositAmount').val() ;
+    if ($('#AmountPaid').val() * 1 > 0){
+        PagoAnticipado = $('#AmountPaid').val() ;
+    }
     const datosGenerales = {
         leadid: $('#Folio').val(),
         contractsentdate: "",
@@ -2616,21 +2721,23 @@ function LoadDocument(DocumentType){
         salestax: TaxAm.toFixed(2),
         tip: 0,
         total: $('#Total').val(),
-        apayment: $('#DepositAmount').val(),
-        <?php  if ($account['Deposit'] == 1){?>                
-            ctr_balance_due: $('#Total').val() - $('#DepositAmount').val(),
-            balancedue: $('#Total').val() - $('#DepositAmount').val(),
-        <?php  } else {?>
-            ctr_balance_due: $('#Total').val(),
-            balancedue: $('#Total').val(),        
-
-        <?php  }?>
-
-
+        apayment: PagoAnticipado,
+        ctr_balance_due: $('#Total').val() - PagoAnticipado,
+        balancedue: $('#Total').val() - PagoAnticipado,        
         electric:"",
         signature:"",
         signeddate:""
     };
+/*
+        <?php  if ($account['Deposit'] == 1){?>                
+            ctr_balance_due: $('#Total').val() - PagoAnticipado,
+            balancedue: $('#Total').val() - PagoAnticipado,
+        <?php  } else {?>
+            ctr_balance_due: $('#Total').val(),
+            balancedue: $('#Total').val(),        
+        <?php  }?>
+*/
+
 
     const productos = [];
     const descuentos = [];
@@ -3024,6 +3131,16 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
 //AUTO GUARDADO GRAL
 
     function autosave_lead(){
+
+        StartEvent  =$('#fechahorainicio').val();
+        EndEvent    =$('#fechahorafin').val();
+        DeliveryDate = $('#fechahoraentrega').val();        
+
+        CurrentOrganization = $('#IdOrganization').val() || $('#Organization').val();
+        CurrentCustomer = $('#IdCustomer').val() || $('#Customer').val();
+        CurrentVenue = $('#IdVenue').val() || $('#Venue').val();
+        CurrentSurface = $('#Surface').val();       
+
         <?php 
             if (isset($lead) AND ( $lead['Status'] == 'confirmed' OR $lead['Status'] == 'canceled'))
                 echo "return;";
@@ -3071,14 +3188,7 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
         };
 
 
-        StartEvent  =$('#fechahorainicio').val();
-        EndEvent    =$('#fechahorafin').val();
-        DeliveryDate = $('#fechahoraentrega').val();        
-
-        CurrentOrganization = $('#IdOrganization').val() || $('#Organization').val();
-        CurrentCustomer = $('#IdCustomer').val() || $('#Customer').val();
-        CurrentVenue = $('#IdVenue').val() || $('#Venue').val();
-        CurrentSurface = $('#Surface').val();        
+     
 
         let detalleProductos = [];
         for (f=1; f<= Row;f++){
@@ -3160,6 +3270,7 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
                 //console.log("¡Detalle guardado correctamente!");
                 //alert(response.IdLead)
                 $('#IdLead').val(response.IdLead);
+                $('#token').val(response.IdLead);
                 $('#UUID').val(response.UUID);                
                 $('#Folio').val(response.Folio);    
                 lanzarMensaje("<?php echo Trd(94)?>", tipo = 'exito');

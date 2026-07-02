@@ -536,6 +536,10 @@ switch ($resource) {
     case 'save_customer':
         save_customer($resource,$db, $method, $id, $data);
         break;        
+    case 'get_customers_cell':
+        get_customers_cell($resource,$db, $method, $id, $data);
+        break;
+        
 
     case 'save_venue':
         save_venue($resource,$db, $method, $id, $data);

@@ -2397,6 +2397,57 @@ function save_customer($table_name,$db, $method, $id, $data){
     }  
 }
 
+function get_customers_cell($table_name, $db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+            $Q = isset($_GET['q']) ? $_GET['q'] : '';
+            if ($Q != "") {
+                // Buscamos en ambas tablas agregando la columna virtual 'Tipo'
+                $query = "
+                    SELECT CONCAT (Id,'-O') as Id, Nombre, Direccion, TelefonoCelular
+                    FROM organizations
+                    WHERE TelefonoCelular LIKE :q AND Estatus = 'A'
+                    
+                    UNION ALL
+                    
+                    SELECT CONCAT (Id,'-C') as Id, CONCAT(Nombres, ' ', Apellidos) AS Nombre, Direccion, TelefonoCelular 
+                    FROM customers
+                    WHERE TelefonoCelular LIKE :q2 AND Estatus = 'A'
+                ";                                            
+                
+                $stmt = $db->prepare($query);
+
+                // Curingas para la búsqueda parcial
+                $searchTerm = "%" . $Q . "%";
+                
+                // Vinculamos el parámetro para ambas partes del UNION
+                $stmt->bindParam(':q', $searchTerm, PDO::PARAM_STR);
+                $stmt->bindParam(':q2', $searchTerm, PDO::PARAM_STR);
+
+                $stmt->execute();
+                $resultados_p = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                http_response_code(200);
+                echo json_encode(array(
+                    "items" => $resultados_p
+                ));
+            }
+            else {
+                http_response_code(200);
+                echo json_encode(array(
+                    "items" => []
+                ));
+            }
+        break;
+
+        default:
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }      
+}
+
 function save_venue($table_name,$db, $method, $id, $data){
     global $IDS;
     switch ($method) {

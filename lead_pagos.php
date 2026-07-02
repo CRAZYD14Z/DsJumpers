@@ -368,6 +368,10 @@ document.querySelectorAll('.only-numbers').forEach(input => {
 
 document.getElementById('btn_toggle_pagos').addEventListener('click', function(e) {
     e.preventDefault();
+    if ($('#token').val() == 0){
+        lanzarMensaje('<?= Trd(163) ?>','alerta',4000)
+        return;
+    }
     const divPagos = document.getElementById('div_pagos');
     const textoBoton = document.getElementById('texto_boton');
 

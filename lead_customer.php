@@ -1,3 +1,15 @@
+
+    <style>
+
+        .grupo-campo { margin-bottom: 15px; position: relative; }
+        /* Estilos del buscador y sugerencias */
+        .sugerencias { position: absolute; width: 100%; background: white; border: 1px solid #ddd; border-top: none; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000; display: none; border-radius: 0 0 4px 4px; }
+        .sugerencia-item { padding: 10px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
+        .sugerencia-item:hover { background-color: #f0f0f0; }
+        .fila-doble { display: flex; gap: 15px; }
+        .fila-doble .grupo-campo { flex: 1; }
+    </style>
+
 <b><?php echo Trd(33)?></b>
 <form id="customers">
     <div class="row">
@@ -68,18 +80,28 @@
     <div class="row">
         <div class='col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8 col-xxl-8'>
             <label for="Street" class="form-label"><?php echo Trd(40)?></label>
-            <div class="input-group input-group-sm">
-                <input type="text" class="form-control" id="Street" name="Street">
-                <span class="input-group-text bg-light" style="cursor: pointer;" ><i class="fa-solid fa-file-export " onclick="copy_ad()"></i></span>
-                
+            <div class="grupo-campo">
+                <div class="input-group input-group-sm">
+                    <input type="text" class="form-control" id="Street" name="Street" autocomplete="off">
+                    
+                    <span class="input-group-text bg-light" style="cursor: pointer;" ><i class="fa-solid fa-file-export " onclick="copy_ad()"></i></span>
+                </div>    
+                <div id="lista-sugerencias" class="sugerencias"></div>                
             </div>              
         </div>
         <div class='col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 col-xxl-4'>
             <label for="Cell" class="form-label"><?php echo Trd(41)?></label>
+
+            <select class="form-select select-auto select-custom-template" id="Cell" name="Cell" onchange="">
+                <option></option>
+            </select>              
+
+<!--            
             <div class="input-group input-group-sm">
                 <input type="text" class="form-control" placeholder="" id="Cell" name="Cell">
                 <span class="input-group-text bg-light"><i class="fa-solid fa-phone"></i></span>
             </div>  
+-->            
         </div>        
     </div>    
     <div class="row">
@@ -141,3 +163,109 @@
         </div>
     </div>
 </form> 
+
+
+    <script>
+        const buscador = document.getElementById('Street');
+        const listaSugerencias = document.getElementById('lista-sugerencias');
+        let timeout = null;
+
+        buscador.addEventListener('input', function() {
+            clearTimeout(timeout);
+            const valor = this.value.trim();
+
+            if (valor.length < 4) {
+                listaSugerencias.style.display = 'none';
+                return;
+            }
+
+            timeout = setTimeout(() => {
+                fetch(`ajax/omap.php?buscar=${encodeURIComponent(valor)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        listaSugerencias.innerHTML = '';
+                        
+                        if(data.length === 0 || data.error) {
+                            listaSugerencias.style.display = 'none';
+                            return;
+                        }
+
+                        data.forEach(item => {
+                            const div = document.createElement('div');
+                            div.className = 'sugerencia-item';
+                            div.textContent = item.display_name;
+                            
+                            div.addEventListener('click', () => {
+                                // 1. Ponemos el texto completo en el buscador
+                                buscador.value = item.display_name;
+                                listaSugerencias.style.display = 'none';
+                                
+                                // 2. Extraemos el objeto address con seguridad
+                                const addr = item.address || {};
+                                
+                                // 3. Rellenamos cada input mapeando las posibles variantes de la API
+                                address = addr.road || addr.pedestrian || addr.cycleway || '';
+                                housenumber  = addr.house_number;
+                                cntry = addr.country ;
+                                if (cntry == 'United States')
+                                    ctry = 'USA';
+                                if (cntry == 'Mexico' || cntry == 'México' )
+                                    ctry = 'MX';
+                                document.getElementById('Street').value =  housenumber + ' ' +address ;
+                                document.getElementById('Country').value = ctry;
+
+                                const countryInput = document.getElementById('Country');
+                                countryInput.value = ctry;
+                                const event = new Event('change', { bubbles: true });
+                                countryInput.dispatchEvent(event);
+
+                                document.getElementById('City').value = addr.city || addr.town || addr.village || addr.suburb || '';
+                                //document.getElementById('State').value = addr.state || '';
+                                document.getElementById('Zip').value = addr.postcode || '';
+
+const stateSelect = document.getElementById('State');
+const targetState = (addr.state || '').toUpperCase(); // Convertimos el estado buscado a MAYÚSCULAS
+
+if (targetState !== '') {
+    let encontrado = false;
+
+    // Recorremos todas las opciones del select
+    for (let i = 0; i < stateSelect.options.length; i++) {
+        const optionText = stateSelect.options[i].text.toUpperCase(); // Texto de la opción en MAYÚSCULAS
+        
+        if (optionText === targetState) {
+            stateSelect.selectedIndex = i; // Seleccionamos la opción por su índice
+            encontrado = true;
+            break;
+        }
+    }
+
+    // Si encontramos el estado, detonamos el evento change
+    if (encontrado) {
+        stateSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+} else {
+    // Si addr.state viene vacío, reseteamos el select al valor por defecto
+    stateSelect.value = '';
+    stateSelect.dispatchEvent(new Event('change', { bubbles: true }));
+}                                
+
+                                
+                            });
+                            
+                            listaSugerencias.appendChild(div);
+                        });
+                        
+                        listaSugerencias.style.display = 'block';
+                    })
+                    .catch(err => console.error('Error:', err));
+            }, 500);
+        });
+
+        // Ocultar sugerencias al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            if (!buscador.contains(e.target) && !listaSugerencias.contains(e.target)) {
+                listaSugerencias.style.display = 'none';
+            }
+        });
+    </script>
