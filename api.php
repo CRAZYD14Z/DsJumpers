@@ -275,8 +275,8 @@ function createSale(): void {
         // 2. Insertar venta
         $stmt = $db->prepare("
             INSERT INTO sales (customer_id, address_id, total_amount, cart_notes, payer_name, payer_lastname,
-                               payer_email, payment_method, gateway_token, device_fingerprint, cart_json, payment_status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                               payer_email, payment_method, gateway_token, device_fingerprint, cart_json, payment_status,status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,'process')
         ");
         $stmt->execute([
             $b['customer_id'],

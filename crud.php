@@ -1562,6 +1562,12 @@ function inicializarEstadoTabla(IdTabla) {
                 }, 500);
             }
         });
+        
+        if (IdTabla=='item_prices'){
+            $("#proyeccion_item_prices").hide();
+        }
+
+
     }    
 
 
@@ -2547,6 +2553,14 @@ $(document).ready(function() {
     ejecutarFuncion1();
 });
 
+function actualizarJSON1() {
+    const idsExistentes = $('.linea-config').map(function() { return this.id; }).get();
+    configTotal = configTotal.filter(item => idsExistentes.includes(item.id_linea));
+    $('#JsonPrice').val(JSON.stringify(configTotal, null, 2));
+    $('#edit_JsonPrice').val(JSON.stringify(configTotal, null, 2));
+    proyectarTarifa(); 
+}
+
 function actualizarJSON() {
     const idsExistentes = $('.linea-config').map(function() { return this.id; }).get();
     configTotal = configTotal.filter(item => idsExistentes.includes(item.id_linea));
@@ -2682,7 +2696,7 @@ function ejecutarFuncion1() {
     <div class="linea-config" id="${id}">
         <span class="etiqueta-f">F1:</span>
         ${txt.f1Precio} <input type="number" class="val-precio" value="0">
-        <select class="sel-tipo">
+        <select class="sel-tipo" onchange="configTotal = []">
             <option value="">${txt.selDefault}</option>
             <option value="Indefinido">${txt.optIndefinido}</option>
             <option value="Hasta">${txt.optHasta}</option>
@@ -2849,7 +2863,7 @@ function ejecutarFuncion3(tPrev, uPrev) {
 
 function cargar() {
     try {
-
+        //alert('cargar')
         
         const rawValue = $('#edit_JsonPrice').val();
         const decodedValue = $('<div/>').html(rawValue).text();
@@ -2908,7 +2922,8 @@ function cargar() {
         proyectarTarifa();
 
     } catch (e) {
-        alert("Error al leer el JSON: " + e.message);
+        ejecutarFuncion1(); 
+        //alert("Error al leer el JSON: " + e.message);
     }
 }
 
@@ -2946,6 +2961,7 @@ function cargar() {
                             instance.setChoiceByValue(String(valor));                        
                         break;
                     case 'JsonPrice':
+                            ejecutarFuncion1();
                             input.value = valor || '';
                             cargar();
                     //const contenedor = document.getElementById('edit_contenedor-funciones');
@@ -2994,6 +3010,7 @@ function cargar() {
 
                     switch (clave) {
                     case 'JsonPrice':
+                            ejecutarFuncion1();
                             input.value = valor || '';
                             cargar();
                     //const contenedor = document.getElementById('edit_contenedor-funciones');

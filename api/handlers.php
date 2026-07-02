@@ -782,17 +782,25 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
             $stmt = $db->prepare($query);
 
             foreach ($resultados as $registro) {
+
                 $campo = strtolower($registro['Campo']);
-                if ($campo == 'password'){
+                $tipocampo = strtolower($registro['TipoCampo']);
+                if ($tipocampo == 'password'){
                     $valor = password_hash($data->{$registro['Campo']}, PASSWORD_DEFAULT);
                 }
+                elseif ($tipocampo == 'html'){
+                        $valor = isset($data->{$registro['Campo']}) 
+                            ? (($data->{$registro['Campo']}))
+                            : null; 
+
+                } 
                 else{
                     $valor = isset($data->{$registro['Campo']}) 
                         ? htmlspecialchars(strip_tags($data->{$registro['Campo']}))
                         : null;
                 }
 
-                $tipocampo = strtolower($registro['TipoCampo']);
+                
                 if ($tipocampo =='checkbox'){
                     if ($valor == 'on'){
                         $valor = 1;
@@ -815,6 +823,9 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                 else{
                     $stmt->bindValue(":" . $campo, $valor);
                 }
+                
+                            //echo "$campo -- $valor";                
+
             }
             
             if ($stmt->execute()) {
@@ -886,7 +897,7 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
 
                 $sqlDelete = "DELETE FROM detail_price_lists WHERE IdItem = :producto";
                 $stmtDelete = $db->prepare($sqlDelete);
-                $stmtDelete->bindValue(":producto", $data->{'Producto'});
+                $stmtDelete->bindValue(":producto", $IdRecuperado);
                 $stmtDelete->execute();
 
                 $query = "select Id from price_lists where Estatus = 1 AND NOW() BETWEEN FechaHoraInicio AND FechaHoraFin";
@@ -899,7 +910,8 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                                         VALUES (:idLista,:idItem,:jsonPrice,1,now(),now())";
                         $sqlPriceList = $db->prepare($sqlPriceList);
                         $sqlPriceList->bindValue(":idLista", $registro['Id']);
-                        $sqlPriceList->bindValue(":idItem", $data->{'Producto'});
+                        //$sqlPriceList->bindValue(":idItem", $data->{'Producto'});
+                        $sqlPriceList->bindValue(":idItem", $IdRecuperado);
                         $sqlPriceList->bindValue(":jsonPrice", $data->{'JsonPrice'});
                         $sqlPriceList->execute();
                     }
@@ -962,7 +974,7 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
 
                 $sqlDelete = "DELETE FROM detail_price_lists WHERE IdItem = :producto";
                 $stmtDelete = $db->prepare($sqlDelete);
-                $stmtDelete->bindValue(":producto", $data->{'Producto'});
+                $stmtDelete->bindValue(":producto", $IdRecuperado);
                 $stmtDelete->execute();
 
                 $query = "select Id from price_lists where Estatus = 1 AND NOW() BETWEEN FechaHoraInicio AND FechaHoraFin";
@@ -975,7 +987,7 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                                         VALUES (:idLista,:idItem,:jsonPrice,1,now(),now())";
                         $sqlPriceList = $db->prepare($sqlPriceList);
                         $sqlPriceList->bindValue(":idLista", $registro['Id']);
-                        $sqlPriceList->bindValue(":idItem", $data->{'Producto'});
+                        $sqlPriceList->bindValue(":idItem", $IdRecuperado);
                         $sqlPriceList->bindValue(":jsonPrice", $data->{'JsonPrice'});
                         $sqlPriceList->execute();
                     }

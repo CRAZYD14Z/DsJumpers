@@ -486,8 +486,15 @@ function inicializarSelectDescuento(selector) {
                 //getRecordData(1); 
             } else {
                 console.warn('No se encontró el token. Necesita iniciar sesión primero.');
-            }        
+            }    
+                
+            
 */
+
+            $(document).on('focus', '.select-on-focus', function() {
+                this.select();
+            });
+
             $('.select-auto').each(function() {
                     $(this).select2({
                         theme: "bootstrap-5",
@@ -1122,7 +1129,8 @@ function inicializarSelectDescuento(selector) {
                                 volunteer:  '".$product['Volunteer']."',
                                 electric:  '".$product['Electric']."',
                                 discount:  '".$lead_detail['Discount']."',
-                                image:'".$Img."'
+                                image:'".$Img."',
+                                change_rent_price: '".$product['Change_rent_price']."'
                             },1
                             );
                             ";
@@ -1734,6 +1742,14 @@ function add_row(id,rel,data,clc=0){
         }
             
     //}
+    allow_change_price = 'readonly';
+    select_on_focus = '';
+    if (data.change_rent_price == 1){
+        allow_change_price =  ` onchange=" change_price('row_${id}',this.value); " `;
+        select_on_focus = 'select-on-focus';
+    }
+        
+        
     row = `
         <div class="row custom-row mx-0" id="row_${id}"
             data-id='${id}'
@@ -1748,7 +1764,8 @@ function add_row(id,rel,data,clc=0){
             data-setupstaff='${data.setupstaff}' 
             data-volunteer='${data.volunteer}' 
             data-electric='${data.electric}',
-            data-image='${data.image}'
+            data-image='${data.image}',
+            data-allowchange='${data.change_rent_price}'
         >
             <div class="col-sm-12 col-md-3">
                 <div class="mobile-label">Producto</div>
@@ -1844,7 +1861,10 @@ function add_row(id,rel,data,clc=0){
                     <div class="mobile-label">Total</div>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-transparent border-0 text-muted">$</span>
-                        <input type="text" class="form-control form-control-sm border-0 bg-light fw-bold text-end sync-total_${id}" data-sync="total_${id}" readonly id="row_${id}_col_6" value='${data.price}'>
+                        <input type="text" class="form-control form-control-sm border-0 bg-light fw-bold text-end sync-total_${id} ${select_on_focus}" data-sync="total_${id}" ${allow_change_price} id="row_${id}_col_6" value='${data.price}'>
+    <span class="input-group-text bg-transparent border-0 text-muted ps-1">
+        <i class="fa-solid fa-pen fa-sm"></i>
+    </span>                        
                     </div>
                 </div>
             </div>
@@ -1865,7 +1885,10 @@ function add_row(id,rel,data,clc=0){
                 <div class="mobile-label">Total</div>
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-transparent border-0 text-muted">$</span>
-                    <input type="text" class="form-control form-control-sm border-0 bg-light fw-bold text-end sync-total_${id}" data-sync="total_${id}" readonly id="row_${id}_col_6_" value='${data.price}'>
+                    <input type="text" class="form-control form-control-sm border-0 bg-light fw-bold text-end sync-total_${id} ${select_on_focus}" data-sync="total_${id}" ${allow_change_price} id="row_${id}_col_6_" value='${data.price}'>
+<span class="input-group-text bg-transparent border-0 text-muted ps-1">
+        <i class="fa-solid fa-pen fa-sm"></i>
+</span>                    
                 </div>
             </div>
 
@@ -3342,6 +3365,11 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
         });
     }    
 
+    function change_price(id,valor){
+        $(`#${id}`).data('price', valor); 
+        $(`#r${id}`).attr('data-price', valor);    
+        recalculate()
+    }
 
 <?php 
 if (isset($lead) AND $lead['Status'] == 'confirmed'){

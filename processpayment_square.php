@@ -113,9 +113,9 @@ try {
     $stmt = $db->prepare(" UPDATE lead SET Status = ?,Balance = Balance - ? WHERE Id = ?");
     $stmt->execute(['confirmed',$amount, $IdLead]);
 
-        //METER A OPERACION!!
-        //process_op($cotizacion['IdQuote'],$db);
-        //METER A OPERACION!!
+    //METER A OPERACION!!
+    process_op($IdLead,$db);
+    //METER A OPERACION!!
 
     $query = "select * FROM payments WHERE IdLead = ? ORDER BY Id";
     $stmt = $db->prepare($query);

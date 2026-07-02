@@ -42,12 +42,17 @@ try {
     $stmt = $db->prepare(" UPDATE lead SET Status = ?,Balance = Balance - ? WHERE Id = ?");
     $stmt->execute(['confirmed',$monto, $IdLead]);
 
+    //METER A OPERACION!!
+    process_op($IdLead,$db);
+    //METER A OPERACION!!    
     
     $query = "select * FROM payments WHERE IdLead = ? ORDER BY Id";
     $stmt = $db->prepare($query);
     $stmt->bindParam(1, $IdLead);
     $stmt->execute();
     $payments = $stmt->fetchAll(PDO::FETCH_ASSOC);    
+
+    //Aplicar a proceso si no existe
 
     echo json_encode([
         'status' => 'success',

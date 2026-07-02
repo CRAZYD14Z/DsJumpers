@@ -11,6 +11,7 @@ $dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__));
 $dotenv->load();
 $secret_key     = $_ENV['SECRET_KEY'];
 $url_base       = $_ENV['URL_BASE'];
+$url_base_sale  = $_ENV['URL_BASE_SALE'];
 $google_api_key = $_ENV['GOOGLE_API_KEY'];
 $host       = $_ENV['host'];
 $db_name    = $_ENV['db_name'];
@@ -20,6 +21,7 @@ $port       = $_ENV['port'];
 $CFpublicurl    = $_ENV['publicurl'];
 define('SECRET_KEY', $secret_key);
 define('URL_BASE', $url_base);
+define('URL_BASE_SALE', $url_base_sale);
 define('GOOGLE_API_KEY', $google_api_key);
 define('HOST', $host);
 define('USERNAME', $username);
@@ -219,6 +221,18 @@ switch ($resource) {
 	    $Traducciones = Traducciones('categories_sale',$lng,$db);            
         categories_sale($resource,$db, $method, $id, $data);
     break;    
+
+    case 'password_recover':
+        password_recover($resource,$db, $method, $id, $data);
+    break;        
+
+    case 'validate_token':
+        validate_token($resource,$db, $method, $id, $data);
+    break;     
+
+    case 'password_resets':
+        password_resets($resource,$db, $method, $id, $data);
+    break;     
 
     case 'surfaces':
 	    $Traducciones = Traducciones('surfaces',$lng,$db);        
@@ -2566,19 +2580,18 @@ function get_orders($table_name,$db, $method, $id, $data){
     global $IDS;
     switch ($method) {
         case 'POST': 
-            $type = $data->type;
-            $statusCondition = ($type === 'process') ? "NOT IN ('Entregado', 'Cancelado')" : "= 'Entregado'";            
+            //$type = $data->type;
+            //$statusCondition = ($type === 'process') ? "NOT IN ('Entregado', 'Cancelado')" : "= 'Entregado'";            
+            $status_p = $data->type;
             $customerId = $data->customerId;
-            /*
-            // Nota: Adapta este query asociándolo a tus tablas reales de 'orders' y 'order_items'
-            $sql = "SELECT id, date, total, city, state, status, product_title, qty, product_img 
-                    FROM orders WHERE customer_id = :cid AND status $statusCondition ORDER BY id DESC";
+            
+            $sql = "SELECT FechaCreacion, Ciudad, Estado, Balance, Total, Note1, Status, Status_p,Cart_json FROM v_sales  WHERE customer_id = :cid AND status_p = :status_p ORDER BY id DESC";
             
             $stmt = $db->prepare($sql);
-            $stmt->execute([':cid' => $customerId]);
+            $stmt->execute([':cid' => $customerId,':status_p'=>$status_p]);
             $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            */
-            $orders = [];
+            
+            //$orders = [];
             echo json_encode(['success' => true, 'data' => $orders]);
 
         break;
@@ -3018,6 +3031,176 @@ function categories_sale($table_name,$db, $method, $id, $data){
         break;
     }      
 }
+
+function password_recover($table_name,$db, $method, $id, $data){
+    global $IDS;
+    global $lng;
+    switch ($method) {
+        case 'POST': 
+            try{
+                $email= $data->email;
+                $stmtUser = $db->prepare("SELECT id FROM sale_customers WHERE email = ?");
+                $stmtUser->execute([$email]);
+                if (!$stmtUser->fetch()) {
+                    http_response_code(200);
+                    echo json_encode(['status' => 'success', 'message' => 'Si el correo está registrado, recibirás un enlace.']);
+                    exit;
+                }
+                
+                $token = bin2hex(random_bytes(32));
+
+                $expires_at = date('Y-m-d H:i:s', strtotime('+1 hour'));
+
+                $stmtDelete = $db->prepare("DELETE FROM password_resets WHERE email = ?");
+                $stmtDelete->execute([$email]);
+                $stmtInsert = $db->prepare("INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?)");
+                $stmtInsert->execute([$email, $token, $expires_at]);
+
+
+                $sql = "SELECT * FROM account ";
+                $stmt = $db->prepare($sql);
+                $stmt->execute();
+                $account = $stmt->fetch(PDO::FETCH_ASSOC);  
+
+                $datosConexion = [
+                    'host'             => $account['ServidorS'],
+                    'username'         => $account['UsuarioS'],
+                    'password'         => $account['PasswordS'],
+                    'port'             => $account['PortS'],
+                    'encryption'       => '',
+                    'nombre_remitente' => $account['NombreCompania']
+                ];		            
+
+
+                $sql = "SELECT Nombre, Template FROM document_center WHERE Tipo = 'email' AND IdTemplate = '10' AND Idioma = '$lng'";
+                $stmt = $db->prepare($sql);
+
+                $stmt->execute();
+                $Template = $stmt->fetch(PDO::FETCH_ASSOC); 			
+              
+                $cuerpo = "<html>".$Template['Template']."</html>";            
+
+                
+                $recovery_link = URL_BASE_SALE . "/reset?email=$email&token=$token";
+
+                $sql = "SELECT id, firstname, lastname, email, password FROM sale_customers WHERE email = :email LIMIT 1";
+                $stmt = $db->prepare($sql);
+                $stmt->execute([':email' => $email]);
+                
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);            
+
+                $header= $Template['Nombre']."\r\n";            
+
+                $valores = [
+                'ctfirstname' => $user['firstname']. ' ' .$user['lastname'],
+                'user_email' => $email,
+                'company_logo' => $account['Logo'],
+                'company_name' => $account['NombreCompania'],
+                'company_phone' =>  $account['TelefonoOficina'],
+                'reset_password_link' => $recovery_link
+                ];       
+                $cuerpo = generarHtmlCotizacion($cuerpo, $valores);
+    
+                $resultado = enviarEmail(
+                    $datosConexion, 
+                    $email, 
+                    $header,
+                    $cuerpo,
+                    [],
+                    '',
+                    ''
+                );
+    
+                if ($resultado['status']) {
+                //if (1==1) {
+                    http_response_code(200);
+                    echo json_encode(['status' => 'success', 'message' => 'El enlace de recuperación ha sido generado con éxito.']);
+
+                } else {
+                    http_response_code(200);
+                    echo json_encode(['status' => 'error', 'message' => 'No se pudo enviar el correo electrónico. Inténtalo más tarde.']);
+                }   
+            } catch (PDOException $e) {
+                die(Trd(3) . $e->getMessage());
+            }                     
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }      
+}
+
+
+function validate_token($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+            $email= $data->email;
+            $token= $data->token;
+            $stmt = $db->prepare("SELECT id FROM password_resets WHERE email = ? AND token = ? AND expires_at > NOW()");
+            $stmt->execute([$email, $token]);
+            if (!$stmt->fetch()) {
+                http_response_code(200);
+                echo json_encode(['status' => 'error', 'message' => "No existe o no vigente."]);
+                exit;
+            }
+            else{
+                http_response_code(200);
+                echo json_encode(['status' => 'success', 'message' => 'Existe y vigente.']);
+                exit;
+            }
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }      
+}
+
+
+function password_resets($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+
+            $email = $data->email;
+            $token = $data->token;
+            $password = $data->password;
+
+            $stmtCheck = $db->prepare("SELECT id FROM password_resets WHERE email = ? AND token = ? AND expires_at > NOW()");
+            $stmtCheck->execute([$email, $token]);
+            
+            if (!$stmtCheck->fetch()) {
+                echo json_encode(['success' => false, 'status' => 'error', 'message' => 'El enlace de recuperación ha expirado o ya no es válido.']);
+                exit;
+            }
+
+            $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+
+            $stmtUpdate = $db->prepare("UPDATE sale_customers SET password = ? WHERE email = ?");
+            $stmtUpdate->execute([$hashedPassword, $email]);
+
+            $stmtDelete = $db->prepare("DELETE FROM password_resets WHERE email = ?");
+            $stmtDelete->execute([$email]);
+
+            http_response_code(200);
+            echo json_encode(['success' => true, 'status' => 'success', 'message' => "¡Tu contraseña ha sido actualizada con éxito! Ahora puedes iniciar sesión."]);
+            exit;
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }      
+}
+
+
+
+
 
 function surfaces($table_name,$db, $method, $id, $data){
     global $IDS;    

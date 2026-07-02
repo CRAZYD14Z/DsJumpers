@@ -1,12 +1,17 @@
 <?php
 function process_op($Lead,$db){
+        $queryI ="SELECT Id_operation FROM operation_master WHERE id_lead = :lead";
+        $stmtI = $db->prepare($queryI);
+        $stmtI->bindValue(":lead", $Lead);
+        $stmtI->execute();      
+        $operation = $stmtI->fetch(PDO::FETCH_ASSOC);
 
+        if (!$operation){
 
             $queryI ="UPDATE lead SET Status = 'confirmed' WHERE Id = :lead";
             $stmtI = $db->prepare($queryI);
             $stmtI->bindValue(":lead", $Lead);
-            $stmtI->execute();
-
+            $stmtI->execute();        
 
             $queryI ="SELECT Venue, Surface FROM lead WHERE Id = :lead";
             $stmtI = $db->prepare($queryI);
@@ -108,6 +113,7 @@ function process_op($Lead,$db){
                     }
                 }
             }
+        }
 }
 
 function obtenerCoordenadas($direccion, $apiKey) {

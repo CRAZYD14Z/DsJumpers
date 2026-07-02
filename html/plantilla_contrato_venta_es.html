@@ -1,0 +1,172 @@
+<div id="contrato-dsj" style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #333; max-width: 900px; margin: 20px auto; line-height: 1.4; font-size: 13px; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+
+    <table class="responsive-table" width="100%" style="border-collapse: collapse; margin-bottom: 30px;">
+        <tr>
+            <td class="stack-column" style="vertical-align: top; width: 60%; padding-bottom: 15px;">
+                <img src="*company_logo*" style="width: 180px; max-width: 100%; margin-bottom: 15px;">
+                <div style="font-size: 12px; color: #555;">
+                    <strong style="font-size: 16px; color: #000; display: block; margin-bottom: 4px;">*company_name*</strong>
+                    *company_address*<br>
+                    *company_city*<br>
+                    *company_state*<br>
+                    <strong>Teléfono:</strong> *company_phone*
+                </div>
+            </td>
+            <td class="stack-column" style="vertical-align: top; text-align: left; width: 40%;">
+                <div style="background-color: #f9f9f9; border: 1px solid #eee; padding: 15px; border-radius: 4px;">
+                    <p style="margin: 0; font-size: 14px;"><strong>Factura:</strong> #*leadid*</p>
+                    <p style="margin: 5px 0 0; color: #777;"><strong>Fecha de Pedido:</strong> *contractsentdate*</p>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <table class="responsive-table" width="100%" style="border-collapse: collapse; margin-bottom: 25px; border: 1px solid #eee;">
+        <tr>
+            <td class="stack-column" style="width: 55%; padding: 15px; border-right: 1px solid #eee; vertical-align: top;">
+                <h4 style="margin: 0 0 10px 0; font-size: 11px; text-transform: uppercase; color: #999; letter-spacing: 1px;">Comprador y Dirección de Envío</h4>
+                <strong style="font-size: 14px; display: block; margin-bottom: 3px;">*organization*</strong>
+                <strong>*ctfirstname* *ctlastname*</strong><br>
+                *eventstreet*<br>
+                *eventcity*, *eventstate* *eventzip*<br>
+                <span style="color: #666;">*phones*</span>
+            </td>
+            <td class="stack-column" style="width: 45%; padding: 15px; vertical-align: top; background-color: #fafafa;">
+                <h4 style="margin: 0 0 10px 0; font-size: 11px; text-transform: uppercase; color: #999; letter-spacing: 1px;">Detalles del Envío</h4>
+                <p style="margin: 0 0 5px 0;"><strong>Fecha Estimada:</strong> *deliverydate*</p>
+                <p style="margin: 0;"><strong>Método de Envío:</strong> *deliverytype*</p>
+            </td>
+        </tr>
+    </table>
+
+    <div style="overflow-x: auto;">
+        <table width="100%" style="border-collapse: collapse; margin-bottom: 20px; min-width: 500px;">
+            <thead>
+                <tr style="border-bottom: 2px solid #333;">
+                    <th style="text-align: left; padding: 10px; font-weight: 600; width: 80px;"></th>
+                    <th style="text-align: left; padding: 10px; font-weight: 600;">Descripción del Artículo de Venta</th>
+                    <th style="text-align: center; padding: 10px; font-weight: 600; width: 60px;">Desc.</th>
+                    <th style="text-align: center; padding: 10px; font-weight: 600; width: 60px;">Cant.</th>
+                    <th style="text-align: right; padding: 10px; font-weight: 600; width: 100px;">Total</th>
+                </tr>
+            </thead>
+            <tbody id="lista-productos">
+                <tr class="item-fila" style="border-bottom: 1px solid #eee; display: none;">
+                    <td style="padding: 12px 10px; text-align: center;"> 
+                        <img src="*productname_url_photo*" width="60" style="border-radius: 4px;" alt="*productname*"> 
+                    </td>
+                    <td style="padding: 12px 10px;">
+                        <div style="font-weight: 500;">*productname*</div>
+                        <div style="font-size: 11px; color: #777;">*product_sku_or_details*</div>
+                    </td>
+                    <td style="padding: 12px 10px; text-align: center;">*discount*</td>
+                    <td style="padding: 12px 10px; text-align: center;">*salesqty*</td>
+                    <td style="padding: 12px 10px; text-align: right; font-weight: 600;">$*salestotalprice*</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 30px;">
+        <table class="total-table" style="width: 100%; max-width: 300px; border-collapse: collapse;">
+            <tr id="itemtotals">
+                <td style="padding: 6px 0; color: #666;">Totales de Artículos</td>
+                <td style="padding: 6px 0; text-align: right;">$*itemtotals*</td>
+            </tr>
+            <tr id="shippingcharges">
+                <td style="padding: 6px 0; color: #666;">Cargos de Envío / Entrega</td>
+                <td style="padding: 6px 0; text-align: right;">$*shippingcharges*</td>
+            </tr>
+            <tr id="discount">
+                <td style="padding: 6px 0; color: #666;">Descuento</td>
+                <td style="padding: 6px 0; text-align: right;">$-*discount*</td>
+            </tr>
+            <tbody id="extra_discounts">
+                <tr>
+                    <td style="padding: 6px 0; color: #666;">*conceptdiscount*</td>
+                    <td style="padding: 6px 0; text-align: right;">$-*discountconcept*</td>
+                </tr>
+            </tbody>            
+            <tr style="border-top: 1px solid #eee;">
+                <td style="padding: 6px 0; color: #666;">Subtotal</td>
+                <td style="padding: 6px 0; text-align: right;">$*subtotal*</td>
+            </tr>            
+            <tr id="salestax">
+                <td style="padding: 6px 0; color: #666;">Impuesto sobre Ventas (*taxrate*%)</td>
+                <td style="padding: 6px 0; text-align: right;">$*salestax*</td>
+            </tr>
+
+            <tr style="color: #002d72; font-size: 15px;">
+                <td style="padding: 10px 0;"><strong>Total</strong></td>
+                <td style="padding: 10px 0; text-align: right;"><strong>$*total*</strong></td>
+            </tr>
+
+            <tr style="color: #00722f; font-size: 15px;" id="tr-apay">
+                <td style="padding: 10px 0;"><strong>Depósito / Anticipo</strong></td>
+                <td style="padding: 10px 0; text-align: right;"><strong>$-*apayment*</strong></td>
+            </tr>            
+
+            <tr style="color: #c0392b; font-size: 15px;">
+                <td style="padding: 10px 0;"><strong>Saldo Pendiente</strong></td>
+                <td style="padding: 10px 0; text-align: right;"><strong>$*ctr_balance_due*</strong></td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="border-bottom: 1px dashed #eee; margin: 40px 0;"></div>
+
+    <div style="font-size: 10.5px; text-align: justify; color: #444; line-height: 1.3;">
+        <h3 style="text-align: center; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; color: #000;">Contrato de Compraventa y Políticas</h3>
+        
+        <div class="policy-columns" style="column-count: 2; column-gap: 30px; widows: 2; orphans: 2;">
+
+        <ol>
+			<li style="list-style-type:decimal;"><strong>Identidad de las partes:</strong> Para este Contrato de Compraventa, "Vendedor" significará *company_name*, sus propietarios, oficiales, directores, empleados y agentes. "Comprador" significará la(s) persona(s) o entidad que figura(n) en la sección "Comprador y Dirección de Envío" en este acuerdo, así como la persona que firma el documento digitalmente.</li>
+			<br>
+			<li style="list-style-type:decimal;"><strong>Objeto del Contrato y Transferencia de Propiedad:</strong> El Vendedor vende y el Comprador adquiere la propiedad de los artículos descritos en la tabla de productos de este acuerdo. La transferencia de la propiedad de los bienes se perfeccionará una vez que el pago total del saldo pendiente (`*total*`) sea liquidado por el Comprador y los artículos hayan sido formalmente entregados o recolectados.</li>
+			<br>
+			<li style="list-style-type:decimal;"><strong>Precios y Condiciones de Pago:</strong> El Comprador se compromete a pagar el precio estipulado en este acuerdo. En caso de aplicar un pago anticipado o depósito (`*-apayment*`), el saldo remanente (`*ctr_balance_due*`) deberá ser liquidado de acuerdo con los términos pactados por escrito o, a más tardar, al momento de la entrega de la mercancía. Cualquier demora en los pagos acordados generará la retención del envío y posibles cargos adicionales por almacenamiento.</li>
+			<br>
+			<li style="list-style-type:decimal;"><strong>Envíos, Entregas y Recepción:</strong> El Vendedor realizará la entrega según el método especificado (`*deliverytype*`). Es responsabilidad del Comprador proveer una dirección exacta y asegurar que una persona autorizada esté disponible para recibir los productos en la fecha estimada (`*deliverydate*`). Al momento de la recepción, el Comprador tiene la obligación de inspeccionar la mercancía. Cualquier disconformidad o daño visible en el embalaje o productos debido al transporte debe ser notificado al Vendedor en un plazo máximo de 24 horas.</li>
+			<br>
+			<li style="list-style-type:decimal;"><strong>Política de Cheques Devueltos y Fallos de Pago:</strong> Si un cheque u otro método de pago electrónico es rechazado o devuelto por falta de fondos, el Comprador acepta pagar el saldo total adeudado de inmediato, sumado a una tarifa de penalización administrativa de $75.00.</li>
+			<br>
+			<li style="list-style-type:decimal;"><strong>Garantía de los Productos:</strong> El Vendedor garantiza que los productos se entregan libres de gravámenes y defectos de fabricación ocultos. La garantía de los productos está sujeta exclusivamente a los términos, plazos y manuales provistos directamente por el fabricante de cada artículo. Esta garantía no cubre defectos causados por mal uso, negligencia, accidentes, alteraciones o instalación inadecuada por parte del Comprador o terceros.</li>
+			<br>
+			<li style="list-style-type:decimal;"><strong>Cancelaciones y Devoluciones:</strong> No se aceptarán cancelaciones de pedidos una vez que los productos hayan salido de los almacenes del Vendedor o si se trata de artículos personalizados. Para devoluciones de productos estándar autorizadas por escrito por el Vendedor, los artículos deberán encontrarse en su empaque original, sin usar y en perfectas condiciones comerciales. El Comprador absorberá todos los costos de envío relacionados con devoluciones no motivadas por defectos de fabricación.</li>
+			<br>
+			<li style="list-style-type:decimal;"><strong>Limitación de Responsabilidad:</strong> El Vendedor no será responsable de ningún daño indirecto, incidental o consecuente (incluyendo pérdida de ganancias o interrupción de negocios) derivado del uso o la imposibilidad de uso de los productos vendidos bajo este acuerdo.</li>
+			<br>
+			<li style="list-style-type:decimal;"><strong>Acuerdo Completo:</strong> Este documento constituye el contrato total de compraventa entre el Vendedor y el Comprador, sustituyendo cualquier acuerdo, conversación o negociación previa, ya sea verbal o escrita. Cualquier modificación futura requerirá el consentimiento expreso y por escrito de ambas partes.</li>
+		</ol>            
+
+AL FIRMAR ESTE CONTRATO, RECONOZCO QUE HE LEÍDO, COMPRENDIDO Y ACEPTADO EN SU TOTALIDAD LOS TÉRMINOS Y CONDICIONES DE ESTA COMPRAVENTA AQUÍ DETALLADOS, ASÍ COMO EL PRECIO FINAL Y LAS POLÍTICAS DE ENTREGA Y GARANTÍA.                
+
+        </div>
+
+        <p style="margin-top: 20px; font-weight: bold; text-align: center; border: 1px solid #333; padding: 15px; text-transform: uppercase; background-color: #fcfcfc;">
+            Confirmo que he leído, entendido y aceptado todos los términos y condiciones de compraventa.
+        </p>
+    </div>
+
+    <table class="responsive-table" width="100%" style="margin-top: 40px; border-collapse: collapse;">
+        <tr>
+            <td class="stack-column signature-box" style="width: 45%;  padding-top: 8px; text-align: center;">
+                <div style="font-family: 'Courier New', Courier, monospace; font-size: 18px; min-height: 40px; color: #002d72;">
+                    <img id="img-firma-tabla" alt="*signature*" style="max-height: 80px;width: auto;">                    
+                </div>                
+                <hr>
+                <div style="font-size: 10px; color: #999;">*customerdsname*</div>
+                <div style="font-size: 10px; color: #999; text-transform: uppercase;">Firma Digital del Comprador</div>
+            </td>
+            
+            <td class="stack-column" style="width: 10%; height: 20px;"></td>
+
+            <td class="stack-column signature-box" style="width: 45%;  padding-top: 8px; text-align: center; vertical-align: top;">
+                <div style="font-size: 13px; min-height: 40px; padding-top: 10px;">*signeddate*</div>
+                <hr>
+                <div style="font-size: 10px; color: #999; text-transform: uppercase;">Fecha de Firma</div>
+            </td>
+        </tr>
+    </table>
+</div>

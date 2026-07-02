@@ -107,7 +107,7 @@ try {
         $stmt->execute(['confirmed',$amount, $IdLead]);
 
         //METER A OPERACION!!
-        //process_op($cotizacion['IdQuote'],$db);
+        process_op($IdLead,$db);
         //METER A OPERACION!!
 
         $query = "select * FROM payments WHERE IdLead = ? ORDER BY Id";

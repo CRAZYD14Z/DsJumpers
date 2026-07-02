@@ -72,7 +72,7 @@ else{
         <button id="btn-prev" title="<?php echo ($_SESSION['Idioma'] == 'en') ? "Previous month" : "Mes anterior"; ?>">
             <i class="bi bi-chevron-left"></i>
         </button>
-        <span id="lbl-mes">—</span>
+        <button id="lbl-mes" class="btn btn-sm btn-light fw-bold mx-1" data-bs-toggle="modal" data-bs-target="#modalSelectorFecha">—</button>
         <button id="btn-next" title="<?php echo ($_SESSION['Idioma'] == 'en') ? "Next month" : "Mes siguiente"; ?>">
             <i class="bi bi-chevron-right"></i>
         </button>
@@ -166,7 +166,45 @@ else{
     </div>
 </div>
 
-
+<div class="modal fade" id="modalSelectorFecha" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm"> <div class="modal-content">
+            <div class="modal-header py-2">
+                <h6 class="modal-title fw-bold">
+                    <?php echo ($_SESSION['Idioma'] == 'en') ? "Select Date" : "Seleccionar Fecha"; ?>
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-2">
+                    <div class="col-7">
+                        <label class="form-label small text-muted mb-1"><?php echo ($_SESSION['Idioma'] == 'en') ? "Month" : "Mes"; ?></label>
+                        <select id="select-modal-mes" class="form-select form-select-sm">
+                            <?php foreach ($meses as $num => $nombre): ?>
+                                <option value="<?php echo $num; ?>"><?php echo $nombre; ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-5">
+                        <label class="form-label small text-muted mb-1"><?php echo ($_SESSION['Idioma'] == 'en') ? "Year" : "Año"; ?></label>
+                        <select id="select-modal-anio" class="form-select form-select-sm">
+                            <?php for ($a = $anioActual - 5; $a <= $anioActual + 5; $a++): ?>
+                                <option value="<?php echo $a; ?>"><?php echo $a; ?></option>
+                            <?php endfor; ?>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-1">
+                <button type="button" class="btn btn-xs btn-secondary" data-bs-dismiss="modal">
+                    <?php echo ($_SESSION['Idioma'] == 'en') ? "Cancel" : "Cancelar"; ?>
+                </button>
+                <button type="button" id="btn-aplicar-fecha" class="btn btn-sm btn-primary">
+                    <?php echo ($_SESSION['Idioma'] == 'en') ? "Apply" : "Aplicar"; ?>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -452,7 +490,14 @@ function abrirModal(ev) {
 
 // ── Navegación ────────────────────────────────────────────────
 function actualizarLabel() {
+    
+// Cambia el texto del ahora botón
     $('#lbl-mes').text(`${MESES[mesActual-1]} ${anioActual}`);
+    
+    // Sincroniza los selectores internos del modal con el mes y año en los que estás navegando actualmente
+    $('#select-modal-mes').val(mesActual);
+    $('#select-modal-anio').val(anioActual);
+
 }
 
 function irMes(mes, anio) {
@@ -519,6 +564,20 @@ $(function() {
         
     });
 
+$('#btn-aplicar-fecha').on('click', function() {
+    // Obtener los valores seleccionados en el modal
+    const nuevoMes  = parseInt($('#select-modal-mes').val());
+    const nuevoAnio = parseInt($('#select-modal-anio').val());
+    
+    // Reutilizamos tu función para viajar al mes, renderizar y recargar eventos vía AJAX
+    irMes(nuevoMes, nuevoAnio);
+    
+    // Cerrar el modal automáticamente
+    const modalSelector = bootstrap.Modal.getInstance(document.getElementById('modalSelectorFecha'));
+    if (modalSelector) {
+        modalSelector.hide();
+    }
+});    
 
 </script>
 </body>
