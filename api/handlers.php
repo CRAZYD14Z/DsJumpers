@@ -2348,13 +2348,20 @@ function save_customer($table_name,$db, $method, $id, $data){
     global $IDS;
     switch ($method) {
         case 'POST': 
+            if ($data->{'nombre'} != ""){
+                $resultado = dividirNombreCompleto($data->{'nombre'});
 
-            $resultado = dividirNombreCompleto($data->{'nombre'});
+                $query = "INSERT INTO  customers (Nombres,Apellidos,Estatus,FechaCreacion,FechaCambio) VALUES(:nombre,:apellidos,'A',now(),now()) ";
+                $stmt = $db->prepare($query);
+                $stmt->bindValue(":nombre",$resultado['nombres']);
+                $stmt->bindValue(":apellidos",$resultado['apellido_paterno']." ".$resultado['apellido_materno'] );                
+            }
+            else{
+                $query = "INSERT INTO  customers (TelefonoCelular,Estatus,FechaCreacion,FechaCambio) VALUES(:telefonocelular,'A',now(),now()) ";
+                $stmt = $db->prepare($query);
+                $stmt->bindValue(":telefonocelular",$data->{'cell'});
 
-            $query = "INSERT INTO  customers (Nombres,Apellidos,Estatus,FechaCreacion,FechaCambio) VALUES(:nombre,:apellidos,'A',now(),now()) ";
-            $stmt = $db->prepare($query);
-            $stmt->bindValue(":nombre",$resultado['nombres']);
-            $stmt->bindValue(":apellidos",$resultado['apellido_paterno']." ".$resultado['apellido_materno'] );
+            }
             
             if ($stmt->execute()) {
 
@@ -2368,17 +2375,29 @@ function save_customer($table_name,$db, $method, $id, $data){
         break;
         case 'PUT':
             if ($data->{'IdCustomer'} > 0) {
-                $query = "UPDATE  customers  SET Pais = :pais, Estado = :estado, Direccion = :direccion, Ciudad = :ciudad, CP = :cp, TelefonoCelular = :celular, Correo = :correo, Notas = :notas, FechaCambio = now() WHERE Id = :id ";
+                $CampoCustomer = "";
+                if (isset($data->{'Customer'}) AND $data->{'Customer'} != $data->{'IdCustomer'}){
+                    $resultado = dividirNombreCompleto($data->{'Customer'});
+                    $CampoCustomer = ", Nombres = :nombres, Apellidos = :apellidos ";
+                }
+                $query = "UPDATE  customers  SET Pais = :pais, Estado = :estado, Direccion = :direccion, Ciudad = :ciudad, CP = :cp, TelefonoCelular = :celular, Correo = :correo, Notas = :notas, FechaCambio = now() $CampoCustomer WHERE Id = :id ";
+                //echo $query;
                 $stmt = $db->prepare($query);
-                $stmt->bindValue("pais", $data->{'Country'});
-                $stmt->bindValue("estado", $data->{'State'});
-                $stmt->bindValue("direccion", $data->{'Street'});
-                $stmt->bindValue("ciudad", $data->{'City'});
-                $stmt->bindValue("cp", $data->{'Zip'});
-                $stmt->bindValue("celular", $data->{'Cell'});
-                $stmt->bindValue("correo", $data->{'CustomerEmail'});
-                $stmt->bindValue("notas", $data->{'CustomerNote'});
+                $stmt->bindValue(":pais", $data->{'Country'});
+                $stmt->bindValue(":estado", $data->{'State'});
+                $stmt->bindValue(":direccion", $data->{'Street'});
+                $stmt->bindValue(":ciudad", $data->{'City'});
+                $stmt->bindValue(":cp", $data->{'Zip'});
+                $stmt->bindValue(":celular", $data->{'Cell'});
+                $stmt->bindValue(":correo", $data->{'CustomerEmail'});
+                $stmt->bindValue(":notas", $data->{'CustomerNote'});
                 $stmt->bindValue(":id", $data->{'IdCustomer'});
+
+                if (isset($data->{'Customer'})  AND $data->{'Customer'} != $data->{'IdCustomer'} ){
+                    $stmt->bindValue(":nombres",$resultado['nombres']);
+                    $stmt->bindValue(":apellidos",$resultado['apellido_paterno']." ".$resultado['apellido_materno'] );   
+                }                
+
                 if ($stmt->execute()) {
                     http_response_code(200);
                     echo json_encode(array("message" => "Registro actualizado."));

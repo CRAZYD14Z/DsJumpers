@@ -594,7 +594,18 @@ function inicializarSelectDescuento(selector) {
         //console.log("Seleccionado:", data); // Mira la consola de F12
         
         if (data.newTag === true) {
-            //alert("Detectado nuevo tag: " + data.text);
+            
+            if ($('#Cell').data('select2')) {
+                $('#Cell').select2('destroy');
+            }
+            
+            // 2. Limpiamos el valor por si tenía algo y le quitamos las opciones viejas
+            //$('#Cell').empty().append('<option value=""></option>').val('');
+            $('#Cell').replaceWith('<input type="text" id="Cell" name = "Cell" class="form-control" placeholder="Escriba el celular del nuevo cliente...">');
+            
+            // 3. Enfocamos el celular para que el usuario digite el teléfono
+            $('#Street').focus();                 
+
             registrarOrganizacion(data.text);
         } else {
             // Si no es nuevo, ejecuta tu función normal
@@ -749,7 +760,21 @@ function inicializarSelectDescuento(selector) {
         
         if (data.newTag === true) {
             //alert("Detectado nuevo tag: " + data.text);
-            registrarCustomer(data.text);
+
+        if ($('#Cell').data('select2')) {
+            $('#Cell').select2('destroy');
+        }
+        
+        // 2. Limpiamos el valor por si tenía algo y le quitamos las opciones viejas
+        //$('#Cell').empty().append('<option value=""></option>').val('');
+        $('#Cell').replaceWith('<input type="text" id="Cell" name = "Cell" class="form-control" placeholder="Escriba el celular del nuevo cliente...">');
+        
+        // 3. Enfocamos el celular para que el usuario digite el teléfono
+        $('#Street').focus();            
+
+            
+
+            registrarCustomer(data.text,'');
         } else {
             // Si no es nuevo, ejecuta tu función normal
             if (typeof load_customer === "function") {
@@ -765,6 +790,7 @@ function inicializarSelectDescuento(selector) {
         allowClear: true,
         selectOnClose: false,
         placeholder: '',
+        tags: true, // Permite crear nuevos
         tokenSeparators: [',', '\n'], // Ayuda a que detecte el "Enter" como selección
         ajax: {
             url:  API_BASE_URL+"get_customers_cell/", // URL de tu Web Service
@@ -795,8 +821,17 @@ function inicializarSelectDescuento(selector) {
             },
             cache: true
         },
+        createTag: function (params) {
+            var term = $.trim(params.term);
+            if (term === '') return null;
 
-        templateResult: formatResultNoNew,   // Cómo se ve en la lista desplegable
+            return {
+                id: term,
+                text: term,
+                newTag: true
+            };
+        },
+        templateResult: formatResult,   // Cómo se ve en la lista desplegable
         templateSelection: formatRepo   // Cómo se ve cuando ya se seleccionó
     });
 
@@ -807,7 +842,21 @@ function inicializarSelectDescuento(selector) {
         
         if (data.newTag === true) {
             //alert("Detectado nuevo tag: " + data.text);
-            //registrarCustomer(data.text);
+
+            if ($('#Customer').data('select2')) {
+                $('#Customer').select2('destroy');
+            }
+            
+            // 2. Limpiamos cualquier selección previa
+            //$('#Customer').empty().append('<option value=""></option>').val('');
+            $('#Customer').replaceWith('<input type="text" id="Customer" name="Customer" class="form-control" placeholder="Escriba el nombre del nuevo cliente...">');
+            
+            // 3. Enfocamos el campo nombre para que el usuario lo escriba
+            $('#Customer').focus();            
+
+            
+
+            registrarCustomer('',data.text);
         } else {
             let Idsrch = data.id
             Idsrch = Idsrch.split('-')
@@ -819,7 +868,7 @@ function inicializarSelectDescuento(selector) {
     });    
 
 
-    function registrarCustomer(nombreNuevo) {
+    function registrarCustomer(nombreNuevo,cellNuevo) {
         $.ajax({
             url: API_BASE_URL + "save_customer/",
             method: 'POST',
@@ -827,7 +876,7 @@ function inicializarSelectDescuento(selector) {
                 'Authorization': 'Bearer ' + TOKEN,
                 'Content-Type': 'application/json' 
             },
-            data: JSON.stringify({ nombre: nombreNuevo }),
+            data: JSON.stringify({ nombre: nombreNuevo,cell: cellNuevo }),
             success: function (response) {
                 // Importante: La API debe retornar el ID asignado
                 // response = { id: 500, nombre: 'Empresa Nueva' }

@@ -192,7 +192,7 @@ function armar_formulario_add($tabla,$etiqueta,$idioma){
                         case 'select':
                             echo "<label for='$Campo' class='form-label fw-semibold text-dark small mb-1'>$Titulo</label>";
                             if ($TablaDts2!= "")
-                                echo '<select name="'.$Campo.'" id="'.$Campo.'" class="'.$form_select.' w-100" style=""  onChange="change_send2(this.value,'.$aps.$Campo.$aps.','.$aps.$Receptor.$aps.','.$aps.$tabla.$aps.''.$aps.$aps.')" '.$Requerido.' '.$SoloLectura.'>';
+                                echo '<select name="'.$Campo.'" id="'.$Campo.'" class="'.$form_select.' w-100" style=""  onChange="change_send2(this.value,'.$aps.$Campo.$aps.','.$aps.$Receptor.$aps.','.$aps.$tabla.$aps.','.$aps.$aps.')" '.$Requerido.' '.$SoloLectura.'>';
                             else
                                 echo '<select name="'.$Campo.'" id="'.$Campo.'" class="'.$form_select.' w-100" style="" '.$Requerido.' '.$SoloLectura.'>';
 

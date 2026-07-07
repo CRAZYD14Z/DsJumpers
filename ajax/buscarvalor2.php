@@ -34,12 +34,38 @@
             $CampoValor       = $row['CampoValor2'];
             $CampoDescripcion = $row['CampoDescripcion2'];
             $Filtro           = $row['Filtro2'];
-
+/*
             $sql2 = "SELECT $CampoValor AS Id, $CampoDescripcion AS Descripcion 
                     FROM $TablaDts 
                     WHERE $Filtro $CampoFiltro = :valor AND (Idioma ='$Idioma' OR Idioma ='')
                     ORDER BY $CampoDescripcion";
             //echo $sql2;
+            $stmt2 = $conexion->prepare($sql2);
+            $stmt2->execute([':valor' => $valor]);
+*/
+
+            $checkColumn = $conexion->prepare("
+                SELECT COUNT(*) 
+                FROM INFORMATION_SCHEMA.COLUMNS 
+                WHERE TABLE_SCHEMA = DATABASE() 
+                AND TABLE_NAME = :tabla 
+                AND COLUMN_NAME = 'Idioma'
+            ");
+            $checkColumn->execute([':tabla' => $TablaDts]);
+            $columnaExiste = $checkColumn->fetchColumn() > 0;
+
+            // 2. Construir el fragmento de la consulta de forma dinámica
+            $condicionIdioma = "";
+            if ($columnaExiste) {
+                $condicionIdioma = "AND (Idioma = '$Idioma' OR Idioma = '')";
+            }
+
+            // 3. Tu consulta final modificada
+            $sql2 = "SELECT $CampoValor AS Id, $CampoDescripcion AS Descripcion 
+                    FROM $TablaDts 
+                    WHERE $Filtro $CampoFiltro = :valor $condicionIdioma
+                    ORDER BY $CampoDescripcion";
+
             $stmt2 = $conexion->prepare($sql2);
             $stmt2->execute([':valor' => $valor]);
 

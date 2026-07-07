@@ -2385,6 +2385,7 @@ $(".decimals").keypress(function (e) {
 
 
         function change_send2(valor,campo,receptor,tabla,valor2){
+            $('#'+receptor+' option').remove();
             var parametros = {"action":"ajax","valor":valor,'campo':campo,'receptor':receptor,'tabla':tabla,"valor2":valor2};
             $.ajax({
                 type: "POST",
@@ -2411,7 +2412,39 @@ $(".decimals").keypress(function (e) {
             }).fail( function( jqXHR, textStatus, errorThrown ) {
                 alert( 'Error!!' );
             });
-        }  
+        }
+        
+        
+        function change_send3(valor,campo,receptor,tabla,valor2){
+            $('#edit_'+receptor+' option').remove();
+            var parametros = {"action":"ajax","valor":valor,'campo':campo,'receptor':receptor,'tabla':tabla,"valor2":valor2};
+            $.ajax({
+                type: "POST",
+                url:'ajax/buscarvalor2.php',
+                data: parametros,
+                dataType: 'json', 
+                beforeSend: function(objeto){
+                    //$('#loadModal').show();
+                    //$('.modal-backdrop').show();
+                },
+                success:function(data){
+                    valor = data.Valor;
+                    data = data.Registros;
+                    $('#edit_'+receptor+' option').remove();
+                    //var obj = JSON.parse(JSON.stringify(data));
+                    $.each(data, function(key,value) {
+                        $('#edit_'+receptor).append($('<option>', { 
+                            value: value.Id,
+                            text : value.Descripcion ,
+                            selected: value.Id == valor
+                        }));
+                    });
+                }
+            }).fail( function( jqXHR, textStatus, errorThrown ) {
+                alert( 'Error!!' );
+            });
+        }          
+
 
 
         function uploadFile(file,field,type){
