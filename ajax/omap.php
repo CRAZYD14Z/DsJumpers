@@ -9,7 +9,7 @@
 if (isset($_GET['buscar']) && !empty($_GET['buscar'])) {
     header('Content-Type: application/json');
     
-    $sql = "SELECT Pais FROM account";
+    $sql = "SELECT Pais FROM account LIMIT 1";
     $stmt = $db->prepare($sql);
     //$stmt->bindValue(":name", $data->Product); 
     $stmt->execute();

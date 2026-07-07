@@ -18,11 +18,22 @@
     <div class="row">
         <div class='col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8 col-xxl-8'>
             <label for="EventStreet" class="form-label"><?php echo Trd(53)?></label>
+
+            <div class="grupo-campo">
+                <div class="input-group input-group-sm">
+                    <input type="text" class="form-control" id="EventStreet" name="EventStreet" autocomplete="off">
+                    
+                    <span class="input-group-text bg-light" style="cursor: pointer;"><i class="fa-solid fa-map-location-dot" onclick="abrirRutaGoogleMaps()"></i></span>
+                </div>    
+                <div id="lista-sugerencias_2" class="sugerencias"></div>
+            </div>               
+
+<!--            
             <div class="input-group input-group-sm">
                 <input type="text" class="form-control" id= "EventStreet" name="EventStreet" placeholder="">
                 <span class="input-group-text bg-light" style="cursor: pointer;"><i class="fa-solid fa-map-location-dot" onclick="abrirRutaGoogleMaps()"></i></span>
-                
             </div>  
+-->
         </div>
         <div class='col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 col-xxl-4'>
             <label for="Surface" class="form-label"><?php echo Trd(54)?></label>
@@ -139,3 +150,153 @@
         </div>   
     </div> 
 </form>
+
+
+    <script>
+        const buscador2 = document.getElementById('EventStreet');
+        const listaSugerencias2 = document.getElementById('lista-sugerencias_2');
+        let timeout2 = null;
+
+        buscador2.addEventListener('input', function() {
+            clearTimeout(timeout2);
+            const valor = this.value.trim();
+
+            if (valor.length < 4) {
+                listaSugerencias2.style.display = 'none';
+                return;
+            }
+
+            timeout2 = setTimeout(() => {
+                fetch(`ajax/omap.php?buscar=${encodeURIComponent(valor)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        listaSugerencias2.innerHTML = '';
+                        
+                        if(data.length === 0 || data.error) {
+                            listaSugerencias2.style.display = 'none';
+                            return;
+                        }
+
+                        data.forEach(item => {
+                            const div = document.createElement('div');
+                            div.className = 'sugerencia-item';
+                            div.textContent = item.display_name;
+                            
+                            div.addEventListener('click', () => {
+                                // 1. Ponemos el texto completo en el buscador
+                                buscador2.value = item.display_name;
+                                listaSugerencias2.style.display = 'none';
+                                
+                                // 2. Extraemos el objeto address con seguridad
+                                const addr = item.address || {};
+                                
+                                // 3. Rellenamos cada input mapeando las posibles variantes de la API
+                                address = addr.road || addr.pedestrian || addr.cycleway || '';
+                                housenumber  = addr.house_number;
+                                cntry = addr.country ;
+                                if (cntry == 'United States')
+                                    ctry = 'USA';
+                                if (cntry == 'Mexico' || cntry == 'México' )
+                                    ctry = 'MX';
+                                document.getElementById('EventStreet').value =  housenumber + ' ' +address ;
+                                document.getElementById('EventCountry').value = ctry;
+
+                                const countryInput = document.getElementById('EventCountry');
+                                countryInput.value = ctry;
+                                const event = new Event('change', { bubbles: true });
+                                countryInput.dispatchEvent(event);
+
+                                document.getElementById('EventCity').value = addr.city || addr.town || addr.village || addr.suburb || '';
+                                //document.getElementById('State').value = addr.state || '';
+                                document.getElementById('EventZip').value = addr.postcode || '';
+
+                                const stateSelect = document.getElementById('EventState');
+                                const targetState = (addr.state || '').toUpperCase(); // Convertimos el estado buscado a MAYÚSCULAS
+
+                                if (targetState !== '') {
+                                    let encontrado = false;
+
+                                    // Recorremos todas las opciones del select
+                                    for (let i = 0; i < stateSelect.options.length; i++) {
+                                        const optionText = stateSelect.options[i].text.toUpperCase(); // Texto de la opción en MAYÚSCULAS
+                                        
+                                        if (optionText === targetState) {
+                                            stateSelect.selectedIndex = i; // Seleccionamos la opción por su índice
+                                            encontrado = true;
+                                            break;
+                                        }
+                                    }
+
+                                    // Si encontramos el estado, detonamos el evento change
+                                    if (encontrado) {
+                                        stateSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                                    }
+                                } else {
+                                    // Si addr.state viene vacío, reseteamos el select al valor por defecto
+                                    stateSelect.value = '';
+                                    stateSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                                }                                
+
+                                
+                            });
+                            
+                            listaSugerencias2.appendChild(div);
+                        });
+                        
+                        listaSugerencias2.style.display = 'block';
+                    })
+                    .catch(err => console.error('Error:', err));
+            }, 500);
+        });
+
+        // Ocultar sugerencias al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            if (!buscador2.contains(e.target) && !listaSugerencias2.contains(e.target)) {
+                listaSugerencias2.style.display = 'none';
+            }
+        });
+
+
+        document.getElementById('EventZip').addEventListener('input', function() {
+            const cp = this.value.trim();
+            // Detona automáticamente al alcanzar los 5 caracteres
+            if (cp.length === 5) { 
+
+                const urlPHP = 'ajax/omap_cp.php?buscar=' + encodeURIComponent(cp);
+                fetch(urlPHP)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error en la respuesta del servidor');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === 'success') {
+                        // AQUÍ ASIGNAS LOS VALORES A TUS INPUTS DE CIUDAD Y ESTADO
+                        // Reemplaza 'id_input_ciudad' e 'id_input_estado' por los IDs reales de tu formulario
+                        if (document.getElementById('EventCity')) {
+                            document.getElementById('EventCity').value = data.ciudad;
+                        }
+                        if (document.getElementById('EventCountry')) {
+                            document.getElementById('EventCountry').value = data.pais;
+                        }                
+                        if (document.getElementById('EventState')) {
+                            document.getElementById('EventState').value = data.estado;
+                        }
+                        distance_charge(cp, data.pais);
+                        //console.log('Ubicación encontrada:', data.ciudad, ',', data.estado);
+                    } else {
+                        lanzarMensaje(data.error || 'No se encontraron resultados para este CP.', "alert", 5000);                        
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al consultar el CP:', error);
+                });    
+
+
+
+            }
+        });        
+
+
+    </script>

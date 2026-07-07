@@ -148,7 +148,7 @@
         <div class='col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-xxl-2'>
             <label for="Zip" class="form-label"><?php echo Trd(47)?></label>
             <input type="text" class="form-control" id="Zip" name="Zip" placeholder="00000"> 
-        </div>        
+        </div>
     </div>     
     <div class="row">
         <div class='col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 col-xxl-4'>
@@ -223,32 +223,32 @@
                                 //document.getElementById('State').value = addr.state || '';
                                 document.getElementById('Zip').value = addr.postcode || '';
 
-const stateSelect = document.getElementById('State');
-const targetState = (addr.state || '').toUpperCase(); // Convertimos el estado buscado a MAYÚSCULAS
+                                const stateSelect = document.getElementById('State');
+                                const targetState = (addr.state || '').toUpperCase(); // Convertimos el estado buscado a MAYÚSCULAS
 
-if (targetState !== '') {
-    let encontrado = false;
+                                if (targetState !== '') {
+                                    let encontrado = false;
 
-    // Recorremos todas las opciones del select
-    for (let i = 0; i < stateSelect.options.length; i++) {
-        const optionText = stateSelect.options[i].text.toUpperCase(); // Texto de la opción en MAYÚSCULAS
-        
-        if (optionText === targetState) {
-            stateSelect.selectedIndex = i; // Seleccionamos la opción por su índice
-            encontrado = true;
-            break;
-        }
-    }
+                                    // Recorremos todas las opciones del select
+                                    for (let i = 0; i < stateSelect.options.length; i++) {
+                                        const optionText = stateSelect.options[i].text.toUpperCase(); // Texto de la opción en MAYÚSCULAS
+                                        
+                                        if (optionText === targetState) {
+                                            stateSelect.selectedIndex = i; // Seleccionamos la opción por su índice
+                                            encontrado = true;
+                                            break;
+                                        }
+                                    }
 
-    // Si encontramos el estado, detonamos el evento change
-    if (encontrado) {
-        stateSelect.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-} else {
-    // Si addr.state viene vacío, reseteamos el select al valor por defecto
-    stateSelect.value = '';
-    stateSelect.dispatchEvent(new Event('change', { bubbles: true }));
-}                                
+                                    // Si encontramos el estado, detonamos el evento change
+                                    if (encontrado) {
+                                        stateSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                                    }
+                                } else {
+                                    // Si addr.state viene vacío, reseteamos el select al valor por defecto
+                                    stateSelect.value = '';
+                                    stateSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                                }                                
 
                                 
                             });
@@ -268,4 +268,47 @@ if (targetState !== '') {
                 listaSugerencias.style.display = 'none';
             }
         });
+
+        document.getElementById('Zip').addEventListener('input', function() {
+            const cp = this.value.trim();
+            // Detona automáticamente al alcanzar los 5 caracteres
+            if (cp.length === 5) { 
+
+                const urlPHP = 'ajax/omap_cp.php?buscar=' + encodeURIComponent(cp);
+                fetch(urlPHP)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error en la respuesta del servidor');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === 'success') {
+                        // AQUÍ ASIGNAS LOS VALORES A TUS INPUTS DE CIUDAD Y ESTADO
+                        // Reemplaza 'id_input_ciudad' e 'id_input_estado' por los IDs reales de tu formulario
+                        if (document.getElementById('City')) {
+                            document.getElementById('City').value = data.ciudad;
+                        }
+                        if (document.getElementById('Country')) {
+                            document.getElementById('Country').value = data.pais;
+                        }                
+                        if (document.getElementById('State')) {
+                            document.getElementById('State').value = data.estado;
+                        }
+                        distance_charge(cp, data.pais);
+                        //console.log('Ubicación encontrada:', data.ciudad, ',', data.estado);
+                    } else {
+                        lanzarMensaje(data.error || 'No se encontraron resultados para este CP.', "alert", 5000);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al consultar el CP:', error);
+                });    
+
+
+
+            }
+        });        
+
+
     </script>

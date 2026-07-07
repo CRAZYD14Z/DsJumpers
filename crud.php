@@ -166,6 +166,7 @@ div[id^="dropzone_"]:hover {
             'sale_customers',
             'sale_customer_addresses',
             'categories',
+            'scategories',
             'customer_type',
             'wharehouses',
             'gifcard',
@@ -1167,7 +1168,23 @@ div[id^="dropzone_"]:hover {
             delete_form($IdTabla);
             delete_form($Tabla);                
 
-        }        
+        }
+        elseif ($IdTabla == 'categories'){
+            add_listado($IdTabla);
+            add_form($IdTabla,$Idioma,'M');
+            edit_form($IdTabla,$Idioma,'I',true);
+
+            $Tabla = 'scategories';
+            echo '<h4 class="mb-4">Sub Categorias</h4>';
+                add_listado($Tabla);                
+                add_form($Tabla,$Idioma,'D');
+                edit_form($Tabla,$Idioma,'D');
+
+            echo '</div>';
+            delete_form($IdTabla);
+            delete_form($Tabla);                
+
+        }                
         else{
             add_listado($IdTabla);
             add_form($IdTabla,$Idioma,'M');
@@ -1233,6 +1250,7 @@ function inicializarEstadoTabla(IdTabla) {
         if (Id=='products'){
             $("#add_form_products_clone").show();
         }
+        
         if (Id=='item_prices'){
             IdSelected = 0;
         }
@@ -1454,7 +1472,8 @@ function inicializarEstadoTabla(IdTabla) {
                 formData[field.name] = LimpiaMonedaMejorada(field.value);
             } 
             else if (tipo === 'hidden') {
-                // Si es hidden, asignamos IdSelected
+                // Si es hidden, asignamos 
+                //alert(IdSelected)
                 formData[field.name] = IdSelected;
             } 
             else {
@@ -1720,13 +1739,22 @@ function getRecordData(Id,IdTabla) {
         $('#product_id').val(Id)
         loadGallery();
     }
-        
 
     if (IdTabla == 'distance_charges')
         IdSelected = Id;    
 
     if (IdTabla == 'customers')
         IdSelected = Id;    
+        
+
+    if (IdTabla == 'categories'){
+        IdSelected = Id;      
+        //alert(IdSelected)
+    }
+        
+
+    //if (IdTabla == 'scategories')
+    //    IdSelected = Id;     
 
     if (IdTabla == 'price_lists')
         IdSelected = Id;
@@ -1867,6 +1895,9 @@ function getRecordData(Id,IdTabla) {
             else if (IdTabla == 'customers'){
                 listado('customer_addresses');
             }
+            else if (IdTabla == 'categories'){
+                listado('scategories');
+            }            
             else if (IdTabla == 'price_lists'){
                 listado('detail_price_lists');
             }else if (IdTabla == 'item_prices' || IdTabla == 'products_item_price'){

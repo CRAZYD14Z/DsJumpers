@@ -67,6 +67,7 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
         'sale_customers',
         'sale_customer_addresses',
         'categories',
+        'scategories',
         'customer_type',
         'wharehouses',
         'gifcard',

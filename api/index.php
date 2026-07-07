@@ -383,13 +383,14 @@ switch ($resource) {
         
         handle_generic_crud($resource,$db, $method, $id, $data);
         break;                
-
-        
-
     case 'categories':
         
         handle_generic_crud($resource,$db, $method, $id, $data);
         break; 
+    case 'scategories':
+        
+        handle_generic_crud($resource,$db, $method, $id, $data);
+        break;         
     case 'customer_type':
         
         handle_generic_crud($resource,$db, $method, $id, $data);

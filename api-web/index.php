@@ -142,7 +142,13 @@ switch ($resource) {
 	    $Traducciones = Traducciones_web($data->program,$lng,$db);     
         http_response_code(200);
         echo json_encode($Traducciones);        
-    break;        
+    break;  
+    case 'Traducciones_web_sales':
+	    $Traducciones = Traducciones_web_sales($data->program,$lng,$db);     
+        http_response_code(200);
+        echo json_encode($Traducciones);        
+    break;      
+
     case 'discounts':
 	    $Traducciones = Traducciones('get_discounts',$lng,$db);        
         get_discounts($resource,$db, $method, $id, $data);
@@ -212,6 +218,20 @@ switch ($resource) {
         get_sale($resource,$db, $method, $id, $data);
     break;    
 
+    case 'get_sale_contract':
+	    //$Traducciones = Traducciones('get_all_sales',$lng,$db);            
+        get_sale_contract($resource,$db, $method, $id, $data);
+    break;      
+
+    case 'save_sale_contract':
+	    //$Traducciones = Traducciones('get_all_sales',$lng,$db);            
+        save_sale_contract($resource,$db, $method, $id, $data);
+    break;     
+
+    case 'sendsale':
+        sendsale($resource,$db, $method, $id, $data);
+    break;    
+
     case 'categories':
 	    $Traducciones = Traducciones('categories',$lng,$db);            
         categories($resource,$db, $method, $id, $data);
@@ -221,6 +241,11 @@ switch ($resource) {
 	    $Traducciones = Traducciones('categories_sale',$lng,$db);            
         categories_sale($resource,$db, $method, $id, $data);
     break;    
+
+    case 'scategories_sale':
+	    $Traducciones = Traducciones('scategories_sale',$lng,$db);            
+        scategories_sale($resource,$db, $method, $id, $data);
+    break;      
 
     case 'password_recover':
         password_recover($resource,$db, $method, $id, $data);
@@ -2002,8 +2027,8 @@ function sendbook($table_name,$db, $method, $id, $data){
             ];            
             $cuerpo = generarHtmlCotizacion($cuerpo, $valores);
             $mail['correo'] = $customer['Correo'];
-            $mail['archivo_base64'] = '';
-            $mail['nombre_archivo'] = '';
+            $mail['archivo_base64'] = $data->PDF;
+            $mail['nombre_archivo'] = $data->UUID.'.pdf';
             $mail['Subject'] = $header;
             $mail['Body'] = $cuerpo;
             $mail['echo'] = 'X';
@@ -2194,7 +2219,7 @@ function products_sale($table_name,$db, $method, $id, $data){
             $stmt->execute();
             $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             */
-            $sql = "SELECT * FROM v_products WHERE Id = :id AND Active = 1 AND For_Sale = 1";
+            $sql = "SELECT * FROM v_products WHERE Id = :id AND Active = 1 AND For_Sale = 1 GROUP BY Id";
             $stmt = $db->prepare($sql);
             $stmt->bindValue(":id", $data->IdP); 
             $stmt->execute();
@@ -2764,6 +2789,7 @@ function get_all_sales($table_name,$db, $method, $id, $data){
             $pagina = isset($data->pagina) ? (int)$data->pagina : 1;
             $registros_por_pagina = isset($data->registros_por_pagina) ? (int)$data->registros_por_pagina : 10;
             $categoria = isset($data->categoria) ? $data->categoria : 'all';
+            $scategoria = isset($data->scategoria) ? $data->scategoria : '';
             $orden = isset($data->orden) ? $data->orden : 'precio_menor';
             $search = isset($data->search) ? $data->search : '';
 
@@ -2789,9 +2815,13 @@ function get_all_sales($table_name,$db, $method, $id, $data){
                 else{
                     $where_categoria = " AND v_products.Nombre = :categoria ";
                     $params[':categoria'] = $categoria;
+
+                    if ($scategoria !=""){
+                        $where_categoria.= " AND v_products.Nombre_sc = :scategoria ";
+                        $params[':scategoria'] = $scategoria;                        
+                    }
+                        
                 }
-
-
             }
 
             if ($search !== '' && !empty($search)) {
@@ -2878,6 +2908,7 @@ function get_all_sales($table_name,$db, $method, $id, $data){
                 WHERE v_products.Active = 1 AND v_products.For_Sale = 1 AND products_images.Orden = 1 AND inventory_stock.Quantity_for_sale > 0 AND inventory_stock.Active = 1
                 $where_categoria
             ";
+            //echo $sql_total;
             $stmt_total = $db->prepare($sql_total);
             if ($categoria !== 'all' && !empty($categoria)) {
                 if ($categoria == 'stock'){
@@ -2891,6 +2922,9 @@ function get_all_sales($table_name,$db, $method, $id, $data){
                 }   
                 else{
                     $stmt_total->bindValue(':categoria', $categoria);
+                    if ($scategoria !=""){
+                        $stmt_total->bindValue(':scategoria', $scategoria);                    
+                    }                    
                 }                
                 
             }
@@ -2933,7 +2967,24 @@ function get_sale($table_name,$db, $method, $id, $data){
             $stmt->execute();
             $Pay = $stmt->fetch(PDO::FETCH_ASSOC);               
 
-            $sql = "SELECT * FROM sales WHERE id = :sale ";
+            $sql = "SELECT 
+                id,
+                customer_id,
+                address_id,
+                balance,
+                total_amount,
+                cart_notes,
+                payer_name,
+                payer_lastname,
+                payer_email,
+                payment_method,
+                gateway_token,
+                device_fingerprint,
+                cart_json,
+                payment_status,
+                status,
+                IF(Contrato IS NULL, 0, 1) AS Contrato
+             FROM sales WHERE id = :sale ";
             $stmt = $db->prepare($sql);
             $stmt->bindValue(":sale", $Pay['IdSale']);
             $stmt->execute();
@@ -2971,6 +3022,168 @@ function get_sale($table_name,$db, $method, $id, $data){
         break;
     }                  
 }
+
+
+
+function get_sale_contract($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+
+            $sql = "SELECT Template FROM document_center WHERE Tipo ='contract' AND IdTemplate = '13' and Idioma = :lng ";
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(":lng", $data->lng);
+            $stmt->execute();
+            $Template = $stmt->fetch(PDO::FETCH_ASSOC);               
+            http_response_code(200);
+            echo json_encode([
+                "status" => "success",
+                "template" => $Template['Template']                
+            ]);
+        break;    
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }                  
+}
+
+function save_sale_contract($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+
+            $sql = "SELECT * FROM payments_sale WHERE Folio = :folio AND TransactionId = :id ";
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(":folio", $data->IdSale);
+            $stmt->bindValue(":id", $data->TransactionId);
+            $stmt->execute();
+            $Pay = $stmt->fetch(PDO::FETCH_ASSOC);                           
+
+            $pdfBinary = base64_decode($data->Contract);
+            $stmt = $db->prepare("UPDATE sales SET Contrato = ? WHERE id = ?");
+            $stmt->execute([$pdfBinary,$Pay['IdSale']]); 
+
+            
+            http_response_code(200);
+            echo json_encode([
+                "status" => "success"
+            ]);
+        break;    
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }                  
+}
+
+
+function sendsale($table_name,$db, $method, $id, $data){
+    global $IDS;
+    global $lng;
+    switch ($method) {
+        case 'POST': 
+
+            $sql = "SELECT * FROM payments_sale WHERE Folio = :folio AND TransactionId = :id ";
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(":folio", $data->IdSale);
+            $stmt->bindValue(":id", $data->TransactionId);
+            $stmt->execute();
+            $Pay = $stmt->fetch(PDO::FETCH_ASSOC);               
+
+            $sql = "SELECT 
+                id,
+                customer_id,
+                address_id,
+                balance,
+                total_amount,
+                cart_notes,
+                payer_name,
+                payer_lastname,
+                payer_email,
+                payment_method,
+                gateway_token,
+                device_fingerprint,
+                cart_json,
+                payment_status,
+                status,
+                Created_at
+            FROM sales WHERE id = :sale ";
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(":sale", $Pay['IdSale']);
+            $stmt->execute();
+            $Sale = $stmt->fetch(PDO::FETCH_ASSOC);
+
+
+            $sql = "SELECT * FROM sale_customers WHERE id = :id ";
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(":id", $Sale['customer_id']);
+            $stmt->execute();
+            $Client = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $sql = "SELECT * FROM sale_customer_addresses WHERE id = :id ";
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(":id", $Sale['address_id']);
+            $stmt->execute();
+            $Address = $stmt->fetch(PDO::FETCH_ASSOC);            
+
+
+
+            $sql = "SELECT * FROM account ";
+            $stmt = $db->prepare($sql);            
+            $stmt->execute();
+            $account = $stmt->fetch(PDO::FETCH_ASSOC);                
+            //RECUPERAR PLANTILLA
+            $sql = "SELECT Nombre, Template FROM document_center WHERE Tipo = 'email' AND IdTemplate = '12' AND Idioma = '$lng'";
+            $stmt = $db->prepare($sql);
+            //$stmt->bindValue(":name", $data->Product); 
+            $stmt->execute();
+            $Template = $stmt->fetch(PDO::FETCH_ASSOC);
+
+
+            //$header = "MIME-Version: 1.0\r\n";
+            //$header .= "Content-Type: text/html; charset=UTF-8\r\n";
+            $header = $Template['Nombre']."\r\n";            
+                        // Incluimos el teléfono en el cuerpo del correo
+            $cuerpo = "<html>".$Template['Template']."</html>";
+            
+            $valores = [
+                'company_logo'      => $account['Logo'],
+                'company_name' => $account['NombreCompania'],
+                'ctfirstname'  => $Client['firstname']." ".$Client['lastname'],
+                'leadid'       => $Sale['id'],
+                'total'  => $Sale['total_amount'],
+                'apayment'  => $Sale['total_amount'],
+                'balancedue'  => $Sale['balance'],
+                'link_to_accept'  => $account['WebSite']."/profile.php?tab=process",
+                'eventstreet' => $Address['Street'],
+                'eventcity'    => $Address['City'],
+                'startdate'  => $Sale['Created_at'],
+                'company_phone'  => $account['TelefonoOficina'],
+                'company_city'  => $account['Ciudad'],
+            ];            
+            
+            $cuerpo = generarHtmlCotizacion($cuerpo, $valores);
+            
+            $mail['correo'] = $Client['email'];
+            $mail['archivo_base64'] = $data->PDF;
+            $mail['nombre_archivo'] = $data->TransactionId.'.pdf';
+            $mail['Subject'] = $header;
+            $mail['Body'] = $cuerpo;
+            $mail['echo'] = 'X';
+            $mail = (object) $mail;            
+            sendmail('',$db, 'POST', '', $mail);            
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }      
+}       
+
 
 function categories($table_name,$db, $method, $id, $data){
     global $IDS;
@@ -3031,6 +3244,53 @@ function categories_sale($table_name,$db, $method, $id, $data){
         break;
     }      
 }
+
+function scategories_sale($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+            // 1. Definimos el SQL como un simple string (texto)
+            $sql = "SELECT
+                        categories.Id, 
+                        categories.Nombre, 
+                        categories.Imagen, 
+                        scategories.IId, 
+                        scategories.Nombre_sc	
+                    FROM
+                        categories
+                        INNER JOIN
+                        scategories
+                        ON 
+                            categories.Id = scategories.Id_Categoria
+                    WHERE categories.WebSale = 1 AND scategories.WebSale_sc = 1
+                    ORDER BY
+                    categories.Nombre, 
+                    scategories.Nombre_sc	 ";
+            // 2. Preparamos la consulta
+            $stmt = $db->prepare($sql);
+            // 3. Vinculamos el valor (asegúrate que $data->Product exista)
+            //$stmt->bindValue(":name", $data->Product); 
+            // 4. EJECUTAMOS la consulta (Paso vital que faltaba)
+            $stmt->execute();
+            // 5. Obtenemos los resultados desde el $stmt, no desde $db ni $query
+            $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // 6. Respuesta JSON
+            http_response_code(200);
+            echo json_encode([
+                "status" => "success",
+                "total" => count($productos),
+                "data" => $productos
+            ]);
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }      
+}
+
+
 
 function password_recover($table_name,$db, $method, $id, $data){
     global $IDS;
@@ -4670,6 +4930,22 @@ function Traducciones($fnc,$lgn,$db){
 
 function Traducciones_web($fnc,$lgn,$db){
     $query = "select Traduccion FROM  web_traduccion where Programa = ? AND Idioma = ? ORDER BY Id";            
+    $stmt = $db->prepare($query);
+    $stmt->bindValue(1, $fnc);
+    $stmt->bindValue(2, $lgn);
+    $stmt->execute();
+    $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $Traducciones[]='';
+    if ($resultados) {
+        foreach ($resultados as $registro) {
+            $Traducciones[]=$registro['Traduccion'];
+        }
+    }
+    return $Traducciones;
+}
+
+function Traducciones_web_sales($fnc,$lgn,$db){
+    $query = "select Traduccion FROM  web_sale_traduccion where Programa = ? AND Idioma = ? ORDER BY Id";            
     $stmt = $db->prepare($query);
     $stmt->bindValue(1, $fnc);
     $stmt->bindValue(2, $lgn);
