@@ -3285,7 +3285,7 @@ function operation($table_name,$db, $method, $id, $data){
                         ISNULL(Status )
                     )            
 
-                    ORDER BY  StartDateTime,id_vehicle, orden  ASC"; 
+                    ORDER BY  id_vehicle, orden  ASC"; 
             $stmt = $db->prepare($sql);
             $stmt->execute();            
             $v_operations = $stmt->fetchAll();
