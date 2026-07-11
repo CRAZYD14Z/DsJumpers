@@ -970,7 +970,7 @@ if (item.Status === 'EVENTO') {
                 <button type="button" class="btn btn-sm btn-outline-primary ms-2" onclick="abrirAsignacion(event,'${item.StartDateTime}','${item.id_route}','${item.Id_operation}')">
                     <i class="fa-solid fa-up-down"></i> <?= Trd(35) ?>
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-info ms-2 ${iddisplay}" onclick="abrirRutaEnMaps(event, '${item.Lat}', '${item.Lng}')">
+                <button type="button" class="btn btn-sm btn-outline-info ms-2 ${iddisplay}" onclick="abrirRutaEnMaps_(event, '${item.Lat}', '${item.Lng}')">
                     <i class="fa-solid fa-route"></i> <?= Trd(36) ?>
                 </button>
             </div>
