@@ -775,7 +775,11 @@ function renderTable(data) {
     
     // 1. Agrupar los datos
     $.each(data, function(i, item) {
-        const grupoKey = `${item.id_vehicle}_${item.vehiculo}_${item.placas}_${item.StartDateTime}`;
+        //const grupoKey = `${item.id_vehicle}_${item.vehiculo}_${item.placas}_${item.StartDateTime}`;
+        const fechaSoloDia = item.StartDateTime.substring(0, 10); 
+    
+        // Usamos la nueva variable para armar la clave del grupo
+        const grupoKey = `${item.id_vehicle}_${item.vehiculo}_${item.placas}_${fechaSoloDia}`;        
         
         if (!grupos[grupoKey]) {
             grupos[grupoKey] = {
