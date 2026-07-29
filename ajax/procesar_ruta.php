@@ -5,7 +5,7 @@ use Google\Auth\Credentials\ServiceAccountCredentials;
 use Google\Auth\Middleware\AuthTokenMiddleware;
 
 // 1. Ruta al archivo JSON que descargaste de Google Cloud
-$rutaJson = __DIR__ . '/gaxi-487815-79b122d9b0f0.json';
+$rutaJson ='gaxi-487815-79b122d9b0f0.json';
 
 // 2. Definir el "Scope" (alcance) de la API
 $scope = 'https://www.googleapis.com/auth/cloud-platform';
