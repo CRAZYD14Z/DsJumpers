@@ -163,6 +163,33 @@ switch ($resource) {
         products_sale($resource,$db, $method, $id, $data);
     break;    
 
+    
+
+    case 'newsletter':
+	    $Traducciones = Traducciones('newsletter',$lng,$db);            
+        newsletter($resource,$db, $method, $id, $data);
+    break;
+
+    case 'contact':
+	    $Traducciones = Traducciones('contact',$lng,$db);            
+        contact($resource,$db, $method, $id, $data);
+    break;    
+
+    case 'sale_comments':
+	    $Traducciones = Traducciones('sale_comments',$lng,$db);            
+        sale_comments($resource,$db, $method, $id, $data);
+    break;
+
+    case 'validate_token_comment':
+	    $Traducciones = Traducciones('validate_token_comment',$lng,$db);            
+        validate_token_comment($resource,$db, $method, $id, $data);
+    break;    
+
+    case 'set_comment':
+	    $Traducciones = Traducciones('set_comment',$lng,$db);            
+        set_comment($resource,$db, $method, $id, $data);
+    break;      
+
     case 'products_sale_stock':
 	    $Traducciones = Traducciones('products_sale_stock',$lng,$db);            
         products_sale_stock($resource,$db, $method, $id, $data);
@@ -2274,6 +2301,360 @@ function products_sale($table_name,$db, $method, $id, $data){
         break;
     }      
 }
+
+function newsletter($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+            
+                //echo $data->email;
+                //print_r($data) ;
+                // 1. Obtener el valor de $_POST de forma segura
+                $email_raw = isset($data->email) ? trim($data->email) : '';
+
+                // 2. Decodificar por si acaso llegó con caracteres de URL (como %40)
+                $email_decoded = urldecode($email_raw);
+
+                // 3. Validar el correo limpio
+                $email = filter_var($email_decoded, FILTER_VALIDATE_EMAIL);
+
+                if (!$email) {
+                    echo json_encode([
+                        'status' => 'error', 
+                        'message' => 'El correo electrónico no es válido.'
+                    ]);
+                    exit;
+                }          
+
+                try {
+                    // 1. Verificar si el correo ya existe
+                    $stmt = $db->prepare("SELECT id FROM newsletter_subscribers WHERE email = ?");
+                    $stmt->execute([$data->email]);
+                    
+                    if ($stmt->fetch()) {
+                        // El correo ya está registrado
+                        echo json_encode(['status' => 'exists', 'message' => 'Ya registrado']);
+                        exit;
+                    }
+
+                    // 2. Si no existe, lo insertamos
+                    $insert = $db->prepare("INSERT INTO newsletter_subscribers (email) VALUES (?)");
+                    $insert->execute([$data->email]);
+
+                    echo json_encode(['status' => 'success', 'message' => 'Registrado correctamente']);
+
+                } catch (\PDOException $e) {
+                    // Error del servidor o base de datos
+                    echo json_encode(['status' => 'error', 'message' => 'Error en el servidor: ' . $e->getMessage()]);
+                }            
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }       
+}
+
+function contact($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+
+        define('SHARED_KEY', 'TuClaveSecretaSuperSegura123!'); // Exactamente la misma clave
+
+        //if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        //    echo json_encode(['status' => 'error', 'message' => 'Método no permitido.']);
+        //    exit;
+        //}
+        //echo $data->captcha ." - ".$data->captcha_token;
+        $captcha_input = isset($data->captcha) ? strtoupper(trim($data->captcha)) : '';
+        $captcha_token = isset($data->captcha_token) ? trim($data->captcha_token) : '';
+
+        // ... (Recibir y sanitizar el resto de campos: name, phone, email, message) ...
+
+        if (empty($captcha_input) || empty($captcha_token)) {
+            echo json_encode(['status' => 'captcha_error', 'message' => 'Falta la verificación de seguridad.']);
+            exit;
+        }
+
+        // --- DESCRIFRAR EL TOKEN DEL CAPTCHA ---
+        try {
+            $token_decoded = base64_decode($captcha_token);
+            list($iv, $encrypted_data) = explode('::', $token_decoded, 2);
+            
+            $decrypted = openssl_decrypt($encrypted_data, 'aes-128-cbc', SHARED_KEY, 0, $iv);
+            $payload = json_decode($decrypted, true);
+            
+            if (!$payload || !isset($payload['code']) || !isset($payload['expires'])) {
+                throw new Exception("Token inválido o corrupto.");
+            }
+
+            // 1. Validar expiración del tiempo
+            if (time() > $payload['expires']) {
+                echo json_encode(['status' => 'captcha_error', 'message' => 'El código captcha ha expirado. Por favor, intenta con uno nuevo.']);
+                exit;
+            }
+
+            // 2. Validar que el texto coincida
+            if ($captcha_input !== $payload['code']) {
+                echo json_encode(['status' => 'captcha_error', 'message' => 'El código de verificación es incorrecto.']);
+                exit;
+            }
+
+        } catch (Exception $e) {
+            echo json_encode(['status' => 'captcha_error', 'message' => 'Error de validación de seguridad de datos.']);
+            exit;
+        }
+
+
+        // 1. Recibir y limpiar campos primarios
+        $name    = isset($data->name) ? trim(urldecode($data->name)) : '';
+        $phone   = isset($data->phone) ? trim(urldecode($data->phone)) : '';
+        $subject = isset($data->subject) ? trim(urldecode($data->subject)) : '';
+        $message = isset($data->message) ? trim(urldecode($data->message)) : '';
+        $captcha = isset($data->captcha) ? strtoupper(trim($data->captcha)) : '';
+
+        // Validar correo de forma segura contra encoding de URL
+        $email_raw = isset($data->email) ? trim($data->email) : '';
+        $email     = filter_var(urldecode($email_raw), FILTER_VALIDATE_EMAIL);
+
+        // 2. Validaciones estrictas
+        if (empty($name) || empty($phone) || empty($subject) || empty($message) || empty($captcha)) {
+            echo json_encode(['status' => 'error', 'message' => 'Todos los campos son obligatorios.']);
+            exit;
+        }
+
+        if (!$email) {
+            echo json_encode(['status' => 'error', 'message' => 'El correo electrónico no es válido.']);
+            exit;
+        }
+
+        // --- PROCESAR E INSERTAR EN LA BASE DE DATOS REMOTA ---
+        try {
+            // 4. Guardar en la base de datos
+            $sql = "INSERT INTO contact_messages (name, phone, email, subject, message) VALUES (?, ?, ?, ?, ?)";
+            $stmt = $db->prepare($sql);
+            $stmt->execute([$name, $phone, $email, $subject, $message]);
+
+
+
+            $sql = "SELECT * FROM account ";
+            $stmt = $db->prepare($sql);
+            $stmt->execute();		
+            $account = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $datosConexion = [
+                'host'             => $account['ServidorS'],
+                'username'         => $account['UsuarioS'],
+                'password'         => $account['PasswordS'],
+                'port'             => $account['PortS'],
+                'encryption'       => '',
+                'nombre_remitente' => $account['NombreCompania']
+            ];
+            $archivos = [];
+
+            // Armamos el cuerpo del correo en HTML
+            $body = "
+            <html>
+            <head>
+            <title>Nuevo mensaje de contacto</title>
+            </head>
+            <body>
+            <h2>Detalles del mensaje recibido:</h2>
+            <table style='border-collapse: collapse; width: 100%; max-width: 600px;'>
+                <tr>
+                <td style='padding: 8px; border-bottom: 1px solid #ddd;'><strong>Nombre:</strong></td>
+                <td style='padding: 8px; border-bottom: 1px solid #ddd;'>$name</td>
+                </tr>
+                <tr>
+                <td style='padding: 8px; border-bottom: 1px solid #ddd;'><strong>Teléfono:</strong></td>
+                <td style='padding: 8px; border-bottom: 1px solid #ddd;'>$phone</td>
+                </tr>
+                <tr>
+                <td style='padding: 8px; border-bottom: 1px solid #ddd;'><strong>Email:</strong></td>
+                <td style='padding: 8px; border-bottom: 1px solid #ddd;'>
+                    <a href='mailto:$email?subject=Re: " . urlencode($subject) . "' style='color: #0066cc; text-decoration: underline;'>
+                    $email
+                    </a> <em>(Haz clic para responder)</em>
+                </td>
+                </tr>
+                <tr>
+                <td style='padding: 8px; border-bottom: 1px solid #ddd;'><strong>Asunto:</strong></td>
+                <td style='padding: 8px; border-bottom: 1px solid #ddd;'>$subject</td>
+                </tr>
+                <tr>
+                <td style='padding: 8px; valign: top;'><strong>Mensaje:</strong></td>
+                <td style='padding: 8px;'>$message</td>
+                </tr>
+            </table>
+            </body>
+            </html>
+            ";
+
+            // Recuerda configurar las cabeceras (Headers) para que el correo se envíe como HTML
+            $headers[] = 'MIME-Version: 1.0';
+            $headers[] = 'Content-type: text/html; charset=utf-8';
+            $headers[] = "From: Formulario Web <no-reply@tudominio.com>";            
+
+
+            $resultado = enviarEmail(
+                $datosConexion, 
+                $account['CorreoS'], 
+                implode("\r\n", $headers),
+                $body,
+                $archivos,
+                '',
+                ''
+            );             
+
+
+
+            echo json_encode(['status' => 'success', 'message' => '¡Tu mensaje ha sido enviado exitosamente!']);
+
+        } catch (\PDOException $e) {
+            echo json_encode(['status' => 'error', 'message' => 'Error al guardar el mensaje: ' . $e->getMessage()]);
+        }
+
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }       
+}
+
+
+function sale_comments($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+
+            $sort = isset($data->sort) ? $data->sort : 'relevant';
+            $limit = isset($data->limit) ? intval($data->limit) : 10;
+
+            if ($limit <= 0 || $limit > 50) $limit = 10;
+
+            // Construir la consulta según el filtro solicitado
+            if ($sort === 'recent') {
+                // Más recientes primero
+                $sql = "SELECT id, author_name, author_meta, rating, review_text, is_featured, created_at 
+                        FROM sale_reviews 
+                        WHERE status = 'approved' 
+                        ORDER BY created_at DESC 
+                        LIMIT :limit";
+            } else {
+                // Más relevantes: Primero destacados, luego mejores puntuaciones y finalmente fechas recientes
+                $sql = "SELECT id, author_name, author_meta, rating, review_text, is_featured, created_at 
+                        FROM sale_reviews 
+                        WHERE status = 'approved' 
+                        ORDER BY is_featured DESC, rating DESC, created_at DESC 
+                        LIMIT :limit";
+            }
+            try {
+                $stmt = $db->prepare($sql);
+                $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+                $stmt->execute();                
+                $reviews = $stmt->fetchAll();
+                
+                // Añadimos una propiedad para calcular las iniciales del avatar de forma dinámica
+                foreach ($reviews as &$review) {
+                    $words = explode(' ', $review['author_name']);
+                    $initials = '';
+                    foreach ($words as $w) {
+                        $initials .= mb_substr($w, 0, 1, 'UTF-8');
+                    }
+                    $review['avatar_initials'] = strtoupper(mb_substr($initials, 0, 2, 'UTF-8'));
+                }
+                $sql = "SELECT avg(rating) as AVER FROM sale_reviews WHERE status = 'approved'";
+                $stmt = $db->prepare($sql);                
+                $stmt->execute();                
+                $avg = $stmt->fetch();
+
+                http_response_code(200);
+                echo json_encode([
+                    "status" => "success",
+                    "count" => count($reviews),
+                    "avg" => intval($avg['AVER']),
+                    "data" => $reviews
+                ]);
+
+            } catch (PDOException $e) {
+                http_response_code(500);
+                echo json_encode(["error" => "Error al procesar la consulta."]);
+            }            
+
+
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }       
+}
+
+
+
+function validate_token_comment($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+            try {
+                $stmt = $db->prepare("SELECT id, author_name, author_meta FROM sale_reviews WHERE id = ? AND access_token = ? AND token_used = 0");
+                $stmt->execute([$data->id, $data->token]);
+                $reviewData = $stmt->fetch(); 
+
+                http_response_code(200);
+                echo json_encode([
+                    "status" => "success",
+                    "data" => $reviewData
+                ]);
+
+            } catch (PDOException $e) {
+                http_response_code(500);
+                echo json_encode(["error" => "Error al procesar la consulta."]);
+            }            
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }       
+}
+
+
+function set_comment($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+            try {
+
+                $stmt = $db->prepare("UPDATE sale_reviews SET rating = ?, review_text = ?, token_used = 1, status = 'pending' WHERE id = ?");
+                $stmt->execute([$data->rating, $data->review_text, $data->id]);
+
+                http_response_code(200);
+                echo json_encode([
+                    "status" => "success"
+                ]);
+
+            } catch (PDOException $e) {
+                http_response_code(500);
+                echo json_encode(["error" => "Error al procesar la consulta."]);
+            }            
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => Trd(1)));
+        break;
+    }       
+}
+
 
 function products_sale_stock($table_name,$db, $method, $id, $data){
     global $IDS;

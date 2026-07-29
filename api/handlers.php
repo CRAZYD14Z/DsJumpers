@@ -3050,69 +3050,121 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
 
 
 }
-
-
-function leads($table_name,$db, $method, $id, $data){
+function leads($table_name, $db, $method, $id, $data) {
     global $IDS;
     switch ($method) {
         case 'GET': 
-
-
             $limit = 15;
             $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
             $offset = ($page - 1) * $limit;
-            $search = isset($_GET['search']) ? $_GET['search'] : '';
-            if ($search != ''){
-                $sql = "SELECT *, 
-                        CASE 
-                            WHEN Organization > 0 THEN NombreOrganizacion 
-                            WHEN Customer > 0 THEN CONCAT(NombreCliente, ' ', ApellidosCliente)
-                            ELSE 'Sin identificar'
-                        END AS NombreMostrar
-                        FROM v_leads 
-                        WHERE (NombreOrganizacion LIKE :s OR NombreCliente LIKE :s OR ApellidosCliente LIKE :s)
-                        ORDER BY Id DESC 
-                        LIMIT :limit OFFSET :offset";
+            
+            // Recoger parámetros de filtrado estándar
+            $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+            $date_from = isset($_GET['date_from']) ? trim($_GET['date_from']) : '';
+            $date_to = isset($_GET['date_to']) ? trim($_GET['date_to']) : '';
 
-                $stmt = $db->prepare($sql);
-                $stmt->bindValue(':s', "%$search%", PDO::PARAM_STR);
-                $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-                $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-            }
-            else{
-                // Consulta con lógica de negocio integrada
-                $sql = "SELECT *, 
-                        CASE 
-                            WHEN Organization > 0 THEN NombreOrganizacion 
-                            WHEN Customer > 0 THEN CONCAT(NombreCliente, ' ', ApellidosCliente)
-                            ELSE 'Sin identificar'
-                        END AS NombreMostrar
-                        FROM v_leads 
-                        ORDER BY Id DESC 
-                        LIMIT :limit OFFSET :offset";
+            // Decodificar los presets recibidos del frontend
+            $presets = isset($_GET['presets']) ? json_decode($_GET['presets'], true) : [];
 
-                $stmt = $db->prepare($sql);
-                $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-                $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            // Consulta base
+            $sql = "SELECT l.*, 
+                    CASE 
+                        WHEN l.Organization > 0 THEN l.NombreOrganizacion 
+                        WHEN l.Customer > 0 THEN CONCAT(l.NombreCliente, ' ', l.ApellidosCliente)
+                        ELSE 'Sin identificar'
+                    END AS NombreMostrar
+                    FROM v_leads l
+                    LEFT JOIN v_leads_detail ld ON l.Id = ld.Id";
+
+            $conditions = [];
+            $params = [];
+
+            // 1. Filtro por texto estándar libre
+            if ($search != '') {
+                $conditions[] = "(l.NombreOrganizacion LIKE :search 
+                                 OR l.NombreCliente LIKE :search 
+                                 OR l.ApellidosCliente LIKE :search 
+                                 OR ld.Name LIKE :search)";
+                $params[':search'] = "%$search%";
             }
+
+            // 2. Procesar los filtros rápidos predeterminados (Presets)
+            if (!empty($presets) && is_array($presets)) {
+                $status_conditions = [];
+                $product_conditions = [];
+
+                foreach ($presets as $index => $preset) {
+                    $field = $preset['field'];
+                    $value = $preset['value'];
+                    $param_key = ":preset_" . $field . "_" . $index;
+
+                    if ($field === 'Status') {
+                        // Agrupamos filtros de estado con "OR" por si seleccionan varios estados a la vez
+                        $status_conditions[] = "l.Status = {$param_key}";
+                        $params[$param_key] = $value;
+                    } elseif ($field === 'Product') {
+                        // Filtro para buscar productos específicos seleccionados
+                        $product_conditions[] = "ld.Name LIKE {$param_key}";
+                        $params[$param_key] = "%{$value}%";
+                    }
+                }
+
+                if (!empty($status_conditions)) {
+                    $conditions[] = "(" . implode(' OR ', $status_conditions) . ")";
+                    //echo "111";
+                }
+                if (!empty($product_conditions)) {
+                    $conditions[] = "(" . implode(' OR ', $product_conditions) . ")";
+                    //echo "222";
+                }
+            }
+
+            // 3. Filtros de rango de fecha
+            if ($date_from != '' && $date_to != '') {
+                $conditions[] = "l.StartDateTime BETWEEN :date_from AND :date_to";
+                $params[':date_from'] = $date_from . " 00:00:00";
+                $params[':date_to'] = $date_to . " 23:59:59";
+            } elseif ($date_from != '') {
+                $conditions[] = "l.StartDateTime >= :date_from";
+                $params[':date_from'] = $date_from . " 00:00:00";
+            } elseif ($date_to != '') {
+                $conditions[] = "l.StartDateTime <= :date_to";
+                $params[':date_to'] = $date_to . " 23:59:59";
+            }
+
+            // Unir condiciones a la query
+            if (count($conditions) > 0) {
+                $sql .= " WHERE " . implode(' AND ', $conditions);
+            }
+
+            $sql .= " GROUP BY l.Id ORDER BY l.Id DESC LIMIT :limit OFFSET :offset";
+
+            
+            $stmt = $db->prepare($sql);
+
+            // Bindeo de todos los parámetros acumulados
+            foreach ($params as $key => $val) {
+                $stmt->bindValue($key, $val, PDO::PARAM_STR);
+            }
+
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
             $stmt->execute();            
-
 
             if ($stmt) {
                 http_response_code(200);
-                echo json_encode($stmt->fetchAll());
+                echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
             } else {
                 http_response_code(404);
                 echo json_encode(array("message" => "Registro no encontrado."));
             }
         break;
         default:
-        // ------------------------------------------------------------------
             http_response_code(405);
             echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
         break;
     }
-} 
+}
 
 function sales($table_name,$db, $method, $id, $data){
     global $IDS;
@@ -3166,7 +3218,8 @@ function sales($table_name,$db, $method, $id, $data){
     }
 } 
 
-function pending_payments($table_name,$db, $method, $id, $data){
+
+function comments_admin($table_name,$db, $method, $id, $data){
     global $IDS;
     switch ($method) {
         case 'GET': 
@@ -3176,26 +3229,124 @@ function pending_payments($table_name,$db, $method, $id, $data){
             $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
             $offset = ($page - 1) * $limit;
             $search = isset($_GET['search']) ? $_GET['search'] : '';
+            if ($search != ''){
+                $sql = "SELECT *
+                        FROM sale_reviews
+                        WHERE (author_name LIKE :s OR author_meta LIKE :s)
+                        ORDER BY Id DESC 
+                        LIMIT :limit OFFSET :offset";
 
-            // Consulta con lógica de negocio integrada
-            $sql = "SELECT *, 
-                    CASE 
-                        WHEN Organization > 0 THEN NombreOrganizacion 
-                        WHEN Customer > 0 THEN CONCAT(NombreCliente, ' ', ApellidosCliente)
-                        ELSE 'Sin identificar'
-                    END AS NombreMostrar
-                    FROM v_leads 
-                    WHERE (NombreOrganizacion LIKE :s OR NombreCliente LIKE :s OR ApellidosCliente LIKE :s)
-                    AND Balance > 0
-                    ORDER BY StartDateTime DESC 
-                    LIMIT :limit OFFSET :offset";
-//                    AND Status = 'Pending'
-            $stmt = $db->prepare($sql);
-            $stmt->bindValue(':s', "%$search%", PDO::PARAM_STR);
-            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+                $stmt = $db->prepare($sql);
+                $stmt->bindValue(':s', "%$search%", PDO::PARAM_STR);
+                $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+                $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            }
+            else{
+                // Consulta con lógica de negocio integrada
+                $sql = "SELECT *
+                        FROM sale_reviews 
+                        ORDER BY Id DESC 
+                        LIMIT :limit OFFSET :offset";
+
+                $stmt = $db->prepare($sql);
+                $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+                $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            }
             $stmt->execute();            
 
+
+            if ($stmt) {
+                http_response_code(200);
+                echo json_encode($stmt->fetchAll());
+            } else {
+                http_response_code(404);
+                echo json_encode(array("message" => "Registro no encontrado."));
+            }
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+} 
+
+
+function comments_admin_update($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'POST': 
+
+            $queryI= "UPDATE sale_reviews SET status  = :status, is_featured = :is_featured WHERE id = :id";
+            
+            $stmt = $db->prepare($queryI);
+            $stmt->bindValue(":status", $data->status);
+            $stmt->bindValue(":is_featured", $data->is_featured);
+            $stmt->bindValue(":id", $data->id);
+            $stmt->execute();            
+
+
+            if ($stmt) {
+                http_response_code(200);
+                echo json_encode(array("message" => "Registro actualizado."));
+            } else {
+                http_response_code(404);
+                echo json_encode(array("message" => "Registro no encontrado."));
+            }
+        break;
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }
+} 
+
+
+function pending_payments($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+
+$fechaInicio = $_GET['fInicio'] ?? date('Y-m-d');
+$fechaFin    = $_GET['fFin'] ?? date('Y-m-d'); 
+
+// Rango completo de tiempo para el día
+$inicioFull = $fechaInicio . " 00:00:00";
+$finFull    = $fechaFin . " 23:59:59";
+
+$limit  = 15;
+$page   = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+// Aseguramos que la página nunca sea menor a 1
+$page   = max(1, $page); 
+$offset = ($page - 1) * $limit;
+
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
+
+// Consulta SQL optimizada
+$sql = "SELECT *, 
+            CASE 
+                WHEN Organization > 0 THEN NombreOrganizacion 
+                WHEN Customer > 0 THEN CONCAT(NombreCliente, ' ', ApellidosCliente)
+                ELSE 'Sin identificar'
+            END AS NombreMostrar
+        FROM v_leads 
+        WHERE (NombreOrganizacion LIKE :s OR NombreCliente LIKE :s OR ApellidosCliente LIKE :s)
+          AND Balance > 0
+          AND StartDateTime BETWEEN :inicio AND :fin
+        ORDER BY StartDateTime DESC 
+        LIMIT :limit OFFSET :offset";
+
+$stmt = $db->prepare($sql);
+
+$searchTerm = "%{$search}%";
+$stmt->bindValue(':s', $searchTerm, PDO::PARAM_STR);
+$stmt->bindValue(':inicio', $inicioFull, PDO::PARAM_STR);
+$stmt->bindValue(':fin', $finFull, PDO::PARAM_STR);
+$stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+
+$stmt->execute();
 
             if ($stmt) {
                 http_response_code(200);
@@ -3217,14 +3368,22 @@ function operation($table_name,$db, $method, $id, $data){
     global $IDS;
     switch ($method) {
         case 'GET': 
-
-
             $limit = 15;
             $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
             $offset = ($page - 1) * $limit;
             $search = isset($_GET['search']) ? $_GET['search'] : '';
+            $tipo = isset($_GET['tipo']) ? $_GET['tipo'] : '';
+            $usuario = isset($_GET['usuario']) ? $_GET['usuario'] : '';
+            $id = isset($_GET['id']) ? $_GET['id'] : '';
+            $Filtro = '';
+            if ($tipo == 'ADMIN' OR $tipo == 'LOGISTICS' ){
+                $Filtro = " `Status` <> 'ALMACENADO' OR ISNULL(Status ) ";
+            }
 
-            // Consulta con lógica de negocio integrada
+            if ($tipo == 'DRIVER'){
+                $Filtro = " `Status` <> 'ALMACENADO' AND `Status` <> 'BODEGA'  AND id_driver = $id  ";
+            }            
+            
             $sql = "
                 SELECT
                     v_operations.Id_operation, 
@@ -3281,8 +3440,7 @@ function operation($table_name,$db, $method, $id, $data){
                 WHERE
                     id_vehicle > 0 AND
                     (
-                        `Status` <> 'ALMACENADO' OR
-                        ISNULL(Status )
+                        $Filtro
                     )            
 
                     ORDER BY  id_vehicle, orden  ASC"; 
@@ -3933,14 +4091,14 @@ function process_operation($table_name,$db, $method, $id, $data){
         case 'POST': 
             $Lead     = $data->{'Lead'};
             process_op($Lead,$db);
-/*
+
             if($data->{'From'} == 'Lead'){
-                $queryI ="UPDATE lead SET Status = 'pending' WHERE Id = :lead";
+                $queryI ="UPDATE lead SET Status = 'confirmed' WHERE Id = :lead";
                 $stmtI = $db->prepare($queryI);
                 $stmtI->bindValue(":lead", $Lead);
                 $stmtI->execute();
             }            
-*/
+
             http_response_code(200);
             echo json_encode(array("message" => "Registro actualizado."));
 
@@ -4314,7 +4472,7 @@ function acondicionamiento($table_name,$db, $method, $id, $data){
                 });                
 
                 foreach ($rows as $row) {
-
+                    
 
                     $itemIdForImg = $row['id_product'];
                     if ($row['id_accesory_base']) $itemIdForImg = $row['id_accesory_base'];
@@ -4344,6 +4502,7 @@ function acondicionamiento($table_name,$db, $method, $id, $data){
                             $esEventoEnPuerta = true;
                         }
                     }
+                    //echo $tipo."**";
                     if ($tipo != 'BASE'){
                         $itemData = [
                             'name'      => $row['id_accesory_base'] || $row['id_accesory'] ? ($row['Base'] ?? $row['Accesory']) : $row['Product'],
@@ -4356,7 +4515,7 @@ function acondicionamiento($table_name,$db, $method, $id, $data){
                             'cliente'   => $op['NombreOrganizacion'] ?: ($op['NombreCliente'] . " " . $op['ApellidosCliente']),
                             'urgente'   => $esEventoEnPuerta 
                         ];
-                    }
+
                     if ($groupBy === 'product') {
                         // Agrupar por Nombre de Producto
                         $key = $itemData['name'];
@@ -4371,6 +4530,9 @@ function acondicionamiento($table_name,$db, $method, $id, $data){
                             $resultado[$key] = ['label' => "Folio: #".$op['Folio'] . " - " . $itemData['cliente'], 'items' => []];
                         }
                         $resultado[$key]['items'][] = $itemData;
+                    }
+
+
                     }
                 }
             }
@@ -4397,7 +4559,8 @@ function cancel_lead($table_name,$db, $method, $id, $data){
 
             $Id     = $_POST['Lead'];
             $Type = $_POST['Type'];
-            $Cargo = $_POST['Cargo'];            
+            $Cargo = $_POST['Cargo'];      
+            $Motivo = $_POST['Motivo'];      
 
             //echo $Id;
 
@@ -4523,8 +4686,9 @@ function cancel_lead($table_name,$db, $method, $id, $data){
             $stmt->execute([$Folio,$lead['IdBranch']]);
 
             //$queryI ="UPDATE lead SET Status = 'canceled', Balance = SubTotal + TaxAmout + Tip , FechaCambio = now()  WHERE Id = :id";
-            $queryI ="UPDATE lead SET Status = 'canceled',  FechaCambio = now()  WHERE Id = :id";
+            $queryI ="UPDATE lead SET Status = 'canceled', CancellationReason = :motivo,  FechaCambio = now()  WHERE Id = :id";
             $stmtI = $db->prepare($queryI);
+            $stmtI->bindValue(":motivo", $Motivo);
             $stmtI->bindValue(":id", $Id);
             $stmtI->execute();
 
@@ -4536,10 +4700,11 @@ function cancel_lead($table_name,$db, $method, $id, $data){
             $stmt->bindParam(':q', $Id, PDO::PARAM_INT);
             $stmt->execute();
             $lead = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            $id_op = $lead['Id_operation'];
 
-            //OPERATION
+            if ($lead){
+                $id_op = $lead['Id_operation'];
+
+                //OPERATION
                 $queryI ="DELETE from operation_master WHERE Id_operation = :id_op";
                 $stmtI = $db->prepare($queryI);
                 $stmtI->bindValue(":id_op", $id_op);
@@ -4559,7 +4724,7 @@ function cancel_lead($table_name,$db, $method, $id, $data){
                 $stmtI = $db->prepare($queryI);
                 $stmtI->bindValue(":id_op", $id_op);
                 $stmtI->execute();
-
+            }
 
 
 

@@ -230,8 +230,16 @@ include_once 'head.php';
             </div>
             <div class="modal-body p-0">
                 <div class="row g-0">
-                    <div class="col-md-7 p-4 border-end d-flex justify-content-center bg-white">
+                    <div class="col-md-7 p-4 border-end d-flex flex-column justify-content-center bg-white">
                         <?= Trd(100) ?>
+
+                        <div class="w-100">
+                            <label class="form-label mb-2 fw-semibold text-dark" for="MotivoCancelacion">
+                                <?= Trd(165) ?>
+                            </label>        
+
+                            <textarea class="form-control form-control-minimal" rows="5" placeholder="<?= Trd(166) ?>" id="MotivoCancelacion" name="MotivoCancelacion"></textarea>        
+                        </div>
                     </div>
                     <div class="col-md-5 p-4 bg-light">
                         <div class="form-check">
@@ -253,10 +261,10 @@ include_once 'head.php';
                             </label>
                         </div>
 
-                            <div >
-                                <label class="form-label small fw-bold"><i class="fas fa-camera me-1"></i><?= Trd(157) ?></label>
-                                <input type="file" id="evidence-file" class="form-control form-control-sm" accept="image/*" capture="environment">
-                            </div>                        
+                        <div >
+                            <label class="form-label small fw-bold"><i class="fas fa-camera me-1"></i><?= Trd(157) ?></label>
+                            <input type="file" id="evidence-file" class="form-control form-control-sm" accept="image/*" capture="environment">
+                        </div>                        
 
                     </div>
 
@@ -3191,7 +3199,8 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
         CurrentSurface = $('#Surface').val();       
 
         <?php 
-            if (isset($lead) AND ( $lead['Status'] == 'confirmed' OR $lead['Status'] == 'canceled'))
+            //if (isset($lead) AND ( $lead['Status'] == 'confirmed' OR $lead['Status'] == 'canceled'))
+            if (isset($lead) AND ( $lead['Status'] == 'canceled'))
                 echo "return;";
         ?>
 
@@ -3495,7 +3504,9 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
         // Datos básicos
         formData.append('Lead', $('#IdLead').val());
         formData.append('Type', TipoC);
-        formData.append('Cargo',Cargo);    
+        formData.append('Cargo',Cargo);
+        formData.append('Motivo', $('#MotivoCancelacion').val());  
+          
 
 
         // Archivo de imagen (si existe)

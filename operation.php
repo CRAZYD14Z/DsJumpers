@@ -647,7 +647,10 @@ $(document).ready(function() {
             headers: { 'Authorization': 'Bearer ' + TOKEN },
             data: {
                 page: currentPage,
-                search: $('#txtSearch').val()
+                search: $('#txtSearch').val(),
+                tipo: '<?= $_SESSION['role_id'] ?? 'Rol' ?>',
+                usuario: '<?= $_SESSION['user'] ?? 'User' ?>',
+                id: '<?= $_SESSION['usuario_id'] ?>'
             },
             success: function(response) {
                 if (response.length === 0) {
@@ -877,9 +880,9 @@ function renderTable(data) {
                             <?php echo Trd(38)?>
                             <small class="text-muted ms-2">[${grupo.NombresChofer != null ? grupo.NombresChofer+' '+grupo.ApellidosChofer   : ''}]</small>                            
                         </span>
-                        ${botonCargar}
-                        ${botonEliminar}
-                        ${botonChofer}
+                        <?php if ( $_SESSION['role_id'] == 'ADMIN' OR $_SESSION['role_id'] == 'LOGISTICS' ){ echo '${botonCargar}'; } ?>  
+                        <?php if ( $_SESSION['role_id'] == 'ADMIN' OR $_SESSION['role_id'] == 'LOGISTICS' ){ echo '${botonEliminar}'; } ?>  
+                        <?php if ( $_SESSION['role_id'] == 'ADMIN' OR $_SESSION['role_id'] == 'LOGISTICS' ){ echo '${botonChofer}'; } ?>  
                         ${botonEvento}
 
                         <span class="badge bg-secondary ms-auto me-4">

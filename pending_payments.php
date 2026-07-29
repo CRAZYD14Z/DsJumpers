@@ -50,23 +50,32 @@ include_once 'head.php';
 <?php
     include_once 'nav.php';
 ?>
-<br>
-<br>
-<div class="container pb-5">
-    <div class="sticky-search">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card shadow-sm">
-                    <div class="card-body p-2">
-                        <div class="input-group">
-                            <span class="input-group-text border-0 bg-transparent"><i class="bi bi-search text-primary"></i></span>
-                            <input type="text" id="txtSearch" class="form-control border-0 shadow-none" placeholder="<?php echo Trd(1)?>">
-                        </div>
-                    </div>
-                </div>
-            </div>
+
+<div class="container my-5">
+    
+    <div class="card shadow">
+        <div class="card-header text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0 text-black">Pagos pendientes</h4>
         </div>
-    </div>
+    </div> 
+
+
+    <div class="container mt-4">
+        <div class="row g-3 mb-4">
+<div class="col-md-3">
+    <input type="date" id="fInicio" name="fInicio" class="form-control" value="<?php echo $_GET['fInicio'] ?? date('Y-m-d'); ?>">
+</div>
+<div class="col-md-3">
+    <input type="date" id="fFin" name="fFin" class="form-control" value="<?php echo $_GET['fFin'] ?? date('Y-m-d'); ?>">
+</div>
+            <div class="col-md-3"><input type="text" id="txtSearch" class="form-control" placeholder="<?= Trd(1) ?>"></div>
+            <div class="col-md-3"><button id="btnBuscar" class="btn btn-primary w-100" >Consultar</button></div>
+        </div>
+    </div>    
+
+
+<div class="container pb-5">
+
 
     <div class="table-container shadow-sm border">
         <div class="table-responsive">
@@ -92,6 +101,7 @@ include_once 'head.php';
         <div class="spinner-grow text-primary" role="status"></div>
         <p class="text-muted small"><?php echo Trd(7)?></p>
     </div>
+</div>
 </div>
 
 <script>
@@ -163,7 +173,10 @@ $(document).ready(function() {
             headers: { 'Authorization': 'Bearer ' + TOKEN },
             data: {
                 page: currentPage,
-                search: $('#txtSearch').val()
+                search: $('#txtSearch').val(),
+                fInicio: $('#fInicio').val(),
+                fFin: $('#fFin').val()
+                
             },
             success: function(response) {
                 if (response.length === 0) {
@@ -216,8 +229,8 @@ function renderTable(data) {
                         <div class="small text-secondary">${item.Ciudad}, ${item.Estado}</div>
                 </td>
                 <td><span class="badge rounded-pill ${badgeClass}">${item.Status}</span></td>
-                <td class="text-end pe-4 fw-bold text-dark">$${parseFloat(item.Balance).toFixed(2)}</td>
-                <td class="text-end pe-4 fw-bold text-dark">$${parseFloat(item.Total).toFixed(2)}</td>
+                <td class="text-end pe-4 fw-bold text-dark">$${formatCurrency(parseFloat(item.Balance).toFixed(2))}</td>
+                <td class="text-end pe-4 fw-bold text-dark">$${formatCurrency(parseFloat(item.Total).toFixed(2))}</td>
 
             </tr>
         `;
@@ -259,7 +272,13 @@ function renderTable(data) {
             // Redirección a la página de detalles
             window.location.href = `payments.php?IdLead=${leadId}`;
         }
-    });    
+    });  
+    
+    $('#btnBuscar').on('click',  function() {
+        fetchLeads(true);        
+
+    });        
+    
     // Carga inicial
     fetchLeads();
 });    
@@ -290,6 +309,12 @@ function renderTable(data) {
         }
     }); 
 
+    const formatCurrency = (amount) => {
+    return Number(amount).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+    };    
 
 </script>
 

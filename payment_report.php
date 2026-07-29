@@ -60,8 +60,12 @@ include_once 'head.php';
 
     <div class="container mt-4">
         <div class="row g-3 mb-4">
-            <div class="col-md-3"><input type="date" id="fInicio" class="form-control"></div>
-            <div class="col-md-3"><input type="date" id="fFin" class="form-control"></div>
+            <div class="col-md-3">
+                <input type="date" id="fInicio" name="fInicio" class="form-control" value="<?php echo $_GET['fInicio'] ?? date('Y-m-d'); ?>">
+            </div>
+            <div class="col-md-3">
+                <input type="date" id="fFin" name="fFin" class="form-control" value="<?php echo $_GET['fFin'] ?? date('Y-m-d'); ?>">
+            </div>
             <div class="col-md-3"><input type="text" id="filtroUsuario" class="form-control" placeholder="<?= Trd(2) ?>"></div>
             <div class="col-md-3"><button id="btnBuscar" class="btn btn-primary w-100"><?= Trd(3) ?></button></div>
         </div>
@@ -153,7 +157,7 @@ for (let usuario in reportData) {
             <td>${mov.Folio}</td>
             <td>${mov.Cliente}</td>
             <td>${mov.Platform}</td>
-            <td class="text-end">$${parseFloat(mov.Amount).toFixed(2)}</td>
+            <td class="text-end">$${formatCurrency(parseFloat(mov.Amount).toFixed(2))}</td>
         </tr>`;
     });
     
@@ -161,10 +165,10 @@ for (let usuario in reportData) {
     html += `<tr class="table-info fw-bold">
         <td colspan="4">
             Resumen ${usuario}: 
-            <span class="ms-3">Cash: $${grupo.plataformas['Cash'].toFixed(2)}</span> | 
-            <span class="ms-3">Transfer: $${grupo.plataformas['Transfer'].toFixed(2)}</span> | 
-            <span class="ms-3"><?= Trd(8) ?>: $${grupo.plataformas['Otra'].toFixed(2)}</span> | 
-            <span class="ms-3 text-primary"><?= Trd(9) ?>: $${grupo.subtotal.toFixed(2)}</span>
+            <span class="ms-3">Cash: $${formatCurrency(grupo.plataformas['Cash'].toFixed(2))}</span> | 
+            <span class="ms-3">Transfer: $${formatCurrency(grupo.plataformas['Transfer'].toFixed(2))}</span> | 
+            <span class="ms-3"><?= Trd(8) ?>: $${formatCurrency(grupo.plataformas['Otra'].toFixed(2))}</span> | 
+            <span class="ms-3 text-primary"><?= Trd(9) ?>: $${formatCurrency(grupo.subtotal.toFixed(2))}</span>
         </td>
     </tr>`;
 }
@@ -172,7 +176,7 @@ for (let usuario in reportData) {
 // 3. Fila de Gran Total
 html += `<tr class="table-dark text-white fw-bold">
     <td colspan="3" class="text-end"><?= Trd(10) ?>:</td>
-    <td class="text-end">$${granTotal.toFixed(2)}</td>
+    <td class="text-end">$${formatCurrency(granTotal.toFixed(2))}</td>
 </tr>`;
 
 $('#tablaPagos').html(html);            
@@ -209,6 +213,14 @@ $('#tablaPagos').html(html);
             console.log("Token actualizado globalmente desde: " + settings.url);
         }
     });    
+
+
+const formatCurrency = (amount) => {
+  return Number(amount).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};
 
 </script>
 </body>

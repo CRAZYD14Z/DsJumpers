@@ -572,7 +572,15 @@ switch ($resource) {
         sales($resource,$db, $method, $id, $data);
         break;        
 
-    case 'pending_payments':
+    case 'comments_admin':
+        comments_admin($resource,$db, $method, $id, $data);
+        break;                
+
+    case 'comments_admin_update':
+        comments_admin_update($resource,$db, $method, $id, $data);
+        break;                        
+
+        case 'pending_payments':
         pending_payments($resource,$db, $method, $id, $data);
         break;
     case 'operation':

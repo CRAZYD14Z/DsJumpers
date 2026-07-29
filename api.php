@@ -274,13 +274,14 @@ function createSale(): void {
 
         // 2. Insertar venta
         $stmt = $db->prepare("
-            INSERT INTO sales (customer_id, address_id, total_amount, cart_notes, payer_name, payer_lastname,
+            INSERT INTO sales (customer_id, address_id, balance, total_amount, cart_notes, payer_name, payer_lastname,
                                payer_email, payment_method, gateway_token, device_fingerprint, cart_json, payment_status,status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,'process')
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,'process')
         ");
         $stmt->execute([
             $b['customer_id'],
             $b['address_id'],
+            $b['total_amount'],
             $b['total_amount'],
             $b['cart_notes'] ?? null,
             $b['payer_name'],
@@ -385,6 +386,9 @@ function updateSale(): void {
 /* ════════════════════════════════════════════
    VENTAS — OBTENER
 ════════════════════════════════════════════ */
+/* ════════════════════════════════════════════
+   VENTAS — OBTENER (api.php)
+════════════════════════════════════════════ */
 function getSale(): void {
     global $pdo;
     $id = (int)($_GET['sale_id'] ?? 0);
@@ -392,7 +396,27 @@ function getSale(): void {
 
     $db = $pdo;
 
-    $saleStmt = $db->prepare("SELECT * FROM sales WHERE id=?");
+    $saleStmt = $db->prepare("SELECT
+    
+	sales.id, 
+	sales.customer_id, 
+	sales.address_id, 
+	sales.balance, 
+	sales.total_amount, 
+	sales.cart_notes, 
+	sales.payer_name, 
+	sales.payer_lastname, 
+	sales.payer_email, 
+	sales.payment_method, 
+	sales.gateway_token, 
+	sales.device_fingerprint, 
+	sales.cart_json, 
+	sales.payment_status, 
+	sales.`status`, 
+	sales.created_at, 
+	sales.updated_at    
+
+     FROM sales WHERE id=?");
     $saleStmt->execute([$id]);
     $sale = $saleStmt->fetch();
     if (!$sale) resp(false, null, "Venta #{$id} no encontrada");
@@ -411,6 +435,11 @@ function getSale(): void {
     $itemStmt = $db->prepare("SELECT * FROM sale_items WHERE sale_id=?");
     $itemStmt->execute([$id]);
     $sale['items'] = $itemStmt->fetchAll();
+
+    // ── NUEVO: Obtener Listado de Pagos de la Venta ──
+    $payStmt = $db->prepare("SELECT Id, Type, Folio, DateTime, Platform, Amount, Currency, TransactionId, Estatus, evidencia, Usuario FROM payments_sale WHERE IdSale = ? ORDER BY DateTime DESC");
+    $payStmt->execute([$id]);
+    $sale['payments'] = $payStmt->fetchAll();
 
     resp(true, $sale);
 }
