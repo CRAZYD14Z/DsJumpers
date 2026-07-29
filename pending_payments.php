@@ -55,7 +55,7 @@ include_once 'head.php';
     
     <div class="card shadow">
         <div class="card-header text-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0 text-black">Pagos pendientes</h4>
+            <h4 class="mb-0 text-black"><?= Trd(16) ?></h4>
         </div>
     </div> 
 
@@ -69,7 +69,7 @@ include_once 'head.php';
     <input type="date" id="fFin" name="fFin" class="form-control" value="<?php echo $_GET['fFin'] ?? date('Y-m-d'); ?>">
 </div>
             <div class="col-md-3"><input type="text" id="txtSearch" class="form-control" placeholder="<?= Trd(1) ?>"></div>
-            <div class="col-md-3"><button id="btnBuscar" class="btn btn-primary w-100" >Consultar</button></div>
+            <div class="col-md-3"><button id="btnBuscar" class="btn btn-primary w-100" ><?= Trd(15) ?></button></div>
         </div>
     </div>    
 

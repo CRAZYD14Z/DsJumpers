@@ -38,6 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['idLead'])) {
         $Client = $stmt->fetch();
     }
 
+    $Client['Correo'] = !empty($Client['Correo']) ? $Client['Correo'] : "contact@eventgo.solutions.com";    
+
     // El Order ID debe ser consistente para poder recuperarlo
     $orderId = 'LIQ-'.$idLead.'-1'; 
     $base_url = "https://sandbox-api.openpay.mx/v1/$merchantId/checkouts";

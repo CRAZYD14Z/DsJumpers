@@ -25,6 +25,13 @@ function Trd($Id){
     return $Traducciones[$Id];
 }
 
+$query = "SELECT Usuario, concat(Nombres,' ', Apellidos) as Nombre from operators WHERE Estatus = 'A'";
+$stmt = $db->prepare($query);
+$stmt->execute();
+$usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
+
 include_once 'head.php';
 ?>
 
@@ -66,7 +73,19 @@ include_once 'head.php';
             <div class="col-md-3">
                 <input type="date" id="fFin" name="fFin" class="form-control" value="<?php echo $_GET['fFin'] ?? date('Y-m-d'); ?>">
             </div>
-            <div class="col-md-3"><input type="text" id="filtroUsuario" class="form-control" placeholder="<?= Trd(2) ?>"></div>
+
+
+            <div class="col-md-3">
+            <select id="filtroUsuario" class="form-control">
+                <option value=""><?= Trd(2) ?> [<?= Trd(11) ?>]</option>
+                <?php foreach ($usuarios as $usr): ?>
+                <option value="<?= htmlspecialchars($usr['Usuario']) ?>">
+                    <?=  htmlspecialchars($usr['Usuario']).' - '.htmlspecialchars($usr['Nombre']) ?>
+                </option>
+                <?php endforeach; ?>
+            </select>
+            </div>            
+
             <div class="col-md-3"><button id="btnBuscar" class="btn btn-primary w-100"><?= Trd(3) ?></button></div>
         </div>
     </div>
