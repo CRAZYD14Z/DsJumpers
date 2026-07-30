@@ -62,22 +62,44 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['idLead'])) {
         return ['code' => $httpCode, 'data' => json_decode($response)];
     }
 
-    // 1. Intentar crear el Checkout
-    $payload = [
-        'amount' => (float)$monto,
-        'currency' => $account['Currency'],
-        'description' => 'Liquidación de saldo - Lead #' . $idLead,
-        'order_id' => $orderId,
-        'send_email' => false,
-        'expiration_date' => date('Y-m-d H:i', strtotime('+3 days')),
-        'redirect_url' => $account['WebSite']."tnks.php?IdLead=$idLead&token=".md5($idLead . $account['NombreCompania']),
-            'customer' => [
-            'name' => $Client['Nombres'],
-            'last_name' => $Client['Apellidos'],
-            'email' => $Client['Correo'],
-            'phone_number' => $Client['TelefonoCelular']
-        ]
-    ];
+    if ($Client['Apellidos'] ==''){
+        // 1. Intentar crear el Checkout
+        $payload = [
+            'amount' => (float)$monto,
+            'currency' => $account['Currency'],
+            'description' => 'Liquidación de saldo - Lead #' . $idLead,
+            'order_id' => $orderId,
+            'send_email' => false,
+            'expiration_date' => date('Y-m-d H:i', strtotime('+3 days')),
+            'redirect_url' => $account['WebSite']."tnks.php?IdLead=$idLead&token=".md5($idLead . $account['NombreCompania']),
+                'customer' => [
+                'name' => $Client['Nombres'],
+                'email' => $Client['Correo'],
+                'phone_number' => $Client['TelefonoCelular']
+            ]
+        ];    
+   
+    }
+    else{
+        // 1. Intentar crear el Checkout
+        $payload = [
+            'amount' => (float)$monto,
+            'currency' => $account['Currency'],
+            'description' => 'Liquidación de saldo - Lead #' . $idLead,
+            'order_id' => $orderId,
+            'send_email' => false,
+            'expiration_date' => date('Y-m-d H:i', strtotime('+3 days')),
+            'redirect_url' => $account['WebSite']."tnks.php?IdLead=$idLead&token=".md5($idLead . $account['NombreCompania']),
+                'customer' => [
+                'name' => $Client['Nombres'],
+                'last_name' => $Client['Apellidos'],
+                'email' => $Client['Correo'],
+                'phone_number' => $Client['TelefonoCelular']
+            ]
+        ];    
+    
+    }
+
 
     $res = callOpenpay($base_url, 'POST', $privateKey, $payload);
 
