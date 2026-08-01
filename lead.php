@@ -2862,6 +2862,21 @@ function LoadDocument(DocumentType){
             ejecutarRenderizadoQuote($contenedor, $cuerpoTabla, $filaPlantilla, datosGenerales, productos,descuentos);
             $('#ShareButton').show();
             lanzarMensaje("<?php echo Trd(93)?>", "exito");
+            <?php 
+            if ($account['Tips'] == 0){
+            ?>
+                    const $div1 = $('#tip-add');
+                    $div1.addClass('d-none')
+                    const $div2 = $('#tip-remove');
+                    $div2.addClass('d-none')
+                    const $div3 = $('#tip-adv-pay-pct');
+                    $div3.addClass('d-none')            
+            <?php
+            }
+            ?>
+            //tip-add
+            //tip-remove
+            //tip-adv-pay-pct
 
     }
     else if (DocumentType =='Picking'){

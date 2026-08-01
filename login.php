@@ -65,6 +65,9 @@ $db = $database->getConnection();
                     $idusuario = $result['Id'];
                     $rolusuario = $result['Tipo'];
                     $nombreusuario  = $result['Nombre'];
+                    $ZonaHoraria  = $result['ZonaHoraria'];
+
+
                 } else {
                     $errorResponse = json_decode($response, true);
                     $errorMessage = $errorResponse['message'] ?? 'Error desconocido.';
@@ -124,7 +127,7 @@ $db = $database->getConnection();
                     $_SESSION['usuario_nombre'] = $nombreusuario;
                     $_SESSION['role_id']        = $rolusuario;
                     $_SESSION['company']        = $company;
-
+                    $_SESSION['tzone']          = $ZonaHoraria;
                     $_SESSION['apiToken'] = $jwtToken;
 
                     $is_local = ($_SERVER['SERVER_NAME'] == 'localhost');

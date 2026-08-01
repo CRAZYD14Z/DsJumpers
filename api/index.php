@@ -141,6 +141,10 @@ if ($resource === 'user_login' && $method === 'POST') {
     $database = new Database();
     $db = $database->getConnection();    
 
+    $stmt = $db->prepare("SELECT ZonaHoraria FROM account ");
+    $stmt->execute();
+    $account = $stmt->fetch(PDO::FETCH_ASSOC);    
+
     $stmt = $db->prepare("SELECT * FROM operators WHERE Usuario = ? AND Estatus = 'A' ");
     $stmt->execute([$data->username]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -151,7 +155,8 @@ if ($resource === 'user_login' && $method === 'POST') {
                 "message" => "Inicio de sesión exitoso.",
                 "Id" => $user['Id'],
                 "Nombre" => $user['Nombres']." " .$user['Apellidos'],
-                "Tipo" => $user['Tipo']
+                "Tipo" => $user['Tipo'],
+                "ZonaHoraria" => $account['ZonaHoraria']
             ));    
     }  
     else{
@@ -213,9 +218,12 @@ if ($resource !== 'login') {
 }
 
 define('DB_NAME', $db_name);  
+//define('TZONE', 'America/Mexico_City');//SET TIME ZONE
 
 $database = new Database();
 $db = $database->getConnection();
+
+
 
 
 // --- C. ENRUTAMIENTO CRUD PROTEGIDO ---

@@ -900,7 +900,7 @@ function renderTable(data) {
             
 // Validamos si botonChofer tiene contenido
 const isDisabled = (botonChofer != ""  && item.Status == 'CARGA') ? "disabled" : "";
-const iddisplay = (botonChofer == ""  && item.Status == 'CARGA') ? "" : "d-none";
+const iddisplay = (botonChofer == ""  && ( item.Status == 'CARGA' || item.Status == 'ENTREGA' )) ? "" : "d-none";
 const clickClass = isDisabled ? "" : "clickable-row";
 const cursorStyle = isDisabled ? "default" : "pointer";
 
@@ -985,7 +985,7 @@ if (item.Status === 'EVENTO') {
         <!-- Columna 4: Status -->
         <td><span class="badge rounded-pill ${badgeClass}">${item.Status}</span></td>
         <!-- Columna 5: Monto -->
-        <td class="text-end pe-4 fw-bold text-dark">$${parseFloat(item.Total).toFixed(2)}</td>
+        <td class="text-end pe-4 fw-bold text-dark">$${formatCurrency(parseFloat(item.Total).toFixed(2))}</td>
     </tr>`;
 }
 /*
@@ -1182,6 +1182,14 @@ $('#btnConfirmarBorradoRuta').click(function() {
             console.log("Token actualizado globalmente desde: " + settings.url);
         }
     }); 
+
+
+const formatCurrency = (amount) => {
+  return Number(amount).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};    
 
 </script>
 

@@ -108,6 +108,9 @@ $db = null;
 // ----------------------------------------------------
 // 4. INICIALIZACIÓN Y LECTURA DE LA SOLICITUD
 // ----------------------------------------------------
+
+//define('TZONE', 'America/Mexico_City');//SET TIME ZONE
+
 $database = new Database();
 $db = $database->getConnection();
 $method = $_SERVER['REQUEST_METHOD'];

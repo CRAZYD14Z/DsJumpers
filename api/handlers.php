@@ -2906,17 +2906,7 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
 
     $idLead = (!empty($h->IdLead)) ? $h->IdLead : null;
     
-    $Status = '';
-    
-    if ($h->Organization == "" AND  $h->Customer == "" AND $h->Venue == "" ){
-        $Status = 'draft';
-    }
-    elseif (($h->Organization > 0 OR  $h->Customer > 0) AND $h->Venue == "" ){
-        $Status = 'draft';
-    }
-    elseif ( ($h->Organization > 0 OR  $h->Customer > 0) AND $h->Venue > 0 ){
-        $Status = 'quoted';
-    }  
+
 
     if ($idLead) {
         // --- MODO UPDATE ---
@@ -2925,7 +2915,7 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
             OkT=?, WA=?, AE=?, ME=?, CustomerNote=?, Venue=?, EventName=?, Surface=?, 
             Delivery=?, Note1=?, Note2=?, ItemTotals=?, ChkDstC=?, DistanceCharges=?, ChkStCs=?, 
             StafCost=?, ChkDsc=?, Discount=?, SubTotal=?, TaxId=?, TaxPc=?, 
-            TaxAmount=?, Total=?, Deposit=?,DepositAmount=?, Balance=?, Status=?,FechaCambio=now(),TotalBT=?
+            TaxAmount=?, Total=?, Deposit=?,DepositAmount=?, Balance=?,FechaCambio=now(),TotalBT=?
             WHERE Id = ?";
         
         $stmtLead = $db->prepare($sqlLead);
@@ -2934,7 +2924,7 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
             $h->OkT, $h->WA, $h->AE, $h->ME, $h->CusNt, $h->Venue, $h->EventName, $h->Surface,
             $h->Delivety, $h->Nt1, $h->Nt2, $h->Item_Totals, $h->ChkDstC, $h->DstC, $h->ChkStCs, 
             $h->StCs, $h->ChkDsc, $h->Dsc, $h->SubT, $h->TaxId, $h->TaxPc, 
-            $h->TaxAm, $h->Total, $h->Depo,$h->DepoA, $h->BalDue, $Status,$h->Total, $idLead
+            $h->TaxAm, $h->Total, $h->Depo,$h->DepoA, $h->BalDue, $h->Total, $idLead
         ]);
 
         // Limpiar detalles anteriores para evitar duplicados
@@ -2943,6 +2933,19 @@ function lead_auto_save($table_name,$db, $method, $id, $data){
         $db->prepare("DELETE FROM lead_discounts WHERE IdLead = ?")->execute([$idLead]);
 
     } else {
+
+
+        $Status = '';
+
+        if ($h->Organization == "" AND  $h->Customer == "" AND $h->Venue == "" ){
+            $Status = 'draft';
+        }
+        elseif (($h->Organization > 0 OR  $h->Customer > 0) AND $h->Venue == "" ){
+            $Status = 'draft';
+        }
+        elseif ( ($h->Organization > 0 OR  $h->Customer > 0) AND $h->Venue > 0 ){
+            $Status = 'quoted';
+        }      
 
         $Folio = 0;    
         $IdBranch = 1;

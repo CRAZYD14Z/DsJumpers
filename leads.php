@@ -374,8 +374,8 @@ $(document).ready(function() {
                         <span class="badge rounded-pill ${badgeClass}">${item.Status}</span>
                         ${cancellationHtml}
                     </td>
-                    <td class="text-end pe-4 fw-bold text-dark">$${parseFloat(item.Balance).toFixed(2)}</td>
-                    <td class="text-end pe-4 fw-bold text-dark">$${parseFloat(item.Total).toFixed(2)}</td>
+                    <td class="text-end pe-4 fw-bold text-dark">$${formatCurrency(parseFloat(item.Balance).toFixed(2))}</td>
+                    <td class="text-end pe-4 fw-bold text-dark">$${formatCurrency(parseFloat(item.Total).toFixed(2))}</td>
                 </tr>
             `;
         });
@@ -456,6 +456,15 @@ $(document).ready(function() {
             console.log("Token actualizado globalmente desde: " + settings.url);
         }
     });        
+
+
+const formatCurrency = (amount) => {
+  return Number(amount).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};    
+
 
 
 </script>
