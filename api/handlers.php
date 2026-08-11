@@ -812,14 +812,16 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                     $stmt->bindValue(":" . $campo, $valor);
                 }
                 elseif ($tipocampo =='img'){
-                    $client = ID_CLIENTE;
-                    $gallery = $table_name;
-                    $normal = $valor;
-                    $miniatura = "thumbnail_".$valor;
-                    $miniaturaj = "thumbnail_".$valor;
-                    $miniaturaj =  str_replace("avif", "jpg", $miniaturaj);
-                    upload_Aws($client,$gallery,$normal,$miniatura,$miniaturaj);
-                    $stmt->bindValue(":" . $campo, $valor);
+                    if ($valor!=""){
+                        $client = ID_CLIENTE;
+                        $gallery = $table_name;
+                        $normal = $valor;
+                        $miniatura = "thumbnail_".$valor;
+                        $miniaturaj = "thumbnail_".$valor;
+                        $miniaturaj =  str_replace("avif", "jpg", $miniaturaj);
+                        upload_Aws($client,$gallery,$normal,$miniatura,$miniaturaj);
+                        $stmt->bindValue(":" . $campo, $valor);
+                    }
                 }
                 else{
                     $stmt->bindValue(":" . $campo, $valor);
@@ -1087,7 +1089,7 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                                 : null;                            
                             $stmt->bindValue(":" . $campo, $valor);
                         }
-
+                        if ($valor!=""){
                         $client = ID_CLIENTE;
                         $gallery = $table_name;
                         $normal = $valor;
@@ -1096,7 +1098,7 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                         $miniaturaj =  str_replace("avif", "jpg", $miniaturaj);                        
                         upload_Aws($client,$gallery,$normal,$miniatura,$miniaturaj);
                         $stmt->bindValue(":" . $campo, $valor);                        
-
+                        }
                     }
                     elseif ($tipocampo =='html'){
                         $valor = isset($data->{$registro['Campo']}) 
