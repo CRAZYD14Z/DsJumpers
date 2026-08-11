@@ -2746,7 +2746,7 @@ function LoadDocument(DocumentType){
     const datosGenerales = {
         leadid: $('#Folio').val(),
         contractsentdate: "",
-        company_logo: "<?php echo $account['Logo']?>",
+        company_logo: "<?=  "https://pub-546a2d9d368f4b87a457962de1d77955.r2.dev/".$account['Id']."/account/originals/".$account['Logo'] ?> ",
         company_name: "<?php echo $account['NombreCompania']?>",
         company_address:"<?php echo $account['Direccion']." ".$account['Direccion2'];?>",
         company_city:"<?php echo $account['Ciudad']." ".$account['CP'];?>",

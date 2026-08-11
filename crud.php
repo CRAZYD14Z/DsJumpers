@@ -1946,31 +1946,65 @@ function questionDelete(Id,IdTabla){
 
 function deleteRecord(Id,IdTabla) {
     if (!TOKEN) return;
-    $.ajax({
-        url: API_BASE_URL + IdTabla,
-        type: 'DELETE',
-        contentType: 'application/json',
-        headers: {
-            'Authorization': 'Bearer ' + TOKEN
-        },
-        data: JSON.stringify({
-            Id: Id,
-            IId: Id
-        }),
-        success: function(response) {
-            listado(IdTabla);
-            console.log('Registro borrado:', response.message);
-            setTimeout(() => {
-                showToast('✅ <?php echo Trd(16)?> ' + response.message);
-            }, 500);            
-        },
-        error: function(xhr) {
-            console.error('Error al crear:', xhr.responseJSON.message);
-            setTimeout(() => {
-                showToast('❌ <?php echo Trd(17)?> ' + errorMessage);
-            }, 500);            
-        }
-    });
+    if (IdTabla == 'vehicles'){
+
+        $.ajax({
+            url: API_BASE_URL + IdTabla,
+            type: 'DELETE',
+            contentType: 'application/json',
+            headers: {
+                'Authorization': 'Bearer ' + TOKEN
+            },
+            data: JSON.stringify({
+                id_vehicle: Id,
+                IId: Id
+            }),
+            success: function(response) {
+                listado(IdTabla);
+                console.log('Registro borrado:', response.message);
+                setTimeout(() => {
+                    showToast('✅ <?php echo Trd(16)?> ' + response.message);
+                }, 500);            
+            },
+            error: function(xhr) {
+                console.error('Error al crear:', xhr.responseJSON.message);
+                setTimeout(() => {
+                    showToast('❌ <?php echo Trd(17)?> ' + errorMessage);
+                }, 500);            
+            }
+        });        
+
+    }
+    else{
+
+        $.ajax({
+            url: API_BASE_URL + IdTabla,
+            type: 'DELETE',
+            contentType: 'application/json',
+            headers: {
+                'Authorization': 'Bearer ' + TOKEN
+            },
+            data: JSON.stringify({
+                Id: Id,
+                IId: Id
+            }),
+            success: function(response) {
+                listado(IdTabla);
+                console.log('Registro borrado:', response.message);
+                setTimeout(() => {
+                    showToast('✅ <?php echo Trd(16)?> ' + response.message);
+                }, 500);            
+            },
+            error: function(xhr) {
+                console.error('Error al crear:', xhr.responseJSON.message);
+                setTimeout(() => {
+                    showToast('❌ <?php echo Trd(17)?> ' + errorMessage);
+                }, 500);            
+            }
+        });    
+
+    }
+
 }
 
 function renderTable(data, titulos, IdTabla, tipos, loadMore = false) {

@@ -66,6 +66,7 @@ $db = $database->getConnection();
                     $rolusuario = $result['Tipo'];
                     $nombreusuario  = $result['Nombre'];
                     $ZonaHoraria  = $result['ZonaHoraria'];
+                    $NombreCompania  = $result['NombreCompania'];
 
 
                 } else {
@@ -128,6 +129,7 @@ $db = $database->getConnection();
                     $_SESSION['role_id']        = $rolusuario;
                     $_SESSION['company']        = $company;
                     $_SESSION['tzone']          = $ZonaHoraria;
+                    $_SESSION['NombreCompania'] = $NombreCompania;
                     $_SESSION['apiToken'] = $jwtToken;
 
                     $is_local = ($_SERVER['SERVER_NAME'] == 'localhost');

@@ -1222,6 +1222,7 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
             }               
 
             $query = "DELETE FROM $table_name WHERE $Where";
+            echo $query;
             $stmt = $db->prepare($query);
             $Id1 = 0;
             $Id2 = 0;

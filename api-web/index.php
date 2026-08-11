@@ -586,8 +586,9 @@ function gifcard_pay($table_name,$db, $method, $id, $data){
                     else{
                         $aviso_gifcard = 'display: none';
                     }
-                    $valores = [
-                        'company_logo'      => $account['Logo'],
+                    //'company_logo'      => $account['Logo'],
+                    $valores = [                        
+                        'company_logo'      => CFPUBLICURL."/".$account['Id']."/account/originals/".$account['Logo'],
                         'company_name' => $account['NombreCompania'],
                         'ctfirstname'  => $nombreCliente,
                         'leadid'       => $lead['Folio'],
@@ -1135,7 +1136,7 @@ function processpayment_paypal($table_name,$db, $method, $id, $data){
                                 $correoCliente =$organization['Correo'];
                             }    
                     $valores = [
-                        'company_logo'      => $account['Logo'],
+                        'company_logo'      => CFPUBLICURL."/".$account['Id']."/account/originals/".$account['Logo'],
                         'company_name' => $account['NombreCompania'],
                         'ctfirstname'  => $nombreCliente,
                         'leadid'       => $lead['Folio'],
@@ -1376,7 +1377,7 @@ function processpayment_square($table_name,$db, $method, $id, $data){
                                 $correoCliente =$organization['Correo'];
                             }    
                     $valores = [
-                        'company_logo'      => $account['Logo'],
+                        'company_logo'      => CFPUBLICURL."/".$account['Id']."/account/originals/".$account['Logo'],
                         'company_name' => $account['NombreCompania'],
                         'ctfirstname'  => $nombreCliente,
                         'leadid'       => $lead['Folio'],
@@ -1612,7 +1613,7 @@ function processpayment($table_name,$db, $method, $id, $data){
                                 $correoCliente =$organization['Correo'];
                             }    
                     $valores = [
-                        'company_logo'      => $account['Logo'],
+                        'company_logo'      => CFPUBLICURL."/".$account['Id']."/account/originals/".$account['Logo'],
                         'company_name' => $account['NombreCompania'],
                         'ctfirstname'  => $nombreCliente,
                         'leadid'       => $lead['Folio'],
@@ -2040,7 +2041,7 @@ function sendbook($table_name,$db, $method, $id, $data){
                         // Incluimos el teléfono en el cuerpo del correo
             $cuerpo = "<html>".$Template['Template']."</html>";
             $valores = [
-                'company_logo'      => $account['Logo'],
+                'company_logo'      => CFPUBLICURL."/".$account['Id']."/account/originals/".$account['Logo'],
                 'company_name' => $account['NombreCompania'],
                 'ctfirstname'  => $customer['Nombres'],
                 'leadid'       => $lead['Folio'],
@@ -3534,7 +3535,7 @@ function sendsale($table_name,$db, $method, $id, $data){
             $cuerpo = "<html>".$Template['Template']."</html>";
             
             $valores = [
-                'company_logo'      => $account['Logo'],
+                'company_logo'      => CFPUBLICURL."/".$account['Id']."/account/originals/".$account['Logo'],
                 'company_name' => $account['NombreCompania'],
                 'ctfirstname'  => $Client['firstname']." ".$Client['lastname'],
                 'leadid'       => $Sale['id'],
@@ -3738,7 +3739,7 @@ function password_recover($table_name,$db, $method, $id, $data){
                 $valores = [
                 'ctfirstname' => $user['firstname']. ' ' .$user['lastname'],
                 'user_email' => $email,
-                'company_logo' => $account['Logo'],
+                'company_logo'      => CFPUBLICURL."/".$account['Id']."/account/originals/".$account['Logo'],
                 'company_name' => $account['NombreCompania'],
                 'company_phone' =>  $account['TelefonoOficina'],
                 'reset_password_link' => $recovery_link
@@ -4479,7 +4480,7 @@ try {
                         // Incluimos el teléfono en el cuerpo del correo
             $cuerpo = "<html>".$Template['Template']."</html>";
             $valores = [
-                'company_logo'      => $account['Logo'],
+                'company_logo'      => CFPUBLICURL."/".$account['Id']."/account/originals/".$account['Logo'],
                 'company_name' => $account['NombreCompania'],
                 'ctfirstname'  => $data->cliente->nombre,
                 'eventcity'    => $data->lugar->ciudad,

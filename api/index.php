@@ -121,7 +121,7 @@ if ($resource === 'account_login' && $method === 'POST') {
     if ($account ) {
             http_response_code(200);
             echo json_encode(array(
-                
+                "Id" => $account['Id'],
                 "WebSite" => $account['WebSite'],
                 "Logo" => $account['Logo']
             ));    
@@ -141,7 +141,7 @@ if ($resource === 'user_login' && $method === 'POST') {
     $database = new Database();
     $db = $database->getConnection();    
 
-    $stmt = $db->prepare("SELECT ZonaHoraria FROM account ");
+    $stmt = $db->prepare("SELECT NombreCompania, ZonaHoraria FROM account ");
     $stmt->execute();
     $account = $stmt->fetch(PDO::FETCH_ASSOC);    
 
@@ -156,7 +156,8 @@ if ($resource === 'user_login' && $method === 'POST') {
                 "Id" => $user['Id'],
                 "Nombre" => $user['Nombres']." " .$user['Apellidos'],
                 "Tipo" => $user['Tipo'],
-                "ZonaHoraria" => $account['ZonaHoraria']
+                "ZonaHoraria" => $account['ZonaHoraria'],
+                "NombreCompania" => $account['NombreCompania']
             ));    
     }  
     else{

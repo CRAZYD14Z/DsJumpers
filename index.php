@@ -41,7 +41,7 @@
 //                    die ($response);
                     $result = json_decode($response, true);
                     $WebSite = $result['WebSite'];
-                    $Logo = $result['Logo'];                    
+                    $Logo = "https://pub-546a2d9d368f4b87a457962de1d77955.r2.dev/".$result['Id']."/account/originals/".$result['Logo'];                    
                 } else {
                     $errorResponse = json_decode($response, true);
                     $errorMessage = $errorResponse['message'] ?? 'Error desconocido.';

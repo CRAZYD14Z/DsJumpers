@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow">
     <div class="container-fluid">
         <a class="navbar-brand fw-bold" href="#">
-            <i class="fas fa-rocket me-2"></i>Gaxi Brincolines
+            <i class="fas fa-rocket me-2"></i><?= $_SESSION['NombreCompania'] ?>
         </a>
         
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">

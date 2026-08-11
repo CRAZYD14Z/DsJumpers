@@ -131,9 +131,9 @@ $lang ='es';
                 $correoCliente =$organization['Correo'];
 
             }    
-
+    //'company_logo'      => $account['Logo'],
     $valores = [
-        'company_logo'      => $account['Logo'],
+        'company_logo'      => CFPUBLICURL."/".$account['Id']."/account/originals/".$account['Logo'],
         'company_name' => $account['NombreCompania'],
         'ctfirstname'  => $nombreCliente,
         'leadid'       => $lead['Folio'],
