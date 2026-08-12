@@ -2038,6 +2038,183 @@ function get_products_categories($table_name,$db, $method, $id, $data){
     }   
 }
 
+function get_products_search($table_name,$db, $method, $id, $data){
+    global $IDS;
+    switch ($method) {
+        case 'GET': 
+            $Search = isset($_GET['q']) ? $_GET['q'] : '';
+
+            $DateS_raw = isset($_GET['DateS']) ? $_GET['DateS'] : date('Y-m-d\TH:i');
+            $DateE_raw = isset($_GET['DateE']) ? $_GET['DateE'] : date('Y-m-d\TH:i');
+
+            $objDateS = new DateTime($DateS_raw);
+            $objDateE = new DateTime($DateE_raw);
+
+            $fechaS = $objDateS->format('Ymd'); // 2026-02-04
+            $horaS  = $objDateS->format('H:i');   // 18:00
+
+            $fechaE = $objDateE->format('Ymd'); // 2026-02-05
+            $horaE  = $objDateE->format('H:i');   // 02:00
+
+            $DayWeek = date('w', strtotime($fechaS));
+
+            switch ($DayWeek) {
+                case '0':
+                    $DayWeek =' AND Do = 1 ';
+                break;
+                case '1':
+                    $DayWeek =' AND Lu = 1 ';
+                break;
+                case '2':
+                    $DayWeek =' AND Ma = 1 ';
+                break;
+                case '3':
+                    $DayWeek =' AND Mi = 1 ';
+                break;
+                case '4':
+                    $DayWeek =' AND Ju = 1 ';
+                break;
+                case '5':
+                    $DayWeek =' AND Vi = 1 ';
+                break;
+                case '6':
+                    $DayWeek =' AND Sa = 1 ';
+                break;
+            }
+
+            //RECUPERAR TODO EL DETALLE DE EVENTOS ACTIVOS DE ESTA FECHA PARA RESTAR LAS CANTIDADES DE LOS PRODUCTOS
+
+            $fechaS_db = $objDateS->format('Y-m-d H:i:s');
+            $fechaE_db = $objDateE->format('Y-m-d H:i:s');
+
+            $query = "
+                SELECT IdProduct, SUM(Quantity) as Quantity 
+                FROM v_leads_detail 
+                WHERE Status = 'quoted' OR Status = 'confirmed' 
+                AND (StartDateTime < :DateE AND EndDateTime > :DateS)
+                AND Unlimited = 0
+                GROUP BY IdProduct
+                
+                UNION
+
+                SELECT
+                    relationship_products.Producto_rsp as IdProduct, 
+                    count(relationship_products.Producto_rsp) as Quantity
+                FROM
+                    v_leads_detail
+                    INNER JOIN
+                    relationship_products
+                    ON 
+                        v_leads_detail.IdProduct = relationship_products.Producto_sp
+                        
+                WHERE v_leads_detail.Status = 'quoted'  OR  v_leads_detail.Status = 'confirmed' 
+                AND (v_leads_detail.StartDateTime < :DateEE AND v_leads_detail.EndDateTime > :DateSS)
+                AND v_leads_detail.Unlimited = 0
+                GROUP BY relationship_products.Producto_rsp		                
+
+            ";
+
+            $query = "
+                SELECT 
+                    IdProduct, 
+                    SUM(Quantity) AS Quantity 
+                FROM v_leads_detail 
+                WHERE 
+                    Status IN ('quoted', 'confirmed')
+                    AND Unlimited = 0
+                    AND StartDateTime < :DateE
+                    AND EndDateTime > :DateS
+                GROUP BY IdProduct
+
+                UNION 
+
+                SELECT
+                        relationship_products.Producto_rsp as IdProduct, 
+                        count(relationship_products.Producto_rsp) as Quantity
+                FROM
+                        v_leads_detail
+                        INNER JOIN
+                        relationship_products
+                        ON 
+                                v_leads_detail.IdProduct = relationship_products.Producto_sp
+                WHERE 
+                        v_leads_detail.Status IN ('quoted', 'confirmed')
+                        AND v_leads_detail.Unlimited = 0
+                        AND v_leads_detail.StartDateTime < :DateEE 
+                        AND v_leads_detail.EndDateTime > :DateSS 
+
+                GROUP BY relationship_products.Producto_rsp	                
+            ";             
+
+
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':DateS', $fechaS_db);
+            $stmt->bindParam(':DateE', $fechaE_db);
+            $stmt->bindParam(':DateSS', $fechaS_db);
+            $stmt->bindParam(':DateEE', $fechaE_db);            
+            $stmt->execute();                
+
+            $ocupados = $stmt->fetchAll(PDO::FETCH_ASSOC);                
+
+            $cantidadesOcupadas = array_column($ocupados, 'Quantity', 'IdProduct');                
+
+            $query = "
+                SELECT * FROM v_items_prices_lists
+                WHERE ProductName LIKE :search  AND 
+                            Estatus_price_list = 1 AND
+                            Estatus_price = 1 AND 
+                :date BETWEEN  FechaHoraInicio AND FechaHoraFin  $DayWeek                                    
+            ";                            
+            $stmt = $db->prepare($query);
+
+            $searchParam = '%' . $Search . '%';
+
+            $stmt->bindParam(':search', $searchParam, PDO::PARAM_STR);
+            $stmt->bindParam(':date', $fechaS, PDO::PARAM_STR);          
+
+            //$stmt->bindValue(1, $IdCat);
+            //$stmt->bindValue(2, $Date);
+            $stmt->execute();
+            $resultados_p = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            if ($resultados_p) {
+                foreach ($resultados_p as $index => $Precio) {
+                        $JsonPrice = $Precio['JsonPrice'];
+                        $JsonPrice = html_entity_decode($JsonPrice);
+                        $ingreso =  $objDateS->format('Y-m-d H:i:00');
+                        $salida  = $objDateE->format('Y-m-d H:i:00');
+                        // Modificamos directamente el arreglo usando el índice
+                        $resultados_p[$index]['Price'] = calcularCostoEstanciaPHP($JsonPrice, $ingreso, $salida);
+                            if (isset($cantidadesOcupadas[$resultados_p[$index]['Producto']])) {
+                                $cantidadOcupada = $cantidadesOcupadas[$resultados_p[$index]['Producto']];
+                            } else {
+                                $cantidadOcupada = 0; // Si no está en el arreglo, nadie lo ha rentado
+                            }                            
+                        $resultados_p[$index]['Quantity'] = $resultados_p[$index]['Quantity'] - $cantidadOcupada;
+                        $query = "SELECT *  from products_images WHERE Product = ".$resultados_p[$index]['Producto']." ORDER BY Orden LIMIT 1";
+                        $stmtigm = $db->prepare($query);
+                        $stmtigm->execute();
+                        $Img = $stmtigm->fetch(PDO::FETCH_ASSOC);                             
+                        if ($Img)
+                            $resultados_p[$index]['Image'] = $Img['Image'];
+                        //if ($resultados_p[$index]['Quantity'] <= 0)
+                        //    unset($resultados_p[$index]);
+                    }
+            }
+
+            http_response_code(200);
+            echo json_encode(array(
+                "products" => $resultados_p
+            ));
+        break;
+
+        default:
+        // ------------------------------------------------------------------
+            http_response_code(405);
+            echo json_encode(array("message" => "Método HTTP no permitido para este recurso."));
+        break;
+    }   
+}
+
 function get_related_products($table_name,$db, $method, $id, $data){
     global $IDS;
     switch ($method) {

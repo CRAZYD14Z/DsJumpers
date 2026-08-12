@@ -39,6 +39,13 @@
                     </div>
                 </div>
 
+                <div class="input-group" id="SearchP" name="SearchP">
+                    <div class="input-group input-group-minimal">
+                        <input type="text" class="form-control input-minimal" placeholder="Search" id="ProductSearch" name="ProductSearch">
+                        <button class="btn btn-minimal" type="button" id="btn-inicio" onclick="reset_search()">X</button>
+                    </div>
+                </div>
+
                 <div class="input-group" id="CategorySelect" name="CategorySelect">
                     <div class="input-group input-group-minimal">
                         <input type="hidden" id="IdCategory" name="IdCategory">            

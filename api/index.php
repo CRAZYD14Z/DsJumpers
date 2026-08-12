@@ -531,6 +531,9 @@ switch ($resource) {
     case 'get_products_categories':
         get_products_categories($resource,$db, $method, $id, $data);
         break; 
+    case 'get_products_search':
+        get_products_search($resource,$db, $method, $id, $data);
+        break;         
     case 'get_related_products':
         get_related_products($resource,$db, $method, $id, $data);
         break;

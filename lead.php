@@ -1345,6 +1345,18 @@ $(document).on("keypress", ".numbers-only", function (e) {
 });
 
         //RESET CATEGORIA
+        function reset_search(){
+            
+            $('#ProductSearch').val('');
+            $('#IdCategory').val('');
+            $('#Category').val('');
+            $('#Categories').show();            
+            $('#Category_Products').hide();
+            $('#IdProducto').val('');
+            $('#NombreProducto').val('');
+            $('#ProductSelect').hide();
+            $('#Products_Elements').hide();
+        }
         function reset_cat(){
             $('#IdCategory').val('');
             $('#Category').val('');
@@ -1412,6 +1424,113 @@ $(document).on("keypress", ".numbers-only", function (e) {
             //    lanzarMensaje("<?php echo Trd(85)?>", "error", 5000);
             //}
         });          
+
+
+        let searchTimeout = null;
+
+        document.getElementById('ProductSearch').addEventListener('input', function() {
+            const query = this.value.trim();
+
+            // Cancelar el temporizador anterior si el usuario sigue escribiendo
+            clearTimeout(searchTimeout);
+
+            // Validar mínimo 3 caracteres
+            if (query.length >= 3) {
+                // Esperar 500ms después de que el usuario deje de escribir para detonar el AJAX
+                searchTimeout = setTimeout(() => {
+                    
+                    buscarProducto(query);
+                }, 500);
+            }
+        });        
+
+        function buscarProducto(query){
+            const $tbody = $("#Category_Products_List");
+                // 2. Insertamos el spinner de carga (Bootstrap)
+                $tbody.html(`
+                    <tr id="loading-row">
+                        <td colspan="100%" class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden"><?= Trd(112) ?></span>
+                            </div>
+                            <div class="mt-2 text-muted fw-bold"><?= Trd(113) ?></div>
+                        </td>
+                    </tr>
+                `);        
+
+            const FHI = $('#fechahorainicio').val(); // "2026-02-04T18:30"
+            const FHF = $('#fechahorafin').val(); // "2026-02-04T18:30"
+            //alert(FHIp[0].replaceAll('-',''))
+            //SCat = IdCat;
+            $.ajax ({
+                url: API_BASE_URL+"get_products_search/?q="+query+"&DateS="+FHI+"&DateE="+FHF, // URL de tu Web Service
+                type: 'GET',
+                dataType: 'json', // Indica que esperamos JSON
+                headers: {
+                    // *** Aquí se adjunta el token en el encabezado Authorization ***
+                    'Authorization': 'Bearer ' + TOKEN 
+                },
+                delay: 300, // Espera 300ms antes de enviar la petición (evita spam al server)
+                //data: JSON.stringify({
+                //    Id: IdCat
+                //}),
+                success: function(response) {
+
+            $('#Categories').hide();
+
+
+            $('#Category_Products').show();                
+
+                    $tbody.empty();
+                    if (response && response.products.length >= 0) {
+                        response.products.forEach(row => {
+                            // VALIDAR SI EXISTE
+                            //alert(1)
+                            //if (Codes.indexOf(row.Producto) < 0 ){
+                            //alert(inventario.hasProduct(row.Producto))
+                            //if ( ! inventario.hasProduct(row.Producto) && row.Quantity > 0){
+                            if ( ! inventario.hasProduct(row.Producto) ){
+                                //alert(2)
+                                const rowStyle = row.Quantity <= 0 ? "color: red;" : "";
+                                
+                                $tbody.append(`<tr>
+                                <td style='display: none' 
+                                data-product='${row.Producto}' 
+                                data-name='${row.ProductName}' 
+                                data-quantity='${row.Quantity}' 
+                                data-unlimited='${row.Unlimited}' 
+                                data-price='${row.Price}' 
+                                data-taxable='${row.Taxable}' 
+                                data-operationstaff='${row.OperationStaff}' 
+                                data-setupstaff='${row.SetUpStaff}' 
+                                data-volunteer='${row.Volunteer}' 
+                                data-electric='${row.Electric}'
+                                data-image='${row.Image}' 
+                                >${row.Producto}</td>
+                                <td style="${rowStyle}">${row.ProductName}</td>
+                                <td style="${rowStyle}">
+                                    ${row.Unlimited == 1 ? '<i class="fa-solid fa-infinity"></i>' : row.Quantity }
+                                </td>
+                                <td style="text-align: right;${rowStyle}">$ ${row.Price}</td>                            
+                                </tr>`)
+                            }
+                        });
+                        // Aquí renderizas tus filas con .append()
+                        // Ejemplo: response.forEach(item => $tbody.append(...));
+                    } else {
+                        $tbody.html('<tr><td colspan="100%" class="text-center text-muted">No se encontraron productos</td></tr>');
+                    }
+
+                },
+                error: function(xhr) {
+
+                },
+                cache: true
+            });        
+
+        }
+
+
 
         //RECUPERAR PRODUCTOS DE CATERGORIA
         function get_products(IdCat){
