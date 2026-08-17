@@ -279,6 +279,51 @@ include_once 'head.php';
 </div>
 
 
+<!-- Modal con el diseño de tu proyecto -->
+<div class="modal fade" id="modalMapa" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold"><?= Trd(169) ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="row g-0">
+                    <!-- Panel Izquierdo: Buscador de Dirección y Mapa -->
+                    <div class="col-md-8 p-4 border-end bg-white">
+
+                        
+                        <!-- Contenedor del Mapa -->
+                        <div id="mapa" style="height: 350px; width: 100%; border-radius: 6px; border: 1px solid #dee2e6;"></div>
+                    </div>
+
+                    <!-- Panel Derecho: Instrucciones e Información -->
+                    <div class="col-md-4 p-4 bg-light d-flex flex-column justify-content-between">
+                        <div>
+                            <p class="small text-muted mb-3">
+                                <?= Trd(170) ?>
+                            </p>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold"><?= Trd(171) ?>:</label>
+                                <input type="text" id="temp_lat" class="form-control form-control-sm" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold"><?= Trd(172) ?>:</label>
+                                <input type="text" id="temp_lng" class="form-control form-control-sm" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-0">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"><?= Trd(173) ?></button>
+                <button type="button" id="btnConfirmarUbicacion" class="btn btn-primary px-4 fw-bold" data-bs-dismiss="modal"><?= Trd(167) ?></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
 </div>
     <script>
@@ -288,6 +333,8 @@ include_once 'head.php';
     const TOKEN = localStorage.getItem('apiToken'); 
     const ID_CLIENTE = '<?= $_SESSION['id_cliente']; ?>'; 
     const CFPUBLICURL = '<?= CFPUBLICURL ?>';     
+
+    const USER = '<?= $_SESSION['user'] ?>';
 
     let Row = 0;
     let Rltpc = 0;
@@ -2491,8 +2538,12 @@ function load_venue(Id,isFromReady = false){
             //$('#EventStreet').val( data.Direccion+' '+data.Direccion2);
             $('#EventCity').val( data.Ciudad);
             $('#EventZip').val( data.CP);
+            $('#EventLat').val( data.Lat);
+            $('#EventLng').val( data.Lng);
             //distance_charge(data.CP,data.Pais)
-
+            if (data.Lat == 0 || data.Lat == null){
+                //alert('Ubicar Lat Lng')
+            }
             if (!isFromReady) {
                 distance_charge(data.CP, data.Pais);
             } else {
@@ -2979,6 +3030,7 @@ function LoadDocument(DocumentType){
             const $cuerpoTabla = $('#lista-productos');
             const $filaPlantilla = $cuerpoTabla.find('.item-fila').first();
             ejecutarRenderizadoQuote($contenedor, $cuerpoTabla, $filaPlantilla, datosGenerales, productos,descuentos);
+            $('a[href*="link_to_accept"]').parent().hide();
             $('#ShareButton').show();
             lanzarMensaje("<?php echo Trd(93)?>", "exito");
             <?php 
@@ -3640,6 +3692,7 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
         formData.append('Type', TipoC);
         formData.append('Cargo',Cargo);
         formData.append('Motivo', $('#MotivoCancelacion').val());  
+        formData.append('Usuario', USER);  
           
 
 
@@ -3720,6 +3773,116 @@ const formatter = new Intl.NumberFormat('en-US', {
 });
 
     </script>
+
+<script>
+let map;
+let marker;
+let geocoder;
+
+// Coordenadas por defecto (Ej. Centro CDMX)
+const posicionDefecto = { lat: <?= $account['Lat'] ?>, lng: <?= $account['Lng'] ?> };
+
+function initMap() {
+    geocoder = new google.maps.Geocoder();
+
+    map = new google.maps.Map($('#mapa')[0], {
+        zoom: 15,
+        center: posicionDefecto,
+    });
+
+    marker = new google.maps.Marker({
+        position: posicionDefecto,
+        map: map,
+        draggable: true,
+        title: "<?= Trd(174) ?>"
+    });
+
+    actualizarCoordenadas(posicionDefecto.lat, posicionDefecto.lng);
+
+    // Evento al arrastrar el icono
+    marker.addListener("dragend", function (event) {
+        actualizarCoordenadas(event.latLng.lat(), event.latLng.lng());
+    });
+}
+
+function actualizarCoordenadas(lat, lng) {
+    $('#temp_lat').val(lat);
+    $('#temp_lng').val(lng);
+}
+
+function ubicarPorDireccion() {
+    const direccion =$('#EventStreet').val() + ', ' + $('#EventCity').val()+', ' + $('#EventState option:selected').text()+', '+ $('#EventZip').val() + $('#EventCountry option:selected').text();
+    if (!direccion) return;
+
+    geocoder.geocode({ address: direccion }, function (results, status) {
+        if (status === "OK" && results[0]) {
+            const location = results[0].geometry.location;
+            
+            map.setCenter(location);
+            marker.setPosition(location);
+            actualizarCoordenadas(location.lat(), location.lng());
+            if ($('#EventLat').val() == ""){
+                $('#EventLat').val(location.lat());
+                $('#EventLng').val(location.lng());
+            }
+
+        } else {
+            lanzarMensaje("<?= Trd(168) ?>",'error',5000);
+        }
+    });
+}
+
+function setUbicacion(lat, lng) {
+    // Convertir a número por si los valores vienen como string
+    const nLat = parseFloat(lat);
+    const nLng = parseFloat(lng);
+
+    // Validar que las coordenadas sean números válidos
+    if (isNaN(nLat) || isNaN(nLng)) {
+        console.warn("Coordenadas no válidas:", lat, lng);
+        return;
+    }
+
+    const nuevaPosicion = { lat: nLat, lng: nLng };
+
+    // Actualizar las entradas temporales del modal
+    actualizarCoordenadas(nLat, nLng);
+
+    // Si el mapa y el marcador ya están instanciados, los movemos
+    if (map && marker) {
+        map.setCenter(nuevaPosicion);
+        marker.setPosition(nuevaPosicion);
+    }
+}
+
+$(document).ready(function () {
+    
+    // Al abrir el modal de Bootstrap, recalculamos el tamaño del mapa para evitar el lienzo gris
+    $('#modalMapa').on('shown.bs.modal', function () {
+        if (map) {
+            google.maps.event.trigger(map, 'resize');
+
+            if ($('#EventLat').val() != "" ){
+                setUbicacion($('#EventLat').val(), $('#EventLng').val()) 
+            }else{
+                
+                map.setCenter(marker.getPosition());
+                ubicarPorDireccion()
+            }
+            
+        }
+    });
+
+
+    // Pasar coordenadas temporales a los inputs del formulario principal
+    $('#btnConfirmarUbicacion').on('click', function () {
+        $('#EventLat').val($('#temp_lat').val());
+        $('#EventLng').val($('#temp_lng').val());
+    });
+});
+
+
+</script>
 
 
 </body>

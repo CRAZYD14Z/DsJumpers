@@ -10,6 +10,7 @@ $db = $database->getConnection();
 $lang ='es';
 try {
     // 2. Recibir datos del formulario
+    $usuario    = $_POST['usuario'] ?? '';
     $tokenId    = $_POST['token_id'] ?? null;
     $IdLead     = $_POST['token'] ?? null;
     $monto      = $_POST['monto'] ?? 0;
@@ -32,9 +33,9 @@ try {
     $Folio+=1;
 
     $sqlPay = "INSERT INTO payments (IdLead,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus,Usuario,Type) 
-                            VALUES  (?,?,now(),?,?,?,?,'A','','Pay')";
+                            VALUES  (?,?,now(),?,?,?,?,'A',?,'Pay')";
     $stmtPay = $db->prepare($sqlPay);
-    $stmtPay->execute([$IdLead,$Folio,$tipo_pago,$monto,$Currency,$referencia]);    
+    $stmtPay->execute([$IdLead,$Folio,$tipo_pago,$monto,$Currency,$referencia,$usuario]);    
 
     $stmt = $db->prepare(" UPDATE folios sET Folio = ? WHERE IdBranch = ? AND Type = 'Pay'");
     $stmt->execute([$Folio,$lead['IdBranch']]);        

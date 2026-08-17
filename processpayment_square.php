@@ -27,7 +27,7 @@ if (!$token_id) {
     echo json_encode(['success' => false, 'error' => 'Token de pago requerido']);
     exit;
 }
-
+    $usuario    = $_POST['usuario'] ?? '';
     $tokenId    = $_POST['token_id'] ?? null;
     $IdLead      = $_POST['token'] ?? null;
     $deviceId   = $_POST['deviceIdHiddenFieldName'] ?? null;
@@ -103,9 +103,9 @@ try {
     $amount = $amount / 100;
 
     $sqlPay = "INSERT INTO payments (IdLead,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus,Usuario,Type) 
-                            VALUES  (?,?,now(),'Square',?,?,?,'A','','Pay')";
+                            VALUES  (?,?,now(),'Square',?,?,?,'A',?,'Pay')";
     $stmtPay = $db->prepare($sqlPay);
-    $stmtPay->execute([$IdLead,$Folio,$amount,Currency::Usd->value,$payment->getId()]);    
+    $stmtPay->execute([$IdLead,$Folio,$amount,Currency::Usd->value,$payment->getId(),$usuario]);    
 
     $stmt = $db->prepare(" UPDATE folios sET Folio = ? WHERE IdBranch = ? AND Type = 'Pay'");
     $stmt->execute([$Folio,$lead['IdBranch']]);        

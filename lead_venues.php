@@ -74,7 +74,7 @@
                     ?>
             </select>
         </div>
-        <div class='col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-xxl-3'>
+        <div class='col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-xxl-2'>
             <label for="State" class="form-label"><?php echo Trd(57)?></label>
             <select class="form-select" id="EventState" name="EventState">
                 <option value=""><?php echo Trd(58)?></option> 
@@ -93,14 +93,24 @@
             </select>
         </div>    
 
-        <div class='col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 col-xxl-4'>
+        <div class='col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-xxl-3'>
             <label for="EventCity" class="form-label"><?php echo Trd(59)?></label>
             <input type="text" class="form-control" id="EventCity" name="EventCity" placeholder=""> 
         </div>    
         <div class='col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-xxl-2'>
             <label for="EventZip" class="form-label"><?php echo Trd(60)?></label>
             <input type="text" class="form-control" id="EventZip" name="EventZip" placeholder="00000"> 
-        </div>        
+            <input type="hidden" class="form-control" id="EventLat" name="EventLat" > 
+            <input type="hidden" class="form-control" id="EventLng" name="EventLng" > 
+        </div>
+
+        <div class='col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-xxl-2'>
+            <br>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalMapa">
+                <i class="fas fa-map-marker-alt me-1"></i> <?= Trd(167) ?>
+            </button>            
+        </div>
+
     </div>     
     <div class="row">        
         <div class='col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 col-xxl-4'>
@@ -149,7 +159,20 @@
             </div>   
         </div>   
     </div> 
+
+
+
+
+
 </form>
+
+
+
+
+
+<!-- Cargamos la API de Google Maps (Reemplaza YOUR_API_KEY por tu clave) -->
+<script src="https://maps.googleapis.com/maps/api/js?key=<?= GOOGLE_API_KEY ?>&libraries=places&callback=initMap" async defer></script>
+
 
 
     <script>
@@ -209,6 +232,9 @@
                                 document.getElementById('EventCity').value = addr.city || addr.town || addr.village || addr.suburb || '';
                                 //document.getElementById('State').value = addr.state || '';
                                 document.getElementById('EventZip').value = addr.postcode || '';
+
+                                document.getElementById('EventLat').value = item.lat || '';
+                                document.getElementById('EventLng').value = item.lon || '';
 
                                 const stateSelect = document.getElementById('EventState');
                                 const targetState = (addr.state || '').toUpperCase(); // Convertimos el estado buscado a MAYÚSCULAS

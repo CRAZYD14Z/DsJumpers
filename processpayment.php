@@ -32,6 +32,7 @@ try {
     Openpay::setProductionMode(!$isSandbox);
 
     // 2. Recibir datos del formulario
+    $usuario    = $_POST['usuario'] ?? '';
     $tokenId    = $_POST['token_id'] ?? null;
     $IdLead      = $_POST['token'] ?? null;
     $deviceId   = $_POST['deviceIdHiddenFieldName'] ?? null;
@@ -95,9 +96,9 @@ try {
         $Folio+=1;    
 
         $sqlPay = "INSERT INTO payments (IdLead,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus,Usuario,Type) 
-                                VALUES  (?,?,now(),'OpenPay',?,?,?,'A','','Pay')";
+                                VALUES  (?,?,now(),'OpenPay',?,?,?,'A',?,'Pay')";
         $stmtPay = $db->prepare($sqlPay);
-        $stmtPay->execute([$IdLead,$Folio,$amount,$Currency,$charge->id]);    
+        $stmtPay->execute([$IdLead,$Folio,$amount,$Currency,$charge->id,$usuario]);    
 
         $stmt = $db->prepare(" UPDATE folios sET Folio = ? WHERE IdBranch = ? AND Type = 'Pay'");
         $stmt->execute([$Folio,$lead['IdBranch']]);        

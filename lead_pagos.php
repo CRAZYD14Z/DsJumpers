@@ -108,6 +108,7 @@
                     <div class="row d-none" id="div_tarjeta">
 
                 <form id="payment-form" action="#" method="POST">
+                    <input type="hidden" name="usuario" id="usuario" value='<?= $_SESSION['user'] ?>'>
                     <input type="hidden" name="token_id" id="token_id">
                     <input type="hidden" name="token" id="token" value="<?php echo $IdLead ?>">
                     <input type="hidden" name="monto" id="monto" value="<?php echo '0.00'?>">

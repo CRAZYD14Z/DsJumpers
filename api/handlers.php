@@ -2668,17 +2668,43 @@ function save_venue($table_name,$db, $method, $id, $data){
         break;
         case 'PUT':
             if ($data->{'IdVenue'} > 0) {
-                $query = "UPDATE  venues  SET Pais = :pais, Estado = :estado, Direccion = :direccion, Ciudad = :ciudad, CP = :cp, FechaCambio = now() WHERE Id = :id ";
+
+                if ($data ->{'Lat'} == null OR $data->{'Lat'} == ''){
+                    $miDireccion =$data->{'EventStreet'}." ".$data->{'EventCity'}." ".$data->{'EventZip'}." ".$data->{'EventState'}." ".$data->{'EventCountry'};
+                    $miDireccion = obtenerCoordenadas($miDireccion, GOOGLE_API_KEY);
+                    if (isset($miDireccion['error'])) {
+                        echo "Hubo un problema: " . $miDireccion['error'];
+                    } else {
+                        $query = "UPDATE venues SET Lat = :lat, Lng = :lng WHERE Id = :venue";
+                        $stmt = $db->prepare($query);
+                        $stmt->bindValue(":lat", $miDireccion['lat']);
+                        $stmt->bindValue(":lng", $miDireccion['lng']);
+                        $stmt->bindValue(":venue", $data->{'IdVenue'});
+                        $stmt->execute();
+                        $data->{'Lat'} = $miDireccion['lat'];
+                        $data->{'Lng'} = $miDireccion['lng'];
+                    }                    
+                }
+
+                $query = "UPDATE  venues  SET Pais = :pais, Estado = :estado, Direccion = :direccion, Ciudad = :ciudad, CP = :cp, Lat = :lat, Lng = :lng, FechaCambio = now() WHERE Id = :id ";
                 $stmt = $db->prepare($query);
                 $stmt->bindValue("pais", $data->{'EventCountry'});
                 $stmt->bindValue("estado", $data->{'EventState'});
                 $stmt->bindValue("direccion", $data->{'EventStreet'});
                 $stmt->bindValue("ciudad", $data->{'EventCity'});
                 $stmt->bindValue("cp", $data->{'EventZip'});
+                $stmt->bindValue("lat", $data->{'Lat'});
+                $stmt->bindValue("lng", $data->{'Lng'});
                 $stmt->bindValue(":id", $data->{'IdVenue'});
                 if ($stmt->execute()) {
                     http_response_code(200);
-                    echo json_encode(array("message" => "Registro actualizado."));
+                    if ($data->{'Lat'} == ""){
+                        echo json_encode(array("message" => "Registro actualizado.","GEO" => false));
+                    }
+                    else{
+                        echo json_encode(array("message" => "Registro actualizado.","GEO" => true));
+                    }
+                    
                 }
                 else{
                     http_response_code(503);
@@ -4304,14 +4330,14 @@ function payment_report($table_name,$db, $method, $id, $data){
             $fechaFin = $_POST['fecha_fin'] ?? date('Y-m-d');
 
             $usuario = $_POST['usuario'] ?? '';
-            $sql = "SELECT payments.Folio, payments.DateTime as FechadePago, payments.Platform, 
+            $sql = "										SELECT payments.Folio, payments.DateTime as FechadePago, payments.Platform, 
                         payments.Amount, payments.Currency, payments.TransactionId, payments.Estatus,
                     CASE WHEN v_leads.NombreOrganizacion IS NULL THEN CONCAT(v_leads.NombreCliente, ' ', v_leads.ApellidosCliente) 
                         ELSE v_leads.NombreOrganizacion END AS Cliente,
-                    CASE WHEN usuarios.nombre IS NULL THEN 'Link Pago' ELSE usuarios.nombre END AS Usuario,
+                    CASE WHEN operators.Nombres IS NULL THEN 'Link Pago' ELSE operators.Usuario END AS Usuario,
                     v_leads.Id
                     FROM payments
-                    LEFT JOIN usuarios ON payments.Usuario = usuarios.usuario
+                    LEFT JOIN operators ON payments.Usuario = operators.Usuario
                     INNER JOIN v_leads ON payments.IdLead = v_leads.Id
                     WHERE DATE(payments.DateTime) BETWEEN :inicio AND :fin";
 
@@ -4744,6 +4770,7 @@ function cancel_lead($table_name,$db, $method, $id, $data){
             $Type = $_POST['Type'];
             $Cargo = $_POST['Cargo'];      
             $Motivo = $_POST['Motivo'];      
+            $Usuario     = $_POST['usuario']  ?? 0;
 
             //echo $Id;
 
@@ -4863,7 +4890,7 @@ function cancel_lead($table_name,$db, $method, $id, $data){
             $sqlPay = "INSERT INTO payments (IdLead,Type,Folio,DateTime,Platform,Amount,Currency,TransactionId,Estatus,evidencia,Usuario) 
                                     VALUES  (     ?,'Dev',   ?,   now(),       ?,     ?,       ?,            ?,    'A',        ?,      ?)";
             $stmtPay = $db->prepare($sqlPay);
-            $stmtPay->execute([$Id,$Folio,$Tipo,$MontoDev,$account['Currency'],$GifCard,$fileName,'']);    
+            $stmtPay->execute([$Id,$Folio,$Tipo,$MontoDev,$account['Currency'],$GifCard,$fileName,$Usuario]);    
 
             $stmt = $db->prepare(" UPDATE folios SET Folio = ? WHERE IdBranch = ? AND Type = 'Dev'");
             $stmt->execute([$Folio,$lead['IdBranch']]);

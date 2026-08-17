@@ -181,6 +181,17 @@
 
 </div><!-- /.app-shell -->
 
+
+<div id="barra-mensajes" class="fixed-bottom d-none" style="z-index: 2000; display: none;">
+    <div class="container-fluid d-flex justify-content-between align-items-center py-2 px-4">
+        <div class="d-flex align-items-center">
+            <span id="mensaje-icono" class="me-2"></span>
+            <span id="mensaje-texto" class="fw-light small tracking-tight"></span>
+        </div>
+        <span class="btn-cerrar-mini" onclick="cerrarBarra()">X</span>
+    </div>
+</div>
+
 <div class="modal fade" id="modalConfirmarRuta" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -448,8 +459,8 @@ let datosRuta_s = '';
 let rutasParaGuardar = [];
 let tipoG = '';
 
-console.log("Vehículos:", dataVehiculos);
-console.log("Envíos:",    dataEnvios);
+//console.log("Vehículos:", dataVehiculos);
+//console.log("Envíos:",    dataEnvios);
 
 if (!dataVehiculos.length) console.warn("Sin vehículos activos.");
 if (!dataEnvios.length)    console.warn("Sin envíos para esta fecha.");
@@ -501,21 +512,51 @@ function renderListas() {
         $contE.html('<div class="empty-state"><div class="empty-icon"><i class="fas fa-box-open"></i></div><p><?= Trd(36) ?></p></div>');
     }
     dataEnvios.forEach(e => {
-        const card = $(`
-            <label class="shipment-card" for="chk-e-${e.id}">
-                <input class="form-check-input check-envio" type="checkbox" id="chk-e-${e.id}" value="${e.id}">
-                <div class="shipment-icon"><i class="fas fa-box"></i></div>
-                <div class="shipment-info">
-                    <span class="s-lugar">${e.lugar}</span>
-                    <span class="s-cliente">${e.cliente}</span>
-                    <span class="s-time"><i class="far fa-clock me-1"></i>${e.ventana[0]} – ${e.ventana[1]}</span>
-                    <span class="badge-ruta-envio" id="badge-ruta-${e.id}"></span>
+
+    const tieneGeolocalizacion = e.lat && e.lng && e.lat !== "" && e.lng !== "";
+
+    // Si no tiene ubicación, mostramos la alerta en consola/pantalla según prefieras
+    if (!tieneGeolocalizacion) {
+        console.warn(`El envío ID ${e.id} (${e.lugar}) no tiene geolocalización registrada.`);
+    }
+
+    const card = $(`
+        <label class="shipment-card ${!tieneGeolocalizacion ? 'border-warning bg-light' : ''}" for="chk-e-${e.id}">
+            <input class="form-check-input check-envio" type="checkbox" id="chk-e-${e.id}" value="${e.id}" ${!tieneGeolocalizacion ? 'disabled' : ''}>
+            <div class="shipment-icon">
+                <i class="fas ${tieneGeolocalizacion ? 'fa-box' : 'fa-exclamation-triangle text-warning'}"></i>
+            </div>
+            <div class="shipment-info">
+                <span class="s-lugar">${e.lugar}</span>
+                <span class="s-cliente">${e.cliente}</span>
+                <span class="s-time"><i class="far fa-clock me-1"></i>${e.ventana[0]} – ${e.ventana[1]}</span>
+                <span class="badge-ruta-envio" id="badge-ruta-${e.id}"></span>
+                
+                ${tieneGeolocalizacion ? `
                     <span class="meta-pill">${e.volumen} m³</span>
                     <span class="meta-pill">${e.peso} kg</span>
-                </div>
+                ` : `
+                    <span class="badge bg-warning text-dark mt-1">
+                        <i class="fas fa-map-marker-alt me-1"></i>Sin geolocalización
+                    </span>
+                `}
+            </div>
+        </label>
+    `);
 
-            </label>
-        `);
+    // Evento al hacer clic en una tarjeta que no tiene coordenadas
+    if (!tieneGeolocalizacion) {
+        card.on('click', function (e) {
+            e.preventDefault(); // Evita marcar el checkbox
+            lanzarMensaje(`El envío no tiene geolocalización registrada. Por favor, asigne una ubicación en la seccion de eventos.`,'alerta',4000)
+            //alert(`El envío de "${e.cliente}" (${e.lugar}) no tiene geolocalización registrada. Por favor, asigne una ubicación primero.`);
+            
+            // Opcional: Si quieres abrir el modal directamente para asignar la ubicación
+            // setUbicacion(posicionDefecto.lat, posicionDefecto.lng);
+            // $('#modalMapa').modal('show');
+        });
+    }    
+
         $contE.append(card);
     });
 
@@ -1174,6 +1215,44 @@ $(document).on('change', '.check-vehiculo, .check-envio', function() {
             console.log("Token actualizado globalmente desde: " + settings.url);
         }
     }); 
+
+
+
+let msgTimer;
+
+function lanzarMensaje(texto, tipo = 'normal', duracion = 4000) {
+    const $barra = $('#barra-mensajes');
+    const $texto = $('#mensaje-texto');
+    const $icono = $('#mensaje-icono');
+
+    // Resetear clases
+    $barra.removeClass('msg-minimal-normal msg-minimal-exito msg-minimal-error msg-minimal-alerta d-none');
+    
+    // Configurar según tipo
+    let clase, icono;
+    switch(tipo) {
+        case 'exito':  clase = 'msg-minimal-exito';  icono = '<i class="fas fa-check-circle"></i>'; break;
+        case 'error':  clase = 'msg-minimal-error';  icono = '<i class="fas fa-times-circle"></i>'; break;
+        case 'alerta': clase = 'msg-minimal-alerta'; icono = '<i class="fas fa-exclamation-triangle"></i>'; break;
+        default:       clase = 'msg-minimal-normal'; icono = '<i class="fas fa-info-circle"></i>';
+    }
+
+    $barra.addClass(clase);
+    $texto.text(texto);
+    $icono.html(icono);
+
+    // Animación de entrada
+    $barra.hide().fadeIn(400);
+
+    clearTimeout(msgTimer);
+    if (duracion > 0) {
+        msgTimer = setTimeout(cerrarBarra, duracion);
+    }
+}
+
+function cerrarBarra() {
+    $('#barra-mensajes').fadeOut(400);
+}
 
 
 
