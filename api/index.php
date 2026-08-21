@@ -90,8 +90,8 @@ $base_path = '/api';
 $path = trim(str_replace($base_path, '', $request_uri), '/'); 
 $segments = explode('/', $path);
 
-$resource = $segments[0]; // Ej: 'login', 'clientes', 'productos'
-$id = $segments[1] ?? null; // Ej: ID si existe
+$resource = $segments[1]; // Ej: 'login', 'clientes', 'productos'
+$id = $segments[2] ?? null; // Ej: ID si existe
 
 if ($resource != 'process_stage_change' )
     $data = json_decode(file_get_contents("php://input"));

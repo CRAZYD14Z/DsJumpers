@@ -69,7 +69,7 @@ include_once 'head.php';
     <!-- Botón para móviles (solo visible en pantallas pequeñas) -->
     <div class="d-lg-none mb-3">
         <button class="btn btn-primary w-100" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarFilters" aria-controls="sidebarFilters">
-            <i class="bi bi-sliders me-2"></i> Mostrar Filtros
+            <i class="bi bi-sliders me-2"></i> <?php echo Trd(17)?>
         </button>
     </div>
 
@@ -78,39 +78,39 @@ include_once 'head.php';
         <div class="col-lg-3">
             <div class="offcanvas-lg offcanvas-start border-end h-100" tabindex="-1" id="sidebarFilters" aria-labelledby="sidebarFiltersLabel">
                 <div class="offcanvas-header bg-light d-lg-none border-bottom">
-                    <h5 class="offcanvas-title fw-bold" id="sidebarFiltersLabel"><i class="bi bi-sliders me-2"></i> Filtros de Búsqueda</h5>
+                    <h5 class="offcanvas-title fw-bold" id="sidebarFiltersLabel"><i class="bi bi-sliders me-2"></i> <?php echo Trd(18)?></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebarFilters" aria-label="Close"></button>
                 </div>
                 <div class="offcanvas-body p-3 p-lg-0 pe-lg-4">
                     <div class="card shadow-sm border-0 w-100">
                         <div class="card-body">
-                            <h5 class="card-title fw-bold mb-4 d-none d-lg-block"><i class="bi bi-sliders me-2 text-primary"></i> Filtros</h5>
+                            <h5 class="card-title fw-bold mb-4 d-none d-lg-block"><i class="bi bi-sliders me-2 text-primary"></i> <?php echo Trd(19)?></h5>
                             
                             <!-- Filtro de Texto -->
 <!-- Filtro de Texto y Sugerencias -->
 <div class="mb-4 position-relative">
-    <label for="txtSearch" class="form-label small fw-bold text-secondary">Buscar término</label>
+    <label for="txtSearch" class="form-label small fw-bold text-secondary"><?php echo Trd(20)?></label>
     <div class="input-group">
         <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
         <!-- Agregamos autocomplete="off" para evitar que el navegador interfiera -->
-        <input type="text" id="txtSearch" class="form-control border-start-0" placeholder="Cliente, organización o producto..." autocomplete="off">
+        <input type="text" id="txtSearch" class="form-control border-start-0" placeholder="<?php echo Trd(30)?>" autocomplete="off">
     </div>
 
     <!-- Dropdown de Filtros Predeterminados (Aparece al hacer focus) -->
     <div id="suggestionsDropdown" class="dropdown-menu shadow w-100 mt-1" style="display: none; position: absolute; z-index: 1000; max-height: 250px; overflow-y: auto;">
-        <h6 class="dropdown-header text-primary fw-bold">Filtros Predeterminados</h6>
+        <h6 class="dropdown-header text-primary fw-bold"><?php echo Trd(21)?></h6>
         <!-- Puedes definir aquí los filtros rápidos que desees -->
         <a class="dropdown-item preset-filter-item" href="#" data-field="Status" data-value="confirmed" data-label="Estado: Confirmado">
-            <i class="bi bi-check-circle-fill text-success me-2"></i> Leads Confirmados
+            <i class="bi bi-check-circle-fill text-success me-2"></i> <?php echo Trd(22)?>
         </a>
         <a class="dropdown-item preset-filter-item" href="#" data-field="Status" data-value="draft" data-label="Estado: Pendiente">
-            <i class="bi bi-exclamation-circle-fill text-warning me-2"></i> Leads Pendientes
+            <i class="bi bi-exclamation-circle-fill text-warning me-2"></i> <?php echo Trd(23)?>
         </a>
         <a class="dropdown-item preset-filter-item" href="#" data-field="Status" data-value="canceled" data-label="Estado: Cancelado">
-            <i class="bi bi-x-circle-fill text-danger me-2"></i> Leads Cancelados
+            <i class="bi bi-x-circle-fill text-danger me-2"></i> <?php echo Trd(24)?>
         </a>
         <div class="dropdown-divider"></div>
-        <h6 class="dropdown-header text-primary fw-bold">Productos Populares</h6>
+        <h6 class="dropdown-header text-primary fw-bold"><?php echo Trd(25)?></h6>
         <a class="dropdown-item preset-filter-item" href="#" data-field="Product" data-value="Mesa" data-label="Producto: Mesa">
             <i class="bi bi-box-seam me-2"></i> Buscar Mesas
         </a>
@@ -125,20 +125,20 @@ include_once 'head.php';
 
                             <!-- Filtro de Rango de Fechas (Unificado) -->
                             <div class="mb-4">
-                                <label for="dateRange" class="form-label small fw-bold text-secondary">Rango de fechas (Inicio)</label>
+                                <label for="dateRange" class="form-label small fw-bold text-secondary"><?php echo Trd(26)?></label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0"><i class="bi bi-calendar-range text-muted"></i></span>
-                                    <input type="text" id="dateRange" class="form-control border-start-0" placeholder="Seleccionar rango...">
+                                    <input type="text" id="dateRange" class="form-control border-start-0" placeholder="<?php echo Trd(31)?>">
                                 </div>
                             </div>
 
                             <!-- Botones de Acción -->
                             <div class="d-grid gap-2">
                                 <button type="button" id="btnApplyFilters" class="btn btn-primary d-lg-none" data-bs-dismiss="offcanvas">
-                                    Aplicar Filtros
+                                    <?php echo Trd(27)?>
                                 </button>
                                 <button type="button" id="btnClearFilters" class="btn btn-outline-secondary">
-                                    <i class="bi bi-eraser-fill me-2"></i> Limpiar Filtros
+                                    <i class="bi bi-eraser-fill me-2"></i> <?php echo Trd(28)?>
                                 </button>
                             </div>
                         </div>
@@ -362,7 +362,7 @@ $(document).ready(function() {
                         <div class="small text-muted italic">${item.EndDateTime}</div>
                     </td>                    
                     <td>
-                        <div class="fw-bold text-dark">${item.NombreMostrar}</div>
+                        <div class="fw-bold text-dark">${item.NombreMostrar == 'Sin identificar' ? '<?php echo Trd(29)?>' : item.NombreMostrar}</div>
                         <div class="small text-muted italic">${item.Organization > 0 ? '<?php echo Trd(10)?>' : '<?php echo Trd(11)?>'}</div>
                     </td>
                     <td>

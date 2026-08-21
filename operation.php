@@ -962,6 +962,15 @@ if (item.Status === 'EVENTO') {
             <div class="fw-bold text-dark">${item.NombreMostrar}</div>
             <div class="small text-muted italic">${item.Organization > 0 ? '<?php echo Trd(10)?>' : '<?php echo Trd(11)?>'}</div>
             <div class="small text-secondary">${item.Lugar} - ${item.Ciudad}</div>
+
+            <!-- Notas 1 y 2 (se muestran solo si contienen texto) -->
+            ${(item.Notas1 || item.Notas2) ? `
+                <div class="small text-muted mt-1 bg-light p-1 rounded">
+                    ${item.Notas1 ? `<div><strong>Nota 1:</strong> ${item.Notas1}</div>` : ''}
+                    ${item.Notas2 ? `<div><strong>Nota 2:</strong> ${item.Notas2}</div>` : ''}
+                </div>
+            ` : ''}            
+
         </td>
         <!-- Columna 3: Controles de Orden y Acción -->
         <td>

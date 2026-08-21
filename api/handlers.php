@@ -2957,19 +2957,26 @@ function distance_charge($table_name,$db, $method, $id, $data){
                         //$costo_total;
                     }
 
-                    $TaxRate = 0;
-                    $query = "SELECT EstimatedCombineRate FROM taxrates_zip WHERE Zip = :zip";
-                    
-                    $stmt = $db->prepare($query);
-                    $stmt->bindParam(':zip', $ZIPD, PDO::PARAM_STR);
-                    $stmt->execute();
-                    //$costo_extra = $stmt->fetchColumn();
-                    $data = $stmt->fetch(PDO::FETCH_ASSOC);
-                    
-                    if ($data) {
-                        // Ahora accedes a cada valor por su nombre
-                        $TaxRate =  $data['EstimatedCombineRate'];
+                    if ($CONO =='MX'){
+                        $TaxRate = '0.16';
+                    }else{
+
+                        $TaxRate = 0;
+                        $query = "SELECT EstimatedCombineRate FROM taxrates_zip WHERE Zip = :zip";
+                        
+                        $stmt = $db->prepare($query);
+                        $stmt->bindParam(':zip', $ZIPD, PDO::PARAM_STR);
+                        $stmt->execute();
+                        //$costo_extra = $stmt->fetchColumn();
+                        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+                        
+                        if ($data) {
+                            // Ahora accedes a cada valor por su nombre
+                            $TaxRate =  $data['EstimatedCombineRate'];
+                        }                    
+
                     }
+
 
                     $respuesta = [
                         "status" => "success",
@@ -3624,6 +3631,8 @@ function operation($table_name,$db, $method, $id, $data){
                     v_operations.Lng, 
                     v_operations.orden, 
                     v_operations.id_route, 
+                    v_operations.Note1, 
+                    v_operations.Note2, 
                     CASE 
                             WHEN Organization > 0 THEN NombreOrganizacion 
                             WHEN Customer > 0 THEN CONCAT(NombreCliente, ' ', ApellidosCliente)
