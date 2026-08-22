@@ -67,7 +67,7 @@ include_once 'nav.php';
 
 const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
 const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
-const TOKEN = localStorage.getItem('apiToken'); 
+let TOKEN = localStorage.getItem('apiToken'); 
 
 $(document).ready(function() {
     // Escuchar el cambio en el selector
@@ -283,6 +283,7 @@ function getStageColor($stage) {
         const nuevoToken = xhr.getResponseHeader('Authorization-Update');
         if (nuevoToken) {
             localStorage.setItem('apiToken', nuevoToken);
+TOKEN = nuevoToken;
             console.log("Token actualizado globalmente desde: " + settings.url);
         }
     }); 

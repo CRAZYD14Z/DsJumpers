@@ -255,7 +255,7 @@
 
     const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
     const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
-    const TOKEN = localStorage.getItem('apiToken'); 
+    let TOKEN = localStorage.getItem('apiToken'); 
 
 // ═══════════════════════════════════════════════════════════════
 //  DATOS
@@ -1125,6 +1125,7 @@ function carga_completa(){
         const nuevoToken = xhr.getResponseHeader('Authorization-Update');
         if (nuevoToken) {
             localStorage.setItem('apiToken', nuevoToken);
+TOKEN = nuevoToken;
             console.log("Token actualizado globalmente desde: " + settings.url);
         }
     }); 

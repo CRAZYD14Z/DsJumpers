@@ -820,7 +820,7 @@ include_once 'head.php';
 
 const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
 const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
-const TOKEN = localStorage.getItem('apiToken'); 
+let TOKEN = localStorage.getItem('apiToken'); 
 const ID_CLIENTE = '<?= $_SESSION['id_cliente']; ?>'; 
 const CFPUBLICURL = '<?= CFPUBLICURL ?>';     
 

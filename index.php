@@ -62,6 +62,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $texts['titulo']; ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Iconos de Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body class="bg-light d-flex align-items-center justify-content-center vh-100">
 
@@ -77,7 +79,7 @@
 
         <h3 class="card-title text-center mb-4"><?php echo $texts['titulo']; ?></h3>
 
-        <!-- LOGO DE LA EMPRESA AÑADIDO AQUÍ -->
+        <!-- LOGO DE LA EMPRESA -->
         <div class="text-center mb-4">
             <img src="<?= $Logo ?>" alt="Logo Empresa" class="img-fluid" style="max-height: 100px;">
         </div>
@@ -85,15 +87,32 @@
         <div id="alert-container"></div>
 
         <form id="login-form">
-            <input type="hidden" name="company" id = "company"  value = "<?= $_GET['company'] ?>">
+            <input type="hidden" name="company" id="company" value="<?= $_GET['company'] ?>">
+            
             <div class="mb-3">
                 <label for="usuario" class="form-label"><?php echo $texts['usuario']; ?></label>
                 <input type="text" id="usuario" name="usuario" class="form-control" placeholder="<?php echo $texts['placeholder_user']; ?>" required>
             </div>
+            
+            <!-- Campo de contraseña con botón de ojo -->
             <div class="mb-3">
                 <label for="password" class="form-label"><?php echo $texts['password']; ?></label>
-                <input type="password" id="password" name="password" class="form-control" placeholder="<?php echo $texts['placeholder_pass']; ?>" required>
+                <div class="input-group">
+                    <input type="password" id="password" name="password" class="form-control" placeholder="<?php echo $texts['placeholder_pass']; ?>" required>
+                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                        <i class="bi bi-eye" id="toggleIcon"></i>
+                    </button>
+                </div>
             </div>
+
+            <!-- Checkbox Recordarme -->
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="rememberMe">
+                <label class="form-check-label" for="rememberMe">
+                    <?php echo $texts['remember_me'] ?? 'Recordarme'; ?>
+                </label>
+            </div>
+
             <div class="d-grid">
                 <button type="submit" class="btn btn-primary"><?php echo $texts['boton']; ?></button>
             </div>
@@ -108,6 +127,26 @@
 <script>
 $(document).ready(function() {
 
+    // Cargar usuario guardado si existe "Recordarme"
+    if (localStorage.getItem('savedUser')) {
+        $('#usuario').val(localStorage.getItem('savedUser'));
+        $('#rememberMe').prop('checked', true);
+    }
+
+    // Alternar visibilidad de la contraseña
+    $('#togglePassword').on('click', function() {
+        const passInput = $('#password');
+        const icon = $('#toggleIcon');
+        
+        if (passInput.attr('type') === 'password') {
+            passInput.attr('type', 'text');
+            icon.removeClass('bi-eye').addClass('bi-eye-slash');
+        } else {
+            passInput.attr('type', 'password');
+            icon.removeClass('bi-eye-slash').addClass('bi-eye');
+        }
+    });
+
     // 1. Manejar cambio de Idioma
     $('#select-lang').on('change', function() {
         const langSeleccionado = $(this).val();
@@ -119,7 +158,6 @@ $(document).ready(function() {
             dataType: 'json',
             success: function(response) {
                 if (response.status === 'success') {
-                    // Recargamos para que el servidor lea la nueva sesión de idioma
                     location.reload(); 
                 }
             }
@@ -128,7 +166,14 @@ $(document).ready(function() {
 
     // 2. Manejar envío del Login por jQuery AJAX
     $('#login-form').on('submit', function(e) {
-        e.preventDefault(); // Evita recargar la página
+        e.preventDefault();
+
+        // Manejar opción "Recordarme"
+        if ($('#rememberMe').is(':checked')) {
+            localStorage.setItem('savedUser', $('#usuario').val());
+        } else {
+            localStorage.removeItem('savedUser');
+        }
 
         const formData = $(this).serialize();
 

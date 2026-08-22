@@ -266,6 +266,7 @@ function getStageColor($stage) {
         const nuevoToken = xhr.getResponseHeader('Authorization-Update');
         if (nuevoToken) {
             localStorage.setItem('apiToken', nuevoToken);
+TOKEN = nuevoToken;
             console.log("Token actualizado globalmente desde: " + settings.url);
         }
     }); 

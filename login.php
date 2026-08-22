@@ -132,11 +132,19 @@ $db = $database->getConnection();
                     $_SESSION['NombreCompania'] = $NombreCompania;
                     $_SESSION['apiToken'] = $jwtToken;
 
+                    // Detectar entorno
                     $is_local = ($_SERVER['SERVER_NAME'] == 'localhost');
-                    $cookie_path = $is_local ? '/DsJumpers/' : '/';                    
+                    $cookie_path = $is_local ? '/DsJumpers/' : '/';
 
-                    
-                    setcookie("saved_company", $company, time() + 86400, $cookie_path, "", false, true);
+                    // Guardar la cookie con parámetros explícitos
+                    setcookie("saved_company", $company, [
+                        'expires'  => time() + 86400, // 24 horas
+                        'path'     => $cookie_path,
+                        'domain'   => '',             // Dominio por defecto
+                        'secure'   => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on', // True solo si hay HTTPS
+                        'httponly' => true,
+                        'samesite' => 'Lax'           // Permite enviar la cookie tras redirecciones
+                    ]);
 
                     // ... El resto de tu código para iniciar la $_SESSION normal ...                    
 
