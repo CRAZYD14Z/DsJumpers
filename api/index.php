@@ -90,8 +90,8 @@ $base_path = '/api';
 $path = trim(str_replace($base_path, '', $request_uri), '/'); 
 $segments = explode('/', $path);
 
-$resource = $segments[1]; // Ej: 'login', 'clientes', 'productos'
-$id = $segments[2] ?? null; // Ej: ID si existe
+$resource = $segments[0]; // Ej: 'login', 'clientes', 'productos'
+$id = $segments[1] ?? null; // Ej: ID si existe
 
 if ($resource != 'process_stage_change' )
     $data = json_decode(file_get_contents("php://input"));
@@ -170,7 +170,11 @@ if ($resource === 'user_login' && $method === 'POST') {
 
 // --- B. MIDDLEWARE DE AUTENTICACIÓN (Para todas las demás rutas) ---
 if ($resource !== 'login') {
-    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    //$authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    $authHeader = $headers['Authorization'] 
+    ?? $_SERVER['HTTP_AUTHORIZATION'] 
+    ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] 
+    ?? '';
 
     if (empty($authHeader) || !preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
         http_response_code(401);

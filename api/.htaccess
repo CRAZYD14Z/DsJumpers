@@ -3,16 +3,18 @@ RewriteEngine On
 
 # --- NUEVAS LÍNEAS DE CONFIGURACIÓN ---
 # Permite que el encabezado Authorization se pase correctamente a PHP
-RewriteCond %{HTTP:Authorization} .
-RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+# RewriteCond %{HTTP:Authorization} .
+# RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteCond %{HTTP:Authorization} ^(.*)
+RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
 # --- FIN DE NUEVAS LÍNEAS ---
 
 
 # 2. Establecer la base para las reglas de reescritura.
 # Debe coincidir con la URL del subdirectorio donde está tu API.
 # localhost/juls/api/
-RewriteBase /DsJumpers/api/
-#RewriteBase /api/ 
+#RewriteBase /DsJumpers/api/
+RewriteBase /api/ 
 
 # 3. Reglas de Reescritura
 

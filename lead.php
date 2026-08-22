@@ -2652,7 +2652,7 @@ function distance_charge(zip,ctry){
         type: 'POST',
         dataType: 'json', // Indica que esperamos JSON
         headers: misHeaders,
-        data: JSON.stringify({ ZIPO: '<?php echo $account['CP']?>', CONO: '<?php echo $account['Pais']?>', ZIPD: zip, COND: ctry }),
+        data: JSON.stringify({ ZIPO: '<?php echo $account['CP']?>', CONO: '<?php echo $account['Pais']?>', ZIPD: zip, COND: ctry , APPLY: <?= $account['DistanceCharge'] ?>}),
 
         success: function(data) {
             let totaldist = data.cost.costo_total;

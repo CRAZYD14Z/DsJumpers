@@ -65,7 +65,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 $headers = getallheaders();
-$authHeader = $headers['Authorization'] ?? '';
+//$authHeader = $headers['Authorization'] ?? '';
+// Buscar en getallheaders(), $_SERVER o $_ENV
+$authHeader = $headers['Authorization'] 
+    ?? $_SERVER['HTTP_AUTHORIZATION'] 
+    ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] 
+    ?? '';
+
 $token = str_replace('Bearer ', '', $authHeader);
 $clienteId = $_SERVER['HTTP_X_ID_CLIENT'] ?? null;
 $lng = $_SERVER['HTTP_LNG'] ?? 'es';
@@ -122,8 +128,8 @@ $request_uri = $_SERVER['REQUEST_URI'];
 $base_path = '/api-web'; 
 $path = trim(str_replace($base_path, '', $request_uri), '/'); 
 $segments = explode('/', $path);
-$resource = $segments[1]; // Ej: 'login', 'clientes', 'productos'
-$id = $segments[2] ?? null; // Ej: ID si existe
+$resource = $segments[0]; // Ej: 'login', 'clientes', 'productos'
+$id = $segments[1] ?? null; // Ej: ID si existe
 // --- C. ENRUTAMIENTO CRUD PROTEGIDO ---
 $IDS='';
 unset($IDS);

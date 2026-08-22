@@ -2877,7 +2877,8 @@ function distance_charge($table_name,$db, $method, $id, $data){
             $CONO = $data->{'CONO'};
             $ZIPD = $data->{'ZIPD'};
             $COND = $data->{'COND'};
-            if ($ZIPD!="" AND $ZIPD != $ZIPO){
+            $APPLY = $data->{'APPLY'};
+            if ($ZIPD!="" AND $ZIPD != $ZIPO AND $APPLY == 1){
                     //RECUPERAMOS EL COSTO EXTRA POR MILLA
                     $query = "SELECT Rate, Zip, Distance, State, Total, Restriction FROM distance_charges  LIMIT 1";
                     
@@ -2991,11 +2992,31 @@ function distance_charge($table_name,$db, $method, $id, $data){
                 }
                 else{
 
+                    if ($CONO =='MX'){
+                        $TaxRate = '0.16';
+                    }else{
+
+                        $TaxRate = 0;
+                        $query = "SELECT EstimatedCombineRate FROM taxrates_zip WHERE Zip = :zip";
+                        
+                        $stmt = $db->prepare($query);
+                        $stmt->bindParam(':zip', $ZIPD, PDO::PARAM_STR);
+                        $stmt->execute();
+                        //$costo_extra = $stmt->fetchColumn();
+                        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+                        
+                        if ($data) {
+                            // Ahora accedes a cada valor por su nombre
+                            $TaxRate =  $data['EstimatedCombineRate'];
+                        }                    
+
+                    }
+
                     $respuesta = [
                         "status" => "success",
                         "total_millas" => 0,
                         "costo_total" => 0,
-                        "taxrate" => 0
+                        "taxrate" => $TaxRate
                     ];
 
                     echo json_encode(array(

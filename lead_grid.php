@@ -41,7 +41,7 @@
 
                 <div class="input-group" id="SearchP" name="SearchP">
                     <div class="input-group input-group-minimal">
-                        <input type="text" class="form-control input-minimal" placeholder="Search" id="ProductSearch" name="ProductSearch">
+                        <input type="text" class="form-control input-minimal" placeholder="<?= Trd(175); ?>" id="ProductSearch" name="ProductSearch">
                         <button class="btn btn-minimal" type="button" id="btn-inicio" onclick="reset_search()">X</button>
                     </div>
                 </div>
@@ -218,7 +218,7 @@
 
                             <tr>
                                 <td >
-                                    <input type="text" class="form-control" id="Distance_Charges" name="Distance_Charges" placeholder="Distance Charges" readonly>
+                                    <input type="text" class="form-control" id="Distance_Charges" name="Distance_Charges" placeholder="<?= Trd(176) ?>" readonly>
                                 </td>
                                 <td >
                                     <input class="form-check-input" type="checkbox" id="Distance_Charges_check" name="Distance_Charges_check" onchange="recalculate_totals()"
@@ -241,7 +241,7 @@
                             </tr> 
                             <tr>
                                 <td >
-                                    <input type="text" class="form-control"  id="Staff_Charges" name="Staff_Charges" placeholder="Staff Costs" readonly>
+                                    <input type="text" class="form-control"  id="Staff_Charges" name="Staff_Charges" placeholder="<?= Trd(177) ?>" readonly>
                                 </td>
                                 <td >
                                     <input class="form-check-input" type="checkbox" id="Staff_Charges_check" name="Staff_Charges_check" onchange="recalculate_totals()"
@@ -264,7 +264,7 @@
                             </tr>
                             <tr>
                                 <td >
-                                    <input type="text" class="form-control" id="Discount_Charges" name="Discount_Charges" placeholder="Discount" readonly>
+                                    <input type="text" class="form-control" id="Discount_Charges" name="Discount_Charges" placeholder="<?= Trd(178) ?>" readonly>
                                 </td>
                                 <td >
                                     <input class="form-check-input" type="checkbox" id="Discount_Charges_check" name="Discount_Charges_check" onchange="recalculate_totals()"
