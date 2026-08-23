@@ -168,9 +168,9 @@ include_once 'head.php';
 
 <script>
 
-const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
-const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
-let TOKEN = localStorage.getItem('apiToken'); 
+    <?php
+    include_once 'js_scripts.php';
+    ?>
 
 $(document).ready(function() {
 // 1. Solicitar coordenadas GPS inmediatamente al cargar la página
@@ -246,32 +246,7 @@ $(document).ready(function() {
 });    
 
 
-    $('.lang-option').on('click', function(e) {
-        e.preventDefault();
-
-        $.ajax({
-            url: 'cambiar_idioma.php',
-            type: 'POST',
-            data: { lang: $(this).data('lang') },
-            dataType: 'json',
-            success: function(response) {
-                if (response.status === 'success') {
-                    // Recargamos para que el servidor lea la nueva sesión de idioma
-                    location.reload(); 
-                }
-            }
-        });
-        
-    });
-
-    $(document).ajaxSuccess(function(event, xhr, settings) {
-        const nuevoToken = xhr.getResponseHeader('Authorization-Update');
-        if (nuevoToken) {
-            localStorage.setItem('apiToken', nuevoToken);
-TOKEN = nuevoToken;
-            console.log("Token actualizado globalmente desde: " + settings.url);
-        }
-    });        
+     
 
 
 </script>

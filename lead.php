@@ -328,9 +328,9 @@ include_once 'head.php';
 </div>
     <script>
 
-    const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
-    const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
-    let TOKEN = localStorage.getItem('apiToken'); 
+    <?php
+    include_once 'js_scripts.php';
+    ?>
     const ID_CLIENTE = '<?= $_SESSION['id_cliente']; ?>'; 
     const CFPUBLICURL = '<?= CFPUBLICURL ?>';     
 
@@ -738,7 +738,7 @@ function inicializarSelectDescuento(selector) {
                     lanzarMensaje("<?php echo Trd(78)?>", "exito", 5000);
                 },
                 error: function(xhr, status, error) {
-                    console.error('Error en el autoguardado:', error);
+                    //console.error('Error en el autoguardado:', error);
                 }
             });
         }
@@ -1091,7 +1091,7 @@ function inicializarSelectDescuento(selector) {
                     lanzarMensaje("<?php echo Trd(83)?>", "exito", 5000);
                 },
                 error: function(xhr, status, error) {
-                    console.error('Error en el autoguardado:', error);
+                    //console.error('Error en el autoguardado:', error);
                 }
             });
         }
@@ -2464,7 +2464,7 @@ function load_organization(Id){
         },
         error: function(xhr, status, error) {
             if (xhr.status === 401) {
-                console.error('Acceso denegado. Token expirado o inválido.');
+                //console.error('Acceso denegado. Token expirado o inválido.');
                 // Aquí puedes redirigir al login o limpiar el token
             } else {
                 console.error('Error al obtener registro:', error);
@@ -2509,7 +2509,7 @@ function load_customer(Id){
         },
         error: function(xhr, status, error) {
             if (xhr.status === 401) {
-                console.error('Acceso denegado. Token expirado o inválido.');
+                //console.error('Acceso denegado. Token expirado o inválido.');
                 // Aquí puedes redirigir al login o limpiar el token
             } else {
                 console.error('Error al obtener registro:', error);
@@ -2554,7 +2554,7 @@ function load_venue(Id,isFromReady = false){
         },
         error: function(xhr, status, error) {
             if (xhr.status === 401) {
-                console.error('Acceso denegado. Token expirado o inválido.');
+                //console.error('Acceso denegado. Token expirado o inválido.');
                 // Aquí puedes redirigir al login o limpiar el token
             } else {
                 console.error('Error al obtener registro:', error);
@@ -2603,7 +2603,7 @@ function get_venue(CusT,IdCus,NameVenue){
         },
         error: function(xhr, status, error) {
             if (xhr.status === 401) {
-                console.error('Acceso denegado. Token expirado o inválido.');
+                //console.error('Acceso denegado. Token expirado o inválido.');
                 // Aquí puedes redirigir al login o limpiar el token
             } else {
                 console.error('Error al obtener registro:', error);
@@ -2666,7 +2666,7 @@ function distance_charge(zip,ctry){
         },
         error: function(xhr, status, error) {
             if (xhr.status === 401) {
-                console.error('Acceso denegado. Token expirado o inválido.');
+                //console.error('Acceso denegado. Token expirado o inválido.');
                 // Aquí puedes redirigir al login o limpiar el token
             } else {
                 console.error('Error al obtener registro:', error);
@@ -3097,7 +3097,7 @@ function LoadDocument(DocumentType){
             },
             error: function(xhr, status, error) {
                 if (xhr.status === 401) {
-                    console.error('Acceso denegado. Token expirado o inválido.');
+                    //console.error('Acceso denegado. Token expirado o inválido.');
                     // Aquí puedes redirigir al login o limpiar el token
                 } else {
                     console.error('Error al obtener registro:', error);
@@ -3625,23 +3625,7 @@ function ejecutarRenderizadoPicking($contenedor, $cuerpoTabla,$extracuerpoTabla,
     }
 
 
-    $('.lang-option').on('click', function(e) {
-        e.preventDefault();
 
-        $.ajax({
-            url: 'cambiar_idioma.php',
-            type: 'POST',
-            data: { lang: $(this).data('lang') },
-            dataType: 'json',
-            success: function(response) {
-                if (response.status === 'success') {
-                    // Recargamos para que el servidor lea la nueva sesión de idioma
-                    location.reload(); 
-                }
-            }
-        });
-        
-    });
 
     function ProcesarSinPago(){
         var misHeaders = {
@@ -3759,14 +3743,7 @@ if (isset($lead) AND $lead['Status'] == 'canceled'){
 
 ?>    
 
-$(document).ajaxSuccess(function(event, xhr, settings) {
-    const nuevoToken = xhr.getResponseHeader('Authorization-Update');
-    if (nuevoToken) {
-        localStorage.setItem('apiToken', nuevoToken);
-TOKEN = nuevoToken;
-        console.log("Token actualizado globalmente desde: " + settings.url);
-    }
-});
+
 
 const formatter = new Intl.NumberFormat('en-US', {
   style: 'currency',

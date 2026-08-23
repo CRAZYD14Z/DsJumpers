@@ -143,8 +143,9 @@ include_once 'head.php';
 </div>
 
 <script>
-const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
-let TOKEN = localStorage.getItem('apiToken'); 
+    <?php
+    include_once 'js_scripts.php';
+    ?>
 
 $(document).ready(function() {
     let currentPage = 1;
@@ -188,8 +189,8 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr, status, error) {
-                console.error("Error en la petición:", error);
-                alert("<?php echo Trd(13) /* "Error al conectar con la API" */?>");
+                //console.error("Error en la petición:", error);
+                //alert("<?php echo Trd(13) /* "Error al conectar con la API" */?>");
             },
             complete: function() {
                 isFetching = false;
@@ -305,16 +306,7 @@ $(document).ready(function() {
     // Carga inicial
     fetchComments();
 });    
-
-// Sincronización Global de Tokens heredada de tu script original
-$(document).ajaxSuccess(function(event, xhr, settings) {
-    const nuevoToken = xhr.getResponseHeader('Authorization-Update');
-    if (nuevoToken) {
-        localStorage.setItem('apiToken', nuevoToken);
-TOKEN = nuevoToken;
-        console.log("Token actualizado globalmente desde: " + settings.url);
-    }
-});        
+     
 </script>
 </body>
 </html>

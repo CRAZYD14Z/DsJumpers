@@ -818,9 +818,9 @@ include_once 'head.php';
 
 <script>
 
-const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
-const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
-let TOKEN = localStorage.getItem('apiToken'); 
+    <?php
+    include_once 'js_scripts.php';
+    ?>
 const ID_CLIENTE = '<?= $_SESSION['id_cliente']; ?>'; 
 const CFPUBLICURL = '<?= CFPUBLICURL ?>';     
 

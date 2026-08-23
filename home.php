@@ -212,9 +212,9 @@ else{
 
 <script>
 
-    const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
-    const API_BASE_URL = '<?php echo URL_BASE;?>/api/';
-    let TOKEN = localStorage.getItem('apiToken'); 
+    <?php
+    include_once 'js_scripts.php';
+    ?>
 
 
 /* ══════════════════════════════════════════════════════════════
@@ -546,23 +546,7 @@ $(function() {
 });
 
 
-    $('.lang-option').on('click', function(e) {
-        e.preventDefault();
 
-        $.ajax({
-            url: 'cambiar_idioma.php',
-            type: 'POST',
-            data: { lang: $(this).data('lang') },
-            dataType: 'json',
-            success: function(response) {
-                if (response.status === 'success') {
-                    // Recargamos para que el servidor lea la nueva sesión de idioma
-                    location.reload(); 
-                }
-            }
-        });
-        
-    });
 
 $('#btn-aplicar-fecha').on('click', function() {
     // Obtener los valores seleccionados en el modal

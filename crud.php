@@ -1194,9 +1194,9 @@ div[id^="dropzone_"]:hover {
 
     ?>    
 <script>
-    const LOGIN_URL =  '<?php echo URL_BASE;?>/api/login';
-    const API_BASE_URL = '<?php echo URL_BASE;?>/api/';    
-    let TOKEN = localStorage.getItem('apiToken'); 
+    <?php
+    include_once 'js_scripts.php';
+    ?>
     const ID_CLIENTE = '<?= $_SESSION['id_cliente']; ?>'; 
     const CFPUBLICURL = '<?= CFPUBLICURL ?>'; 
     
@@ -1717,7 +1717,7 @@ var queryUrl = API_BASE_URL + IdTabla + '/' +
             }
         },
         error: function(xhr, status, error) {
-            console.error('Error al obtener registro:', error);
+            //console.error('Error al obtener registro:', error);
         },
         complete: function() {
             estado.isLoading = false;
@@ -1931,7 +1931,7 @@ function getRecordData(Id,IdTabla) {
                 $('#edit_price_name').val($('#edit_Name').val());
             }
             if (xhr.status === 401) {
-                console.error('Acceso denegado. Token expirado o inválido.');
+                // console.error('Acceso denegado. Token expirado o inválido.');
                 // Aquí puedes redirigir al login o limpiar el token
             } else {
                 console.error('Error al obtener registro:', error);
@@ -2279,10 +2279,10 @@ htmlStructure += '<tbody>' + htmlRows + '</tbody>';
                 },
                 error: function(xhr, status, error) {
                     if (xhr.status === 401) {
-                        console.error('Acceso denegado. Token expirado o inválido.');
+                        //console.error('Acceso denegado. Token expirado o inválido.');
                         // Aquí puedes redirigir al login o limpiar el token
                     } else {
-                        console.error('Error al obtener registro:', error);
+                        //console.error('Error al obtener registro:', error);
                     }
                 }
             });            
@@ -3079,7 +3079,7 @@ function cargar() {
             },
             error: function(xhr, status, error) {
                 if (xhr.status === 401) {
-                    console.error('Acceso denegado. Token expirado o inválido.');
+                    // console.error('Acceso denegado. Token expirado o inválido.');
                     // Aquí puedes redirigir al login o limpiar el token
                 } else {
                     const errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'Error al comunicarse con la API.';
@@ -3129,7 +3129,7 @@ function cargar() {
             error: function(xhr, status, error) {
                 
                 if (xhr.status === 401) {
-                    console.error('Acceso denegado. Token expirado o inválido.');
+                    //console.error('Acceso denegado. Token expirado o inválido.');
                     // Aquí puedes redirigir al login o limpiar el token
                 } else {
 
@@ -3184,7 +3184,7 @@ const generarCodigoAlfanumerico = () => {
             },
             error: function(xhr, status, error) {
                 if (xhr.status === 401) {
-                    console.error('Acceso denegado. Token expirado o inválido.');
+                    //console.error('Acceso denegado. Token expirado o inválido.');
                     // Aquí puedes redirigir al login o limpiar el token
                 } else {
                     console.error('Error al obtener registro:', error);
@@ -3194,32 +3194,6 @@ const generarCodigoAlfanumerico = () => {
     }
 
 
-    $('.lang-option').on('click', function(e) {
-        e.preventDefault();
-
-        $.ajax({
-            url: 'cambiar_idioma.php',
-            type: 'POST',
-            data: { lang: $(this).data('lang') },
-            dataType: 'json',
-            success: function(response) {
-                if (response.status === 'success') {
-                    // Recargamos para que el servidor lea la nueva sesión de idioma
-                    location.reload(); 
-                }
-            }
-        });
-        
-    });
-
-    $(document).ajaxSuccess(function(event, xhr, settings) {
-        const nuevoToken = xhr.getResponseHeader('Authorization-Update');
-        if (nuevoToken) {
-            localStorage.setItem('apiToken', nuevoToken);
-TOKEN = nuevoToken;
-            console.log("Token actualizado globalmente desde: " + settings.url);
-        }
-    });
 
 <?php if ($IdTabla == 'products'){?>
 
