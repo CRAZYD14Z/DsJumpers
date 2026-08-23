@@ -130,8 +130,9 @@ $db = $database->getConnection();
                     $_SESSION['company']        = $company;
                     $_SESSION['tzone']          = $ZonaHoraria;
                     $_SESSION['NombreCompania'] = $NombreCompania;
-                    $_SESSION['apiToken'] = $jwtToken;
-
+                    $_SESSION['apiToken']       = $jwtToken;
+                    $_SESSION['saved_company']  = $company;
+                    /*
                     // Detectar entorno
                     $is_local = ($_SERVER['SERVER_NAME'] == 'localhost');
                     $cookie_path = $is_local ? '/DsJumpers/' : '/';
@@ -145,7 +146,7 @@ $db = $database->getConnection();
                         'httponly' => true,
                         'samesite' => 'Lax'           // Permite enviar la cookie tras redirecciones
                     ]);
-
+                    */
                     // ... El resto de tu código para iniciar la $_SESSION normal ...                    
 
                     

@@ -1,14 +1,14 @@
 <?php
 session_start();
-
 // 1. Detectar entorno y configurar rutas bases
-$is_local = ($_SERVER['SERVER_NAME'] == 'localhost');
-$cookie_path = $is_local ? '/DsJumpers/' : '/';
-$base_url = $is_local ? '/DsJumpers/' : '/';
-$is_secure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
-
+$is_local       = ($_SERVER['SERVER_NAME'] == 'localhost');
+$cookie_path    = $is_local ? '/DsJumpers/' : '/';
+$base_url       = $is_local ? '/DsJumpers/' : '/';
+$is_secure      = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
+$company        = $_SESSION['saved_company'] ;
+/*
 // 2. Recuperar la empresa antes de destruir la cookie
-$company = $_COOKIE['saved_company'] ?? '';
+$company = $_COOKIßE['saved_company'] ?? '';
 
 // 3. Borrar la cookie usando EXACTAMENTE los mismos parámetros con los que fue creada
 if (isset($_COOKIE['saved_company'])) {
@@ -35,6 +35,9 @@ if (ini_get("session.use_cookies")) {
         'samesite' => $params["samesite"] ?? 'Lax'
     ]);
 }
+session_destroy();
+*/
+$_SESSION = array();
 session_destroy();
 
 // 5. Redirección

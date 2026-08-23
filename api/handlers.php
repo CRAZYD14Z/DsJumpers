@@ -3653,7 +3653,8 @@ function operation($table_name,$db, $method, $id, $data){
                     v_operations.orden, 
                     v_operations.id_route, 
                     v_operations.Note1, 
-                    v_operations.Note2, 
+                    v_operations.Note2,
+                    v_operations.Balance, 
                     CASE 
                             WHEN Organization > 0 THEN NombreOrganizacion 
                             WHEN Customer > 0 THEN CONCAT(NombreCliente, ' ', ApellidosCliente)
@@ -4219,15 +4220,29 @@ FROM
                 foreach ($SAMPLE_DATA as $row) {
                     $r  = $row['Ruta'];
                     $op = $row['id_operacion'];
-                    $Cient = $row['NombreOrganizacion'] ?: $row['NombreCliente'];
-                    $Phonte = !empty($row['NombreOrganizacion']) ? $row['OPhone'] : $row['CPhone'];
+                    
+                    // Extraer cliente y teléfono por fila
+                    $client = $row['NombreOrganizacion'] ?: $row['NombreCliente'];
+                    $phone  = !empty($row['NombreOrganizacion']) ? $row['OPhone'] : $row['CPhone'];
+
                     if (!isset($rutas[$r])) {
-                        $rutas[$r] = ['ruta'=>$r,'operador'=>$row['Operador'],'vehiculo'=>$row['Vehiculo'],'operaciones'=>[]];
+                        $rutas[$r] = [
+                            'ruta' => $r,
+                            'operador' => $row['Operador'],
+                            'vehiculo' => $row['Vehiculo'],
+                            'operaciones' => []
+                        ];
                     }
+                    
                     if (!isset($rutas[$r]['operaciones'][$op])) {
-                        $rutas[$r]['operaciones'][$op] = [];
+                        $rutas[$r]['operaciones'][$op] = [
+                            'client' => $client, // Guardamos el cliente correspondiente a ESTA operación
+                            'phone'  => $phone,  // Guardamos el teléfono correspondiente a ESTA operación
+                            'rows'   => []
+                        ];
                     }
-                    $rutas[$r]['operaciones'][$op][] = $row;
+                    
+                    $rutas[$r]['operaciones'][$op]['rows'][] = $row;
                 }
 
                 // ── Calcular ──────────────────────────────────────────────────
@@ -4239,7 +4254,11 @@ FROM
                     $pasosHechos = 0;
 
                     $itemsDetail = [];
-                    foreach ($rutaData['operaciones'] as $opId => $rows) {
+                    foreach ($rutaData['operaciones'] as $opId => $opData) {
+                        $rows      = $opData['rows'];
+                        $opClient  = $opData['client']; // Obtenemos el cliente correcto para esta operación
+                        $opPhone   = $opData['phone'];  // Obtenemos el teléfono correcto para esta operación
+
                         $pasosItem = count($rows);
                         $pasosHechos += $pasosItem;
                         $lastOp = end($rows);
@@ -4247,13 +4266,17 @@ FROM
 
                         // Pasos con detalle completo
                         $stepsDetail = [];
-                        $doneTypes = array_map(fn($r)=>$r['operation_type'], $rows);
+                        $doneTypes = array_map(fn($r) => $r['operation_type'], $rows);
+                        
                         foreach ($OPERATION_ORDER as $i => $opType) {
                             $done = in_array($opType, $doneTypes);
                             $stepData = null;
                             if ($done) {
                                 foreach ($rows as $r2) {
-                                    if ($r2['operation_type'] === $opType) { $stepData = $r2; break; }
+                                    if ($r2['operation_type'] === $opType) { 
+                                        $stepData = $r2; 
+                                        break; 
+                                    }
                                 }
                             }
                             $stepsDetail[] = [
@@ -4269,28 +4292,28 @@ FROM
                         }
 
                         $itemsDetail[] = [
-                            'id_operacion'    => $opId,
-                            'client'         => $Cient,
-                            'phone'           => $Phonte,
-                            'completados'     => $pasosItem,
-                            'total'           => $totalOps,
-                            'pct'             => $pctItem,
-                            'ultima_operacion'=> $lastOp['operation_type'],
-                            'ultima_hora'     => $lastOp['fechahora'],
-                            'completo'        => ($pasosItem >= $totalOps),
-                            'steps'           => $stepsDetail,
+                            'id_operacion'     => $opId,
+                            'client'           => $opClient, // Ahora es único e independiente por cada operación
+                            'phone'            => $opPhone,  // Ahora es único e independiente por cada operación
+                            'completados'      => $pasosItem,
+                            'total'            => $totalOps,
+                            'pct'              => $pctItem,
+                            'ultima_operacion' => $lastOp['operation_type'],
+                            'ultima_hora'      => $lastOp['fechahora'],
+                            'completo'         => ($pasosItem >= $totalOps),
+                            'steps'            => $stepsDetail,
                         ];
                     }
 
                     $pctRuta = $totalPasos > 0 ? round(($pasosHechos / $totalPasos) * 100) : 0;
 
                     $result[] = [
-                        'ruta'       => $rutaKey,
-                        'operador'   => $rutaData['operador'],
-                        'vehiculo'   => $rutaData['vehiculo'],
-                        'pct_global' => $pctRuta,
-                        'total_items'=> $totalItems,
-                        'items'      => $itemsDetail,
+                        'ruta'                 => $rutaKey,
+                        'operador'             => $rutaData['operador'],
+                        'vehiculo'             => $rutaData['vehiculo'],
+                        'pct_global'           => $pctRuta,
+                        'total_items'          => $totalItems,
+                        'items'                => $itemsDetail,
                         'ultima_actualizacion' => date('Y-m-d H:i:s'),
                     ];
                 }
@@ -5646,7 +5669,7 @@ function sendmail($table_name,$db, $method, $id, $data){
     }      
 }
 
-function upload_Aws($client,$gallery,$normal,$miniatura,$miniaturaj){
+function upload_Aws($client, $gallery, $normal, $miniatura, $miniaturaj) {
     $r2_config = [
         'region' => 'auto',
         'endpoint' => CFENDPOINT,
@@ -5656,46 +5679,77 @@ function upload_Aws($client,$gallery,$normal,$miniatura,$miniaturaj){
         ],
     ];
 
-    $s3Client    = new S3Client($r2_config);
-    try{
-        $bucket_name = 'eventgo';
+    $s3Client = new S3Client($r2_config);
+    $bucket_name = 'eventgo';
+
+    try {
+        // --- 1. Imagen Normal (AVIF) ---
+        $keyNormal = "$client/$gallery/originals/$normal";
+        $fileNormal = '../ajax/tmp/' . $normal;
+
         $s3Client->putObject([
-            'Bucket' => $bucket_name,
-            'Key'    => "$client/$gallery/originals/$normal",
-            'SourceFile' => '../ajax/tmp/'.$normal,
+            'Bucket'      => $bucket_name,
+            'Key'         => $keyNormal,
+            'SourceFile'  => $fileNormal,
             'ContentType' => 'image/avif'
         ]);
-        unlink('../ajax/tmp/'.$normal);
 
-        $miniatura_ =  str_replace("thumbnail_", "", $miniatura);
-        rename('../ajax/tmp/'.$miniatura, '../ajax/tmp/'.$miniatura_);
+        // Validación de existencia en el bucket
+        if (!$s3Client->doesObjectExist($bucket_name, $keyNormal)) {
+            throw new Exception("Error al verificar $keyNormal en R2/S3.");
+        }
+        unlink($fileNormal);
+
+        // --- 2. Miniatura AVIF ---
+        $miniatura_avif = str_replace("thumbnail_", "", $miniatura);
+        $fileMiniAvif = '../ajax/tmp/' . $miniatura_avif;
+        rename('../ajax/tmp/' . $miniatura, $fileMiniAvif);
+
+        $keyMiniAvif = "$client/$gallery/thumbnails/$miniatura_avif";
 
         $s3Client->putObject([
-            'Bucket' => $bucket_name,
-            'Key'    => "$client/$gallery/thumbnails/$miniatura_",
-            'SourceFile'   => '../ajax/tmp/'.$miniatura_,
+            'Bucket'      => $bucket_name,
+            'Key'         => $keyMiniAvif,
+            'SourceFile'  => $fileMiniAvif,
             'ContentType' => 'image/avif'
         ]);
-        
-        unlink('../ajax/tmp/'.$miniatura_);
 
-        $miniatura_ =  str_replace("thumbnail_", "", $miniaturaj);
-        rename('../ajax/tmp/'.$miniaturaj, '../ajax/tmp/'.$miniatura_);
+        // Validación de existencia en el bucket
+        if (!$s3Client->doesObjectExist($bucket_name, $keyMiniAvif)) {
+            throw new Exception("Error al verificar $keyMiniAvif en R2/S3.");
+        }
+        unlink($fileMiniAvif);
+
+        // --- 3. Miniatura JPG ---
+        $miniatura_jpg = str_replace("thumbnail_", "", $miniaturaj);
+        $fileMiniJpg = '../ajax/tmp/' . $miniatura_jpg;
+        rename('../ajax/tmp/' . $miniaturaj, $fileMiniJpg);
+
+        $keyMiniJpg = "$client/$gallery/thumbnails/$miniatura_jpg";
 
         $s3Client->putObject([
-            'Bucket' => $bucket_name,
-            'Key'    => "$client/$gallery/thumbnails/$miniatura_",
-            'SourceFile'   => '../ajax/tmp/'.$miniatura_,
-            'ContentType' => 'image/jpg'
+            'Bucket'      => $bucket_name,
+            'Key'         => $keyMiniJpg,
+            'SourceFile'  => $fileMiniJpg,
+            'ContentType' => 'image/jpeg'
         ]);
-        unlink('../ajax/tmp/'.$miniatura_);        
+
+        // Validación de existencia en el bucket
+        if (!$s3Client->doesObjectExist($bucket_name, $keyMiniJpg)) {
+            throw new Exception("Error al verificar $keyMiniJpg en R2/S3.");
+        }
+        unlink($fileMiniJpg);
 
         return true;
+
     } catch (Aws\S3\Exception\S3Exception $e) {
-        error_log("Error al subir a S3: " . $e->getMessage());
+        error_log("Error de AWS/R2 al subir: " . $e->getMessage());
         return false;
-    }        
-} 
+    } catch (Exception $e) {
+        error_log("Error de validación: " . $e->getMessage());
+        return false;
+    }
+}
 
 
 function delete_Aws($client,$gallery,$file){

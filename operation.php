@@ -995,7 +995,7 @@ if (item.Status === 'EVENTO') {
         <!-- Columna 4: Status -->
         <td><span class="badge rounded-pill ${badgeClass}">${item.Status}</span></td>
         <!-- Columna 5: Monto -->
-        <td class="text-end pe-4 fw-bold text-dark">$${formatCurrency(parseFloat(item.Total).toFixed(2))}</td>
+        <td class="text-end pe-4 fw-bold text-dark">$${formatCurrency(parseFloat(item.Balance).toFixed(2))}</td>
     </tr>`;
 }
 /*
