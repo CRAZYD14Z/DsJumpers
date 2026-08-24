@@ -1025,8 +1025,8 @@ function inicializarSelectDescuento(selector) {
         }
     });
 
-
-    function registrarVenue(nombreNuevo) {
+    window.registrarVenue = function(nombreNuevo){
+    //function registrarVenue(nombreNuevo) {
         $.ajax({
             url: API_BASE_URL + "save_venue/",
             method: 'POST',
@@ -1047,7 +1047,10 @@ function inicializarSelectDescuento(selector) {
                 $('#IdVenue').val(response.id)
 
                 //console.log("Registrado con éxito!");
-                lanzarMensaje("<?php echo Trd(81)?>", "exito", 5000);
+                if(nombreNuevo=='')
+                    triggerAutoSaveVenue();
+                else
+                    lanzarMensaje("<?php echo Trd(81)?>", "exito", 5000);
             },
             error: function () {
                 //alert("No se pudo guardar el ligar del evento.");
@@ -1058,8 +1061,8 @@ function inicializarSelectDescuento(selector) {
     }        
 
 
-
-    function triggerAutoSaveVenue() {
+window.triggerAutoSaveVenue = function(){
+ //   function triggerAutoSaveVenue() {
         if ($('#IdVenue').val() > 0 ){
             // Obtenemos el formulario y lo convertimos a un objeto plano
             const formArray = $('#venues').serializeArray();
@@ -3856,6 +3859,14 @@ $(document).ready(function () {
     $('#btnConfirmarUbicacion').on('click', function () {
         $('#EventLat').val($('#temp_lat').val());
         $('#EventLng').val($('#temp_lng').val());
+
+        //DETONAR EL DUARDADO DE LA DIRECCION, SI NO TIENE VENUE
+        if ($('#IdVenue').val() > 0 ){
+            triggerAutoSaveVenue();
+        }
+        else{
+            registrarVenue('');
+        }
     });
 });
 

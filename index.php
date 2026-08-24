@@ -185,7 +185,10 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.status === 'success') {
                     localStorage.setItem('apiToken', response.jwtToken);
-                    window.location.href = '../home.php';
+                    if (response.rolusuario=='DRIVER')
+                        window.location.href = '../operation.php';
+                    else
+                        window.location.href = '../home.php';
                 } else {
                     $('#alert-container').html(`
                         <div class="alert alert-danger py-2">${response.message}</div>

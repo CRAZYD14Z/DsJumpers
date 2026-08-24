@@ -151,7 +151,7 @@ $db = $database->getConnection();
 
                     
                     //echo "Login exitoso. Token guardado en sesión.";
-                    echo json_encode(['status' => 'success', 'jwtToken' => $jwtToken]);
+                    echo json_encode(['status' => 'success', 'jwtToken' => $jwtToken, 'rolusuario'=>$rolusuario]);
                 } else {
                     $errorResponse = json_decode($response, true);
                     $errorMessage = $errorResponse['message'] ?? 'Error desconocido.';

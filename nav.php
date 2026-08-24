@@ -10,15 +10,16 @@
 
         <div class="collapse navbar-collapse" id="navMain">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+<?php 
+if ($_SESSION['role_id'] == 'ADMIN'){
+?>
                 <!-- INICIO -->
                 <li class="nav-item">
                     <a class="nav-link active" href="home.php">
                         <i class="fas fa-home"></i> <?php echo ($_SESSION['Idioma']== 'en') ? "Home" : "Inicio"; ?>
                     </a>
                 </li>
-<?php 
-if ($_SESSION['role_id'] == 'ADMIN'){
-?>
                 <!-- VENTAS Y EVENTOS -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
@@ -106,7 +107,12 @@ if ($_SESSION['role_id'] == 'ADMIN'){
 <?php 
 if ($_SESSION['role_id'] == 'LOGISTICS'){
 ?>
-
+                <!-- INICIO -->
+                <li class="nav-item">
+                    <a class="nav-link active" href="home.php">
+                        <i class="fas fa-home"></i> <?php echo ($_SESSION['Idioma']== 'en') ? "Home" : "Inicio"; ?>
+                    </a>
+                </li>
                 <!-- OPERACIÓN Y LOGÍSTICA -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
@@ -174,6 +180,12 @@ if ($_SESSION['role_id'] == 'DRIVER'){
 <?php 
 if ($_SESSION['role_id'] == 'ASSISTANT'){
 ?>
+                <!-- INICIO -->
+                <li class="nav-item">
+                    <a class="nav-link active" href="home.php">
+                        <i class="fas fa-home"></i> <?php echo ($_SESSION['Idioma']== 'en') ? "Home" : "Inicio"; ?>
+                    </a>
+                </li>
                 <!-- OPERACIÓN Y LOGÍSTICA -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
@@ -203,6 +215,12 @@ if ($_SESSION['role_id'] == 'ASSISTANT'){
 <?php 
 if ($_SESSION['role_id'] == 'SALES'){
 ?>
+                <!-- INICIO -->
+                <li class="nav-item">
+                    <a class="nav-link active" href="home.php">
+                        <i class="fas fa-home"></i> <?php echo ($_SESSION['Idioma']== 'en') ? "Home" : "Inicio"; ?>
+                    </a>
+                </li>
                 <!-- VENTAS Y EVENTOS -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">

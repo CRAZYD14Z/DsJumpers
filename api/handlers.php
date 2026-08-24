@@ -2669,7 +2669,7 @@ function save_venue($table_name,$db, $method, $id, $data){
         case 'PUT':
             if ($data->{'IdVenue'} > 0) {
 
-                if ($data ->{'Lat'} == null OR $data->{'Lat'} == ''){
+                if ($data ->{'EventLat'} == null OR $data->{'EventLat'} == ''){
                     $miDireccion =$data->{'EventStreet'}." ".$data->{'EventCity'}." ".$data->{'EventZip'}." ".$data->{'EventState'}." ".$data->{'EventCountry'};
                     $miDireccion = obtenerCoordenadas($miDireccion, GOOGLE_API_KEY);
                     if (isset($miDireccion['error'])) {
@@ -2681,8 +2681,8 @@ function save_venue($table_name,$db, $method, $id, $data){
                         $stmt->bindValue(":lng", $miDireccion['lng']);
                         $stmt->bindValue(":venue", $data->{'IdVenue'});
                         $stmt->execute();
-                        $data->{'Lat'} = $miDireccion['lat'];
-                        $data->{'Lng'} = $miDireccion['lng'];
+                        $data->{'EventLat'} = $miDireccion['lat'];
+                        $data->{'EventLng'} = $miDireccion['lng'];
                     }                    
                 }
 
@@ -2693,12 +2693,12 @@ function save_venue($table_name,$db, $method, $id, $data){
                 $stmt->bindValue("direccion", $data->{'EventStreet'});
                 $stmt->bindValue("ciudad", $data->{'EventCity'});
                 $stmt->bindValue("cp", $data->{'EventZip'});
-                $stmt->bindValue("lat", $data->{'Lat'});
-                $stmt->bindValue("lng", $data->{'Lng'});
+                $stmt->bindValue("lat", $data->{'EventLat'});
+                $stmt->bindValue("lng", $data->{'EventLng'});
                 $stmt->bindValue(":id", $data->{'IdVenue'});
                 if ($stmt->execute()) {
                     http_response_code(200);
-                    if ($data->{'Lat'} == ""){
+                    if ($data->{'EventLat'} == ""){
                         echo json_encode(array("message" => "Registro actualizado.","GEO" => false));
                     }
                     else{
