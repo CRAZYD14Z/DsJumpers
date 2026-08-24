@@ -3614,11 +3614,11 @@ function operation($table_name,$db, $method, $id, $data){
             $id = isset($_GET['id']) ? $_GET['id'] : '';
             $Filtro = '';
             if ($tipo == 'ADMIN' OR $tipo == 'LOGISTICS' ){
-                $Filtro = " `Status` <> 'ALMACENADO' OR ISNULL(Status ) ";
+                $Filtro = " `Status` <> 'ALMACENADO' AND `Status` <> 'FINALIZADO' OR ISNULL(Status) ";
             }
 
             if ($tipo == 'DRIVER'){
-                $Filtro = " `Status` <> 'ALMACENADO' AND `Status` <> 'BODEGA'  AND id_driver = $id  ";
+                $Filtro = " `Status` <> 'ALMACENADO' AND `Status` <> 'BODEGA' AND `Status` <> 'FINALIZADO' AND id_driver = $id  ";
             }            
             
             $sql = "
@@ -4199,7 +4199,7 @@ FROM
 	operation_evidence
 	ON 
 		v_operations.Id_operation = operation_evidence.id_operation
-    WHERE daily_route.date = :date
+    WHERE daily_route.date = :date and operation_evidence.operation_type IN ('SURTIDO','CARGA','INSTALACION','PRUEBA FUNCIONAMIENTO','ENTREGA','RECOLECCION','ACONDICIONAMIENTO','ALMACENADO')
 		ORDER BY id_route, id_evidence
 ";
 
