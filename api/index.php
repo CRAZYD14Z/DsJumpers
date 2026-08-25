@@ -84,15 +84,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Obtener y limpiar los segmentos de la URI (ej: /api/clientes/123 -> clientes, 123)
-$request_uri = $_SERVER['REQUEST_URI'];
-// Determinar la base para eliminarla de la URI
-$base_path = '/api'; 
-$path = trim(str_replace($base_path, '', $request_uri), '/'); 
-$segments = explode('/', $path);
+// Obtener y limpiar los segmentos de la URI dinámicamente (funciona en local y producción)
+$request_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+if (preg_match('#/api(?:/(.*))?$#', $request_path, $matches)) {
+    $path = $matches[1] ?? '';
+} else {
+    $path = '';
+}
+$path = trim($path, '/');
+$segments = $path !== '' ? explode('/', $path) : [];
 
-$resource = $segments[0]; // Ej: 'login', 'clientes', 'productos'
-$id = $segments[1] ?? null; // Ej: ID si existe
+$resource = $segments[0] ?? null; // Ej: 'login', 'clientes', 'productos'
+$id = $segments[1] ?? null;       // Ej: ID si existe
 
 if ($resource != 'process_stage_change' )
     $data = json_decode(file_get_contents("php://input"));

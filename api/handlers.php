@@ -4429,34 +4429,116 @@ function reassign_route($table_name,$db, $method, $id, $data){
     global $IDS;
     switch ($method) {
         case 'POST': 
-                $idRoute     = $_POST['idRoute'];
-                $idOperation     = $_POST['idOperation'];
+            $idOperation = $_POST['idOperation'] ?? null;
+            $isNewRoute  = isset($_POST['isNewRoute']) && ($_POST['isNewRoute'] == '1' || $_POST['isNewRoute'] === 1);
+            $idRoute     = $_POST['idRoute'] ?? null;
+            $date        = $_POST['date'] ?? null;
+            $idVehicle   = $_POST['idVehicle'] ?? null;
+            $idDriver    = $_POST['idDriver'] ?? null;
 
-                $queryI ="UPDATE route_stops SET id_route = :idRoute WHERE id_operation = :idOperation";
-                $stmtI = $db->prepare($queryI);
-                $stmtI->bindValue(":idRoute", $idRoute);
-                $stmtI->bindValue(":idOperation", $idOperation);
-                $stmtI->execute();
+            if (!$idOperation) {
+                http_response_code(400);
+                echo json_encode(["status" => "error", "message" => "Falta idOperation."]);
+                return;
+            }
 
-                $queryI ="SELECT id_vehicle, id_driver FROM daily_route WHERE id_route = :idRoute";                
-                $stmtI = $db->prepare($queryI);
-                $stmtI->bindValue(":idRoute", $idRoute);
-                $stmtI->execute();
-                $resultado = $stmtI->fetch(PDO::FETCH_ASSOC);       
+            try {
+                $db->beginTransaction();
 
-                $idDriver = $resultado['id_driver'];
-                $idVehicle = $resultado['id_vehicle'];
+                // 1. Determinar o crear la ruta destino
+                if ($isNewRoute || empty($idRoute)) {
+                    if (!$date || !$idVehicle) {
+                        throw new Exception("Fecha y Vehículo son requeridos para crear una nueva ruta.");
+                    }
+                    $idDriver = !empty($idDriver) ? intval($idDriver) : 0;
+                    $idVehicle = intval($idVehicle);
 
-                $queryI ="UPDATE operation_master SET id_vehicle = :idVehicle, id_driver = :idDriver  WHERE id_operation = :idOperation";
-                $stmtI = $db->prepare($queryI);
-                //$stmtI->bindValue(":idRoute", $idRoute);
-                $stmtI->bindValue(":idVehicle", $idVehicle);
-                $stmtI->bindValue(":idDriver", $idDriver);
-                $stmtI->bindValue(":idOperation", $idOperation);
-                $stmtI->execute();                
+                    // Verificar si ya existe una ruta para ese vehículo y fecha
+                    $stmtRuta = $db->prepare("SELECT id_route FROM daily_route WHERE date = :date AND id_vehicle = :id_vehicle");
+                    $stmtRuta->bindValue(":date", $date);
+                    $stmtRuta->bindValue(":id_vehicle", $idVehicle);
+                    $stmtRuta->execute();
+                    $rutaExistente = $stmtRuta->fetch(PDO::FETCH_ASSOC);
 
-            http_response_code(200);
-            echo json_encode(array("message" => "Registro actualizado."));
+                    if ($rutaExistente) {
+                        $idRoute = $rutaExistente['id_route'];
+                        if ($idDriver > 0) {
+                            $db->prepare("UPDATE daily_route SET id_driver = ? WHERE id_route = ?")->execute([$idDriver, $idRoute]);
+                        }
+                    } else {
+                        $stmtIns = $db->prepare("INSERT INTO daily_route (date, id_vehicle, id_driver, polyline, status) VALUES (?, ?, ?, '', 1)");
+                        $stmtIns->execute([$date, $idVehicle, $idDriver]);
+                        $idRoute = $db->lastInsertId();
+                    }
+                } else {
+                    $stmtR = $db->prepare("SELECT id_vehicle, id_driver FROM daily_route WHERE id_route = :idRoute");
+                    $stmtR->bindValue(":idRoute", $idRoute);
+                    $stmtR->execute();
+                    $resultado = $stmtR->fetch(PDO::FETCH_ASSOC);       
+                    if (!$resultado) {
+                        throw new Exception("La ruta especificada no existe.");
+                    }
+                    $idDriver  = $resultado['id_driver'];
+                    $idVehicle = $resultado['id_vehicle'];
+                }
+
+                // 2. Obtener la ruta anterior (para limpieza posterior si queda vacía)
+                $stmtOldRoute = $db->prepare("SELECT id_route FROM route_stops WHERE id_operation = ?");
+                $stmtOldRoute->execute([$idOperation]);
+                $oldRoute = $stmtOldRoute->fetchColumn();
+
+                // 3. Obtener el siguiente orden de visita en la ruta destino
+                $stmtMaxOrder = $db->prepare("SELECT COALESCE(MAX(visit_order), 0) + 1 FROM route_stops WHERE id_route = ?");
+                $stmtMaxOrder->execute([$idRoute]);
+                $nextOrder = $stmtMaxOrder->fetchColumn();
+
+                // 4. Actualizar o insertar route_stops
+                $stmtStop = $db->prepare("UPDATE route_stops SET id_route = :idRoute, visit_order = :orden WHERE id_operation = :idOperation");
+                $stmtStop->bindValue(":idRoute", $idRoute);
+                $stmtStop->bindValue(":orden", $nextOrder);
+                $stmtStop->bindValue(":idOperation", $idOperation);
+                $stmtStop->execute();
+
+                if ($stmtStop->rowCount() === 0) {
+                    $stmtInsStop = $db->prepare("INSERT INTO route_stops (id_route, id_operation, visit_order) VALUES (:idRoute, :idOperation, :orden)");
+                    $stmtInsStop->bindValue(":idRoute", $idRoute);
+                    $stmtInsStop->bindValue(":idOperation", $idOperation);
+                    $stmtInsStop->bindValue(":orden", $nextOrder);
+                    $stmtInsStop->execute();
+                }
+
+                // 5. Actualizar operation_master
+                $queryOp = "UPDATE operation_master SET id_vehicle = :idVehicle, id_driver = :idDriver, orden = :orden WHERE id_operation = :idOperation";
+                $stmtOp = $db->prepare($queryOp);
+                $stmtOp->bindValue(":idVehicle", $idVehicle);
+                $stmtOp->bindValue(":idDriver", $idDriver);
+                $stmtOp->bindValue(":orden", $nextOrder);
+                $stmtOp->bindValue(":idOperation", $idOperation);
+                $stmtOp->execute();                
+
+                // 6. Registrar en el histórico (operation_evidence) la reasignación
+                $notaAuditoria = "Operación reasignada a Vehículo #{$idVehicle}, Chofer #{$idDriver}, Ruta #{$idRoute}";
+                $stmtLog = $db->prepare("INSERT INTO operation_evidence (id_operation, operation_type, notes, datetime) VALUES (?, 'REASIGNACION', ?, NOW())");
+                $stmtLog->execute([$idOperation, $notaAuditoria]);
+
+                // 7. Si la ruta anterior era distinta y quedó sin paradas, eliminarla
+                if ($oldRoute && $oldRoute != $idRoute) {
+                    $stmtCheck = $db->prepare("SELECT COUNT(*) FROM route_stops WHERE id_route = ?");
+                    $stmtCheck->execute([$oldRoute]);
+                    if ($stmtCheck->fetchColumn() == 0) {
+                        $db->prepare("DELETE FROM daily_route WHERE id_route = ?")->execute([$oldRoute]);
+                    }
+                }
+
+                $db->commit();
+                http_response_code(200);
+                echo json_encode(array("status" => "success", "message" => "Registro actualizado.", "id_route" => $idRoute));
+
+            } catch (Exception $e) {
+                $db->rollBack();
+                http_response_code(500);
+                echo json_encode(array("status" => "error", "message" => "Error al reasignar: " . $e->getMessage()));
+            }
 
         break;
         default:

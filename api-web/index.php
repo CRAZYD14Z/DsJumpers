@@ -123,13 +123,18 @@ $method = $_SERVER['REQUEST_METHOD'];
 $data = json_decode(file_get_contents("php://input"));
 
 
-$request_uri = $_SERVER['REQUEST_URI'];
-// Determinar la base para eliminarla de la URI
-$base_path = '/api-web'; 
-$path = trim(str_replace($base_path, '', $request_uri), '/'); 
-$segments = explode('/', $path);
-$resource = $segments[0]; // Ej: 'login', 'clientes', 'productos'
-$id = $segments[1] ?? null; // Ej: ID si existe
+// Obtener y limpiar los segmentos de la URI dinámicamente (funciona en local y producción)
+$request_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+if (preg_match('#/api-web(?:/(.*))?$#', $request_path, $matches)) {
+    $path = $matches[1] ?? '';
+} else {
+    $path = '';
+}
+$path = trim($path, '/');
+$segments = $path !== '' ? explode('/', $path) : [];
+
+$resource = $segments[0] ?? null; // Ej: 'login', 'clientes', 'productos'
+$id = $segments[1] ?? null;       // Ej: ID si existe
 // --- C. ENRUTAMIENTO CRUD PROTEGIDO ---
 $IDS='';
 unset($IDS);
