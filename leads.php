@@ -43,7 +43,86 @@ include_once 'head.php';
 .clickable-row:hover {
     background-color: rgba(13, 110, 253, 0.05) !important; /* Un azul muy tenue */
     transition: background-color 0.2s ease;
-}        
+}
+
+/* Estilos para la barra flotante de eliminación */
+.delete-action-bar {
+    position: fixed;
+    bottom: -80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    color: white;
+    padding: 14px 28px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.1) inset;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 1050;
+    transition: bottom 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    backdrop-filter: blur(12px);
+}
+.delete-action-bar.show {
+    bottom: 30px;
+}
+.delete-action-bar .btn-delete-leads {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    border: none;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.88rem;
+    transition: all 0.2s ease;
+}
+.delete-action-bar .btn-delete-leads:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+.delete-action-bar .btn-cancel-selection {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+.delete-action-bar .btn-cancel-selection:hover {
+    background: rgba(255,255,255,0.25);
+}
+.delete-action-bar .selected-count {
+    font-size: 0.92rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.delete-action-bar .selected-count .count-badge {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+/* Checkbox styling */
+.lead-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #3b82f6;
+}
+.lead-checkbox-cell {
+    width: 40px;
+    text-align: center;
+}
+.clickable-row.selected-row {
+    background-color: rgba(59, 130, 246, 0.08) !important;
+}
 
     </style>
 
@@ -154,6 +233,7 @@ include_once 'head.php';
                     <table class="table table-hover align-middle m-0">
                         <thead class="table-light">
                             <tr>
+                                <th class="lead-checkbox-cell"><input type="checkbox" id="selectAllLeads" class="lead-checkbox" title="Seleccionar todos"></th>
                                 <th class="ps-4"><?php echo Trd(2)?></th>
                                 <th class="ps-4"><?php echo Trd(12)?></th>
                                 <th><?php echo Trd(3)?></th>
@@ -173,6 +253,61 @@ include_once 'head.php';
             <div id="loadingIndicator" class="text-center my-4" style="display:none;">
                 <div class="spinner-grow text-primary" role="status"></div>
                 <p class="text-muted small"><?php echo Trd(7)?></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Barra flotante de eliminación -->
+<div id="deleteActionBar" class="delete-action-bar">
+    <span class="selected-count">
+        <i class="bi bi-check2-square"></i>
+        <span id="selectedCountText">0 seleccionados</span>
+    </span>
+    <button type="button" class="btn btn-delete-leads" id="btnDeleteLeads">
+        <i class="bi bi-trash3 me-1"></i> Eliminar
+    </button>
+    <button type="button" class="btn btn-cancel-selection" id="btnCancelSelection">
+        <i class="bi bi-x-lg me-1"></i> Cancelar
+    </button>
+</div>
+
+<!-- Modal de Confirmación de Eliminación -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-body text-center p-4 pt-5">
+                <div style="width: 72px; height: 72px; background: linear-gradient(135deg, #fef2f2, #fee2e2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                    <i class="bi bi-trash3" style="font-size: 1.8rem; color: #ef4444;"></i>
+                </div>
+                <h5 class="fw-bold mb-2">¿Eliminar leads seleccionados?</h5>
+                <p class="text-muted mb-0" id="deleteConfirmMessage">Se eliminarán 0 leads. Esta acción se puede revertir.</p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center gap-2 pb-4">
+                <button type="button" class="btn btn-light px-4" style="border-radius: 10px; font-weight: 500;" data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+                <button type="button" class="btn px-4" id="btnConfirmDelete" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; border-radius: 10px; font-weight: 600;">
+                    <i class="bi bi-trash3 me-1"></i> Sí, eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Resultado -->
+<div class="modal fade" id="deleteResultModal" tabindex="-1" aria-labelledby="deleteResultModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-body text-center p-4 pt-5">
+                <div id="resultIconContainer" style="width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;"></div>
+                <h5 class="fw-bold mb-2" id="deleteResultTitle"></h5>
+                <p class="text-muted mb-0" id="deleteResultMessage"></p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center pb-4">
+                <button type="button" class="btn btn-primary px-4" style="border-radius: 10px; font-weight: 500;" data-bs-dismiss="modal">
+                    Entendido
+                </button>
             </div>
         </div>
     </div>
@@ -319,7 +454,7 @@ $(document).ready(function() {
                 if (response.length === 0) {
                     noMoreData = true;
                     if (currentPage === 1) {
-                        $('#leadsData').html('<tr><td colspan="7" class="text-center py-5 text-muted"><?php echo Trd(8)?></td></tr>');
+                        $('#leadsData').html('<tr><td colspan="8" class="text-center py-5 text-muted"><?php echo Trd(8)?></td></tr>');
                     }
                 } else {
                     renderTable(response);
@@ -353,6 +488,9 @@ $(document).ready(function() {
             
             rows += `
                 <tr class="${statusClass} clickable-row" data-id="${item.Id}" style="cursor: pointer;">
+                    <td class="lead-checkbox-cell" onclick="event.stopPropagation();">
+                        <input type="checkbox" class="lead-checkbox lead-row-check" value="${item.Id}" onclick="event.stopPropagation();">
+                    </td>
                     <td class="ps-4">
                         <div class="fw-semibold">#${item.Folio}</div>
                         <div class="small text-muted">${item.FechaCreacion}</div>
@@ -428,6 +566,140 @@ $(document).ready(function() {
     });    
 
     fetchLeads();
+
+    // --- LÓGICA DE SELECCIÓN Y ELIMINACIÓN DE LEADS ---
+
+    // Actualizar la barra flotante según checkboxes seleccionados
+    function updateDeleteBar() {
+        const checked = $('.lead-row-check:checked');
+        const count = checked.length;
+        if (count > 0) {
+            $('#selectedCountText').text(count + ' seleccionado' + (count > 1 ? 's' : ''));
+            $('#deleteActionBar').addClass('show');
+        } else {
+            $('#deleteActionBar').removeClass('show');
+        }
+        // Sincronizar el checkbox "select all"
+        const total = $('.lead-row-check').length;
+        $('#selectAllLeads').prop('checked', total > 0 && count === total);
+        $('#selectAllLeads').prop('indeterminate', count > 0 && count < total);
+
+        // Marcar/desmarcar estilo de fila
+        $('.lead-row-check').each(function() {
+            $(this).closest('tr').toggleClass('selected-row', $(this).is(':checked'));
+        });
+    }
+
+    // Checkbox individual
+    $(document).on('change', '.lead-row-check', function(e) {
+        updateDeleteBar();
+    });
+
+    // Seleccionar todos
+    $('#selectAllLeads').on('change', function() {
+        const isChecked = $(this).is(':checked');
+        $('.lead-row-check').prop('checked', isChecked);
+        updateDeleteBar();
+    });
+
+    // Cancelar selección
+    $('#btnCancelSelection').on('click', function() {
+        $('.lead-row-check').prop('checked', false);
+        $('#selectAllLeads').prop('checked', false).prop('indeterminate', false);
+        updateDeleteBar();
+    });
+
+    // Eliminar leads seleccionados - Abrir modal de confirmación
+    $('#btnDeleteLeads').on('click', function() {
+        const count = $('.lead-row-check:checked').length;
+        if (count === 0) return;
+        $('#deleteConfirmMessage').text('Se eliminarán ' + count + ' lead' + (count > 1 ? 's' : '') + '. Esta acción se puede revertir.');
+        new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
+    });
+
+    // Confirmar eliminación desde el modal
+    $('#btnConfirmDelete').on('click', function() {
+        const selectedIds = [];
+        $('.lead-row-check:checked').each(function() {
+            selectedIds.push(parseInt($(this).val()));
+        });
+
+        if (selectedIds.length === 0) return;
+
+        // Cerrar modal de confirmación
+        bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal')).hide();
+
+        $.ajax({
+            url: API_BASE_URL + 'leads/',
+            type: 'DELETE',
+            dataType: 'json',
+            contentType: 'application/json',
+            headers: { 'Authorization': 'Bearer ' + TOKEN },
+            data: JSON.stringify({ ids: selectedIds }),
+            success: function(response) {
+                if (response.status === 'success') {
+                    // Todos eliminados exitosamente
+                    selectedIds.forEach(function(id) {
+                        $('tr[data-id="' + id + '"]').fadeOut(300, function() {
+                            $(this).remove();
+                            updateDeleteBar();
+                        });
+                    });
+                    showResultModal('success', 'Leads eliminados', response.message || 'Los leads seleccionados fueron eliminados correctamente.');
+                } else if (response.status === 'partial') {
+                    // Algunos eliminados, otros bloqueados por pagos
+                    const blockedIds = response.blocked_ids || [];
+                    // Remover solo los que SÍ se eliminaron
+                    selectedIds.forEach(function(id) {
+                        if (!blockedIds.includes(id)) {
+                            $('tr[data-id="' + id + '"]').fadeOut(300, function() {
+                                $(this).remove();
+                                updateDeleteBar();
+                            });
+                        }
+                    });
+                    // Deseleccionar los checkboxes de los bloqueados
+                    blockedIds.forEach(function(id) {
+                        $('tr[data-id="' + id + '"] .lead-row-check').prop('checked', false);
+                    });
+                    updateDeleteBar();
+
+                    let msg = response.message;
+                    if (response.deleted > 0) {
+                        msg = response.deleted + ' lead(s) eliminado(s). ' + msg;
+                    }
+                    showResultModal('warning', 'Eliminación parcial', msg);
+                } else {
+                    showResultModal('error', 'Error', response.message || 'Error al eliminar los leads.');
+                }
+            },
+            error: function() {
+                showResultModal('error', 'Error de conexión', 'No se pudo conectar con el servidor. Intenta de nuevo.');
+            }
+        });
+    });
+
+    // Función helper para mostrar el modal de resultado
+    function showResultModal(type, title, message) {
+        const iconContainer = $('#resultIconContainer');
+        let iconHtml = '';
+        if (type === 'success') {
+            iconContainer.css('background', 'linear-gradient(135deg, #f0fdf4, #dcfce7)');
+            iconHtml = '<i class="bi bi-check-circle" style="font-size: 1.8rem; color: #22c55e;"></i>';
+        } else if (type === 'warning') {
+            iconContainer.css('background', 'linear-gradient(135deg, #fffbeb, #fef3c7)');
+            iconHtml = '<i class="bi bi-exclamation-triangle" style="font-size: 1.8rem; color: #f59e0b;"></i>';
+        } else {
+            iconContainer.css('background', 'linear-gradient(135deg, #fef2f2, #fee2e2)');
+            iconHtml = '<i class="bi bi-x-circle" style="font-size: 1.8rem; color: #ef4444;"></i>';
+        }
+        iconContainer.html(iconHtml);
+        $('#deleteResultTitle').text(title);
+        $('#deleteResultMessage').text(message);
+        new bootstrap.Modal(document.getElementById('deleteResultModal')).show();
+    }
+
+    // --- FIN DE LÓGICA DE ELIMINACIÓN ---
 });
 
 

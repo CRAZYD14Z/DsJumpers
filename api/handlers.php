@@ -3316,6 +3316,9 @@ function leads($table_name, $db, $method, $id, $data) {
             $conditions = [];
             $params = [];
 
+            // Excluir leads con Status 'deleted' (soft delete)
+            $conditions[] = "l.Status != 'deleted'";
+
             // 1. Filtro por texto estándar libre
             if ($search != '') {
                 $conditions[] = "(l.NombreOrganizacion LIKE :search 
@@ -3394,6 +3397,60 @@ function leads($table_name, $db, $method, $id, $data) {
             } else {
                 http_response_code(404);
                 echo json_encode(array("message" => "Registro no encontrado."));
+            }
+        break;
+        case 'DELETE':
+            // Soft-delete: cambiar Status a 'deleted' para uno o varios leads
+            $ids = isset($data->ids) ? $data->ids : [];
+            if (empty($ids) || !is_array($ids)) {
+                http_response_code(400);
+                echo json_encode(array("status" => "error", "message" => "No se proporcionaron IDs válidos."));
+                break;
+            }
+
+            // Sanitizar: solo enteros
+            $ids = array_map('intval', $ids);
+
+            // Verificar cuáles leads tienen pagos activos (Estatus = 'A')
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $sqlCheck = "SELECT p.IdLead, l.Folio 
+                         FROM payments p 
+                         INNER JOIN lead l ON l.Id = p.IdLead 
+                         WHERE p.IdLead IN ($placeholders) AND p.Estatus = 'A' 
+                         GROUP BY p.IdLead";
+            $stmtCheck = $db->prepare($sqlCheck);
+            $stmtCheck->execute($ids);
+            $leadsConPagos = $stmtCheck->fetchAll(PDO::FETCH_ASSOC);
+
+            $idsConPagos = array_column($leadsConPagos, 'IdLead');
+            $foliosConPagos = array_column($leadsConPagos, 'Folio');
+
+            // Filtrar los IDs que SÍ se pueden eliminar (sin pagos activos)
+            $idsBorrables = array_diff($ids, $idsConPagos);
+
+            $deleted = 0;
+            if (!empty($idsBorrables)) {
+                $placeholdersBorrar = implode(',', array_fill(0, count($idsBorrables), '?'));
+                $sql = "UPDATE lead SET Status = 'deleted' WHERE Id IN ($placeholdersBorrar)";
+                $stmt = $db->prepare($sql);
+                $stmt->execute(array_values($idsBorrables));
+                $deleted = $stmt->rowCount();
+            }
+
+            // Responder con resultado mixto si algunos no se pudieron borrar
+            if (!empty($idsConPagos)) {
+                $foliosList = implode(', ', array_map(function($f) { return '#' . $f; }, $foliosConPagos));
+                http_response_code(200);
+                echo json_encode(array(
+                    "status" => "partial",
+                    "message" => "No se pudieron eliminar los leads con pagos aplicados: " . $foliosList,
+                    "deleted" => $deleted,
+                    "blocked_ids" => array_map('intval', $idsConPagos),
+                    "blocked_folios" => $foliosConPagos
+                ));
+            } else {
+                http_response_code(200);
+                echo json_encode(array("status" => "success", "message" => "Leads eliminados correctamente.", "count" => $deleted));
             }
         break;
         default:
