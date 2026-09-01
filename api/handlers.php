@@ -1095,8 +1095,14 @@ function handle_generic_crud($table_name,$db, $method, $id, $data) {
                         $normal = $valor;
                         $miniatura = "thumbnail_".$valor;
                         $miniaturaj = "thumbnail_".$valor;
-                        $miniaturaj =  str_replace("avif", "jpg", $miniaturaj);                        
-                        upload_Aws($client,$gallery,$normal,$miniatura,$miniaturaj);
+                        $miniaturaj =  str_replace("avif", "jpg", $miniaturaj);
+                        if ($table_name == 'account' ){
+                            if ($data->{"file_Logo"}!="")
+                                upload_Aws($client,$gallery,$normal,$miniatura,$miniaturaj);
+                        }else{
+                            upload_Aws($client,$gallery,$normal,$miniatura,$miniaturaj);
+                        }
+                        
                         $stmt->bindValue(":" . $campo, $valor);                        
                         }
                     }
