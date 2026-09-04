@@ -433,7 +433,7 @@ include_once 'head.php';
                 formData.append('vehiculoId', vehiculoId);
                 formData.append('fecha', parts[0]);
                 $.ajax({
-                    url: API_BASE_URL + 'api/delete_route/',
+                    url: API_BASE_URL + 'delete_route/',
                     method: 'POST',
                     data: formData,
                     headers: { 'Authorization': 'Bearer ' + TOKEN },            
@@ -607,7 +607,7 @@ include_once 'head.php';
             }
 
             $.ajax({
-                url: API_BASE_URL + 'api/reassign_route/',
+                url: API_BASE_URL + 'reassign_route/',
                 method: 'POST',
                 data: formData,
                 headers: {
@@ -684,7 +684,7 @@ include_once 'head.php';
             formData.append('fecha', fecha);
             formData.append('operadorId', idOperador);
             $.ajax({
-                url: API_BASE_URL + 'api/assign_operator/',
+                url: API_BASE_URL + 'assign_operator/',
                 method: 'POST',
                 data: formData,
                 headers: {
@@ -1193,7 +1193,7 @@ include_once 'head.php';
 
             $.ajax({
 
-                url: API_BASE_URL + 'api/extra_event',
+                url: API_BASE_URL + 'extra_event',
                 method: 'POST',
                 data: formData,
                 headers: {
@@ -1249,7 +1249,7 @@ include_once 'head.php';
             const id = $('#idParaBorrar').val();
             // Aquí tu petición AJAX
             $.ajax({
-                url: API_BASE_URL + 'api/extra_event_delete',
+                url: API_BASE_URL + 'extra_event_delete',
                 method: 'POST',
                 headers: {
                     'Authorization': 'Bearer ' + TOKEN
@@ -1275,7 +1275,7 @@ include_once 'head.php';
             formData.append('vehiculoId', vehiculo_ev);
             formData.append('fecha', date_ev);
             $.ajax({
-                url: API_BASE_URL + 'api/delete_route',
+                url: API_BASE_URL + 'delete_route',
                 method: 'POST',
                 data: formData,
                 headers: {
