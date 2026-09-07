@@ -3862,7 +3862,7 @@ function process_stage_change($table_name,$db, $method, $id, $data){
             // 1. Recibir datos básicos
             $id_op     = $_POST['id_op'];
             $currentStage = $_POST['currentStage'];
-            $nextStage = $_POST['next_stage'];
+            $nextStage = $_POST['next_stage'] ?? '';
             $coords    = $_POST['coords'];
             $notes     = $_POST['notes'];
             $items     = json_decode($_POST['items'], true);
@@ -3975,63 +3975,63 @@ function process_stage_change($table_name,$db, $method, $id, $data){
                 $stmtI->bindValue(":operation_type", $currentStage);
                 $stmtI->execute();                
             }
-            
-            $queryI ="SELECT * FROM operation_checklist WHERE    id_operation = :id_operation AND stage = :operation_type";
-            $stmtI = $db->prepare($queryI);
-            $stmtI->bindValue(":id_operation", $id_op);
-            $stmtI->bindValue(":operation_type", $currentStage);
-            $stmtI->execute();      
-            $resultados = $stmtI->fetchAll(PDO::FETCH_ASSOC);
-            if ($resultados) {
-                foreach ($resultados as $registro) {
-                    $queryI= "INSERT INTO operation_checklist (id_operation,id_product,id_accesory_base,id_accesory,requested_quantity,assorted_quantity,stage,verification_stage) VALUES(:id_operation,:id_product,:id_accesory_base,:id_accesory,:requested_quantity,:assorted_quantity,:stage,:verification_stage)";
-                    $stmtI = $db->prepare($queryI);
-                    $stmtI->bindValue(":id_operation", $registro['id_operation']);
-                    $stmtI->bindValue(":id_product", $registro['id_product']);
-                    $stmtI->bindValue(":id_accesory_base", $registro['id_accesory_base']);
-                    $stmtI->bindValue(":id_accesory", $registro['id_accesory']);
-                    $stmtI->bindValue(":requested_quantity", $registro['requested_quantity']);
-                    $stmtI->bindValue(":assorted_quantity", 0);
-                    $stmtI->bindValue(":stage", $nextStage);
-                    $stmtI->bindValue(":verification_stage", $registro['verification_stage']);
-                    $stmtI->execute();                  
+            if ($nextStage != ''){
+                $queryI ="SELECT * FROM operation_checklist WHERE    id_operation = :id_operation AND stage = :operation_type";
+                $stmtI = $db->prepare($queryI);
+                $stmtI->bindValue(":id_operation", $id_op);
+                $stmtI->bindValue(":operation_type", $currentStage);
+                $stmtI->execute();      
+                $resultados = $stmtI->fetchAll(PDO::FETCH_ASSOC);
+                if ($resultados) {
+                    foreach ($resultados as $registro) {
+                        $queryI= "INSERT INTO operation_checklist (id_operation,id_product,id_accesory_base,id_accesory,requested_quantity,assorted_quantity,stage,verification_stage) VALUES(:id_operation,:id_product,:id_accesory_base,:id_accesory,:requested_quantity,:assorted_quantity,:stage,:verification_stage)";
+                        $stmtI = $db->prepare($queryI);
+                        $stmtI->bindValue(":id_operation", $registro['id_operation']);
+                        $stmtI->bindValue(":id_product", $registro['id_product']);
+                        $stmtI->bindValue(":id_accesory_base", $registro['id_accesory_base']);
+                        $stmtI->bindValue(":id_accesory", $registro['id_accesory']);
+                        $stmtI->bindValue(":requested_quantity", $registro['requested_quantity']);
+                        $stmtI->bindValue(":assorted_quantity", 0);
+                        $stmtI->bindValue(":stage", $nextStage);
+                        $stmtI->bindValue(":verification_stage", $registro['verification_stage']);
+                        $stmtI->execute();                  
+                    }
                 }
-            }
 
 
-            if  ($currentStage == 'ENTREGA'){
-                $sign     = $_POST['sign'];
-                $queryI= "INSERT INTO operation_evidence (id_operation,operation_type,url_photo,geolocation,notes,sign,datetime) VALUES(:id_operation,:operation_type,:url_photo,:geolocation,:notes,:sign,NOW())";                
+                if  ($currentStage == 'ENTREGA'){
+                    $sign     = $_POST['sign'];
+                    $queryI= "INSERT INTO operation_evidence (id_operation,operation_type,url_photo,geolocation,notes,sign,datetime) VALUES(:id_operation,:operation_type,:url_photo,:geolocation,:notes,:sign,NOW())";                
+                    $stmtI = $db->prepare($queryI);
+                    $stmtI->bindValue(":id_operation", $id_op);
+                    $stmtI->bindValue(":operation_type", $currentStage);
+                    $stmtI->bindValue(":url_photo", $fileName);
+                    $stmtI->bindValue(":geolocation", $coords);
+                    $stmtI->bindValue(":notes", $notes);
+                    $stmtI->bindValue(":sign", $sign);
+                    $stmtI->execute();
+                }
+                else{
+                    $queryI= "INSERT INTO operation_evidence (id_operation,operation_type,url_photo,geolocation,notes,datetime) VALUES(:id_operation,:operation_type,:url_photo,:geolocation,:notes,NOW())";
+                    $stmtI = $db->prepare($queryI);
+                    $stmtI->bindValue(":id_operation", $id_op);
+                    $stmtI->bindValue(":operation_type", $currentStage);
+                    $stmtI->bindValue(":url_photo", $fileName);
+                    $stmtI->bindValue(":geolocation", $coords);
+                    $stmtI->bindValue(":notes", $notes);
+                    $stmtI->execute();                
+                }
+
+
+            
+
+
+                $queryI= "UPDATE operation_master SET status = :operation_type  WHERE id_operation = :id_operation ";
                 $stmtI = $db->prepare($queryI);
                 $stmtI->bindValue(":id_operation", $id_op);
                 $stmtI->bindValue(":operation_type", $currentStage);
-                $stmtI->bindValue(":url_photo", $fileName);
-                $stmtI->bindValue(":geolocation", $coords);
-                $stmtI->bindValue(":notes", $notes);
-                $stmtI->bindValue(":sign", $sign);
-                $stmtI->execute();
+                $stmtI->execute();               
             }
-            else{
-                $queryI= "INSERT INTO operation_evidence (id_operation,operation_type,url_photo,geolocation,notes,datetime) VALUES(:id_operation,:operation_type,:url_photo,:geolocation,:notes,NOW())";
-                $stmtI = $db->prepare($queryI);
-                $stmtI->bindValue(":id_operation", $id_op);
-                $stmtI->bindValue(":operation_type", $currentStage);
-                $stmtI->bindValue(":url_photo", $fileName);
-                $stmtI->bindValue(":geolocation", $coords);
-                $stmtI->bindValue(":notes", $notes);
-                $stmtI->execute();                
-            }
-
-
-        
-
-
-            $queryI= "UPDATE operation_master SET status = :operation_type  WHERE id_operation = :id_operation ";
-            $stmtI = $db->prepare($queryI);
-            $stmtI->bindValue(":id_operation", $id_op);
-            $stmtI->bindValue(":operation_type", $currentStage);
-            $stmtI->execute();               
-
 
             http_response_code(200);
             echo json_encode(array("message" => "Registro actualizado."));
