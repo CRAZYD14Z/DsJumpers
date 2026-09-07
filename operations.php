@@ -740,7 +740,7 @@ $('#btn-update-stage').on('click', function() {
         $('#btn-loader').removeClass('d-none');
 
         $.ajax({
-            url: API_BASE_URL + 'api/process_stage_change/',
+            url: API_BASE_URL + 'process_stage_change/',
             method: 'POST',
             data: formData,
             headers: { 'Authorization': 'Bearer ' + TOKEN },            

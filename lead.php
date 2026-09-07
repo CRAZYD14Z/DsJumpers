@@ -1887,16 +1887,30 @@ $(document).on("keypress", ".numbers-only", function (e) {
 
 document.addEventListener('DOMContentLoaded', function() {
 
-
-    // SECCION DE CALENDARIO 
-    const fp = flatpickr("#calendarioRango", {
-        mode: "range",
-        inline: true,
-        locale: "es",
-        minDate: "today",
-        dateFormat: "Y-m-d"
-    });
-
+        <?php 
+        if ($_SESSION['role_id'] == 'ADMIN'){
+        ?>
+            // SECCION DE CALENDARIO 
+            const fp = flatpickr("#calendarioRango", {
+                mode: "range",
+                inline: true,
+                locale: "es",
+                dateFormat: "Y-m-d"
+            });
+        <?php 
+        }else{
+        ?>
+            // SECCION DE CALENDARIO 
+            const fp = flatpickr("#calendarioRango", {
+                mode: "range",
+                inline: true,
+                locale: "es",
+                minDate: "today",
+                dateFormat: "Y-m-d"
+            });
+        <?php 
+        }
+        ?>
     const hInicio = document.getElementById('hInicio');
     const hFin = document.getElementById('hFin');
 

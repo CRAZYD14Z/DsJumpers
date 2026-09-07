@@ -1087,7 +1087,7 @@ function carga_completa(){
         formData.append('next_stage', 'INSTALACION');
 
         $.ajax({
-            url: API_BASE_URL + 'api/process_stage_change_em/',
+            url: API_BASE_URL + 'process_stage_change_em/',
             method: 'POST',
             data: formData,
             headers: { 'Authorization': 'Bearer ' + TOKEN },            

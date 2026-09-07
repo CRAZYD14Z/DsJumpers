@@ -451,7 +451,7 @@ function fetchData() {
     formData.append('date', $('#date-ruta').val());    
 
     $.ajax({
-        url: API_BASE_URL + 'api/data_monitor/',
+        url: API_BASE_URL + 'data_monitor/',
         method: 'POST',
         data: formData,
         headers: { 'Authorization': 'Bearer ' + TOKEN },

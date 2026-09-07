@@ -562,7 +562,7 @@ function ProcesarP(Tipo){
 
     // Petición AJAX
     $.ajax({
-        url: API_BASE_URL + 'api/process_pay/',
+        url: API_BASE_URL + 'process_pay/',
         method: 'POST',
         data: { idLead: idLead, monto: saldo, tipo:Tipo, usuario:'admin'},
         headers: { 'Authorization': 'Bearer ' + TOKEN },

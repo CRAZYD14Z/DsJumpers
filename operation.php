@@ -27,7 +27,7 @@ function Trd($Id)
 }
 
 $Operadores = '';
-$query = "SELECT Id, Nombres, Apellidos  from operators WHERE Estatus = 'A' AND Tipo = 'DRIVER'";
+$query = "SELECT Id, Nombres, Apellidos  from operators WHERE Estatus = 'A' AND ( Tipo = 'DRIVER' OR Tipo = 'ADMIN' )";
 $stmt = $db->prepare($query);
 $stmt->execute();
 $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);

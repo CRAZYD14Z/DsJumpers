@@ -128,7 +128,7 @@ $('#btnBuscar').click(function() {
     formData.append('fecha_fin', $('#fFin').val());
     formData.append('usuario', $('#filtroUsuario').val());
     $.ajax({
-        url: API_BASE_URL + 'api/payment_report/',
+        url: API_BASE_URL + 'payment_report/',
         method: 'POST',
         data: formData,
         headers: { 'Authorization': 'Bearer ' + TOKEN },            
